@@ -1,5 +1,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (!payload.sub || (payload.exp && payload.exp * 1000 < Date.now())) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -55,36 +67,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const supabase = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user) {
+    // Decode JWT locally to avoid expensive getUser() call
+    const token = authHeader.replace("Bearer ", "");
+    const payload = decodeJwtPayload(token);
+    if (!payload) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = user.id;
+    const userId = payload.sub as string;
 
-    const [{ data: profile, error: profileError }, { data: isAdmin, error: roleError }] = await Promise.all([
-      supabase.from("profiles").select("is_dev").eq("user_id", userId).single(),
-      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    // Read body early before any async DB calls
+    const { url } = await req.json();
+    const playlistUrl = validatePlaylistUrl(url);
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    const [{ data: profile }, { data: isAdmin }] = await Promise.all([
+      supabase.from("profiles").select("is_dev").eq("user_id", userId).maybeSingle(),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }) as Promise<{ data: boolean }>,
     ]);
-
-    if (profileError) {
-      throw new Error("Não foi possível validar seu acesso");
-    }
-
-    if (roleError) {
-      throw new Error("Não foi possível validar sua permissão");
-    }
 
     if (!profile?.is_dev && !isAdmin) {
       return new Response(JSON.stringify({ error: "Acesso restrito ao plano DEV" }), {
@@ -92,9 +98,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const { url } = await req.json();
-    const playlistUrl = validatePlaylistUrl(url);
 
     const upstream = await fetch(playlistUrl, {
       method: "GET",
