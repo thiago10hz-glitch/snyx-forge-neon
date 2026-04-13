@@ -1054,7 +1054,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
+        <div className="flex items-center gap-0.5 px-1 sm:px-1.5 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass overflow-x-auto">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-0.5 md:mr-1"
@@ -1072,11 +1072,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
+                  className={`flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={13} />
+                  <Icon size={12} />
                   <span className="hidden sm:inline">{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
@@ -1475,9 +1475,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-2 md:p-4 safe-bottom">
+        <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-1 md:gap-2 glass-elevated rounded-2xl px-2 md:px-3 py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button */}
               <button
