@@ -4,7 +4,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -57,6 +57,13 @@ const Index = () => {
           >
             <MonitorPlay className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
             <span className="hidden md:inline">TV</span>
+          </Link>
+          <Link
+            to="/hosting"
+            className="flex items-center gap-1.5 text-xs font-medium px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+          >
+            <Server className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
+            <span className="hidden md:inline">Hosting</span>
           </Link>
 
           {isAdmin && (
