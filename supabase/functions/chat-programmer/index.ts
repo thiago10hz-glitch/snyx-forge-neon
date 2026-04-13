@@ -9,9 +9,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) {
-      return new Response(JSON.stringify({ error: "OPENROUTER_API_KEY não configurada" }), {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "API key não configurada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -68,16 +68,14 @@ REGRAS:
       ...truncatedMessages,
     ];
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
-        "X-Title": "SnyX Dev",
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat-v3.1",
+        model: "google/gemini-3-flash-preview",
         messages: apiMessages,
         stream: true,
         max_tokens: 16384,
@@ -87,18 +85,18 @@ REGRAS:
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("OpenRouter error:", res.status, err);
+      console.error("AI Gateway error:", res.status, err.slice(0, 300));
       if (res.status === 429) {
         return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (res.status === 402) {
-        return new Response(JSON.stringify({ error: "Saldo insuficiente na API OpenRouter" }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Entre em contato com o administrador." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: `Erro OpenRouter: ${res.status}` }), {
+      return new Response(JSON.stringify({ error: `Erro na API de IA: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
