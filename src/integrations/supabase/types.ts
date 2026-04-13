@@ -68,6 +68,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_connections: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          target_email: string
+          target_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          target_email: string
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          target_email?: string
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           created_at: string
@@ -162,6 +195,79 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_shared_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          room_id: string
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role?: string
+          room_id: string
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          room_id?: string
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_shared_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_shared_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_shared_rooms: {
+        Row: {
+          connection_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          title: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_shared_rooms_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "chat_connections"
             referencedColumns: ["id"]
           },
         ]
