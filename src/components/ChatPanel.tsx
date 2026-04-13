@@ -180,6 +180,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
   useEffect(() => { void checkMessageLimit(); }, [checkMessageLimit]);
 
+  // Load bubble style from customization
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("chat_customization")
+        .select("bubble_style, theme_color")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setBubbleStyle((data as any).bubble_style || "default");
+        setChatThemeColor(data.theme_color || "#8b5cf6");
+      }
+    })();
+  }, [user]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
