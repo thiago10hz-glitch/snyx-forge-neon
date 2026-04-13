@@ -168,27 +168,8 @@ const Index = () => {
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex overflow-hidden">
         {chatMode === "music" ? (
-          <div className="flex-1 overflow-hidden flex flex-col bg-background items-center justify-center p-6">
-            <div className="text-center max-w-md animate-fade-in-up">
-              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
-                <span className="text-4xl">🎵</span>
-              </div>
-              <h2 className="text-xl font-bold text-foreground mb-2">SnyX Música</h2>
-              <p className="text-sm text-muted-foreground mb-1">
-                Crie músicas incríveis com inteligência artificial usando o Musicful AI.
-              </p>
-              <p className="text-xs text-muted-foreground/60 mb-6">
-                O gerador de música abre em uma nova aba para a melhor experiência.
-              </p>
-              <a
-                href="https://br.musicful.ai/ai-music-generator/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-primary-foreground font-semibold rounded-xl transition-all text-sm shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30"
-              >
-                🎶 Abrir Musicful AI
-              </a>
-            </div>
+          <div className="flex-1 overflow-hidden">
+            <MusicPanel onBack={() => setChatMode("friend")} />
           </div>
         ) : (
           <>
