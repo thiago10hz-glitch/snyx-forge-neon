@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Palette, Bot, Save, Loader2, Camera, User, Sparkles, Type, MessageCircle } from "lucide-react";
+import { X, Palette, Bot, Save, Loader2, Camera, Sparkles, Type, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
