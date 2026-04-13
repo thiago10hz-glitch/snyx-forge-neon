@@ -833,7 +833,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             if (jsonStr === "[DONE]") { streamDone = true; break; }
             try {
               const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              const content = parsed.text || parsed.choices?.[0]?.delta?.content as string | undefined;
               if (content) {
                 setThinkingText("");
                 upsertAssistant(content);
