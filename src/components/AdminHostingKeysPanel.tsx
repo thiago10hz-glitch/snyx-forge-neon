@@ -71,6 +71,26 @@ export function AdminHostingKeysPanel() {
     }
   };
 
+  const revokeAndDelete = async (key: LicenseKey) => {
+    if (!confirm(`Revogar acesso de ${key.used_by_email || "usuário"} e deletar a chave?`)) return;
+    try {
+      // Revoke hosting tier if used by someone
+      if (key.used_by_email) {
+        const { data: userId } = await supabase.rpc("find_user_by_email", { p_email: key.used_by_email });
+        if (userId) {
+          await supabase.rpc("admin_revoke_hosting", { p_user_id: userId });
+        }
+      }
+      // Delete the key
+      const { error } = await supabase.from("license_keys").delete().eq("id", key.id);
+      if (error) throw error;
+      toast.success(`Chave revogada e deletada! ${key.used_by_email || ""}`);
+      setKeys(prev => prev.filter(k => k.id !== key.id));
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao revogar chave");
+    }
+
   const copyKey = (id: string, code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
