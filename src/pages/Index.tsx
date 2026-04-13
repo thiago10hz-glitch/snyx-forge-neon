@@ -49,7 +49,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2">
           <AdminPresenceIndicator />
           <Link
             to="/iptv"
