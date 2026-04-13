@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
 
     // Call HuggingFace Inference API with MusicGen
     const hfRes = await fetch(
-      "https://api-inference.huggingface.co/models/facebook/musicgen-small",
+      "https://router.huggingface.co/hf-inference/models/facebook/musicgen-small",
       {
         method: "POST",
         headers: {
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       await new Promise(r => setTimeout(r, Math.min(estimatedTime * 1000, 60000)));
       
       const retryRes = await fetch(
-        "https://api-inference.huggingface.co/models/facebook/musicgen-small",
+        "https://router.huggingface.co/hf-inference/models/facebook/musicgen-small",
         {
           method: "POST",
           headers: {
