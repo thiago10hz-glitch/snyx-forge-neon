@@ -80,8 +80,8 @@ async function tryGroq(apiKey: string, systemPrompt: string, messages: any[]) {
   return { response: res, type: "openai" };
 }
 
-async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any[]) {
-  const orMessages = [
+async function trySiliconFlow(apiKey: string, systemPrompt: string, messages: any[]) {
+  const sfMessages = [
     { role: "system", content: systemPrompt },
     ...messages.slice(-20).map((m: any) => ({
       role: m.role === "user" ? "user" : "assistant",
@@ -89,17 +89,15 @@ async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any
     })),
   ];
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
-      "X-Title": "SnyX Amigo",
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-chat-v3.1",
-      messages: orMessages,
+      model: "deepseek-ai/DeepSeek-V3",
+      messages: sfMessages,
       stream: true,
       max_tokens: 4096,
       temperature: 0.85,
@@ -108,7 +106,7 @@ async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any
 
   if (!res.ok) {
     const err = await res.text();
-    console.error("OpenRouter error:", res.status, err.slice(0, 200));
+    console.error("SiliconFlow error:", res.status, err.slice(0, 200));
     return null;
   }
 
@@ -186,7 +184,7 @@ Deno.serve(async (req) => {
   try {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    const SILICONFLOW_API_KEY = Deno.env.get("SILICONFLOW_API_KEY");
 
     const { messages, mode } = await req.json();
     if (!messages || !Array.isArray(messages)) {
@@ -271,11 +269,11 @@ SEU PAPEL:
       if (result) console.log("✅ Using Groq");
     }
 
-    // 3. Try OpenRouter (DeepSeek, free tier)
-    if (!result && OPENROUTER_API_KEY && !hasImages) {
-      console.log("Trying OpenRouter...");
-      result = await tryOpenRouter(OPENROUTER_API_KEY, systemPrompt, messages);
-      if (result) console.log("✅ Using OpenRouter");
+    // 3. Try SiliconFlow (DeepSeek V3, free)
+    if (!result && SILICONFLOW_API_KEY && !hasImages) {
+      console.log("Trying SiliconFlow...");
+      result = await trySiliconFlow(SILICONFLOW_API_KEY, systemPrompt, messages);
+      if (result) console.log("✅ Using SiliconFlow");
     }
 
     if (!result) {
