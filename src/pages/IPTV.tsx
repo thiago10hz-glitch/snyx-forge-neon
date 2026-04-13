@@ -12,11 +12,57 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const IPTV_PLAYLIST_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
 
+const CACHE_KEY = "snyx_iptv_channels";
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 interface Channel {
   name: string;
   url: string;
   logo: string;
   group: string;
+}
+
+// IndexedDB cache helpers
+async function getCachedChannels(): Promise<Channel[] | null> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY + "_meta");
+    if (!raw) return null;
+    const meta = JSON.parse(raw);
+    if (Date.now() - meta.timestamp > CACHE_TTL) return null;
+
+    return new Promise((resolve) => {
+      const req = indexedDB.open("snyx_iptv", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("channels");
+      req.onsuccess = () => {
+        const tx = req.result.transaction("channels", "readonly");
+        const store = tx.objectStore("channels");
+        const get = store.get("data");
+        get.onsuccess = () => resolve(get.result || null);
+        get.onerror = () => resolve(null);
+      };
+      req.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function setCachedChannels(channels: Channel[]): Promise<void> {
+  try {
+    localStorage.setItem(CACHE_KEY + "_meta", JSON.stringify({ timestamp: Date.now(), count: channels.length }));
+    return new Promise((resolve) => {
+      const req = indexedDB.open("snyx_iptv", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("channels");
+      req.onsuccess = () => {
+        const tx = req.result.transaction("channels", "readwrite");
+        const store = tx.objectStore("channels");
+        store.put(channels, "data");
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      };
+      req.onerror = () => resolve();
+    });
+  } catch { /* ignore */ }
 }
 
 // Main categories mapping
@@ -50,10 +96,10 @@ const MAIN_CATEGORIES = [
     color: "from-pink-600 to-pink-800",
   },
   {
-    id: "animes",
-    label: "Animes",
+    id: "anime",
+    label: "Anime",
     icon: Sparkles,
-    keywords: ["anime", "animes", "crunchyroll", "funimation", "animacao", "animação", "desenho"],
+    keywords: ["anime", "animes", "animação", "desenho"],
     color: "from-orange-600 to-orange-800",
   },
   {
@@ -88,9 +134,7 @@ const MAIN_CATEGORIES = [
 
 function categorizeGroup(group: string): string {
   const g = group.toLowerCase();
-  // Skip adult content
   if (g.includes("xxx") || g.includes("adulto")) return "__hidden__";
-  
   for (const cat of MAIN_CATEGORIES) {
     if (cat.keywords.some(kw => g.includes(kw))) return cat.id;
   }
@@ -262,6 +306,7 @@ export default function IPTV() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingStatus, setLoadingStatus] = useState("Verificando cache...");
   const [error, setError] = useState("");
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [search, setSearch] = useState("");
@@ -275,61 +320,106 @@ export default function IPTV() {
 
   const hasAccess = profile?.is_dev;
 
-  // Load M3U
+  // Load channels - cache first, then network
   useEffect(() => {
     if (!hasAccess) return;
     let cancelled = false;
+
     const load = async () => {
       setLoading(true);
       setError("");
-      setLoadingProgress(10);
+      setLoadingProgress(5);
+      setLoadingStatus("Verificando cache...");
+
+      // Try cache first
       try {
+        const cached = await getCachedChannels();
+        if (cached && cached.length > 0 && !cancelled) {
+          setLoadingProgress(100);
+          setLoadingStatus(`${cached.length} canais do cache`);
+          setChannels(cached);
+          setLoading(false);
+          
+          // Refresh in background silently
+          refreshFromNetwork(false);
+          return;
+        }
+      } catch { /* ignore cache errors */ }
+
+      if (cancelled) return;
+
+      // No cache - fetch from network
+      await refreshFromNetwork(true);
+    };
+
+    const refreshFromNetwork = async (showLoading: boolean) => {
+      try {
+        if (showLoading) {
+          setLoadingProgress(10);
+          setLoadingStatus("Conectando ao servidor IPTV...");
+        }
+
         const { data, error: fnError } = await supabase.functions.invoke("proxy-m3u", {
           body: { url: IPTV_PLAYLIST_URL },
         });
+
         if (cancelled) return;
         if (fnError) throw new Error(fnError.message);
-        setLoadingProgress(50);
+
+        if (showLoading) {
+          setLoadingProgress(50);
+          setLoadingStatus("Processando playlist...");
+        }
 
         const text = typeof data === "string" ? data : await new Response(data).text();
         if (cancelled) return;
 
-        // Check if response is a fallback JSON error
+        // Check JSON error
         try {
           const jsonCheck = JSON.parse(text);
-          if (jsonCheck?.fallback || jsonCheck?.error) {
-            throw new Error(jsonCheck.message || jsonCheck.error || "Servidor IPTV indisponível");
+          if (jsonCheck?.error) {
+            throw new Error(jsonCheck.error);
           }
         } catch (parseErr) {
-          // Not JSON = it's the actual M3U content, continue
-          if (parseErr instanceof SyntaxError) {
-            // Good - it's M3U text, not JSON
-          } else {
-            throw parseErr;
-          }
+          if (!(parseErr instanceof SyntaxError)) throw parseErr;
         }
 
-        setLoadingProgress(70);
+        if (showLoading) {
+          setLoadingProgress(70);
+          setLoadingStatus("Organizando canais...");
+        }
 
-        // Parse in next tick
         await new Promise(r => setTimeout(r, 0));
         const parsed = parseM3U(text);
         if (cancelled) return;
-        if (parsed.length === 0) throw new Error("Nenhum canal encontrado");
 
-        setLoadingProgress(100);
+        if (parsed.length === 0) {
+          if (showLoading) throw new Error("Nenhum canal encontrado");
+          return;
+        }
+
+        // Cache for next time
+        setCachedChannels(parsed);
+
+        if (showLoading) {
+          setLoadingProgress(100);
+          setLoadingStatus(`${parsed.length} canais carregados!`);
+        }
         setChannels(parsed);
       } catch (e: any) {
-        if (!cancelled) setError(e.message || "Erro ao carregar lista");
+        if (!cancelled && showLoading) {
+          setError(e.message || "Erro ao carregar lista");
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && showLoading) setLoading(false);
       }
     };
+
     load();
     return () => { cancelled = true; };
   }, [hasAccess]);
 
-  // Build categorized data — only for the active category
+  // Build categorized data
   const { categoryGroups, categoryCounts } = useMemo(() => {
     const counts: Record<string, number> = {};
     const groups = new Map<string, Channel[]>();
@@ -339,7 +429,6 @@ export default function IPTV() {
       if (catId === "__hidden__") continue;
       counts[catId] = (counts[catId] || 0) + 1;
 
-      // Only build detailed groups for active category
       if (catId === activeCategory) {
         const q = search.toLowerCase();
         if (q && !ch.name.toLowerCase().includes(q) && !ch.group.toLowerCase().includes(q)) continue;
@@ -348,7 +437,6 @@ export default function IPTV() {
       }
     }
 
-    // Count "outros"
     const allCatIds = MAIN_CATEGORIES.map(c => c.id);
     let outrosCount = 0;
     for (const [id, c] of Object.entries(counts)) {
@@ -359,7 +447,6 @@ export default function IPTV() {
     return { categoryGroups: groups, categoryCounts: counts };
   }, [channels, activeCategory, search]);
 
-  // Hero channel from active category
   const heroChannel = useMemo(() => {
     const first = categoryGroups.values().next().value;
     if (!first || first.length === 0) return null;
@@ -414,7 +501,6 @@ export default function IPTV() {
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
 
-  // No access
   if (!hasAccess) {
     return (
       <div className="h-screen bg-background flex flex-col">
@@ -522,9 +608,10 @@ export default function IPTV() {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <div className="text-center w-64">
+            <div className="text-center w-72">
               <Loader2 size={40} className="text-red-500 animate-spin mx-auto mb-3" />
-              <p className="text-sm text-white/50 mb-3">Carregando canais...</p>
+              <p className="text-sm text-white/60 mb-1">{loadingStatus}</p>
+              <p className="text-[10px] text-white/30 mb-3">Primeira vez demora mais — depois abre instantâneo</p>
               <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${loadingProgress}%` }} />
               </div>
@@ -543,13 +630,11 @@ export default function IPTV() {
         ) : (
           <>
             {/* Hero */}
-            <div className="relative h-[50vh] min-h-[340px]" style={{ marginTop: loading ? 0 : undefined }}>
+            <div className="relative h-[50vh] min-h-[340px]">
               {selectedChannel ? (
                 <video ref={videoRef} controls autoPlay className="w-full h-full object-cover" />
               ) : (
-                <div
-                  className={`w-full h-full flex items-end bg-gradient-to-br ${activeCat?.color || "from-gray-800 to-gray-900"}`}
-                >
+                <div className={`w-full h-full flex items-end bg-gradient-to-br ${activeCat?.color || "from-gray-800 to-gray-900"}`}>
                   {heroChannel?.logo && (
                     <img src={heroChannel.logo} alt="" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 object-contain opacity-15" />
                   )}
