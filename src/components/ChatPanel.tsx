@@ -1054,15 +1054,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-1 px-2 sm:px-1.5 md:px-2 py-1.5 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass overflow-x-auto scrollbar-thin">
+        <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="p-2 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 mr-0.5 md:mr-1"
+            className="p-1.5 sm:p-2 md:p-2 rounded-lg sm:rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 shrink-0"
           >
-            {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
+            {showSidebar ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg sm:rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -1072,11 +1072,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1 px-2.5 sm:px-2 md:px-3 py-1.5 sm:py-1.5 md:py-2 text-[11px] sm:text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap active:scale-95 ${
+                  className={`flex items-center gap-1 px-2 sm:px-2.5 md:px-3 py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs font-medium rounded-md sm:rounded-lg transition-all duration-300 whitespace-nowrap active:scale-95 ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={12} className="sm:hidden" />
+                  <Icon size={14} className="hidden sm:block" />
                   <span>{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
@@ -1094,13 +1095,14 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   }
                   setUsePremium(!usePremium);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 md:py-2 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg transition-all duration-300 whitespace-nowrap ${
                   usePremium
                     ? "bg-yellow-500/10 text-yellow-400 shadow-sm"
                     : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                 }`}
               >
-                <Crown size={14} />
+                <Crown size={12} className="sm:hidden" />
+                <Crown size={14} className="hidden sm:block" />
                 <span className="hidden sm:inline">Premium</span>
                 {!profile?.is_vip && <span className="text-[8px] opacity-50">🔒</span>}
               </button>
@@ -1111,39 +1113,43 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           {mode === "friend" && (
             <button
               onClick={() => setShowVoiceCall(true)}
-              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
               title="Ligar para a IA"
             >
-              <Phone size={15} />
+              <Phone size={14} className="sm:hidden" />
+              <Phone size={15} className="hidden sm:block" />
             </button>
           )}
 
           {mode === "friend" && (
             <button
               onClick={() => setShowConnectionModal(true)}
-              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
               title="Conectar com alguém"
             >
-              <Link2 size={15} />
+              <Link2 size={14} className="sm:hidden" />
+              <Link2 size={15} className="hidden sm:block" />
             </button>
           )}
 
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
-            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
+            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
             title="Personalizar chat"
           >
-            <Palette size={15} />
+            <Palette size={14} className="sm:hidden" />
+            <Palette size={15} className="hidden sm:block" />
           </button>
 
           {mode === "programmer" && profile?.is_dev && (
             <button
               onClick={() => { setShowDeleteSitesModal(true); loadVercelSites(); }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-muted/15 text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 border border-border/15 transition-all duration-300"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-medium bg-muted/15 text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 border border-border/15 transition-all duration-300"
               title="Gerenciar sites publicados"
             >
-              <Settings size={14} />
+              <Settings size={12} className="sm:hidden" />
+              <Settings size={14} className="hidden sm:block" />
               <span className="hidden sm:inline">Meus Sites</span>
             </button>
           )}
@@ -1153,16 +1159,16 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </span>
           )}
           {mode === "friend" && !profile?.is_vip && !profile?.is_dev && messageLimit && !messageLimit.is_vip && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-muted/20 border border-border/20" title={`${messageLimit.remaining ?? 0} de 5 mensagens restantes`}>
+            <div className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-muted/20 border border-border/20 shrink-0" title={`${messageLimit.remaining ?? 0} de 5 mensagens restantes`}>
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${
+                  className={`h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full transition-all duration-500 ${
                     i < (messageLimit.remaining ?? 0) ? "bg-primary shadow-sm shadow-primary/40 scale-110" : "bg-muted-foreground/15"
                   }`}
                 />
               ))}
-              <span className="text-[10px] font-medium text-muted-foreground/60 ml-1 tabular-nums">
+              <span className="text-[8px] sm:text-[10px] font-medium text-muted-foreground/60 ml-0.5 tabular-nums">
                 {messageLimit.remaining ?? 0}/5
               </span>
             </div>
@@ -1492,11 +1498,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-2 sm:p-2 md:p-4 safe-bottom">
+        <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-1 sm:gap-1 md:gap-2 glass-elevated rounded-2xl px-2 sm:px-2 md:px-3 py-2 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-              {/* School photo button */}
+              {/* School photo button - hidden on mobile */}
               <button
                 onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
                 className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
@@ -1508,7 +1514,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               >
                 <Camera size={18} />
               </button>
-              {/* Image generation button */}
+              {/* Image generation button - hidden on mobile */}
               <button
                 onClick={() => {
                   setPendingAction(prev => prev === "imagegen" ? null : "imagegen");
@@ -1522,12 +1528,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               >
                 <ImagePlus size={18} />
               </button>
-              {/* Rewrite button */}
+              {/* Rewrite button - hidden on mobile */}
               <button
                 onClick={() => {
                   setPendingAction(prev => prev === "rewrite" ? null : "rewrite");
                 }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "rewrite"
                     ? "text-sky-400 bg-sky-500/10"
                     : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10"
@@ -1538,20 +1544,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
               >
-                <Paperclip size={18} />
+                <Paperclip size={16} className="sm:hidden" />
+                <Paperclip size={18} className="hidden sm:block" />
               </button>
               <button
                 onClick={toggleRecording}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                   isRecording
                     ? "bg-destructive/10 text-destructive animate-pulse"
                     : "text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10"
                 }`}
                 title={isRecording ? "Parar gravação" : "Gravar áudio"}
               >
-                {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                {isRecording ? <MicOff size={16} className="sm:hidden" /> : <Mic size={16} className="sm:hidden" />}
+                {isRecording ? <MicOff size={18} className="hidden sm:block" /> : <Mic size={18} className="hidden sm:block" />}
               </button>
               <textarea
                 ref={textareaRef}
@@ -1565,18 +1573,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 }}
                 placeholder={inputPlaceholder}
                 rows={1}
-                className="flex-1 min-w-0 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed"
+                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-[13px] sm:text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed"
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || (!input.trim() && !attachment)}
-                className={`p-2.5 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                   input.trim() || attachment
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105'
                     : 'bg-muted/15 text-muted-foreground/15'
                 } disabled:opacity-40 disabled:hover:scale-100`}
               >
-                <Send size={16} />
+                <Send size={14} className="sm:hidden" />
+                <Send size={16} className="hidden sm:block" />
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground/15 text-center mt-1.5 sm:mt-2 hidden sm:block">
