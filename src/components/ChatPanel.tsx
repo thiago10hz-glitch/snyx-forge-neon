@@ -1498,11 +1498,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-2 sm:p-2 md:p-4 safe-bottom">
+        <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-1 sm:gap-1 md:gap-2 glass-elevated rounded-2xl px-2 sm:px-2 md:px-3 py-2 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-              {/* School photo button */}
+              {/* School photo button - hidden on mobile */}
               <button
                 onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
                 className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
@@ -1514,7 +1514,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               >
                 <Camera size={18} />
               </button>
-              {/* Image generation button */}
+              {/* Image generation button - hidden on mobile */}
               <button
                 onClick={() => {
                   setPendingAction(prev => prev === "imagegen" ? null : "imagegen");
@@ -1528,12 +1528,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               >
                 <ImagePlus size={18} />
               </button>
-              {/* Rewrite button */}
+              {/* Rewrite button - hidden on mobile */}
               <button
                 onClick={() => {
                   setPendingAction(prev => prev === "rewrite" ? null : "rewrite");
                 }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "rewrite"
                     ? "text-sky-400 bg-sky-500/10"
                     : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10"
@@ -1544,20 +1544,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
               >
-                <Paperclip size={18} />
+                <Paperclip size={16} className="sm:hidden" />
+                <Paperclip size={18} className="hidden sm:block" />
               </button>
               <button
                 onClick={toggleRecording}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                   isRecording
                     ? "bg-destructive/10 text-destructive animate-pulse"
                     : "text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10"
                 }`}
                 title={isRecording ? "Parar gravação" : "Gravar áudio"}
               >
-                {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                {isRecording ? <MicOff size={16} className="sm:hidden" /> : <Mic size={16} className="sm:hidden" />}
+                {isRecording ? <MicOff size={18} className="hidden sm:block" /> : <Mic size={18} className="hidden sm:block" />}
               </button>
               <textarea
                 ref={textareaRef}
@@ -1571,18 +1573,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 }}
                 placeholder={inputPlaceholder}
                 rows={1}
-                className="flex-1 min-w-0 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed"
+                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-[13px] sm:text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed"
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || (!input.trim() && !attachment)}
-                className={`p-2.5 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                   input.trim() || attachment
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105'
                     : 'bg-muted/15 text-muted-foreground/15'
                 } disabled:opacity-40 disabled:hover:scale-100`}
               >
-                <Send size={16} />
+                <Send size={14} className="sm:hidden" />
+                <Send size={16} className="hidden sm:block" />
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground/15 text-center mt-1.5 sm:mt-2 hidden sm:block">
