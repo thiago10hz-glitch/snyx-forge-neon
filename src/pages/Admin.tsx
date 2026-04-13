@@ -438,6 +438,12 @@ export default function Admin() {
           >
             <KeyRound className="w-3 h-3" />Hosting Keys
           </button>
+          <button
+            onClick={() => setAdminTab("livechats")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "livechats" ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Phone className="w-3 h-3" />Chat ao Vivo
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">{user.email}</span>
@@ -911,6 +917,10 @@ export default function Admin() {
 
       {adminTab === "hosting" && (
         <AdminHostingKeysPanel />
+      )}
+
+      {adminTab === "livechats" && (
+        <AdminLiveChatsPanel />
       )}
 
       {vipModalUser && (
