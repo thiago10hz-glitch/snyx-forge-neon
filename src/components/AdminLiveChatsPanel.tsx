@@ -23,7 +23,7 @@ interface LiveMessage {
   created_at: string;
 }
 
-const AI_SENDER_ID = "00000000-0000-0000-0000-000000000000";
+const AI_CONTENT_PREFIX = "🤖 **SnyX IA**:";
 
 export function AdminLiveChatsPanel() {
   const { user, profile } = useAuth();
@@ -149,7 +149,7 @@ export function AdminLiveChatsPanel() {
 
       const aiMessages = messages.map(msg => ({
         role: msg.sender_id === user?.id ? "assistant" : "user",
-        content: msg.sender_id === AI_SENDER_ID ? `[SnyX IA]: ${msg.content}` : msg.content,
+        content: msg.content.startsWith(AI_CONTENT_PREFIX) ? `[SnyX IA]: ${msg.content}` : msg.content,
       }));
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-live-ai`, {
