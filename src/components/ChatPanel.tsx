@@ -1350,7 +1350,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               {/* School photo button */}
               <button
                 onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "school" 
                     ? "text-green-400 bg-green-500/10" 
                     : "text-muted-foreground/30 hover:text-green-400 hover:bg-green-500/10"
@@ -1364,7 +1364,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 onClick={() => {
                   setPendingAction(prev => prev === "imagegen" ? null : "imagegen");
                 }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "imagegen"
                     ? "text-purple-400 bg-purple-500/10"
                     : "text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/10"
