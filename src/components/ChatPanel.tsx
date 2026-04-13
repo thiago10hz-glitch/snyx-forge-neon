@@ -1113,30 +1113,33 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           {mode === "friend" && (
             <button
               onClick={() => setShowVoiceCall(true)}
-              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
               title="Ligar para a IA"
             >
-              <Phone size={15} />
+              <Phone size={14} className="sm:hidden" />
+              <Phone size={15} className="hidden sm:block" />
             </button>
           )}
 
           {mode === "friend" && (
             <button
               onClick={() => setShowConnectionModal(true)}
-              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
               title="Conectar com alguém"
             >
-              <Link2 size={15} />
+              <Link2 size={14} className="sm:hidden" />
+              <Link2 size={15} className="hidden sm:block" />
             </button>
           )}
 
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
-            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
+            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
             title="Personalizar chat"
           >
-            <Palette size={15} />
+            <Palette size={14} className="sm:hidden" />
+            <Palette size={15} className="hidden sm:block" />
           </button>
 
           {mode === "programmer" && profile?.is_dev && (
