@@ -1038,7 +1038,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -1048,11 +1048,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
+                  className={`flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={13} />
                   <span className="hidden sm:inline">{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
@@ -1087,30 +1087,30 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           {mode === "friend" && (
             <button
               onClick={() => setShowVoiceCall(true)}
-              className="p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300 mr-1"
+              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
               title="Ligar para a IA"
             >
-              <Phone size={16} />
+              <Phone size={15} />
             </button>
           )}
 
           {mode === "friend" && (
             <button
               onClick={() => setShowConnectionModal(true)}
-              className="p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300 mr-1"
+              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
               title="Conectar com alguém"
             >
-              <Link2 size={16} />
+              <Link2 size={15} />
             </button>
           )}
 
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
-            className="p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300 mr-1"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
             title="Personalizar chat"
           >
-            <Palette size={16} />
+            <Palette size={15} />
           </button>
 
           {mode === "programmer" && profile?.is_dev && (
