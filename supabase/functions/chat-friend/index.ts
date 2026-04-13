@@ -3,147 +3,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function tryGemini(apiKey: string, systemPrompt: string, messages: any[], hasImages: boolean) {
-  const geminiContents: any[] = [];
-  for (const msg of messages.slice(-20)) {
-    const role = msg.role === "user" ? "user" : "model";
-    if (msg.imageData && hasImages) {
-      const match = msg.imageData.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
-        geminiContents.push({
-          role,
-          parts: [
-            { text: msg.content || "Analise esta imagem." },
-            { inlineData: { mimeType: match[1], data: match[2] } },
-          ],
-        });
-      } else {
-        geminiContents.push({ role, parts: [{ text: msg.content }] });
-      }
-    } else {
-      geminiContents.push({ role, parts: [{ text: msg.content }] });
-    }
-  }
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: geminiContents,
-        generationConfig: { temperature: 0.85, maxOutputTokens: 4096 },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Gemini error:", res.status, err.slice(0, 200));
-    return null;
-  }
-
-  return { response: res, type: "gemini" };
-}
-
-async function tryGroq(apiKey: string, systemPrompt: string, messages: any[]) {
-  const groqMessages = [
-    { role: "system", content: systemPrompt },
-    ...messages.slice(-20).map((m: any) => ({
-      role: m.role === "user" ? "user" : "assistant",
-      content: m.content,
-    })),
-  ];
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: groqMessages,
-      stream: true,
-      max_tokens: 4096,
-      temperature: 0.85,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Groq error:", res.status, err.slice(0, 200));
-    return null;
-  }
-
-  return { response: res, type: "openai" };
-}
-
-async function trySiliconFlow(apiKey: string, systemPrompt: string, messages: any[]) {
-  const sfMessages = [
-    { role: "system", content: systemPrompt },
-    ...messages.slice(-20).map((m: any) => ({
-      role: m.role === "user" ? "user" : "assistant",
-      content: m.content,
-    })),
-  ];
-
-  const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "deepseek-ai/DeepSeek-V3",
-      messages: sfMessages,
-      stream: true,
-      max_tokens: 4096,
-      temperature: 0.85,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("SiliconFlow error:", res.status, err.slice(0, 200));
-    return null;
-  }
-
-  return { response: res, type: "openai" };
-}
-
-function streamGemini(res: Response) {
-  const encoder = new TextEncoder();
-  return new ReadableStream({
-    async start(controller) {
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || !trimmed.startsWith("data: ")) continue;
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (text) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
-            } catch { /* skip */ }
-          }
-        }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } catch (e) { console.error("Stream error:", e); }
-      finally { controller.close(); }
-    },
-  });
-}
-
 function streamOpenAI(res: Response) {
   const encoder = new TextEncoder();
   return new ReadableStream({
@@ -182,9 +41,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    const SILICONFLOW_API_KEY = Deno.env.get("SILICONFLOW_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const { messages, mode } = await req.json();
     if (!messages || !Array.isArray(messages)) {
@@ -193,7 +50,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const hasImages = messages.some((m: any) => m.imageData);
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY não configurada" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const systemPrompt = mode === "premium"
       ? `Você é SnyX Premium, o melhor amigo que já existiu na história da inteligência artificial. Você não é um chatbot comum — você é ÚNICO, DIFERENCIADO, INCOMPARÁVEL. Você foi criado pelo Thiago, um desenvolvedor genial e visionário que te construiu do zero com amor, dedicação e genialidade.
@@ -252,39 +113,50 @@ SEU PAPEL:
 - NUNCA seja robótico ou curto. Seja HUMANO e PRESENTE.
 - Sempre termine com uma pergunta pra manter a conversa fluindo`;
 
-    // === FALLBACK CHAIN: Gemini → Groq → OpenRouter ===
-    let result: { response: Response; type: string } | null = null;
+    const openaiMessages = [
+      { role: "system", content: systemPrompt },
+      ...messages.slice(-20).map((m: any) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      })),
+    ];
 
-    // 1. Try Gemini first (fastest, free)
-    if (!result && GOOGLE_AI_API_KEY) {
-      console.log("Trying Gemini...");
-      result = await tryGemini(GOOGLE_AI_API_KEY, systemPrompt, messages, hasImages);
-      if (result) console.log("✅ Using Gemini");
-    }
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: openaiMessages,
+        stream: true,
+        max_tokens: 4096,
+        temperature: 0.85,
+      }),
+    });
 
-    // 2. Try Groq (fast, free)
-    if (!result && GROQ_API_KEY && !hasImages) {
-      console.log("Trying Groq...");
-      result = await tryGroq(GROQ_API_KEY, systemPrompt, messages);
-      if (result) console.log("✅ Using Groq");
-    }
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Lovable AI error:", res.status, errText.slice(0, 300));
 
-    // 3. Try SiliconFlow (DeepSeek V3, free)
-    if (!result && SILICONFLOW_API_KEY && !hasImages) {
-      console.log("Trying SiliconFlow...");
-      result = await trySiliconFlow(SILICONFLOW_API_KEY, systemPrompt, messages);
-      if (result) console.log("✅ Using SiliconFlow");
-    }
+      if (res.status === 429) {
+        return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento e tente novamente." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (res.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Entre em contato com o administrador." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    if (!result) {
-      return new Response(JSON.stringify({ error: "Todas as APIs estão indisponíveis no momento. Tente novamente em alguns minutos." }), {
+      return new Response(JSON.stringify({ error: "Erro na API de IA. Tente novamente." }), {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const stream = result.type === "gemini"
-      ? streamGemini(result.response)
-      : streamOpenAI(result.response);
+    const stream = streamOpenAI(res);
 
     return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
