@@ -242,7 +242,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
           Authorization: `Bearer ${authToken}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ text: vocalText.trim(), voiceId: selectedVoice }),
+        body: JSON.stringify({ text: vocalText.trim(), style: VOICES.find(v => v.id === selectedVoice)?.style || "Pop vocal" }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Erro ao gerar vocal");
@@ -630,6 +630,12 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
                     {SAMPLE_TRACKS.slice(0, 6).map((track, i) => (
                       <div
                         key={i}
+                        onClick={() => {
+                          if (!canUse) { setShowVipModal(true); return; }
+                          setEasyPrompt(track.title);
+                          setMode("easy");
+                          toast.info(`Prompt preenchido: "${track.title}" — clique em Criar Música!`);
+                        }}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/10 transition-all cursor-pointer group"
                       >
                         <span className="text-[10px] text-muted-foreground/30 w-4 text-right shrink-0">{i + 1}</span>
