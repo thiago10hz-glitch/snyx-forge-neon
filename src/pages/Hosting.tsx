@@ -39,12 +39,6 @@ const TIER_LABELS: Record<string, string> = {
   unlimited: "Unlimited",
 };
 
-const TIER_MAX: Record<string, number> = {
-  basic: 3,
-  pro: 10,
-  unlimited: 999,
-};
-
 const Hosting = () => {
   const { user, profile } = useAuth();
   const [sites, setSites] = useState<HostedSite[]>([]);
