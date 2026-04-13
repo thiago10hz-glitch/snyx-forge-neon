@@ -9,9 +9,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "API key não configurada" }), {
+    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
+    if (!DEEPSEEK_API_KEY) {
+      return new Response(JSON.stringify({ error: "DEEPSEEK_API_KEY não configurada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -58,10 +58,10 @@ REGRAS:
 - NÃO fale de assuntos pessoais. Se perguntarem, diga: "Esse assunto é pro modo Amigo! 😊"
 - Sempre que possível, gere JavaScript interativo (menus mobile, scroll smooth, animações)`;
 
-    // Keep last 20 messages but truncate long content
-    const truncatedMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
+    // Keep last 30 messages, DeepSeek supports large context
+    const truncatedMessages = messages.slice(-30).map((m: { role: string; content: string }) => ({
       role: m.role === "user" ? "user" : "assistant",
-      content: m.content.length > 12000 ? m.content.slice(0, 12000) + "\n...(truncado)" : m.content,
+      content: m.content.length > 16000 ? m.content.slice(0, 16000) + "\n...(truncado)" : m.content,
     }));
 
     const apiMessages = [
@@ -69,14 +69,14 @@ REGRAS:
       ...truncatedMessages,
     ];
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-chat",
         messages: apiMessages,
         stream: true,
         max_tokens: 16384,
@@ -86,13 +86,18 @@ REGRAS:
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("API error:", res.status, err);
+      console.error("DeepSeek error:", res.status, err);
       if (res.status === 429) {
         return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: `Erro na API: ${res.status}` }), {
+      if (res.status === 402) {
+        return new Response(JSON.stringify({ error: "Saldo insuficiente na API DeepSeek" }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ error: `Erro DeepSeek: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
