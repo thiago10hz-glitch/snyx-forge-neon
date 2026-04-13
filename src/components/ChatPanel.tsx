@@ -1185,33 +1185,33 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         ) : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6 py-6 sm:py-8">
-              <div className="max-w-md lg:max-w-lg text-center space-y-4 sm:space-y-5 md:space-y-7 animate-fade-in-up">
-                {/* Icon with glow effect */}
-                <div className="relative mx-auto w-fit">
-                  <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-xl animate-float`}>
-                    <ModeIcon size={22} className={`${config.color} sm:hidden`} />
-                    <ModeIcon size={26} className={`${config.color} hidden sm:block md:hidden`} />
-                    <ModeIcon size={32} className={`${config.color} hidden md:block lg:hidden`} />
-                    <ModeIcon size={40} className={`${config.color} hidden lg:block`} />
+            <div className="flex flex-col items-center justify-center h-full px-5 sm:px-8 py-8 sm:py-12">
+              <div className="max-w-md lg:max-w-lg text-center space-y-5 sm:space-y-6 md:space-y-8">
+                {/* Icon with glow */}
+                <div className="relative mx-auto w-fit animate-reveal stagger-1">
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-2xl animate-float`}>
+                    <ModeIcon size={24} className={`${config.color} sm:hidden`} />
+                    <ModeIcon size={32} className={`${config.color} hidden sm:block md:hidden`} />
+                    <ModeIcon size={40} className={`${config.color} hidden md:block lg:hidden`} />
+                    <ModeIcon size={48} className={`${config.color} hidden lg:block`} />
                   </div>
-                  <div className={`absolute -inset-3 sm:-inset-4 md:-inset-6 ${config.bgColor} rounded-3xl blur-2xl opacity-25 -z-10 animate-pulse-ring`} />
+                  <div className={`absolute -inset-4 sm:-inset-6 md:-inset-8 ${config.bgColor} rounded-full blur-3xl opacity-20 -z-10 animate-pulse-ring`} />
                 </div>
 
-                {/* Title and description */}
-                <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
-                  <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-foreground tracking-tight">{config.emptyTitle}</h2>
-                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-muted-foreground/60 leading-relaxed max-w-xs sm:max-w-sm mx-auto">{config.emptyText}</p>
+                {/* Title */}
+                <div className="space-y-2 sm:space-y-3 animate-reveal stagger-2">
+                  <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">{config.emptyTitle}</h2>
+                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground/50 leading-relaxed max-w-sm mx-auto">{config.emptyText}</p>
                 </div>
 
-                {/* Suggestion chips */}
+                {/* Suggestions */}
                 {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-2.5 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
                     {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-xl glass-subtle text-muted-foreground/70 border border-border/15 hover:bg-muted/30 hover:text-foreground hover:border-border/30 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                       >
                         {suggestion}
                       </button>
@@ -1219,12 +1219,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
                 {mode === "friend" && (
-                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-2.5 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
                     {["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
-                        className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-xl glass-subtle text-muted-foreground/70 border border-border/15 hover:bg-muted/30 hover:text-foreground hover:border-border/30 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                       >
                         {suggestion}
                       </button>
@@ -1232,9 +1232,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
 
-                {/* Keyboard hint for desktop */}
-                <p className="hidden md:block text-[10px] lg:text-[11px] text-muted-foreground/25 pt-1">
-                  Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted/20 border border-border/15 text-muted-foreground/40 font-mono text-[9px] lg:text-[10px]">Enter</kbd> para enviar
+                {/* Keyboard hint */}
+                <p className="hidden md:block text-[10px] lg:text-[11px] text-muted-foreground/20 animate-reveal stagger-4">
+                  Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
                 </p>
               </div>
             </div>
