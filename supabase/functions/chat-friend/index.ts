@@ -163,14 +163,14 @@ SEU PAPEL:
       });
     }
 
-    // Text-only: use Groq (faster for text)
-    if (!GROQ_API_KEY) {
+    // Text-only: use OpenRouter (same as programmer)
+    if (!OPENROUTER_API_KEY) {
       return new Response(JSON.stringify({ error: "API key não configurada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const groqMessages = [
+    const orMessages = [
       { role: "system", content: systemPrompt },
       ...messages.slice(-20).map((m: { role: string; content: string }) => ({
         role: m.role === "user" ? "user" : "assistant",
@@ -178,15 +178,17 @@ SEU PAPEL:
       })),
     ];
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
+        "X-Title": "SnyX Amigo",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: groqMessages,
+        model: "deepseek/deepseek-chat-v3.1",
+        messages: orMessages,
         stream: true,
         max_tokens: 4096,
         temperature: 0.85,
@@ -195,8 +197,13 @@ SEU PAPEL:
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Groq error:", err);
-      return new Response(JSON.stringify({ error: `Erro Groq: ${res.status}` }), {
+      console.error("OpenRouter error:", res.status, err);
+      if (res.status === 429) {
+        return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ error: `Erro OpenRouter: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
