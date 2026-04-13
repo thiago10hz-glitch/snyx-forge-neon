@@ -84,9 +84,16 @@ Deno.serve(async (req) => {
     console.log("Suno create response:", JSON.stringify(createData));
 
     if (!createRes.ok || createData.code !== 200) {
+      const errorMsg = createData.msg || "Erro ao criar música na Suno";
+      const isCredits = createData.code === 429 || errorMsg.toLowerCase().includes("insufficient") || errorMsg.toLowerCase().includes("credits");
       return new Response(
-        JSON.stringify({ success: false, error: createData.msg || "Erro ao criar música na Suno" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          success: false, 
+          error: isCredits 
+            ? "Créditos da API de música esgotados. Tente novamente mais tarde." 
+            : errorMsg 
+        }),
+        { status: isCredits ? 200 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
