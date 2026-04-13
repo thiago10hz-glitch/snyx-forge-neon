@@ -74,14 +74,22 @@ Nome do site: ${siteName || "Meu Site"}`;
     const data = await response.json();
     let html = data.choices?.[0]?.message?.content || "";
 
-    // Clean up markdown code blocks if present
-    html = html.replace(/^```html?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    // Clean up markdown code blocks if present (handle ```html, ```HTML, ``` etc)
+    html = html.replace(/```html?\s*\n?/gi, "").replace(/```\s*/g, "").trim();
 
+    // Try to extract HTML if there's extra text around it
     if (!html.includes("<!DOCTYPE") && !html.includes("<html")) {
-      return new Response(JSON.stringify({ error: "IA não gerou HTML válido, tente novamente" }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Look for HTML tags within the response
+      const htmlMatch = html.match(/(<!DOCTYPE[\s\S]*<\/html>)/i) || html.match(/(<html[\s\S]*<\/html>)/i);
+      if (htmlMatch) {
+        html = htmlMatch[1].trim();
+      } else {
+        console.error("No valid HTML found in response. First 500 chars:", html.substring(0, 500));
+        return new Response(JSON.stringify({ error: "IA não gerou HTML válido, tente novamente" }), {
+          status: 422,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ success: true, html }), {
