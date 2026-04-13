@@ -322,7 +322,7 @@ export function AdminLiveChatsPanel() {
                 ) : (
                   messages.map(msg => {
                     const isAdmin = msg.sender_id === user?.id;
-                    const isAI = msg.sender_id === AI_SENDER_ID;
+                    const isAI = msg.content.startsWith("🤖 **SnyX IA**:");
                     return (
                       <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
                         <div className={`max-w-[70%] rounded-2xl px-3.5 py-2 text-sm ${
