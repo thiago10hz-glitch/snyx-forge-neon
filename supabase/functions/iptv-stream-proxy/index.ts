@@ -1,31 +1,4 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, range",
-  "Access-Control-Expose-Headers": "content-length, content-type, content-range",
-};
-
-const ALLOWED_HOSTS = new Set([
-  "dns.acesse.digital",
-  "tvzplay.win",
-  "tvzplay.xyz",
-  "gestorx.uk",
-  "e.dns.acesse.digital",
-  "xgood.fun",
-]);
-
-function isAllowedUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) return false;
-    // Allow the known IPTV hosts and any IP-based hosts (CDN servers)
-    if (ALLOWED_HOSTS.has(parsed.hostname)) return true;
-    // Allow numeric IPs (IPTV CDN servers)
-    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(parsed.hostname)) return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
+import { corsHeaders } from '@supabase/supabase-js/cors'
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -43,16 +16,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!isAllowedUrl(streamUrl)) {
-      return new Response(JSON.stringify({ error: "URL não permitida" }), {
-        status: 403,
+    // Validate URL protocol
+    let parsed: URL;
+    try {
+      parsed = new URL(streamUrl);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error("Invalid protocol");
+      }
+    } catch {
+      return new Response(JSON.stringify({ error: "URL inválida" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Forward range headers for seeking
     const headers: Record<string, string> = {
-      "User-Agent": "Mozilla/5.0 (compatible; SnyXTV/1.0)",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "*/*",
+      "Referer": `${parsed.protocol}//${parsed.host}/`,
+      "Origin": `${parsed.protocol}//${parsed.host}`,
     };
     const range = req.headers.get("range");
     if (range) headers["Range"] = range;
@@ -70,6 +53,7 @@ Deno.serve(async (req) => {
       });
     } catch (e) {
       clearTimeout(timeout);
+      console.error("Fetch error:", streamUrl, e);
       return new Response(JSON.stringify({ error: "Não foi possível conectar ao stream" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -78,13 +62,13 @@ Deno.serve(async (req) => {
     clearTimeout(timeout);
 
     if (!upstream.ok && upstream.status !== 206) {
+      console.error("Upstream error:", streamUrl, upstream.status);
       return new Response(JSON.stringify({ error: `Stream respondeu ${upstream.status}` }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Determine content type
     const contentType = upstream.headers.get("content-type") || "application/octet-stream";
     const contentLength = upstream.headers.get("content-length");
     const contentRange = upstream.headers.get("content-range");
@@ -97,17 +81,21 @@ Deno.serve(async (req) => {
     if (contentLength) responseHeaders["Content-Length"] = contentLength;
     if (contentRange) responseHeaders["Content-Range"] = contentRange;
 
-    // If the response is an m3u8 manifest, rewrite internal URLs to also go through proxy
-    if (contentType.includes("mpegurl") || contentType.includes("m3u") || streamUrl.endsWith(".m3u8") || streamUrl.includes(".m3u8?")) {
+    // If m3u8 manifest, rewrite internal URLs to go through proxy
+    const isManifest = contentType.includes("mpegurl") || contentType.includes("m3u") || 
+                       streamUrl.endsWith(".m3u8") || streamUrl.includes(".m3u8?") || streamUrl.includes(".m3u8&");
+    
+    if (isManifest) {
       const body = await upstream.text();
       const baseUrl = streamUrl.substring(0, streamUrl.lastIndexOf("/") + 1);
       const proxyBase = url.origin + url.pathname;
 
-      // Rewrite relative URLs in the manifest to go through proxy
       const rewritten = body.split("\n").map(line => {
         const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#")) {
-          // Check for URI= in EXT-X-KEY etc
+        if (!trimmed) return line;
+        
+        if (trimmed.startsWith("#")) {
+          // Rewrite URI= in EXT-X-KEY, EXT-X-MAP etc
           if (trimmed.includes('URI="')) {
             return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
               const fullUrl = uri.startsWith("http") ? uri : baseUrl + uri;
@@ -116,7 +104,7 @@ Deno.serve(async (req) => {
           }
           return line;
         }
-        // This is a URL line (segment or sub-manifest)
+        // URL line (segment or sub-manifest)
         const fullUrl = trimmed.startsWith("http") ? trimmed : baseUrl + trimmed;
         return `${proxyBase}?url=${encodeURIComponent(fullUrl)}`;
       }).join("\n");
@@ -127,12 +115,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // For .ts segments and other binary content, stream directly
+    // Binary content - stream directly
     return new Response(upstream.body, {
       status: upstream.status,
       headers: responseHeaders,
     });
   } catch (error) {
+    console.error("Proxy error:", error);
     return new Response(JSON.stringify({ error: "Erro interno no proxy" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

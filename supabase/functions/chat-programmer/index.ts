@@ -1,7 +1,4 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from '@supabase/supabase-js/cors'
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -9,9 +6,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) {
-      return new Response(JSON.stringify({ error: "GROQ_API_KEY não configurada" }), {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "API key não configurada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -58,41 +55,41 @@ REGRAS:
 - NÃO fale de assuntos pessoais. Se perguntarem, diga: "Esse assunto é pro modo Amigo! 😊"
 - Sempre que possível, gere JavaScript interativo (menus mobile, scroll smooth, animações)`;
 
-    // Truncate messages to avoid 413 - limit each message and total count
-    const truncatedMessages = messages.slice(-10).map((m: { role: string; content: string }) => ({
+    // Keep last 20 messages but truncate long content
+    const truncatedMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role === "user" ? "user" : "assistant",
-      content: m.content.length > 6000 ? m.content.slice(0, 6000) + "\n...(truncado)" : m.content,
+      content: m.content.length > 12000 ? m.content.slice(0, 12000) + "\n...(truncado)" : m.content,
     }));
 
-    const groqMessages = [
+    const apiMessages = [
       { role: "system", content: systemPrompt },
       ...truncatedMessages,
     ];
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetch("https://api.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: groqMessages,
+        model: "google/gemini-2.5-flash",
+        messages: apiMessages,
         stream: true,
-        max_tokens: 4096,
+        max_tokens: 16384,
         temperature: 0.7,
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Groq error:", err);
+      console.error("API error:", res.status, err);
       if (res.status === 429) {
-        return new Response(JSON.stringify({ error: "rate_limit", message: "O serviço de IA está sobrecarregado. Tente novamente em alguns minutos." }), {
+        return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: `Erro Groq: ${res.status}` }), {
+      return new Response(JSON.stringify({ error: `Erro na API: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
