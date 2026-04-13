@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
   try {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    const SILICONFLOW_API_KEY = Deno.env.get("SILICONFLOW_API_KEY");
 
     const { messages, mode } = await req.json();
     if (!messages || !Array.isArray(messages)) {
