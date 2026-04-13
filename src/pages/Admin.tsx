@@ -686,6 +686,24 @@ export default function Admin() {
                                 disabled={actionLoading !== null}
                               />
                             )}
+                            <ActionButton
+                              icon={Package}
+                              title="Dar Pack Steam"
+                              color="text-green-400 hover:bg-green-500/10 border-green-500/20"
+                              onClick={() => grantPackSteam(u.user_id, 1)}
+                              loading={actionLoading === u.user_id + "-grant_pack_steam"}
+                              disabled={actionLoading !== null}
+                            />
+                            {u.is_pack_steam && (
+                              <ActionButton
+                                icon={UserX}
+                                title="Revogar Pack Steam"
+                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
+                                onClick={() => revokePackSteam(u.user_id)}
+                                loading={actionLoading === u.user_id + "-revoke_pack_steam"}
+                                disabled={actionLoading !== null}
+                              />
+                            )}
                             {isBanned(u) ? (
                               <ActionButton
                                 icon={ShieldOff}
