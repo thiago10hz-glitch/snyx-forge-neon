@@ -199,15 +199,13 @@ export function AdminHostingKeysPanel() {
                     >
                       {copiedId === key.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    {!key.is_used && (
-                      <button
-                        onClick={() => deleteKey(key.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 transition-all text-muted-foreground hover:text-red-400"
-                        title="Deletar"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => key.is_used ? revokeAndDelete(key) : deleteKey(key.id)}
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 transition-all text-muted-foreground hover:text-red-400"
+                      title={key.is_used ? "Revogar acesso e deletar" : "Deletar"}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );
