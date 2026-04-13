@@ -1513,9 +1513,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
+        <div className="p-1.5 sm:p-2 md:p-3 lg:p-4 safe-bottom">
           <div className="max-w-3xl lg:max-w-4xl mx-auto">
-            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-1.5 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/8 focus-within:border-primary/20 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button - hidden on mobile */}
               <button
@@ -1588,15 +1588,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 }}
                 placeholder={inputPlaceholder}
                 rows={1}
-                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-[13px] sm:text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed"
+                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-[12px] sm:text-[13px] md:text-sm outline-none placeholder:text-muted-foreground/20 resize-none max-h-[200px] leading-relaxed"
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || (!input.trim() && !attachment)}
                 className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                   input.trim() || attachment
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105'
-                    : 'bg-muted/15 text-muted-foreground/15'
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105 btn-glow'
+                    : 'bg-muted/10 text-muted-foreground/15'
                 } disabled:opacity-40 disabled:hover:scale-100`}
               >
                 <Send size={14} className="sm:hidden" />
