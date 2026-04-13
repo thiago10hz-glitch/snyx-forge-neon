@@ -190,6 +190,25 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
             <Download className="w-3.5 h-3.5" />
             Download
           </button>
+          <button
+            onClick={deployToVercel}
+            disabled={!code || deploying}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs bg-emerald-500/10 text-emerald-400/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl transition-all duration-200 border border-emerald-500/15 disabled:opacity-20 disabled:border-border/10 disabled:text-muted-foreground/40"
+          >
+            {deploying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Rocket className="w-3.5 h-3.5" />}
+            {deploying ? "Publicando..." : "Vercel"}
+          </button>
+          {deployedUrl && (
+            <a
+              href={deployedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-2 py-1.5 text-[10px] text-emerald-400/70 hover:text-emerald-400 bg-emerald-500/5 rounded-lg border border-emerald-500/10 truncate max-w-[140px]"
+            >
+              <ExternalLink className="w-3 h-3 shrink-0" />
+              <span className="truncate">{deployedUrl.replace("https://", "")}</span>
+            </a>
+          )}
         </div>
       </div>
 
