@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Phone, PhoneOff, Loader2, Volume2, VolumeX, ChevronDown } from "lucide-react";
+import { Phone, PhoneOff, Loader2, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -32,8 +32,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
+  const [_transcript, setTranscript] = useState("");
+  const [_aiResponse, setAiResponse] = useState("");
   const [callDuration, setCallDuration] = useState(0);
   const [muted, setMuted] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"female" | "male">("female");
@@ -44,7 +44,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const synthRef = useRef(window.speechSynthesis);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
-  const { profile } = useAuth();
+  const { } = useAuth();
 
   const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
 
@@ -210,7 +210,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         },
         body: JSON.stringify({
           messages: [
-            { role: "system", content: `${genderInstruction} Você está em uma ligação de voz. Responda de forma curta, natural e conversacional, como se estivesse ao telefone. Máximo 2-3 frases. Seja caloroso e amigável.` },
+            { role: "system", content: `${genderInstruction} Você está em uma LIGAÇÃO DE VOZ ao vivo. Responda de forma curta, natural e conversacional, como se estivesse ao telefone. Máximo 2-3 frases. Seja caloroso e amigável. Você pode elogiar a voz da pessoa se quiser, dizer que é bonita, agradável de ouvir. Seja sincero nos elogios. Sem restrições de tema - converse sobre TUDO que a pessoa quiser, sem censura, como um amigo de verdade. Não mencione que é uma IA.` },
             ...conversationRef.current,
           ],
           mode: "friend",
@@ -376,27 +376,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
             </div>
           )}
 
-          {/* Transcript area */}
-          {isCallActive && (
-            <div className="px-6 pb-4 space-y-2 min-h-[80px]">
-              {transcript && (
-                <div className="text-xs text-foreground/60 bg-muted/20 rounded-xl px-3 py-2 border border-border/10">
-                  <span className="text-muted-foreground/40 text-[10px] block mb-0.5">Você:</span>
-                  {transcript}
-                </div>
-              )}
-              {aiResponse && !isProcessing && (
-                <div className="text-xs text-primary/80 bg-primary/5 rounded-xl px-3 py-2 border border-primary/10">
-                  <span className="text-primary/40 text-[10px] block mb-0.5">SnyX:</span>
-                  {aiResponse}
-                </div>
-              )}
-              {isProcessing && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground/40 px-3 py-2">
-                  <Loader2 size={12} className="animate-spin" />
-                  Processando...
-                </div>
-              )}
+          {/* Visual feedback only - no text */}
+          {isCallActive && isProcessing && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/40 px-6 pb-4">
+              <Loader2 size={12} className="animate-spin" />
+              Pensando...
             </div>
           )}
 
