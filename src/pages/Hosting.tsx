@@ -40,7 +40,7 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const Hosting = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [sites, setSites] = useState<HostedSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState<HostingLimit | null>(null);
@@ -283,7 +283,7 @@ const Hosting = () => {
     reader.readAsText(file);
   };
 
-  const tier = profile?.hosting_tier || "none";
+  const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
   const tierColor = tier === "pro" ? "text-primary" : tier === "basic" ? "text-emerald-400" : tier === "unlimited" ? "text-amber-400" : "text-muted-foreground";
 
   return (
@@ -480,6 +480,7 @@ const Hosting = () => {
                             toast.success("Plano ativado! Vamos criar seu primeiro site 🚀");
                             setShowPlans(false);
                             setLicenseKey("");
+                            await refreshProfile();
                             await checkLimit();
                             // Pre-fill with user's name and scroll to AI creator
                             const userName = (profile as any)?.display_name || user?.email?.split("@")[0] || "";
