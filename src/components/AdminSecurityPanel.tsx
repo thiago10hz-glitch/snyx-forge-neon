@@ -44,7 +44,7 @@ export function AdminSecurityPanel() {
         </div>
         <div className="divide-y divide-border/10">
           <ProtectionRow title="Row Level Security (RLS)" description="Todas as tabelas têm RLS habilitado com políticas específicas por role" />
-          <ProtectionRow title="Proteção de Perfil" description="Usuários não podem alterar: is_vip, is_dev, banned_until, free_messages_used, IP, fingerprint" />
+          <ProtectionRow title="Proteção de Perfil" description="Usuários não podem alterar: is_vip, is_dev, is_pack_steam, banned_until, free_messages_used, IP, fingerprint" />
           <ProtectionRow title="User Roles Lockdown" description="Apenas admins podem inserir, atualizar ou deletar roles" />
           <ProtectionRow title="License Keys" description="Resgate via SECURITY DEFINER function com validação de propriedade" />
           <ProtectionRow title="Anti-Clone" description="Detecção de fingerprint e IP duplicado via functions seguras" />
