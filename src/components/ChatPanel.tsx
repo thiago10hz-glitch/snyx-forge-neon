@@ -1062,7 +1062,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg sm:rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
