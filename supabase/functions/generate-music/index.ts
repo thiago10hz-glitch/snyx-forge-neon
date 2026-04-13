@@ -118,16 +118,19 @@ Deno.serve(async (req) => {
       const checkData = await checkRes.json();
       console.log(`Poll attempt ${i + 1}:`, checkData.data?.status);
 
-      if (checkData.data?.status === "complete" && checkData.data?.response?.sunoData) {
+      const status = checkData.data?.status;
+
+      if ((status === "complete" || status === "TEXT_SUCCESS" || status === "FIRST_SUCCESS" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
         const tracks = checkData.data.response.sunoData;
         if (tracks.length > 0) {
-          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || "";
+          // Try multiple possible field names
+          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
           title = tracks[0].title || prompt.slice(0, 40);
-          break;
+          if (audioUrl) break;
         }
       }
 
-      if (checkData.data?.status === "failed") {
+      if (status === "failed" || status === "FAILED") {
         return new Response(
           JSON.stringify({ success: false, error: "Geração falhou na Suno" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
