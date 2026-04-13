@@ -3,17 +3,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { VipModal } from "@/components/VipModal";
 import {
   ArrowLeft, MonitorPlay, Maximize2, Minimize2, RefreshCw, Code2,
-  Search, Play, Loader2, Radio, X, ChevronLeft, ChevronRight, Volume2, VolumeX,
-  Film, Tv, Clapperboard, Sparkles, Baby, Heart, Skull, Swords, Popcorn
+  Search, Loader2, Radio, X, Volume2, VolumeX,
+  Film, Tv, Clapperboard, Sparkles, Baby, Heart, Skull, Swords, Popcorn,
+  List, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const IPTV_PLAYLIST_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
-
 const CACHE_KEY = "snyx_iptv_channels";
-const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+const CACHE_TTL = 1000 * 60 * 60;
 
 interface Channel {
   name: string;
@@ -22,29 +21,25 @@ interface Channel {
   group: string;
 }
 
-// IndexedDB cache helpers
+// IndexedDB cache
 async function getCachedChannels(): Promise<Channel[] | null> {
   try {
     const raw = localStorage.getItem(CACHE_KEY + "_meta");
     if (!raw) return null;
     const meta = JSON.parse(raw);
     if (Date.now() - meta.timestamp > CACHE_TTL) return null;
-
     return new Promise((resolve) => {
       const req = indexedDB.open("snyx_iptv", 1);
       req.onupgradeneeded = () => req.result.createObjectStore("channels");
       req.onsuccess = () => {
         const tx = req.result.transaction("channels", "readonly");
-        const store = tx.objectStore("channels");
-        const get = store.get("data");
+        const get = tx.objectStore("channels").get("data");
         get.onsuccess = () => resolve(get.result || null);
         get.onerror = () => resolve(null);
       };
       req.onerror = () => resolve(null);
     });
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function setCachedChannels(channels: Channel[]): Promise<void> {
@@ -55,8 +50,7 @@ async function setCachedChannels(channels: Channel[]): Promise<void> {
       req.onupgradeneeded = () => req.result.createObjectStore("channels");
       req.onsuccess = () => {
         const tx = req.result.transaction("channels", "readwrite");
-        const store = tx.objectStore("channels");
-        store.put(channels, "data");
+        tx.objectStore("channels").put(channels, "data");
         tx.oncomplete = () => resolve();
         tx.onerror = () => resolve();
       };
@@ -65,78 +59,25 @@ async function setCachedChannels(channels: Channel[]): Promise<void> {
   } catch { /* ignore */ }
 }
 
-// Main categories mapping
-const MAIN_CATEGORIES = [
-  {
-    id: "tv",
-    label: "TV ao Vivo",
-    icon: Tv,
-    keywords: ["canais", "tv", "aberto", "esporte", "sport", "futebol", "ppv", "combate", "premiere", "sbt", "globo", "record", "band", "rede", "canal", "hbo", "telecine", "fox", "espn", "directv", "usa", "programas"],
-    color: "from-red-600 to-red-800",
-  },
-  {
-    id: "filmes",
-    label: "Filmes",
-    icon: Film,
-    keywords: ["filmes", "filme", "cinema", "legendado", "legendadas", "movie"],
-    color: "from-blue-600 to-blue-800",
-  },
-  {
-    id: "series",
-    label: "Séries",
-    icon: Clapperboard,
-    keywords: ["séries", "serie", "temporada", "season"],
-    color: "from-purple-600 to-purple-800",
-  },
-  {
-    id: "novelas",
-    label: "Novelas",
-    icon: Heart,
-    keywords: ["novelas", "novela", "turcas", "turca", "doramas", "dorama", "drama"],
-    color: "from-pink-600 to-pink-800",
-  },
-  {
-    id: "anime",
-    label: "Anime",
-    icon: Sparkles,
-    keywords: ["anime", "animes", "animação", "desenho"],
-    color: "from-orange-600 to-orange-800",
-  },
-  {
-    id: "kids",
-    label: "Kids",
-    icon: Baby,
-    keywords: ["kids", "crianças", "infantil", "cartoon", "nick", "disney"],
-    color: "from-green-500 to-green-700",
-  },
-  {
-    id: "streaming",
-    label: "Streaming",
-    icon: Popcorn,
-    keywords: ["netflix", "amazon", "prime", "globoplay", "max", "disney plus", "paramount", "apple tv", "star plus", "discovery", "hulu"],
-    color: "from-indigo-600 to-indigo-800",
-  },
-  {
-    id: "terror",
-    label: "Terror",
-    icon: Skull,
-    keywords: ["terror", "horror", "suspense"],
-    color: "from-gray-700 to-gray-900",
-  },
-  {
-    id: "acao",
-    label: "Ação",
-    icon: Swords,
-    keywords: ["acao", "ação", "aventura", "guerra"],
-    color: "from-amber-600 to-amber-800",
-  },
+const CATEGORIES = [
+  { id: "all", label: "Todos", icon: List },
+  { id: "tv", label: "TV ao Vivo", icon: Tv, keywords: ["canais", "tv", "aberto", "esporte", "sport", "futebol", "ppv", "combate", "premiere", "sbt", "globo", "record", "band", "rede", "canal", "hbo", "telecine", "fox", "espn", "directv", "usa", "programas"] },
+  { id: "filmes", label: "Filmes", icon: Film, keywords: ["filmes", "filme", "cinema", "legendado", "legendadas", "movie"] },
+  { id: "series", label: "Séries", icon: Clapperboard, keywords: ["séries", "serie", "temporada", "season"] },
+  { id: "novelas", label: "Novelas", icon: Heart, keywords: ["novelas", "novela", "turcas", "turca", "doramas", "dorama", "drama"] },
+  { id: "anime", label: "Anime", icon: Sparkles, keywords: ["anime", "animes", "animação", "desenho"] },
+  { id: "kids", label: "Kids", icon: Baby, keywords: ["kids", "crianças", "infantil", "cartoon", "nick", "disney"] },
+  { id: "streaming", label: "Streaming", icon: Popcorn, keywords: ["netflix", "amazon", "prime", "globoplay", "max", "disney plus", "paramount", "apple tv", "star plus", "discovery", "hulu"] },
+  { id: "terror", label: "Terror", icon: Skull, keywords: ["terror", "horror", "suspense"] },
+  { id: "acao", label: "Ação", icon: Swords, keywords: ["acao", "ação", "aventura", "guerra"] },
+  { id: "favoritos", label: "Favoritos", icon: Star },
 ];
 
 function categorizeGroup(group: string): string {
   const g = group.toLowerCase();
   if (g.includes("xxx") || g.includes("adulto")) return "__hidden__";
-  for (const cat of MAIN_CATEGORIES) {
-    if (cat.keywords.some(kw => g.includes(kw))) return cat.id;
+  for (const cat of CATEGORIES) {
+    if (cat.keywords && cat.keywords.some((kw: string) => g.includes(kw))) return cat.id;
   }
   return "outros";
 }
@@ -164,138 +105,46 @@ function parseM3U(content: string): Channel[] {
   return channels;
 }
 
-function groupColor(group: string): string {
-  let hash = 0;
-  for (let i = 0; i < group.length; i++) hash = group.charCodeAt(i) + ((hash << 5) - hash);
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 50%, 20%)`;
-}
-
-function ChannelCard({ channel, isPlaying, onClick }: { channel: Channel; isPlaying: boolean; onClick: () => void }) {
+function ChannelListItem({ channel, isPlaying, isFav, onClick, onToggleFav }: {
+  channel: Channel; isPlaying: boolean; isFav: boolean; onClick: () => void; onToggleFav: () => void;
+}) {
   const [imgError, setImgError] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
-    }, { rootMargin: "200px" });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   return (
-    <button
-      ref={ref}
+    <div
       onClick={onClick}
-      className={`group relative flex-shrink-0 w-44 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:z-10 focus:outline-none ${
-        isPlaying ? "ring-2 ring-red-500 scale-105 z-10" : ""
+      className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-all border-b border-white/5 group ${
+        isPlaying
+          ? "bg-blue-600/20 border-l-2 border-l-blue-500"
+          : "hover:bg-white/5 border-l-2 border-l-transparent"
       }`}
     >
-      <div
-        className="aspect-video w-full flex items-center justify-center relative"
-        style={{ backgroundColor: groupColor(channel.group) }}
-      >
-        {visible && channel.logo && !imgError ? (
-          <img src={channel.logo} alt="" loading="lazy" className="w-full h-full object-contain p-3" onError={() => setImgError(true)} />
+      <div className="w-10 h-10 rounded bg-white/5 flex-shrink-0 flex items-center justify-center overflow-hidden">
+        {channel.logo && !imgError ? (
+          <img src={channel.logo} alt="" className="w-full h-full object-contain" onError={() => setImgError(true)} loading="lazy" />
         ) : (
-          <Radio size={28} className="text-white/20" />
+          <Radio size={16} className="text-white/20" />
         )}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-          <div className={`w-10 h-10 rounded-full bg-white/90 flex items-center justify-center transition-all ${
-            isPlaying ? "opacity-100 scale-100" : "opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
-          }`}>
-            <Play size={18} className="text-black ml-0.5" fill="black" />
-          </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-xs font-medium truncate ${isPlaying ? "text-blue-400" : "text-white/90"}`}>
+          {channel.name}
+        </p>
+        <p className="text-[10px] text-white/30 truncate">{channel.group}</p>
+      </div>
+      {isPlaying && (
+        <div className="flex gap-0.5">
+          <div className="w-0.5 h-3 bg-blue-500 rounded-full animate-pulse" />
+          <div className="w-0.5 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }} />
+          <div className="w-0.5 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }} />
         </div>
-        {isPlaying && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-600 rounded text-[8px] font-bold text-white tracking-wider">AO VIVO</div>
-        )}
-      </div>
-      <div className="bg-[#181818] p-2.5 text-left">
-        <p className="text-[11px] font-medium text-white truncate">{channel.name}</p>
-        <p className="text-[9px] text-white/40 truncate mt-0.5">{channel.group}</p>
-      </div>
-    </button>
-  );
-}
-
-function CategoryRow({ title, channels, selectedChannel, onSelect }: {
-  title: string;
-  channels: Channel[];
-  selectedChannel: Channel | null;
-  onSelect: (ch: Channel) => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const rowRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [visible, setVisible] = useState(false);
-  const [showCount, setShowCount] = useState(20);
-
-  useEffect(() => {
-    const el = rowRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
-    }, { rootMargin: "400px" });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  const checkScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 10);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
-    if (el.scrollLeft > el.scrollWidth - el.clientWidth - 400 && showCount < channels.length) {
-      setShowCount(prev => Math.min(prev + 20, channels.length));
-    }
-  }, [showCount, channels.length]);
-
-  const scroll = (dir: "left" | "right") => {
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -600 : 600, behavior: "smooth" });
-  };
-
-  const displayChannels = channels.slice(0, showCount);
-
-  if (!visible) {
-    return (
-      <div ref={rowRef} className="mb-8">
-        <h3 className="text-sm font-bold text-white mb-3 px-10">{title}</h3>
-        <div className="flex gap-2 px-10">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="w-44 h-28 rounded-lg flex-shrink-0 bg-white/5" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={rowRef} className="mb-8">
-      <h3 className="text-sm font-bold text-white mb-3 px-10">
-        {title} <span className="text-white/20 font-normal text-xs ml-1">({channels.length})</span>
-      </h3>
-      <div className="relative group/row">
-        {canScrollLeft && (
-          <button onClick={() => scroll("left")} className="absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-[#141414] to-transparent flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity">
-            <ChevronLeft size={24} className="text-white" />
-          </button>
-        )}
-        <div ref={scrollRef} onScroll={checkScroll} className="flex gap-2 overflow-x-auto px-10 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-          {displayChannels.map((ch, i) => (
-            <ChannelCard key={`${ch.url}-${i}`} channel={ch} isPlaying={selectedChannel?.url === ch.url} onClick={() => onSelect(ch)} />
-          ))}
-        </div>
-        {canScrollRight && (
-          <button onClick={() => scroll("right")} className="absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-[#141414] to-transparent flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity">
-            <ChevronRight size={24} className="text-white" />
-          </button>
-        )}
-      </div>
+      )}
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFav(); }}
+        className={`p-1 rounded transition-all ${isFav ? "text-yellow-400" : "text-white/10 opacity-0 group-hover:opacity-100 hover:text-yellow-400"}`}
+      >
+        <Star size={12} fill={isFav ? "currentColor" : "none"} />
+      </button>
     </div>
   );
 }
@@ -310,17 +159,33 @@ export default function IPTV() {
   const [error, setError] = useState("");
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [search, setSearch] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("tv");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("snyx_iptv_favs");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<any>(null);
+  const channelListRef = useRef<HTMLDivElement>(null);
 
   const hasAccess = profile?.is_dev;
 
-  // Load channels - cache first, then network
+  const toggleFav = useCallback((url: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url); else next.add(url);
+      localStorage.setItem("snyx_iptv_favs", JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  // Load channels
   useEffect(() => {
     if (!hasAccess) return;
     let cancelled = false;
@@ -331,85 +196,44 @@ export default function IPTV() {
       setLoadingProgress(5);
       setLoadingStatus("Verificando cache...");
 
-      // Try cache first
       try {
         const cached = await getCachedChannels();
         if (cached && cached.length > 0 && !cancelled) {
           setLoadingProgress(100);
-          setLoadingStatus(`${cached.length} canais do cache`);
           setChannels(cached);
           setLoading(false);
-          
-          // Refresh in background silently
           refreshFromNetwork(false);
           return;
         }
-      } catch { /* ignore cache errors */ }
+      } catch { /* ignore */ }
 
       if (cancelled) return;
-
-      // No cache - fetch from network
       await refreshFromNetwork(true);
     };
 
     const refreshFromNetwork = async (showLoading: boolean) => {
       try {
-        if (showLoading) {
-          setLoadingProgress(10);
-          setLoadingStatus("Conectando ao servidor IPTV...");
-        }
-
-        const { data, error: fnError } = await supabase.functions.invoke("proxy-m3u", {
-          body: { url: IPTV_PLAYLIST_URL },
-        });
-
+        if (showLoading) { setLoadingProgress(10); setLoadingStatus("Conectando ao servidor..."); }
+        const { data, error: fnError } = await supabase.functions.invoke("proxy-m3u", { body: { url: IPTV_PLAYLIST_URL } });
         if (cancelled) return;
         if (fnError) throw new Error(fnError.message);
-
-        if (showLoading) {
-          setLoadingProgress(50);
-          setLoadingStatus("Processando playlist...");
-        }
-
+        if (showLoading) { setLoadingProgress(50); setLoadingStatus("Processando playlist..."); }
         const text = typeof data === "string" ? data : await new Response(data).text();
         if (cancelled) return;
-
-        // Check JSON error
         try {
-          const jsonCheck = JSON.parse(text);
-          if (jsonCheck?.error) {
-            throw new Error(jsonCheck.error);
-          }
-        } catch (parseErr) {
-          if (!(parseErr instanceof SyntaxError)) throw parseErr;
-        }
-
-        if (showLoading) {
-          setLoadingProgress(70);
-          setLoadingStatus("Organizando canais...");
-        }
-
+          const j = JSON.parse(text);
+          if (j?.error) throw new Error(j.error);
+        } catch (e) { if (!(e instanceof SyntaxError)) throw e; }
+        if (showLoading) { setLoadingProgress(70); setLoadingStatus("Organizando canais..."); }
         await new Promise(r => setTimeout(r, 0));
         const parsed = parseM3U(text);
         if (cancelled) return;
-
-        if (parsed.length === 0) {
-          if (showLoading) throw new Error("Nenhum canal encontrado");
-          return;
-        }
-
-        // Cache for next time
+        if (parsed.length === 0) { if (showLoading) throw new Error("Nenhum canal encontrado"); return; }
         setCachedChannels(parsed);
-
-        if (showLoading) {
-          setLoadingProgress(100);
-          setLoadingStatus(`${parsed.length} canais carregados!`);
-        }
+        if (showLoading) setLoadingProgress(100);
         setChannels(parsed);
       } catch (e: any) {
-        if (!cancelled && showLoading) {
-          setError(e.message || "Erro ao carregar lista");
-        }
+        if (!cancelled && showLoading) setError(e.message || "Erro ao carregar");
       } finally {
         if (!cancelled && showLoading) setLoading(false);
       }
@@ -419,39 +243,42 @@ export default function IPTV() {
     return () => { cancelled = true; };
   }, [hasAccess]);
 
-  // Build categorized data
-  const { categoryGroups, categoryCounts } = useMemo(() => {
-    const counts: Record<string, number> = {};
-    const groups = new Map<string, Channel[]>();
+  // Filtered channels and groups
+  const { filteredChannels, groups, categoryCounts } = useMemo(() => {
+    const counts: Record<string, number> = { all: 0, favoritos: 0 };
+    const q = search.toLowerCase();
 
     for (const ch of channels) {
       const catId = categorizeGroup(ch.group);
       if (catId === "__hidden__") continue;
+      counts["all"] = (counts["all"] || 0) + 1;
       counts[catId] = (counts[catId] || 0) + 1;
+      if (favorites.has(ch.url)) counts["favoritos"] = (counts["favoritos"] || 0) + 1;
+    }
 
-      if (catId === activeCategory) {
-        const q = search.toLowerCase();
-        if (q && !ch.name.toLowerCase().includes(q) && !ch.group.toLowerCase().includes(q)) continue;
-        if (!groups.has(ch.group)) groups.set(ch.group, []);
-        groups.get(ch.group)!.push(ch);
+    const filtered = channels.filter(ch => {
+      const catId = categorizeGroup(ch.group);
+      if (catId === "__hidden__") return false;
+      if (activeCategory === "favoritos") {
+        if (!favorites.has(ch.url)) return false;
+      } else if (activeCategory !== "all") {
+        if (catId !== activeCategory) return false;
       }
+      if (q && !ch.name.toLowerCase().includes(q) && !ch.group.toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    const groupMap = new Map<string, number>();
+    for (const ch of filtered) {
+      groupMap.set(ch.group, (groupMap.get(ch.group) || 0) + 1);
     }
 
-    const allCatIds = MAIN_CATEGORIES.map(c => c.id);
-    let outrosCount = 0;
-    for (const [id, c] of Object.entries(counts)) {
-      if (!allCatIds.includes(id)) outrosCount += c;
-    }
-    counts["outros"] = outrosCount;
-
-    return { categoryGroups: groups, categoryCounts: counts };
-  }, [channels, activeCategory, search]);
-
-  const heroChannel = useMemo(() => {
-    const first = categoryGroups.values().next().value;
-    if (!first || first.length === 0) return null;
-    return first[Math.floor(Math.random() * Math.min(first.length, 10))];
-  }, [categoryGroups]);
+    return {
+      filteredChannels: selectedGroup ? filtered.filter(ch => ch.group === selectedGroup) : filtered,
+      groups: [...groupMap.entries()].sort((a, b) => a[0].localeCompare(b[0])),
+      categoryCounts: counts,
+    };
+  }, [channels, activeCategory, search, favorites, selectedGroup]);
 
   // HLS playback
   useEffect(() => {
@@ -501,6 +328,7 @@ export default function IPTV() {
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
 
+  // No access
   if (!hasAccess) {
     return (
       <div className="h-screen bg-background flex flex-col">
@@ -516,9 +344,9 @@ export default function IPTV() {
               <Code2 size={40} className="text-cyan-400" />
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">SnyX TV</h2>
-            <p className="text-sm text-muted-foreground mb-2">Acesse canais de TV ao vivo, filmes e séries — direto na plataforma.</p>
+            <p className="text-sm text-muted-foreground mb-2">Acesse canais de TV ao vivo, filmes e séries.</p>
             <p className="text-xs text-muted-foreground/70 mb-6">
-              Exclusivo para assinantes do plano <span className="text-cyan-400 font-semibold">Programador (DEV)</span> — R$ 120/mês.
+              Exclusivo para <span className="text-cyan-400 font-semibold">DEV</span> — R$ 120/mês.
             </p>
             <button onClick={() => setShowVipModal(true)} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-xl transition-all text-sm">
               Assinar plano DEV
@@ -530,184 +358,200 @@ export default function IPTV() {
     );
   }
 
-  const activeCat = MAIN_CATEGORIES.find(c => c.id === activeCategory);
-
   return (
-    <div ref={containerRef} className="h-screen bg-[#141414] flex flex-col overflow-hidden">
-      {/* Top Nav */}
-      <header className="absolute top-0 left-0 right-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent">
-        <div className="flex items-center px-6 py-3 gap-4">
-          <Link to="/" className="p-1 rounded-lg hover:bg-white/10 transition-all">
-            <ArrowLeft size={18} className="text-white/80" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <MonitorPlay size={20} className="text-red-500" />
-            <span className="text-base font-extrabold text-white tracking-tight">SnyX TV</span>
-          </div>
-          <div className="flex-1" />
-          {showSearch ? (
-            <div className="flex items-center bg-black/70 border border-white/20 rounded-lg overflow-hidden">
-              <Search size={14} className="text-white/50 ml-2.5" />
-              <input
-                autoFocus value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar canal..." className="bg-transparent text-sm text-white placeholder:text-white/30 px-2 py-1.5 w-52 focus:outline-none"
-              />
-              <button onClick={() => { setShowSearch(false); setSearch(""); }} className="p-1.5 hover:bg-white/10"><X size={14} className="text-white/50" /></button>
+    <div ref={containerRef} className="h-screen bg-[#0a0e17] flex flex-col overflow-hidden">
+      {/* Loading */}
+      {loading ? (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center w-72">
+            <Loader2 size={40} className="text-blue-500 animate-spin mx-auto mb-3" />
+            <p className="text-sm text-white/60 mb-1">{loadingStatus}</p>
+            <p className="text-[10px] text-white/30 mb-3">Primeira vez demora mais</p>
+            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${loadingProgress}%` }} />
             </div>
-          ) : (
-            <button onClick={() => setShowSearch(true)} className="p-2 rounded-lg hover:bg-white/10"><Search size={18} className="text-white/70" /></button>
-          )}
+          </div>
         </div>
-
-        {/* Category Tabs */}
-        {!loading && (
-          <div className="flex items-center gap-1 px-6 pb-3 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-            {MAIN_CATEGORIES.map(cat => {
+      ) : error ? (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm text-red-400 mb-3">{error}</p>
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm flex items-center gap-2 mx-auto">
+              <RefreshCw size={14} /> Tentar novamente
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-full">
+          {/* Sidebar - Categories */}
+          <div className="w-16 bg-[#0d1220] flex flex-col items-center py-2 gap-1 border-r border-white/5 overflow-y-auto shrink-0" style={{ scrollbarWidth: "none" }}>
+            <Link to="/" className="p-2 rounded-lg hover:bg-white/10 transition-all mb-2">
+              <ArrowLeft size={16} className="text-white/50" />
+            </Link>
+            {CATEGORIES.map(cat => {
               const count = categoryCounts[cat.id] || 0;
-              if (count === 0) return null;
+              if (cat.id !== "all" && cat.id !== "favoritos" && count === 0) return null;
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  onClick={() => { setActiveCategory(cat.id); setSelectedGroup(null); }}
+                  title={`${cat.label} (${count})`}
+                  className={`w-11 h-11 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all ${
                     isActive
-                      ? "bg-white text-black"
-                      : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                      : "text-white/40 hover:bg-white/10 hover:text-white/70"
                   }`}
                 >
-                  <Icon size={14} />
-                  {cat.label}
-                  <span className={`text-[10px] ${isActive ? "text-black/50" : "text-white/30"}`}>
-                    {count > 999 ? `${(count / 1000).toFixed(0)}k` : count}
-                  </span>
+                  <Icon size={16} />
+                  <span className="text-[7px] font-medium leading-none">{cat.label.split(" ")[0]}</span>
                 </button>
               );
             })}
-            {(categoryCounts["outros"] || 0) > 0 && (
+          </div>
+
+          {/* Groups panel */}
+          <div className="w-48 bg-[#0f1524] flex flex-col border-r border-white/5 shrink-0">
+            <div className="p-3 border-b border-white/5">
+              <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                {CATEGORIES.find(c => c.id === activeCategory)?.label || "Canais"}
+              </h3>
+              <p className="text-[9px] text-white/20 mt-0.5">{groups.length} grupos</p>
+            </div>
+            <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#ffffff15 transparent" }}>
               <button
-                onClick={() => setActiveCategory("outros")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeCategory === "outros"
-                    ? "bg-white text-black"
-                    : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                onClick={() => setSelectedGroup(null)}
+                className={`w-full text-left px-3 py-2 text-xs transition-all border-b border-white/5 flex items-center justify-between ${
+                  !selectedGroup ? "bg-blue-600/15 text-blue-400" : "text-white/60 hover:bg-white/5"
                 }`}
               >
-                Outros
-                <span className={`text-[10px] ${activeCategory === "outros" ? "text-black/50" : "text-white/30"}`}>
-                  {categoryCounts["outros"] > 999 ? `${(categoryCounts["outros"] / 1000).toFixed(0)}k` : categoryCounts["outros"]}
-                </span>
+                <span className="truncate">Todos</span>
+                <span className="text-[9px] text-white/20">{filteredChannels.length}</span>
               </button>
-            )}
-          </div>
-        )}
-      </header>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center w-72">
-              <Loader2 size={40} className="text-red-500 animate-spin mx-auto mb-3" />
-              <p className="text-sm text-white/60 mb-1">{loadingStatus}</p>
-              <p className="text-[10px] text-white/30 mb-3">Primeira vez demora mais — depois abre instantâneo</p>
-              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${loadingProgress}%` }} />
-              </div>
-              <p className="text-[10px] text-white/20 mt-2">{loadingProgress}%</p>
+              {groups.map(([group, count]) => (
+                <button
+                  key={group}
+                  onClick={() => setSelectedGroup(group)}
+                  className={`w-full text-left px-3 py-2 text-xs transition-all border-b border-white/5 flex items-center justify-between gap-1 ${
+                    selectedGroup === group ? "bg-blue-600/15 text-blue-400" : "text-white/60 hover:bg-white/5"
+                  }`}
+                >
+                  <span className="truncate">{group}</span>
+                  <span className="text-[9px] text-white/20 shrink-0">{count}</span>
+                </button>
+              ))}
             </div>
           </div>
-        ) : error ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-sm text-red-400 mb-3">{error}</p>
-              <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm flex items-center gap-2 mx-auto">
-                <RefreshCw size={14} /> Tentar novamente
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Hero */}
-            <div className="relative h-[50vh] min-h-[340px]">
-              {selectedChannel ? (
-                <video ref={videoRef} controls autoPlay className="w-full h-full object-cover" />
-              ) : (
-                <div className={`w-full h-full flex items-end bg-gradient-to-br ${activeCat?.color || "from-gray-800 to-gray-900"}`}>
-                  {heroChannel?.logo && (
-                    <img src={heroChannel.logo} alt="" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 object-contain opacity-15" />
-                  )}
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/80 via-transparent to-transparent pointer-events-none" />
 
-              <div className="absolute bottom-8 left-10 z-10 max-w-lg">
-                {selectedChannel ? (
-                  <>
-                    <h1 className="text-3xl font-extrabold text-white mb-2 drop-shadow-lg">{selectedChannel.name}</h1>
-                    <p className="text-sm text-white/60 mb-4">Assistindo ao vivo • {selectedChannel.group}</p>
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => setMuted(!muted)} className="p-2.5 rounded-full border border-white/30 text-white hover:bg-white/10">
-                        {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                      </button>
-                      <button onClick={toggleFullscreen} className="p-2.5 rounded-full border border-white/30 text-white hover:bg-white/10">
-                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                      </button>
-                      <button onClick={() => setSelectedChannel(null)} className="p-2.5 rounded-full border border-white/30 text-white hover:bg-white/10">
-                        <X size={18} />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 mb-2">
-                      {activeCat && <activeCat.icon size={20} className="text-white/70" />}
-                      <span className="text-xs font-semibold text-white/50 uppercase tracking-widest">{activeCat?.label}</span>
-                    </div>
-                    <h1 className="text-3xl font-extrabold text-white mb-2 drop-shadow-lg">
-                      {heroChannel?.name || activeCat?.label || "SnyX TV"}
-                    </h1>
-                    <p className="text-sm text-white/50 mb-4">
-                      {categoryGroups.size} categorias disponíveis • Selecione um canal
-                    </p>
-                    {heroChannel && (
-                      <button
-                        onClick={() => setSelectedChannel(heroChannel)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-white text-black font-bold rounded-md hover:bg-white/90 transition-all text-sm"
-                      >
-                        <Play size={18} fill="black" /> Assistir
-                      </button>
-                    )}
-                  </>
+          {/* Channel list */}
+          <div className="w-72 bg-[#111827] flex flex-col border-r border-white/5 shrink-0">
+            {/* Search */}
+            <div className="p-2 border-b border-white/5">
+              <div className="flex items-center bg-white/5 rounded-lg px-2.5 py-1.5 gap-2">
+                <Search size={13} className="text-white/30 shrink-0" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Buscar canal..."
+                  className="bg-transparent text-xs text-white placeholder:text-white/20 w-full focus:outline-none"
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} className="text-white/30 hover:text-white/60">
+                    <X size={12} />
+                  </button>
                 )}
               </div>
             </div>
 
-            {/* Category Rows */}
-            <div className="relative z-10 -mt-6 pb-10">
-              {search && categoryGroups.size === 0 && (
-                <p className="text-center text-white/30 text-sm py-10">Nenhum canal encontrado para "{search}"</p>
+            {/* Channel count */}
+            <div className="px-3 py-1.5 border-b border-white/5 flex items-center justify-between">
+              <span className="text-[10px] text-white/30">
+                {filteredChannels.length} canais
+              </span>
+              {selectedGroup && (
+                <button onClick={() => setSelectedGroup(null)} className="text-[10px] text-blue-400 hover:text-blue-300">
+                  Limpar filtro
+                </button>
               )}
-              {categoryGroups.size === 0 && !search && (
-                <p className="text-center text-white/30 text-sm py-10">Nenhum canal nesta categoria</p>
-              )}
-              {Array.from(categoryGroups.entries())
-                .sort((a, b) => b[1].length - a[1].length)
-                .map(([group, items]) => (
-                  <CategoryRow
-                    key={group}
-                    title={group}
-                    channels={items}
-                    selectedChannel={selectedChannel}
-                    onSelect={setSelectedChannel}
-                  />
-                ))}
             </div>
-          </>
-        )}
-      </div>
+
+            {/* List */}
+            <div ref={channelListRef} className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#ffffff15 transparent" }}>
+              {filteredChannels.length === 0 ? (
+                <p className="text-center text-white/20 text-xs py-8">Nenhum canal encontrado</p>
+              ) : (
+                filteredChannels.slice(0, 500).map((ch, i) => (
+                  <ChannelListItem
+                    key={`${ch.url}-${i}`}
+                    channel={ch}
+                    isPlaying={selectedChannel?.url === ch.url}
+                    isFav={favorites.has(ch.url)}
+                    onClick={() => setSelectedChannel(ch)}
+                    onToggleFav={() => toggleFav(ch.url)}
+                  />
+                ))
+              )}
+              {filteredChannels.length > 500 && (
+                <p className="text-center text-white/20 text-[10px] py-3">
+                  Mostrando 500 de {filteredChannels.length} — use a busca
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Player area */}
+          <div className="flex-1 flex flex-col bg-[#0a0e17]">
+            {selectedChannel ? (
+              <>
+                {/* Video */}
+                <div className="flex-1 relative bg-black flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    controls
+                    autoPlay
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                {/* Now playing bar */}
+                <div className="h-14 bg-[#111827] border-t border-white/5 flex items-center px-4 gap-3 shrink-0">
+                  <div className="flex gap-0.5 mr-1">
+                    <div className="w-0.5 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="w-0.5 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }} />
+                    <div className="w-0.5 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{selectedChannel.name}</p>
+                    <p className="text-[10px] text-white/40">{selectedChannel.group}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setMuted(!muted)} className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-all">
+                      {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                    </button>
+                    <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-all">
+                      {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                    </button>
+                    <button onClick={() => setSelectedChannel(null)} className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-all">
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-2xl bg-blue-600/10 flex items-center justify-center mx-auto mb-4">
+                    <MonitorPlay size={48} className="text-blue-500/50" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white/80 mb-1">SnyX TV</h2>
+                  <p className="text-sm text-white/30 mb-1">Selecione um canal para assistir</p>
+                  <p className="text-xs text-white/15">{channels.length} canais disponíveis</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
