@@ -829,8 +829,14 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
       if (contentType.includes("application/json")) {
         const data = await res.json();
+        // Handle rate limit
+        if (data.error === "rate_limit") {
+          setMessages((prev) => [...prev, { role: "assistant", content: `⏳ ${data.message || "Serviço de IA sobrecarregado. Tente novamente em alguns minutos."}` }]);
+          setIsLoading(false);
+          setThinkingText("");
+          return;
+        }
         if (data.success && data.audioContent) {
-          // Music response - create audio player content
           const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
           const musicContent = `🎵 **Música gerada!**\n\n_"${data.prompt || trimmedInput}"_\n\n<audio:${audioUrl}>`;
           setMessages((prev) => [...prev, { role: "assistant", content: musicContent }]);
