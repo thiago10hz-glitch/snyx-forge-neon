@@ -1095,13 +1095,14 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   }
                   setUsePremium(!usePremium);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 md:py-2 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg transition-all duration-300 whitespace-nowrap ${
                   usePremium
                     ? "bg-yellow-500/10 text-yellow-400 shadow-sm"
                     : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                 }`}
               >
-                <Crown size={14} />
+                <Crown size={12} className="sm:hidden" />
+                <Crown size={14} className="hidden sm:block" />
                 <span className="hidden sm:inline">Premium</span>
                 {!profile?.is_vip && <span className="text-[8px] opacity-50">🔒</span>}
               </button>
