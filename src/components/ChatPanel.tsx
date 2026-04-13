@@ -1245,7 +1245,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                       <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
                         <Bot size={13} className={`${config.color} md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className={`flex-1 min-w-0 ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
                           {/* Check for audio content (music mode) */}
                           {msg.content.includes("<audio:") ? (
