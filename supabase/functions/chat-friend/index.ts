@@ -3,6 +3,181 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function tryGemini(apiKey: string, systemPrompt: string, messages: any[], hasImages: boolean) {
+  const geminiContents: any[] = [];
+  for (const msg of messages.slice(-20)) {
+    const role = msg.role === "user" ? "user" : "model";
+    if (msg.imageData && hasImages) {
+      const match = msg.imageData.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        geminiContents.push({
+          role,
+          parts: [
+            { text: msg.content || "Analise esta imagem." },
+            { inlineData: { mimeType: match[1], data: match[2] } },
+          ],
+        });
+      } else {
+        geminiContents.push({ role, parts: [{ text: msg.content }] });
+      }
+    } else {
+      geminiContents.push({ role, parts: [{ text: msg.content }] });
+    }
+  }
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiContents,
+        generationConfig: { temperature: 0.85, maxOutputTokens: 4096 },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Gemini error:", res.status, err.slice(0, 200));
+    return null;
+  }
+
+  return { response: res, type: "gemini" };
+}
+
+async function tryGroq(apiKey: string, systemPrompt: string, messages: any[]) {
+  const groqMessages = [
+    { role: "system", content: systemPrompt },
+    ...messages.slice(-20).map((m: any) => ({
+      role: m.role === "user" ? "user" : "assistant",
+      content: m.content,
+    })),
+  ];
+
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: groqMessages,
+      stream: true,
+      max_tokens: 4096,
+      temperature: 0.85,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Groq error:", res.status, err.slice(0, 200));
+    return null;
+  }
+
+  return { response: res, type: "openai" };
+}
+
+async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any[]) {
+  const orMessages = [
+    { role: "system", content: systemPrompt },
+    ...messages.slice(-20).map((m: any) => ({
+      role: m.role === "user" ? "user" : "assistant",
+      content: m.content,
+    })),
+  ];
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
+      "X-Title": "SnyX Amigo",
+    },
+    body: JSON.stringify({
+      model: "deepseek/deepseek-chat-v3.1",
+      messages: orMessages,
+      stream: true,
+      max_tokens: 4096,
+      temperature: 0.85,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("OpenRouter error:", res.status, err.slice(0, 200));
+    return null;
+  }
+
+  return { response: res, type: "openai" };
+}
+
+function streamGemini(res: Response) {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    async start(controller) {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith("data: ")) continue;
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+            } catch { /* skip */ }
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (e) { console.error("Stream error:", e); }
+      finally { controller.close(); }
+    },
+  });
+}
+
+function streamOpenAI(res: Response) {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    async start(controller) {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === "data: [DONE]") continue;
+            if (!trimmed.startsWith("data: ")) continue;
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              const content = json.choices?.[0]?.delta?.content;
+              if (content) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
+            } catch { /* skip */ }
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (e) { console.error("Stream error:", e); }
+      finally { controller.close(); }
+    },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -10,11 +185,8 @@ Deno.serve(async (req) => {
 
   try {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    if (!GOOGLE_AI_API_KEY) {
-      return new Response(JSON.stringify({ error: "GOOGLE_AI_API_KEY não configurada" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
 
     const { messages, mode } = await req.json();
     if (!messages || !Array.isArray(messages)) {
@@ -82,92 +254,39 @@ SEU PAPEL:
 - NUNCA seja robótico ou curto. Seja HUMANO e PRESENTE.
 - Sempre termine com uma pergunta pra manter a conversa fluindo`;
 
-    // Build Gemini API contents
-    const geminiContents: any[] = [];
+    // === FALLBACK CHAIN: Gemini → Groq → OpenRouter ===
+    let result: { response: Response; type: string } | null = null;
 
-    const recentMessages = messages.slice(-20);
-    for (const msg of recentMessages) {
-      const role = msg.role === "user" ? "user" : "model";
-      if (msg.imageData && hasImages) {
-        // Extract base64 data and mime type from data URL
-        const match = msg.imageData.match(/^data:([^;]+);base64,(.+)$/);
-        if (match) {
-          geminiContents.push({
-            role,
-            parts: [
-              { text: msg.content || "Analise esta imagem." },
-              { inlineData: { mimeType: match[1], data: match[2] } },
-            ],
-          });
-        } else {
-          geminiContents.push({ role, parts: [{ text: msg.content }] });
-        }
-      } else {
-        geminiContents.push({ role, parts: [{ text: msg.content }] });
-      }
+    // 1. Try Gemini first (fastest, free)
+    if (!result && GOOGLE_AI_API_KEY) {
+      console.log("Trying Gemini...");
+      result = await tryGemini(GOOGLE_AI_API_KEY, systemPrompt, messages, hasImages);
+      if (result) console.log("✅ Using Gemini");
     }
 
-    const geminiModel = "gemini-2.0-flash";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${GOOGLE_AI_API_KEY}`;
+    // 2. Try Groq (fast, free)
+    if (!result && GROQ_API_KEY && !hasImages) {
+      console.log("Trying Groq...");
+      result = await tryGroq(GROQ_API_KEY, systemPrompt, messages);
+      if (result) console.log("✅ Using Groq");
+    }
 
-    const res = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: geminiContents,
-        generationConfig: {
-          temperature: 0.85,
-          maxOutputTokens: 4096,
-        },
-      }),
-    });
+    // 3. Try OpenRouter (DeepSeek, free tier)
+    if (!result && OPENROUTER_API_KEY && !hasImages) {
+      console.log("Trying OpenRouter...");
+      result = await tryOpenRouter(OPENROUTER_API_KEY, systemPrompt, messages);
+      if (result) console.log("✅ Using OpenRouter");
+    }
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Gemini API error:", res.status, err);
-      if (res.status === 429) {
-        return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      return new Response(JSON.stringify({ error: `Erro Gemini: ${res.status}` }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (!result) {
+      return new Response(JSON.stringify({ error: "Todas as APIs estão indisponíveis no momento. Tente novamente em alguns minutos." }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Stream Gemini SSE response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = res.body!.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith("data: ")) continue;
-              try {
-                const json = JSON.parse(trimmed.slice(6));
-                const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
-                }
-              } catch { /* skip */ }
-            }
-          }
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        } catch (e) { console.error("Stream error:", e); }
-        finally { controller.close(); }
-      },
-    });
+    const stream = result.type === "gemini"
+      ? streamGemini(result.response)
+      : streamOpenAI(result.response);
 
     return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
