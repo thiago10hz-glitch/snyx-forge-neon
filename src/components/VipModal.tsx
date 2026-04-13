@@ -1,0 +1,165 @@
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay } from "lucide-react";
+
+const VIP_LINK = "https://wa.me/554388691650";
+
+interface VipModalProps {
+  open: boolean;
+  onClose: () => void;
+  highlightPlan?: "vip" | "programmer";
+}
+
+const vipFeatures = [
+  { icon: Heart, text: "Chat Amigo ilimitado", desc: "Converse sem limites com sua IA amiga" },
+  { icon: Crown, text: "Modo Premium desbloqueado", desc: "Acesso a funções avançadas do Amigo" },
+  { icon: Image, text: "Geração de imagens com IA", desc: "Crie imagens incríveis por comando" },
+  { icon: Mic, text: "Envio de áudio por voz", desc: "Fale com a IA pelo microfone" },
+  { icon: MessageCircle, text: "Mensagens ilimitadas", desc: "Sem limite diário de mensagens" },
+  { icon: Sparkles, text: "IA sem censura", desc: "Respostas completas sem restrições" },
+  { icon: Palette, text: "Temas e personalização", desc: "Customize a aparência do chat" },
+];
+
+const programmerFeatures = [
+  { icon: Code, text: "Criar sites completos com IA", desc: "HTML, CSS, JS gerados automaticamente" },
+  { icon: Globe, text: "Publicar sites online", desc: "Deploy automático com link público" },
+  { icon: Rocket, text: "Código otimizado e rápido", desc: "Performance máxima nos projetos" },
+  { icon: FileCode, text: "Todas as linguagens", desc: "Python, JS, TS, React e mais" },
+  { icon: Server, text: "Backend e APIs", desc: "Crie sistemas completos" },
+  { icon: MonitorPlay, text: "Preview em tempo real", desc: "Veja o resultado enquanto cria" },
+  { icon: MessageCircle, text: "Chat ilimitado com a IA Dev", desc: "Sem limites de mensagens" },
+  { icon: Tv, text: "Acesso ao IPTV/Streaming", desc: "Filmes e séries inclusos" },
+  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios VIP + Dev" },
+  { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido via WhatsApp" },
+];
+
+export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+      <div className="glass-elevated rounded-2xl max-w-3xl w-full overflow-hidden animate-enter border border-border/20 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="relative p-6 pb-4 shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all z-10"
+          >
+            <X size={18} />
+          </button>
+          <div className="relative flex items-center gap-3 mb-2">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
+              <Zap className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">SnyX Premium</h2>
+              <p className="text-xs text-muted-foreground/50">Escolha o plano ideal para você</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Plans */}
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto flex-1 scrollbar-thin">
+          {/* VIP Plan */}
+          <div className={`rounded-2xl border p-5 transition-all flex flex-col ${
+            highlightPlan === "vip"
+              ? "border-yellow-500/25 bg-yellow-500/3 ring-1 ring-yellow-500/10"
+              : "border-border/15 bg-muted/5"
+          }`}>
+            <div className="flex items-center gap-2 mb-1">
+              <Crown size={18} className="text-yellow-400" />
+              <span className="text-base font-bold text-foreground">VIP</span>
+              {highlightPlan === "vip" && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-yellow-400 font-bold animate-pulse">POPULAR</span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground/50 mb-3">Para quem quer o máximo do chat</p>
+            
+            <div className="mb-4">
+              <span className="text-3xl font-black text-foreground">R$50</span>
+              <span className="text-xs text-muted-foreground/40">/mês</span>
+            </div>
+
+            <div className="space-y-2.5 flex-1">
+              {vipFeatures.map((f, i) => (
+                <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
+                  <div className="w-5 h-5 rounded-md bg-emerald-500/8 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={11} className="text-emerald-400" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-foreground/90">{f.text}</span>
+                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <a
+              href={VIP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-yellow-500/15 hover:shadow-lg hover:shadow-yellow-500/5"
+            >
+              <Crown className="w-4 h-4" />
+              ASSINAR VIP
+            </a>
+          </div>
+
+          {/* Programmer Plan */}
+          <div className={`rounded-2xl border p-5 transition-all flex flex-col relative ${
+            highlightPlan === "programmer"
+              ? "border-cyan-500/25 bg-cyan-500/3 ring-1 ring-cyan-500/10"
+              : "border-border/15 bg-muted/5"
+          }`}>
+            <div className="absolute -top-2.5 right-4">
+              <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/20">
+                DEV
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 mb-1">
+              <Code size={18} className="text-cyan-400" />
+              <span className="text-base font-bold text-foreground">Programador</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/50 mb-3">Crie projetos profissionais com IA</p>
+
+            <div className="mb-4">
+              <span className="text-3xl font-black text-foreground">R$120</span>
+              <span className="text-xs text-muted-foreground/40">/mês</span>
+            </div>
+
+            <div className="space-y-2.5 flex-1">
+              {programmerFeatures.map((f, i) => (
+                <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
+                  <div className="w-5 h-5 rounded-md bg-cyan-500/8 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={11} className="text-cyan-400" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-foreground/90">{f.text}</span>
+                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <a
+              href={VIP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold rounded-xl py-3 transition-all duration-300 text-sm shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25"
+            >
+              <Rocket className="w-4 h-4" />
+              ASSINAR DEV
+            </a>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-4 shrink-0">
+          <p className="text-[10px] text-muted-foreground/30 text-center">
+            Pagamento via WhatsApp • Ativação instantânea • Cancele quando quiser
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
