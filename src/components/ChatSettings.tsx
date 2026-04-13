@@ -17,6 +17,7 @@ interface ChatCustomization {
   ai_avatar_url: string | null;
   ai_personality: string | null;
   system_prompt: string | null;
+  bubble_style: string;
 }
 
 const THEME_COLORS = [
