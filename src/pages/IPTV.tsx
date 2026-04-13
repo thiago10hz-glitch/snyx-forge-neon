@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const M3U_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
+const IPTV_PLAYLIST_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
 
 interface Channel {
   name: string;
@@ -285,7 +285,7 @@ export default function IPTV() {
       setLoadingProgress(10);
       try {
         const { data, error: fnError } = await supabase.functions.invoke("proxy-m3u", {
-          body: { url: M3U_URL },
+          body: { url: IPTV_PLAYLIST_URL },
         });
         if (cancelled) return;
         if (fnError) throw new Error(fnError.message);
