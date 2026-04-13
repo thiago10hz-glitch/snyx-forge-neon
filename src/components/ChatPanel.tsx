@@ -886,12 +886,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     : isRecording ? "🎤 Gravando... fale agora" : config.placeholder;
 
   return (
-    <div className="flex h-full bg-background/50 text-foreground">
+    <div className="flex h-full bg-background/50 text-foreground relative">
+      {/* Sidebar overlay for mobile */}
+      {showSidebar && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 sm:hidden" 
+          onClick={() => setShowSidebar(false)} 
+        />
+      )}
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0`}>
+      <div className={`${showSidebar ? 'w-64 fixed sm:relative inset-y-0 left-0 z-40 sm:z-auto' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0 bg-background sm:bg-transparent`}>
         <div className="p-3 border-b border-border/10">
           <button
-            onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); }}
+            onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); setShowSidebar(false); }}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground glass-input border hover:border-primary/15 transition-all duration-300 group"
           >
             <Plus size={16} className="text-muted-foreground/40 group-hover:text-primary transition-colors duration-300" />
@@ -910,7 +917,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                     ? "bg-muted/40 text-foreground font-medium border border-border/20"
                     : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
                 }`}
-                onClick={() => { setActiveConversationId(conv.id); setAttachment(null); }}
+                onClick={() => { setActiveConversationId(conv.id); setAttachment(null); setShowSidebar(false); }}
               >
                 <MessageCircle size={14} className="shrink-0 opacity-40" />
                 <span className="truncate flex-1 text-[13px]">{conv.title}</span>
