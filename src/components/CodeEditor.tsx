@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, RotateCcw, ExternalLink, Upload, Loader2, Rocket } from "lucide-react";
+import { Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, RotateCcw, ExternalLink, Loader2, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
