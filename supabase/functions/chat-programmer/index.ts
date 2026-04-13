@@ -84,6 +84,11 @@ REGRAS:
     if (!res.ok) {
       const err = await res.text();
       console.error("Groq error:", err);
+      if (res.status === 429) {
+        return new Response(JSON.stringify({ error: "rate_limit", message: "O serviço de IA está sobrecarregado. Tente novamente em alguns minutos." }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(JSON.stringify({ error: `Erro Groq: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
