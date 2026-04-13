@@ -10,7 +10,7 @@ import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
-  Crown, Users, Search, RefreshCw, MessageCircle,
+  Crown, Users, Search, RefreshCw, MessageCircle, Phone,
   Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield
 } from "lucide-react";
 import { toast } from "sonner";
