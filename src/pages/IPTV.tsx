@@ -63,12 +63,6 @@ const SERVICES: StreamingService[] = [
   },
 ];
 
-const CATEGORIES = [
-  { icon: Globe, label: "Todos", id: "all" },
-  { icon: Film, label: "Filmes", id: "filmes" },
-  { icon: Tv, label: "TV ao Vivo", id: "tv" },
-  { icon: Sparkles, label: "Séries", id: "series" },
-];
 
 function ServiceCard({ service }: { service: StreamingService }) {
   return (
