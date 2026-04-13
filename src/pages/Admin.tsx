@@ -414,6 +414,12 @@ export default function Admin() {
           >
             <Shield className="w-3 h-3" />Segurança
           </button>
+          <button
+            onClick={() => setAdminTab("hosting")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "hosting" ? "bg-orange-500/15 text-orange-400 border border-orange-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <KeyRound className="w-3 h-3" />Hosting Keys
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">{user.email}</span>
