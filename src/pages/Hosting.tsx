@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
-  Crown, Zap, Loader2, Edit, Copy, RefreshCw, Server, Sparkles, Send,
+  Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
