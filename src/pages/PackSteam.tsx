@@ -89,10 +89,10 @@ export default function PackSteam() {
 
         {/* Features */}
         <div className="grid grid-cols-2 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <FeatureCard icon={Gamepad2} title="+40.000 Jogos" description="Biblioteca gigante com os melhores títulos" color="green" />
-          <FeatureCard icon={Zap} title="Instalação Rápida" description="Configure em poucos minutos" color="emerald" />
-          <FeatureCard icon={Shield} title="100% Seguro" description="Processo confiável, sem riscos" color="green" />
-          <FeatureCard icon={Star} title="Atualizações" description="Novos jogos sempre" color="emerald" />
+          <FeatureCard icon={Gamepad2} title="+40.000 Jogos" description="Biblioteca gigante com os melhores títulos" />
+          <FeatureCard icon={Zap} title="Instalação Rápida" description="Configure em poucos minutos" />
+          <FeatureCard icon={Shield} title="100% Seguro" description="Processo confiável, sem riscos" />
+          <FeatureCard icon={Star} title="Atualizações" description="Novos jogos sempre" />
         </div>
 
         {/* Highlights bar */}
