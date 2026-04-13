@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { VipModal } from "@/components/VipModal";
 import {
-  ArrowLeft, ExternalLink, MonitorPlay, Code2, Play, Tv, Film, Sparkles, Globe
+  ArrowLeft, ExternalLink, MonitorPlay, Code2, Play
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
