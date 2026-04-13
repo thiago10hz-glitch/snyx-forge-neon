@@ -35,81 +35,80 @@ const Index = () => {
       </div>
 
       {/* Top Bar */}
-      <header className="relative z-20 h-11 sm:h-12 md:h-14 flex items-center justify-between px-2 sm:px-3 md:px-6 lg:px-8 shrink-0 glass border-b border-border/20">
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-          <div className="relative">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
-              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px] text-primary" />
+      <header className="relative z-20 h-12 sm:h-13 md:h-14 flex items-center justify-between px-2.5 sm:px-4 md:px-6 lg:px-8 shrink-0 glass border-b border-border/15">
+        {/* Logo */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="relative group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10 group-hover:shadow-primary/20 transition-all duration-500">
+              <Zap className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 text-primary" />
             </div>
-            <div className="absolute -inset-1 rounded-xl bg-primary/10 blur-md -z-10 animate-breathe" />
+            <div className="absolute -inset-1.5 rounded-xl bg-primary/8 blur-lg -z-10 animate-breathe opacity-60" />
           </div>
           <div className="leading-none">
-            <h1 className="text-[11px] sm:text-xs md:text-sm font-bold tracking-wide text-foreground">SnyX</h1>
-            <p className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5 hidden sm:block">AI Platform</p>
+            <h1 className="text-xs sm:text-sm md:text-[15px] font-extrabold tracking-wide text-foreground gradient-text-subtle">SnyX</h1>
+            <p className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/35 font-semibold tracking-[0.2em] uppercase mt-0.5 hidden sm:block">AI Platform</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2">
+        {/* Navigation */}
+        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5">
           <AdminPresenceIndicator />
-          <Link
-            to="/iptv"
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
-          >
-            <MonitorPlay className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
-            <span className="hidden sm:inline">TV</span>
-          </Link>
-          <Link
-            to="/hosting"
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
-          >
-            <Server className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
-            <span className="hidden sm:inline">Hosting</span>
-          </Link>
-          <Link
-            to="/downloads"
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
-          >
-            <Download className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
-            <span className="hidden sm:inline">App</span>
-          </Link>
+          
+          {/* Nav links */}
+          {[
+            { to: "/iptv", icon: MonitorPlay, label: "TV" },
+            { to: "/hosting", icon: Server, label: "Hosting" },
+            { to: "/downloads", icon: Download, label: "App" },
+          ].map(({ to, icon: Icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 text-xs font-medium sm:px-2.5 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/60 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 group"
+            >
+              <Icon className="w-[15px] h-[15px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+              <span className="hidden sm:inline">{label}</span>
+            </Link>
+          ))}
 
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 text-xs font-medium sm:px-2.5 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/60 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 group"
             >
-              <ShieldCheck className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+              <ShieldCheck className="w-[15px] h-[15px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
 
+          {/* Tier badge */}
           {profile?.is_dev ? (
-            <span className="badge-dev flex items-center gap-0.5 text-[8px] sm:text-[9px] md:text-xs">
-              <Code size={8} className="sm:hidden" />
-              <Code size={9} className="hidden sm:block" />
+            <span className="badge-dev flex items-center gap-1 text-[8px] sm:text-[9px] md:text-[10px]">
+              <Code size={9} />
               DEV
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip text-[8px] sm:text-[9px] md:text-xs">VIP</span>
+            <span className="badge-vip text-[8px] sm:text-[9px] md:text-[10px]">VIP</span>
           ) : (
-            <span className="badge-free text-[8px] sm:text-[9px] md:text-xs">Free</span>
+            <span className="badge-free text-[8px] sm:text-[9px] md:text-[10px]">Free</span>
           )}
 
+          {/* Avatar */}
           <button
             onClick={() => setShowProfile(true)}
-            className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 active:bg-muted/30 group ml-0.5"
+            className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-border/20 hover:border-primary/25 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 active:bg-muted/30 group ml-0.5 ring-2 ring-transparent hover:ring-primary/10"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+              <User className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground transition-colors" />
             )}
           </button>
 
+          {/* Logout */}
           <button
             onClick={signOut}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 flex items-center justify-center"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 flex items-center justify-center"
             title="Sair"
           >
             <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -121,8 +120,8 @@ const Index = () => {
       <div className="relative z-10 flex-1 flex overflow-hidden">
         {chatMode === "music" ? (
           <div className="flex-1 overflow-hidden flex flex-col bg-background items-center justify-center p-6">
-            <div className="text-center max-w-md">
-              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center max-w-md animate-fade-in-up">
+              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
                 <span className="text-4xl">🎵</span>
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">SnyX Música</h2>
@@ -136,7 +135,7 @@ const Index = () => {
                 href="https://br.musicful.ai/ai-music-generator/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all text-sm"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-primary-foreground font-semibold rounded-xl transition-all text-sm shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30"
               >
                 🎶 Abrir Musicful AI
               </a>
