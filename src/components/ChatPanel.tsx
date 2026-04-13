@@ -1239,7 +1239,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
@@ -1253,21 +1253,21 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                             style={{ maxHeight: 300 }}
                           />
                         )}
-                        <div className={`bg-primary text-primary-foreground ${getUserBubbleClass(bubbleStyle)} px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10`}>
+                        <div className={`bg-primary text-primary-foreground chat-bubble-user ${getUserBubbleClass(bubbleStyle)} px-3 sm:px-3.5 md:px-4 py-2 sm:py-2.5 md:py-3 text-[12px] sm:text-[13px] md:text-sm leading-relaxed`}>
                           {msg.content}
                         </div>
                       </div>
-                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl bg-primary/12 flex items-center justify-center shrink-0 mt-1 border border-primary/8">
                         <User size={12} className="text-primary md:hidden" />
                         <User size={14} className="text-primary hidden md:block" />
                       </div>
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        <Bot size={13} className={`${config.color} md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
+                      <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
+                        <Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
                       </div>
-                      <div className={`flex-1 min-w-0 ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
+                      <div className={`flex-1 min-w-0 chat-bubble-ai ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
                           {/* Check for audio content (music mode) */}
                           {msg.content.includes("<audio:") ? (
