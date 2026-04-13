@@ -48,7 +48,39 @@ const BUBBLE_STYLES = [
   { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
 ];
 
-export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
+export const getBubblePreviewClass = (style: string, themeColor?: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-sm px-2 py-1 bg-muted/20 border border-border/20";
+    case "bubble": return "rounded-3xl px-3 py-2 bg-muted/20 border border-border/15";
+    case "neon": return `rounded-2xl px-2 py-1 bg-muted/10 border border-border/20 shadow-[0_0_8px_${themeColor || '#8b5cf6'}40]`;
+    case "glass": return "rounded-2xl px-2 py-1 bg-white/5 backdrop-blur-md border border-white/10";
+    case "retro": return "rounded-none px-2 py-1 bg-muted/30 border-2 border-border/30 font-mono shadow-[3px_3px_0px_rgba(255,255,255,0.1)]";
+    default: return "";
+  }
+};
+
+export const getBubbleClass = (style: string, themeColor?: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-md rounded-bl-none";
+    case "bubble": return "rounded-3xl";
+    case "neon": return `rounded-2xl rounded-bl-md shadow-[0_0_12px_${themeColor || '#8b5cf6'}30,0_0_4px_${themeColor || '#8b5cf6'}20] border border-[${themeColor || '#8b5cf6'}30]`;
+    case "glass": return "rounded-2xl rounded-bl-md bg-white/5 backdrop-blur-md border border-white/10";
+    case "retro": return "rounded-none border-2 border-border/30 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    default: return "rounded-2xl rounded-bl-md";
+  }
+};
+
+export const getUserBubbleClass = (style: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-md rounded-br-none";
+    case "bubble": return "rounded-3xl";
+    case "neon": return "rounded-2xl rounded-br-md shadow-[0_0_12px_rgba(239,68,68,0.3)]";
+    case "glass": return "rounded-2xl rounded-br-md bg-white/10 backdrop-blur-md border border-white/15";
+    case "retro": return "rounded-none border-2 border-primary/40 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    default: return "rounded-2xl rounded-br-md";
+  }
+};
+
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
