@@ -5,10 +5,11 @@ import { Navigate, Link } from "react-router-dom";
 import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
+import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,7 +31,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections";
+type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security";
 
 interface ChatMessage {
   id: string;
@@ -405,6 +406,12 @@ export default function Admin() {
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "connections" ? "bg-purple-500/15 text-purple-400 border border-purple-500/30" : "text-muted-foreground hover:text-foreground"}`}
           >
             <Link2 className="w-3 h-3" />Conexões
+          </button>
+          <button
+            onClick={() => setAdminTab("security")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "security" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Shield className="w-3 h-3" />Segurança
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -871,6 +878,10 @@ export default function Admin() {
 
       {adminTab === "connections" && (
         <AdminConnectionsPanel />
+      )}
+
+      {adminTab === "security" && (
+        <AdminSecurityPanel />
       )}
 
       {vipModalUser && (
