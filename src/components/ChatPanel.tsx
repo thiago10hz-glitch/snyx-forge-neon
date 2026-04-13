@@ -803,9 +803,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       // Clear pending action after building request
       setPendingAction(null);
 
-      // Retry logic: auto-retry on 429/503 up to 3 times with delay
+      // Retry logic: on 429/503, show restart message and keep retrying until it works
       let res: Response | null = null;
-      const maxRetries = 3;
+      const maxRetries = 10;
+      let showedRestart = false;
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         res = await fetch(chatUrl, {
           method: "POST",
@@ -817,23 +818,36 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           body: JSON.stringify(requestBody),
         });
 
-        if (res.ok) break;
+        if (res.ok) {
+          // If we showed the restart message, remove it
+          if (showedRestart) {
+            setMessages((prev) => prev.filter(m => m.content !== "🔄 Reiniciando o sistema do chat. Calma aí, voltaremos em breve..."));
+          }
+          break;
+        }
 
-        // On 429 or 503, wait and retry silently
+        // On 429 or 503, show restart message and keep trying
         if ((res.status === 429 || res.status === 503) && attempt < maxRetries - 1) {
-          const waitSec = (attempt + 1) * 3; // 3s, 6s, 9s
-          setThinkingText("Reconectando...");
+          if (!showedRestart) {
+            showedRestart = true;
+            setMessages((prev) => [...prev, { role: "assistant", content: "🔄 Reiniciando o sistema do chat. Calma aí, voltaremos em breve..." }]);
+          }
+          setThinkingText("Reiniciando sistema...");
+          const waitSec = Math.min((attempt + 1) * 5, 30); // 5s, 10s, 15s... max 30s
           await new Promise(r => setTimeout(r, waitSec * 1000));
           continue;
         }
 
-        // On 402 or final failure, show error
         break;
       }
 
       clearInterval(thinkingInterval);
 
       if (!res || !res.ok) {
+        // Remove restart message if present
+        if (showedRestart) {
+          setMessages((prev) => prev.filter(m => m.content !== "🔄 Reiniciando o sistema do chat. Calma aí, voltaremos em breve..."));
+        }
         const errData = await res?.json().catch(() => null);
         const errorMsg = errData?.error || `Erro ${res?.status || "desconhecido"}`;
         setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${errorMsg}` }]);
