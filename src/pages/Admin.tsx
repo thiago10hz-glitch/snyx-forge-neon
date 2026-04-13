@@ -192,10 +192,27 @@ export default function Admin() {
     setLoadingUsers(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, display_name, is_vip, is_dev, free_messages_used, created_at, banned_until, ip_address, device_fingerprint, vip_expires_at, dev_expires_at")
+      .select("user_id, display_name, is_vip, is_dev, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at")
       .order("created_at", { ascending: false });
-    if (error) toast.error("Erro ao carregar usuários");
-    else setUsers((data as unknown as UserProfile[]) || []);
+    if (error) { toast.error("Erro ao carregar usuários"); setLoadingUsers(false); return; }
+
+    // Fetch tracking data separately from user_tracking table (cast to bypass type generation lag)
+    const { data: trackingData } = await (supabase as any)
+      .from("user_tracking")
+      .select("user_id, ip_address, device_fingerprint");
+
+    const trackingMap: Record<string, { ip_address: string | null; device_fingerprint: string | null }> = {};
+    (trackingData || []).forEach((t: any) => {
+      trackingMap[t.user_id] = { ip_address: t.ip_address, device_fingerprint: t.device_fingerprint };
+    });
+
+    const merged = (data || []).map((u: any) => ({
+      ...u,
+      ip_address: trackingMap[u.user_id]?.ip_address || null,
+      device_fingerprint: trackingMap[u.user_id]?.device_fingerprint || null,
+    }));
+
+    setUsers(merged as UserProfile[]);
     setLoadingUsers(false);
   };
 
