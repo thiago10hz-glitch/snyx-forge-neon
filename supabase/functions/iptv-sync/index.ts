@@ -18,39 +18,56 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 }
 
 interface Channel {
-  n: string; // name
-  u: string; // url
-  l: string; // logo
-  g: string; // group
-}
-
-function parseM3U(content: string): Channel[] {
-  const lines = content.split("\n");
-  const channels: Channel[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.startsWith("#EXTINF:")) {
-      const nameMatch = line.match(/,(.+)$/);
-      const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-      const groupMatch = line.match(/group-title="([^"]*)"/);
-      const url = lines[i + 1]?.trim();
-      if (nameMatch && url && !url.startsWith("#")) {
-        const g = (groupMatch?.[1] || "Outros").toLowerCase();
-        // Skip adult content
-        if (g.includes("xxx") || g.includes("adulto")) continue;
-        channels.push({
-          n: nameMatch[1].trim(),
-          u: url,
-          l: logoMatch?.[1] || "",
-          g: groupMatch?.[1] || "Outros",
-        });
-      }
-    }
-  }
-  return channels;
+  n: string;
+  u: string;
+  l: string;
+  g: string;
 }
 
 const PLAYLIST_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
+
+async function streamParseM3U(response: Response): Promise<Channel[]> {
+  const channels: Channel[] = [];
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let lastExtinf = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    // Keep last incomplete line in buffer
+    buffer = lines.pop() || "";
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (line.startsWith("#EXTINF:")) {
+        lastExtinf = line;
+      } else if (lastExtinf && line && !line.startsWith("#")) {
+        const nameMatch = lastExtinf.match(/,(.+)$/);
+        const logoMatch = lastExtinf.match(/tvg-logo="([^"]*)"/);
+        const groupMatch = lastExtinf.match(/group-title="([^"]*)"/);
+        if (nameMatch) {
+          const g = (groupMatch?.[1] || "").toLowerCase();
+          if (!g.includes("xxx") && !g.includes("adulto")) {
+            channels.push({
+              n: nameMatch[1].trim(),
+              u: line,
+              l: logoMatch?.[1] || "",
+              g: groupMatch?.[1] || "Outros",
+            });
+          }
+        }
+        lastExtinf = "";
+      }
+    }
+  }
+
+  return channels;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -58,14 +75,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - must be admin or dev
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     const payload = decodeJwtPayload(token);
     if (!payload) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -81,14 +96,12 @@ Deno.serve(async (req) => {
 
     if (!profile?.is_dev && !isAdmin) {
       return new Response(JSON.stringify({ error: "Acesso restrito" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch playlist
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 50000);
+    const timeout = setTimeout(() => controller.abort(), 55000);
 
     const upstream = await fetch(PLAYLIST_URL, {
       signal: controller.signal,
@@ -96,25 +109,16 @@ Deno.serve(async (req) => {
     });
     clearTimeout(timeout);
 
-    if (!upstream.ok) {
+    if (!upstream.ok || !upstream.body) {
       return new Response(JSON.stringify({ error: `IPTV respondeu ${upstream.status}` }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const text = await upstream.text();
-    if (!text.trim().startsWith("#EXTM3U")) {
-      return new Response(JSON.stringify({ error: "Playlist inválida" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Stream parse - never holds entire M3U in memory
+    const channels = await streamParseM3U(upstream);
 
-    // Parse
-    const channels = parseM3U(text);
-
-    // Upload to storage as JSON
+    // Upload parsed JSON to storage
     const jsonData = JSON.stringify(channels);
     const { error: uploadError } = await supabase.storage
       .from("iptv-cache")
@@ -125,9 +129,8 @@ Deno.serve(async (req) => {
       });
 
     if (uploadError) {
-      return new Response(JSON.stringify({ error: `Upload falhou: ${uploadError.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: `Upload: ${uploadError.message}` }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -136,13 +139,14 @@ Deno.serve(async (req) => {
       channels: channels.length,
       size: `${(jsonData.length / 1024 / 1024).toFixed(1)}MB`,
     }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro interno" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const msg = error instanceof Error && error.name === "AbortError"
+      ? "Timeout ao baixar playlist"
+      : (error instanceof Error ? error.message : "Erro interno");
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
