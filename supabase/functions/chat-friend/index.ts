@@ -269,11 +269,11 @@ SEU PAPEL:
       if (result) console.log("✅ Using Groq");
     }
 
-    // 3. Try OpenRouter (DeepSeek, free tier)
-    if (!result && OPENROUTER_API_KEY && !hasImages) {
-      console.log("Trying OpenRouter...");
-      result = await tryOpenRouter(OPENROUTER_API_KEY, systemPrompt, messages);
-      if (result) console.log("✅ Using OpenRouter");
+    // 3. Try SiliconFlow (DeepSeek V3, free)
+    if (!result && SILICONFLOW_API_KEY && !hasImages) {
+      console.log("Trying SiliconFlow...");
+      result = await trySiliconFlow(SILICONFLOW_API_KEY, systemPrompt, messages);
+      if (result) console.log("✅ Using SiliconFlow");
     }
 
     if (!result) {
