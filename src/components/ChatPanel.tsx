@@ -148,6 +148,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [bubbleStyle, setBubbleStyle] = useState("default");
+  const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
