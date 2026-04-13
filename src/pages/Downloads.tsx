@@ -29,7 +29,7 @@ export default function Downloads() {
       return;
     }
     fetchLatestRelease();
-  }, [user, profile]);
+  }, [user, isVipOrDev]);
 
   const fetchLatestRelease = async () => {
     const { data, error } = await supabase
@@ -86,7 +86,13 @@ export default function Downloads() {
   if (!user) return <Navigate to="/auth" replace />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/6 blur-[120px] animate-glow-pulse" />
+        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-primary/4 blur-[100px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+      </div>
+
       {/* Header */}
       <header className="border-b border-border/30 bg-background sticky top-0 z-10">
         <div className="h-12 flex items-center px-3 sm:px-4 gap-3">
@@ -100,10 +106,10 @@ export default function Downloads() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto p-4 sm:p-6 mt-8">
+      <div className="relative z-10 max-w-lg mx-auto p-4 sm:p-6 mt-6 sm:mt-10 md:mt-16">
         {!isVipOrDev ? (
           /* Locked state for free users */
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-fade-in-up">
             <div className="w-20 h-20 rounded-2xl bg-muted/20 border border-border/30 flex items-center justify-center mx-auto">
               <Lock className="w-8 h-8 text-muted-foreground/50" />
             </div>
@@ -129,7 +135,7 @@ export default function Downloads() {
           </div>
         ) : (
           /* Download card */
-          <div className="rounded-2xl border border-border/30 bg-card/50 overflow-hidden">
+          <div className="rounded-2xl border border-border/20 bg-card/60 overflow-hidden glass-elevated animate-fade-in-up">
             <div className="p-6 text-center space-y-4">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center mx-auto border border-primary/15 shadow-lg shadow-primary/10 relative">
                 <Zap className="w-8 h-8 text-primary" />
