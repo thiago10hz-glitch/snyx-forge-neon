@@ -134,6 +134,7 @@ export type Database = {
           ai_name: string | null
           ai_personality: string | null
           bg_color: string | null
+          bubble_style: string | null
           created_at: string
           id: string
           system_prompt: string | null
@@ -146,6 +147,7 @@ export type Database = {
           ai_name?: string | null
           ai_personality?: string | null
           bg_color?: string | null
+          bubble_style?: string | null
           created_at?: string
           id?: string
           system_prompt?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           ai_name?: string | null
           ai_personality?: string | null
           bg_color?: string | null
+          bubble_style?: string | null
           created_at?: string
           id?: string
           system_prompt?: string | null

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine } from "lucide-react";
-import { ChatSettings } from "./ChatSettings";
+import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
 import ReactMarkdown from "react-markdown";
@@ -148,6 +148,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [bubbleStyle, setBubbleStyle] = useState("default");
+  const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -177,6 +179,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   }, [user, profile?.is_vip, profile?.is_dev]);
 
   useEffect(() => { void checkMessageLimit(); }, [checkMessageLimit]);
+
+  // Load bubble style from customization
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("chat_customization")
+        .select("bubble_style, theme_color")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setBubbleStyle((data as any).bubble_style || "default");
+        setChatThemeColor(data.theme_color || "#8b5cf6");
+      }
+    })();
+  }, [user]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -1213,7 +1231,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                             style={{ maxHeight: 300 }}
                           />
                         )}
-                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10">
+                        <div className={`bg-primary text-primary-foreground ${getUserBubbleClass(bubbleStyle)} px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10`}>
                           {msg.content}
                         </div>
                       </div>
@@ -1227,7 +1245,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                       <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
                         <Bot size={13} className={`${config.color} md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className={`flex-1 min-w-0 ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
                           {/* Check for audio content (music mode) */}
                           {msg.content.includes("<audio:") ? (

@@ -1,0 +1,1 @@
+ALTER TABLE public.chat_customization ADD COLUMN bubble_style text DEFAULT 'default';

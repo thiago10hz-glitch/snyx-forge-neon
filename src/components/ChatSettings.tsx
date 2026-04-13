@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Palette, Bot, Save, Loader2, Camera, User, Sparkles, Type } from "lucide-react";
+import { X, Palette, Bot, Save, Loader2, Camera, Sparkles, Type, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ interface ChatCustomization {
   ai_avatar_url: string | null;
   ai_personality: string | null;
   system_prompt: string | null;
+  bubble_style: string;
 }
 
 const THEME_COLORS = [
@@ -38,6 +39,48 @@ const PERSONALITIES = [
   { label: "Sarcástica", value: "Seja sarcástica e irônica de forma leve e divertida.", emoji: "😏" },
 ];
 
+const BUBBLE_STYLES = [
+  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico" },
+  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos" },
+  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado" },
+  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas" },
+  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism" },
+  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
+];
+
+export const getBubblePreviewClass = (style: string, themeColor?: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-sm px-2 py-1 bg-muted/20 border border-border/20";
+    case "bubble": return "rounded-3xl px-3 py-2 bg-muted/20 border border-border/15";
+    case "neon": return `rounded-2xl px-2 py-1 bg-muted/10 border border-border/20 shadow-[0_0_8px_${themeColor || '#8b5cf6'}40]`;
+    case "glass": return "rounded-2xl px-2 py-1 bg-white/5 backdrop-blur-md border border-white/10";
+    case "retro": return "rounded-none px-2 py-1 bg-muted/30 border-2 border-border/30 font-mono shadow-[3px_3px_0px_rgba(255,255,255,0.1)]";
+    default: return "";
+  }
+};
+
+export const getBubbleClass = (style: string, themeColor?: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-md rounded-bl-none";
+    case "bubble": return "rounded-3xl";
+    case "neon": return `rounded-2xl rounded-bl-md shadow-[0_0_12px_${themeColor || '#8b5cf6'}30,0_0_4px_${themeColor || '#8b5cf6'}20] border border-[${themeColor || '#8b5cf6'}30]`;
+    case "glass": return "rounded-2xl rounded-bl-md bg-white/5 backdrop-blur-md border border-white/10";
+    case "retro": return "rounded-none border-2 border-border/30 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    default: return "rounded-2xl rounded-bl-md";
+  }
+};
+
+export const getUserBubbleClass = (style: string): string => {
+  switch (style) {
+    case "sharp": return "rounded-md rounded-br-none";
+    case "bubble": return "rounded-3xl";
+    case "neon": return "rounded-2xl rounded-br-md shadow-[0_0_12px_rgba(239,68,68,0.3)]";
+    case "glass": return "rounded-2xl rounded-br-md bg-white/10 backdrop-blur-md border border-white/15";
+    case "retro": return "rounded-none border-2 border-primary/40 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    default: return "rounded-2xl rounded-br-md";
+  }
+};
+
 export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -52,6 +95,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
     ai_avatar_url: null,
     ai_personality: null,
     system_prompt: null,
+    bubble_style: "default",
   });
 
   useEffect(() => {
@@ -71,6 +115,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
           ai_avatar_url: data.ai_avatar_url,
           ai_personality: data.ai_personality,
           system_prompt: data.system_prompt,
+          bubble_style: (data as any).bubble_style || "default",
         });
       }
       setLoading(false);
@@ -248,6 +293,30 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
               </div>
             </div>
 
+            {/* Bubble Style */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground/60 mb-2 block flex items-center gap-1.5">
+                <MessageSquare size={10} className="text-primary/50" /> Estilo do balão de fala
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {BUBBLE_STYLES.map(b => (
+                  <button
+                    key={b.value}
+                    onClick={() => setSettings(prev => ({ ...prev, bubble_style: b.value }))}
+                    className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
+                      settings.bubble_style === b.value
+                        ? "border-primary/40 bg-primary/10 text-primary font-medium"
+                        : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
+                    }`}
+                  >
+                    <span className="text-sm">{b.emoji}</span>
+                    <span className="ml-1">{b.label}</span>
+                    <p className="text-[9px] text-muted-foreground/40 mt-0.5">{b.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* System Prompt */}
             <div>
               <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">
@@ -278,7 +347,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
                     <Bot size={12} style={{ color: settings.theme_color }} />
                   )}
                 </div>
-                <div>
+                <div className={`flex-1 ${getBubblePreviewClass(settings.bubble_style, settings.theme_color)}`}>
                   <p className="text-[10px] font-medium mb-0.5" style={{ color: settings.theme_color }}>{settings.ai_name}</p>
                   <p className="text-xs text-foreground/70">Olá! Como posso te ajudar hoje? 😊</p>
                 </div>
