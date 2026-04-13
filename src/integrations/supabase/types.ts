@@ -272,6 +272,45 @@ export type Database = {
           },
         ]
       }
+      hosted_sites: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          html_content: string
+          id: string
+          site_name: string
+          status: string
+          updated_at: string
+          user_id: string
+          vercel_project_id: string | null
+          vercel_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          html_content: string
+          id?: string
+          site_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vercel_project_id?: string | null
+          vercel_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          html_content?: string
+          id?: string
+          site_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vercel_project_id?: string | null
+          vercel_url?: string | null
+        }
+        Relationships: []
+      }
       license_keys: {
         Row: {
           created_at: string
@@ -312,6 +351,7 @@ export type Database = {
           device_fingerprint: string | null
           display_name: string | null
           free_messages_used: number
+          hosting_tier: string
           id: string
           ip_address: string | null
           is_dev: boolean
@@ -331,6 +371,7 @@ export type Database = {
           device_fingerprint?: string | null
           display_name?: string | null
           free_messages_used?: number
+          hosting_tier?: string
           id?: string
           ip_address?: string | null
           is_dev?: boolean
@@ -350,6 +391,7 @@ export type Database = {
           device_fingerprint?: string | null
           display_name?: string | null
           free_messages_used?: number
+          hosting_tier?: string
           id?: string
           ip_address?: string | null
           is_dev?: boolean
@@ -461,6 +503,7 @@ export type Database = {
       admin_revoke_vip: { Args: { p_target_user_id: string }; Returns: Json }
       can_send_message: { Args: never; Returns: Json }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
+      check_hosting_limit: { Args: never; Returns: Json }
       check_ip_duplicate: {
         Args: { p_ip: string; p_user_id?: string }
         Returns: Json
