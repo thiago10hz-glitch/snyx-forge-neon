@@ -4,7 +4,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -64,6 +64,13 @@ const Index = () => {
           >
             <Server className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
             <span className="hidden sm:inline">Hosting</span>
+          </Link>
+          <Link
+            to="/downloads"
+            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
+          >
+            <Download className="w-4 h-4 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+            <span className="hidden sm:inline">App</span>
           </Link>
 
           {isAdmin && (
