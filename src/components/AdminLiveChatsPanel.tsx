@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock, Bot, Sparkles } from "lucide-react";
+import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock, Bot, Sparkles, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface LiveChat {
@@ -121,6 +121,17 @@ export function AdminLiveChatsPanel() {
     if (error) { toast.error("Erro ao fechar chat"); return; }
     toast.success("Chat encerrado");
     setSelectedChat(null);
+    fetchChats();
+  };
+
+  const deleteChat = async (chatId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este chat e todas as mensagens?")) return;
+    // Delete messages first, then the chat
+    await supabase.from("admin_live_messages").delete().eq("chat_id", chatId);
+    const { error } = await supabase.from("admin_live_chats").delete().eq("id", chatId);
+    if (error) { toast.error("Erro ao excluir chat"); return; }
+    toast.success("Chat excluído");
+    if (selectedChat?.id === chatId) setSelectedChat(null);
     fetchChats();
   };
 
@@ -313,6 +324,11 @@ export function AdminLiveChatsPanel() {
                       <XCircle size={12} /> Encerrar
                     </button>
                   )}
+                  <button onClick={() => deleteChat(selectedChat.id)}
+                    className="px-3 py-1.5 text-xs font-medium bg-destructive/20 hover:bg-destructive/40 text-destructive border border-destructive/20 rounded-lg transition-all flex items-center gap-1"
+                    title="Excluir chat permanentemente">
+                    <Trash2 size={12} /> Excluir
+                  </button>
                 </div>
               </div>
 
