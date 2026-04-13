@@ -283,7 +283,7 @@ const Hosting = () => {
     reader.readAsText(file);
   };
 
-  const tier = (profile as any)?.hosting_tier || "none";
+  const tier = profile?.hosting_tier || "none";
   const tierColor = tier === "pro" ? "text-primary" : tier === "basic" ? "text-emerald-400" : tier === "unlimited" ? "text-amber-400" : "text-muted-foreground";
 
   return (

@@ -11,6 +11,7 @@ interface Profile {
   avatar_url: string | null;
   bio: string | null;
   relationship_status: string | null;
+  hosting_tier: string;
 }
 
 interface AuthContextType {
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("is_vip, is_dev, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status")
+      .select("is_vip, is_dev, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier")
       .eq("user_id", userId)
       .single();
     if (data) setProfile(data as Profile);
