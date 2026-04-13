@@ -53,10 +53,6 @@ export function AdminReleasesPanel() {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from("app-downloads")
-        .getPublicUrl(filePath);
-
       const { error: insertError } = await supabase
         .from("app_releases")
         .insert({

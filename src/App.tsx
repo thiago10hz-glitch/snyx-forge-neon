@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import IPTV from "./pages/IPTV";
 import Hosting from "./pages/Hosting";
 import ResetPassword from "./pages/ResetPassword";
+import Downloads from "./pages/Downloads";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -84,6 +85,7 @@ const App = () => {
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
               <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
+              <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
