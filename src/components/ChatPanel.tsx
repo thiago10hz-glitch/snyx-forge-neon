@@ -1186,22 +1186,31 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-6 py-8">
-              <div className="max-w-md text-center space-y-4 sm:space-y-5">
-                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-lg animate-float`}>
-                  <ModeIcon size={26} className={`${config.color} sm:hidden`} />
-                  <ModeIcon size={30} className={`${config.color} hidden sm:block`} />
+              <div className="max-w-lg text-center space-y-5 md:space-y-7">
+                {/* Icon with glow effect */}
+                <div className="relative mx-auto w-fit">
+                  <div className={`w-16 h-16 sm:w-18 sm:h-18 md:w-24 md:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-lg animate-float`}>
+                    <ModeIcon size={26} className={`${config.color} sm:hidden`} />
+                    <ModeIcon size={30} className={`${config.color} hidden sm:block md:hidden`} />
+                    <ModeIcon size={40} className={`${config.color} hidden md:block`} />
+                  </div>
+                  <div className={`absolute -inset-4 md:-inset-6 ${config.bgColor} rounded-3xl blur-2xl opacity-30 -z-10 animate-breathe`} />
                 </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 sm:mb-2">{config.emptyTitle}</h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground/70 leading-relaxed">{config.emptyText}</p>
+
+                {/* Title and description */}
+                <div className="space-y-2 md:space-y-3">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">{config.emptyTitle}</h2>
+                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">{config.emptyText}</p>
                 </div>
+
+                {/* Suggestion chips */}
                 {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 pt-1">
                     {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-[11px] sm:text-xs px-3 sm:px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
                       >
                         {suggestion}
                       </button>
@@ -1209,22 +1218,27 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
                 {mode === "friend" && (
-                  <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 pt-1">
                     {["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
-                        className="text-[11px] sm:text-xs px-3 sm:px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
                       >
                         {suggestion}
                       </button>
                     ))}
                   </div>
                 )}
+
+                {/* Keyboard hint for desktop */}
+                <p className="hidden md:block text-[11px] text-muted-foreground/30 pt-2">
+                  Digite sua mensagem abaixo e pressione <kbd className="px-1.5 py-0.5 rounded bg-muted/30 border border-border/20 text-muted-foreground/50 font-mono text-[10px]">Enter</kbd> para enviar
+                </p>
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
@@ -1452,7 +1466,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Attachment preview */}
         {mode !== "music" && attachment && (
           <div className="px-4 py-2 border-t border-border/10">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto">
               <div className="flex items-center gap-3 glass-input rounded-xl p-2.5 border border-border/10">
                 {attachment.kind === "image" ? (
                   <img src={attachment.dataUrl} alt={attachment.name} className="h-10 w-10 rounded-lg object-cover" />
@@ -1480,7 +1494,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Pending action indicator */}
         {pendingAction && (
           <div className="px-4 py-1.5 border-t border-border/10">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto">
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium ${
                 pendingAction === "school" 
                   ? "bg-green-500/10 text-green-400 border border-green-500/20" 
@@ -1499,7 +1513,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Input area */}
         {mode !== "music" && (
         <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl lg:max-w-4xl mx-auto">
             <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button - hidden on mobile */}
