@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive } from "lucide-react";
 import { ChatSettings } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import ReactMarkdown from "react-markdown";
@@ -1354,6 +1354,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               <div className="flex items-center gap-3 glass-input rounded-xl p-2.5 border border-border/10">
                 {attachment.kind === "image" ? (
                   <img src={attachment.dataUrl} alt={attachment.name} className="h-10 w-10 rounded-lg object-cover" />
+                ) : attachment.mimeType === "application/zip" ? (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                    <Archive size={14} className="text-amber-400" />
+                  </div>
                 ) : (
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/10">
                     <Paperclip size={14} className="text-muted-foreground/40" />
