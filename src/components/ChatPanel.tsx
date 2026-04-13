@@ -1054,7 +1054,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
+        <div className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border-b border-border/8 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className="p-1.5 sm:p-2 md:p-2 rounded-lg sm:rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 shrink-0"
@@ -1062,7 +1062,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg sm:rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
+          <div className="flex items-center gap-0.5 bg-muted/8 rounded-xl p-0.5 border border-border/6 overflow-x-auto scrollbar-hide flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
