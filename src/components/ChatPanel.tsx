@@ -1313,6 +1313,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                                     </a>
                                   );
                                 },
+                                // Support text sizes: <sub> for small, <sup> for large styled text
+                                h1({ children }) {
+                                  return <h1 className="text-2xl sm:text-3xl font-black my-3 text-foreground">{children}</h1>;
+                                },
+                                h2({ children }) {
+                                  return <h2 className="text-xl sm:text-2xl font-bold my-2.5 text-foreground">{children}</h2>;
+                                },
+                                h3({ children }) {
+                                  return <h3 className="text-lg sm:text-xl font-bold my-2 text-foreground">{children}</h3>;
+                                },
+                                h4({ children }) {
+                                  return <h4 className="text-base sm:text-lg font-semibold my-1.5 text-foreground">{children}</h4>;
+                                },
+                                blockquote({ children }) {
+                                  return <blockquote className="border-l-3 border-primary/40 pl-3 my-2 italic text-foreground/70">{children}</blockquote>;
+                                },
                               }}
                             >
                               {msg.content}
