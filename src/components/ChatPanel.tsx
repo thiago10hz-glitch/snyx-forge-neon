@@ -1054,10 +1054,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-0.5 px-1 sm:px-1.5 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass overflow-x-auto">
+        <div className="flex items-center gap-1 px-2 sm:px-1.5 md:px-2 py-1.5 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass overflow-x-auto scrollbar-thin">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-0.5 md:mr-1"
+            className="p-2 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 mr-0.5 md:mr-1"
           >
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
@@ -1072,12 +1072,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
+                  className={`flex items-center gap-1 px-2.5 sm:px-2 md:px-3 py-1.5 sm:py-1.5 md:py-2 text-[11px] sm:text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap active:scale-95 ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={12} />
-                  <span className="hidden sm:inline">{c.label}</span>
+                  <Icon size={14} />
+                  <span>{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
               );
@@ -1179,22 +1179,23 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         ) : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4">
-              <div className="max-w-md text-center space-y-5">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-lg animate-float`}>
-                  <ModeIcon size={30} className={config.color} />
+            <div className="flex flex-col items-center justify-center h-full px-6 py-8">
+              <div className="max-w-md text-center space-y-4 sm:space-y-5">
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-lg animate-float`}>
+                  <ModeIcon size={26} className={`${config.color} sm:hidden`} />
+                  <ModeIcon size={30} className={`${config.color} hidden sm:block`} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-2">{config.emptyTitle}</h2>
-                  <p className="text-sm text-muted-foreground/70 leading-relaxed">{config.emptyText}</p>
+                  <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 sm:mb-2">{config.emptyTitle}</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground/70 leading-relaxed">{config.emptyText}</p>
                 </div>
                 {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-2 pt-2">
+                  <div className="flex flex-wrap justify-center gap-2 pt-1">
                     {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-xs px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md transition-all duration-200"
+                        className="text-[11px] sm:text-xs px-3 sm:px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
                       >
                         {suggestion}
                       </button>
@@ -1202,12 +1203,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
                 {mode === "friend" && (
-                  <div className="flex flex-wrap justify-center gap-2 pt-2">
+                  <div className="flex flex-wrap justify-center gap-2 pt-1">
                     {["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
-                        className="text-xs px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md transition-all duration-200"
+                        className="text-[11px] sm:text-xs px-3 sm:px-3.5 py-2 rounded-xl bg-muted/20 text-muted-foreground border border-border/20 hover:bg-muted/40 hover:text-foreground hover:border-border/40 hover:shadow-md active:scale-95 transition-all duration-200"
                       >
                         {suggestion}
                       </button>
@@ -1491,9 +1492,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
+        <div className="p-2 sm:p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-1 sm:gap-1 md:gap-2 glass-elevated rounded-2xl px-2 sm:px-2 md:px-3 py-2 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button */}
               <button
@@ -1578,7 +1579,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <Send size={16} />
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground/15 text-center mt-2">
+            <p className="text-[10px] text-muted-foreground/15 text-center mt-1.5 sm:mt-2 hidden sm:block">
               SnyX pode cometer erros. Verifique informações importantes.
             </p>
           </div>
