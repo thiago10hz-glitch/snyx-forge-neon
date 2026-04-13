@@ -407,6 +407,12 @@ export default function Admin() {
           >
             <Link2 className="w-3 h-3" />Conexões
           </button>
+          <button
+            onClick={() => setAdminTab("security")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "security" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Shield className="w-3 h-3" />Segurança
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">{user.email}</span>
