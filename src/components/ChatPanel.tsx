@@ -1448,9 +1448,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-3 md:p-4 safe-bottom">
+        <div className="p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-2 glass-elevated rounded-2xl px-3 py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-1 md:gap-2 glass-elevated rounded-2xl px-2 md:px-3 py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button */}
               <button
