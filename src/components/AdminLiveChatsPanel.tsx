@@ -124,6 +124,17 @@ export function AdminLiveChatsPanel() {
     fetchChats();
   };
 
+  const deleteChat = async (chatId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este chat e todas as mensagens?")) return;
+    // Delete messages first, then the chat
+    await supabase.from("admin_live_messages").delete().eq("chat_id", chatId);
+    const { error } = await supabase.from("admin_live_chats").delete().eq("id", chatId);
+    if (error) { toast.error("Erro ao excluir chat"); return; }
+    toast.success("Chat excluído");
+    if (selectedChat?.id === chatId) setSelectedChat(null);
+    fetchChats();
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || !selectedChat || !user || sending) return;
     const content = input.trim();
