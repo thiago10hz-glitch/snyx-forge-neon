@@ -191,11 +191,11 @@ export function AdminLiveChatsPanel() {
       }
 
       if (fullResponse.trim()) {
-        // Send AI response as a message with AI sender ID
+        // Send AI response as admin message with AI prefix
         await supabase.from("admin_live_messages").insert({
           chat_id: selectedChat.id,
-          sender_id: AI_SENDER_ID,
-          content: `🤖 **SnyX IA** (assistente do admin ${adminName}):\n\n${fullResponse.trim()}`,
+          sender_id: user!.id,
+          content: `🤖 **SnyX IA**:\n\n${fullResponse.trim()}`,
         });
       }
     } catch (e) {
