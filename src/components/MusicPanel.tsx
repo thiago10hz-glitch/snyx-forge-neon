@@ -245,17 +245,20 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
           Authorization: `Bearer ${authToken}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ text: vocalText.trim(), style: VOICES.find(v => v.id === selectedVoice)?.style || "Pop vocal" }),
+        body: JSON.stringify({ lyrics: vocalText.trim(), style: VOICES.find(v => v.id === selectedVoice)?.style || "Pop" }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Erro ao gerar vocal");
+      if (!data.success) throw new Error(data.error || "Erro ao gerar vocal");
+
+      const audioUrl = data.audioUrl || (data.audioBase64 ? `data:${data.mimeType || "audio/flac"};base64,${data.audioBase64}` : "");
+      if (!audioUrl) throw new Error("Nenhum áudio foi retornado");
 
       const voiceName = VOICES.find(v => v.id === selectedVoice)?.name || "Vocal";
       const newTrack: GeneratedTrack = {
         id: crypto.randomUUID(),
         title: `Vocal - ${voiceName}`,
         prompt: vocalText.trim().slice(0, 60),
-        audioUrl: data.audioUrl || (data.audioBase64 ? `data:audio/mpeg;base64,${data.audioBase64}` : ""),
+        audioUrl,
         duration: 0,
         createdAt: new Date(),
         type: "vocal",
