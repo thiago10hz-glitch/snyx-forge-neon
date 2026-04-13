@@ -324,6 +324,11 @@ export function AdminLiveChatsPanel() {
                       <XCircle size={12} /> Encerrar
                     </button>
                   )}
+                  <button onClick={() => deleteChat(selectedChat.id)}
+                    className="px-3 py-1.5 text-xs font-medium bg-destructive/20 hover:bg-destructive/40 text-destructive border border-destructive/20 rounded-lg transition-all flex items-center gap-1"
+                    title="Excluir chat permanentemente">
+                    <Trash2 size={12} /> Excluir
+                  </button>
                 </div>
               </div>
 
