@@ -351,12 +351,10 @@ export type Database = {
           bio: string | null
           created_at: string
           dev_expires_at: string | null
-          device_fingerprint: string | null
           display_name: string | null
           free_messages_used: number
           hosting_tier: string
           id: string
-          ip_address: string | null
           is_dev: boolean
           is_vip: boolean
           last_free_message_at: string | null
@@ -371,12 +369,10 @@ export type Database = {
           bio?: string | null
           created_at?: string
           dev_expires_at?: string | null
-          device_fingerprint?: string | null
           display_name?: string | null
           free_messages_used?: number
           hosting_tier?: string
           id?: string
-          ip_address?: string | null
           is_dev?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
@@ -391,12 +387,10 @@ export type Database = {
           bio?: string | null
           created_at?: string
           dev_expires_at?: string | null
-          device_fingerprint?: string | null
           display_name?: string | null
           free_messages_used?: number
           hosting_tier?: string
           id?: string
-          ip_address?: string | null
           is_dev?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
