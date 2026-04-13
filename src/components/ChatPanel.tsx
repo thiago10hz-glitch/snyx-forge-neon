@@ -924,7 +924,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     setInput("");
   };
 
-  const acceptedFileTypes = "image/*,.txt,.md,.json,.csv,.js,.ts,.tsx,.jsx,.html,.css,.sql,.py,.xml,.yaml,.yml,.toml";
+  const acceptedFileTypes = "image/*,.txt,.md,.json,.csv,.js,.ts,.tsx,.jsx,.html,.css,.sql,.py,.xml,.yaml,.yml,.toml,.zip,.gz";
 
   const inputPlaceholder = pendingAction === "imagegen"
     ? "Descreva a imagem que deseja criar... 🎨"
