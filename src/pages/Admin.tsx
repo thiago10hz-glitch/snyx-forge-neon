@@ -9,6 +9,7 @@ import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
+import { AdminDashboard } from "@/components/AdminDashboard";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
@@ -36,7 +37,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
 interface ChatMessage {
   id: string;
@@ -68,7 +69,7 @@ export default function Admin() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
-  const [adminTab, setAdminTab] = useState<AdminTab>("users");
+  const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
@@ -436,6 +437,7 @@ export default function Admin() {
         </div>
         <div className="flex items-center gap-1.5 px-3 sm:px-4 pb-2 overflow-x-auto scrollbar-hide">
           {([
+            { key: "dashboard" as AdminTab, label: "Dashboard", icon: TrendingUp, activeClass: "bg-gradient-to-r from-primary/15 to-purple-500/15 text-primary border-primary/30" },
             { key: "users" as AdminTab, label: "Usuários", icon: Users, activeClass: "bg-primary/15 text-primary border-primary/30" },
             { key: "messages" as AdminTab, label: "Mensagens", icon: MessageCircle, activeClass: "bg-primary/15 text-primary border-primary/30", dot: true },
             { key: "support" as AdminTab, label: "Suporte", icon: ShieldCheck, activeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
@@ -462,6 +464,12 @@ export default function Admin() {
           ))}
         </div>
       </header>
+
+      {adminTab === "dashboard" && (
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <AdminDashboard />
+        </div>
+      )}
 
       {adminTab === "users" && (
       <div className="max-w-6xl mx-auto px-4 py-6">
