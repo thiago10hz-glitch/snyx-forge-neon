@@ -90,6 +90,7 @@ export function AdminHostingKeysPanel() {
       console.error(err);
       toast.error("Erro ao revogar chave");
     }
+  };
 
   const copyKey = (id: string, code: string) => {
     navigator.clipboard.writeText(code);
