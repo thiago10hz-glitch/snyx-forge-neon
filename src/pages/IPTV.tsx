@@ -163,6 +163,8 @@ export default function IPTV() {
   const [muted, setMuted] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [playerStatus, setPlayerStatus] = useState<"idle" | "loading" | "playing" | "error">("idle");
+  const [playerError, setPlayerError] = useState("");
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem("snyx_iptv_favs");
