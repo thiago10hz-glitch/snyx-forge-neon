@@ -1159,16 +1159,16 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </span>
           )}
           {mode === "friend" && !profile?.is_vip && !profile?.is_dev && messageLimit && !messageLimit.is_vip && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-muted/20 border border-border/20" title={`${messageLimit.remaining ?? 0} de 5 mensagens restantes`}>
+            <div className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-muted/20 border border-border/20 shrink-0" title={`${messageLimit.remaining ?? 0} de 5 mensagens restantes`}>
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${
+                  className={`h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full transition-all duration-500 ${
                     i < (messageLimit.remaining ?? 0) ? "bg-primary shadow-sm shadow-primary/40 scale-110" : "bg-muted-foreground/15"
                   }`}
                 />
               ))}
-              <span className="text-[10px] font-medium text-muted-foreground/60 ml-1 tabular-nums">
+              <span className="text-[8px] sm:text-[10px] font-medium text-muted-foreground/60 ml-0.5 tabular-nums">
                 {messageLimit.remaining ?? 0}/5
               </span>
             </div>
