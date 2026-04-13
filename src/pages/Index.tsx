@@ -35,54 +35,54 @@ const Index = () => {
       </div>
 
       {/* Top Bar */}
-      <header className="relative z-20 h-14 flex items-center justify-between px-4 md:px-5 shrink-0 glass border-b border-border/20">
-        <div className="flex items-center gap-3">
+      <header className="relative z-20 h-12 md:h-14 flex items-center justify-between px-2 md:px-5 shrink-0 glass border-b border-border/20">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
-              <Zap className="w-[18px] h-[18px] text-primary" />
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
+              <Zap className="w-4 h-4 md:w-[18px] md:h-[18px] text-primary" />
             </div>
             <div className="absolute -inset-1 rounded-xl bg-primary/10 blur-md -z-10 animate-breathe" />
           </div>
           <div className="leading-none">
-            <h1 className="text-sm font-bold tracking-wide text-foreground">SnyX</h1>
-            <p className="text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5">AI Platform</p>
+            <h1 className="text-xs md:text-sm font-bold tracking-wide text-foreground">SnyX</h1>
+            <p className="text-[8px] md:text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5 hidden sm:block">AI Platform</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 md:gap-1">
           <AdminPresenceIndicator />
           <Link
             to="/iptv"
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+            className="flex items-center gap-1.5 text-xs font-medium px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
           >
             <MonitorPlay className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-            <span className="hidden sm:inline">TV</span>
+            <span className="hidden md:inline">TV</span>
           </Link>
 
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+              className="flex items-center gap-1.5 text-xs font-medium px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
             >
               <ShieldCheck className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-              <span className="hidden sm:inline">Admin</span>
+              <span className="hidden md:inline">Admin</span>
             </Link>
           )}
 
           {profile?.is_dev ? (
-            <span className="badge-dev flex items-center gap-1">
+            <span className="badge-dev flex items-center gap-1 text-[10px] md:text-xs">
               <Code size={10} />
               DEV
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip">VIP</span>
+            <span className="badge-vip text-[10px] md:text-xs">VIP</span>
           ) : (
-            <span className="badge-free">Free</span>
+            <span className="badge-free text-[10px] md:text-xs">Free</span>
           )}
 
           <button
             onClick={() => setShowProfile(true)}
-            className="w-9 h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/5 group ml-1"
+            className="w-8 h-8 md:w-9 md:h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/5 group ml-0.5 md:ml-1"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
@@ -94,7 +94,7 @@ const Index = () => {
 
           <button
             onClick={signOut}
-            className="p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all duration-300"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all duration-300"
             title="Sair"
           >
             <LogOut className="w-4 h-4" />

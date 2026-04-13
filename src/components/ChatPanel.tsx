@@ -1030,15 +1030,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-1 px-2 py-2 border-b border-border/10 shrink-0 glass">
+        <div className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-1"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-0.5 md:mr-1"
           >
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -1048,11 +1048,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
+                  className={`flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={13} />
                   <span className="hidden sm:inline">{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
@@ -1087,30 +1087,30 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           {mode === "friend" && (
             <button
               onClick={() => setShowVoiceCall(true)}
-              className="p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300 mr-1"
+              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
               title="Ligar para a IA"
             >
-              <Phone size={16} />
+              <Phone size={15} />
             </button>
           )}
 
           {mode === "friend" && (
             <button
               onClick={() => setShowConnectionModal(true)}
-              className="p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300 mr-1"
+              className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
               title="Conectar com alguém"
             >
-              <Link2 size={16} />
+              <Link2 size={15} />
             </button>
           )}
 
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
-            className="p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300 mr-1"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300"
             title="Personalizar chat"
           >
-            <Palette size={16} />
+            <Palette size={15} />
           </button>
 
           {mode === "programmer" && profile?.is_dev && (
@@ -1198,7 +1198,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
                     <div className="flex gap-3 justify-end">
-                      <div className="max-w-[80%]">
+                      <div className="max-w-[85%] md:max-w-[80%]">
                         {msg.attachment && (
                           <img
                             src={msg.attachment.dataUrl}
@@ -1207,18 +1207,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                             style={{ maxHeight: 300 }}
                           />
                         )}
-                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed shadow-lg shadow-primary/10">
+                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10">
                           {msg.content}
                         </div>
                       </div>
-                      <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
-                        <User size={14} className="text-primary" />
+                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
+                        <User size={12} className="text-primary md:hidden" />
+                        <User size={14} className="text-primary hidden md:block" />
                       </div>
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        <Bot size={14} className={config.color} />
+                      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
+                        <Bot size={13} className={`${config.color} md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
@@ -1448,9 +1449,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-3 md:p-4 safe-bottom">
+        <div className="p-2 md:p-4 safe-bottom">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-2 glass-elevated rounded-2xl px-3 py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-1 md:gap-2 glass-elevated rounded-2xl px-2 md:px-3 py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button */}
               <button
