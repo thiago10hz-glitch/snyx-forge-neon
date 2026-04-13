@@ -7,6 +7,7 @@ import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
+import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle,
