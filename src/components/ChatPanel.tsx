@@ -1145,10 +1145,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           {mode === "programmer" && profile?.is_dev && (
             <button
               onClick={() => { setShowDeleteSitesModal(true); loadVercelSites(); }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-muted/15 text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 border border-border/15 transition-all duration-300"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-medium bg-muted/15 text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 border border-border/15 transition-all duration-300"
               title="Gerenciar sites publicados"
             >
-              <Settings size={14} />
+              <Settings size={12} className="sm:hidden" />
+              <Settings size={14} className="hidden sm:block" />
               <span className="hidden sm:inline">Meus Sites</span>
             </button>
           )}
