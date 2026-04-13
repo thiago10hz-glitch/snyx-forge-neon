@@ -35,43 +35,43 @@ const Index = () => {
       </div>
 
       {/* Top Bar */}
-      <header className="relative z-20 h-11 sm:h-12 md:h-14 flex items-center justify-between px-2 sm:px-3 md:px-5 shrink-0 glass border-b border-border/20">
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+      <header className="relative z-20 h-12 sm:h-12 md:h-14 flex items-center justify-between px-3 sm:px-3 md:px-5 shrink-0 glass border-b border-border/20">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="relative">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
-              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px] text-primary" />
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
+              <Zap className="w-4 h-4 md:w-[18px] md:h-[18px] text-primary" />
             </div>
             <div className="absolute -inset-1 rounded-xl bg-primary/10 blur-md -z-10 animate-breathe" />
           </div>
           <div className="leading-none">
-            <h1 className="text-[11px] sm:text-xs md:text-sm font-bold tracking-wide text-foreground">SnyX</h1>
+            <h1 className="text-xs md:text-sm font-bold tracking-wide text-foreground">SnyX</h1>
             <p className="text-[8px] md:text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5 hidden sm:block">AI Platform</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           <AdminPresenceIndicator />
           <Link
             to="/iptv"
-            className="flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+            className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
           >
-            <MonitorPlay className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+            <MonitorPlay className="w-[18px] h-[18px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
             <span className="hidden sm:inline">TV</span>
           </Link>
           <Link
             to="/hosting"
-            className="flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+            className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
           >
-            <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+            <Server className="w-[18px] h-[18px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
             <span className="hidden sm:inline">Hosting</span>
           </Link>
 
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+              className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:gap-1 text-xs font-medium sm:px-2 md:px-3 sm:py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 group"
             >
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
+              <ShieldCheck className="w-[18px] h-[18px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
@@ -89,22 +89,22 @@ const Index = () => {
 
           <button
             onClick={() => setShowProfile(true)}
-            className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/5 group ml-0.5"
+            className="w-8 h-8 md:w-9 md:h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 active:bg-muted/30 group ml-0.5"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+              <User className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
             )}
           </button>
 
           <button
             onClick={signOut}
-            className="p-1 sm:p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all duration-300"
+            className="w-8 h-8 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 active:bg-muted/30 transition-all duration-300 flex items-center justify-center"
             title="Sair"
           >
-            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
