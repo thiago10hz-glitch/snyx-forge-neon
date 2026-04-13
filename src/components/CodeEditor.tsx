@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, RotateCcw, ExternalLink } from "lucide-react";
+import { Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, RotateCcw, ExternalLink, Loader2, Rocket } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CodeEditorProps {
   code: string;
@@ -13,6 +15,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const [copied, setCopied] = useState(false);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
   const [previewKey, setPreviewKey] = useState(0);
+  const [deploying, setDeploying] = useState(false);
+  const [deployedUrl, setDeployedUrl] = useState<string | null>(null);
   const prevCodeRef = useRef("");
 
   // Auto-switch to preview when full HTML is generated
@@ -39,6 +43,32 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     a.download = `snyx-site.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const deployToVercel = async () => {
+    if (!code || deploying) return;
+    setDeploying(true);
+    setDeployedUrl(null);
+    try {
+      const htmlContent = getPreviewHtml();
+      const { data, error } = await supabase.functions.invoke("deploy-vercel", {
+        body: { html: htmlContent, projectName: "snyx-site" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        setDeployedUrl(data.url);
+        toast.success("Site publicado na Vercel!", {
+          description: data.url,
+          action: { label: "Abrir", onClick: () => window.open(data.url, "_blank") },
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao publicar";
+      toast.error("Falha no deploy", { description: msg });
+    } finally {
+      setDeploying(false);
+    }
   };
 
   const openInNewTab = () => {
@@ -160,6 +190,25 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
             <Download className="w-3.5 h-3.5" />
             Download
           </button>
+          <button
+            onClick={deployToVercel}
+            disabled={!code || deploying}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs bg-emerald-500/10 text-emerald-400/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl transition-all duration-200 border border-emerald-500/15 disabled:opacity-20 disabled:border-border/10 disabled:text-muted-foreground/40"
+          >
+            {deploying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Rocket className="w-3.5 h-3.5" />}
+            {deploying ? "Publicando..." : "Vercel"}
+          </button>
+          {deployedUrl && (
+            <a
+              href={deployedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-2 py-1.5 text-[10px] text-emerald-400/70 hover:text-emerald-400 bg-emerald-500/5 rounded-lg border border-emerald-500/10 truncate max-w-[140px]"
+            >
+              <ExternalLink className="w-3 h-3 shrink-0" />
+              <span className="truncate">{deployedUrl.replace("https://", "")}</span>
+            </a>
+          )}
         </div>
       </div>
 
