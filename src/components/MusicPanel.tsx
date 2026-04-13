@@ -826,7 +826,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
               <h2 className="text-lg font-bold text-foreground mb-3">Explorar</h2>
               <HorizontalScroll>
                 {SAMPLE_TRACKS.map((track, i) => (
-                  <div key={i} className="shrink-0 w-[150px] sm:w-[170px] group cursor-pointer">
+                  <div key={i} className="shrink-0 w-[150px] sm:w-[170px] group cursor-pointer" onClick={() => { setEasyPrompt(track.title); setActiveTab("create"); setMode("easy"); toast.info(`Prompt: "${track.title}" — clique em Criar Música!`); }}>
                     <div className="rounded-xl overflow-hidden aspect-square mb-2 border border-border/10 group-hover:border-purple-500/30 transition-all relative">
                       <img src={track.image} alt={track.title} loading="lazy" width={512} height={512} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
