@@ -85,11 +85,11 @@ const Index = () => {
               <Code size={10} /> DEV
             </span>
           ) : profile?.is_pack_steam ? (
-            <span className="flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 font-bold">
+            <span className="badge-pack-steam flex items-center gap-1 text-[9px] md:text-[10px]">
               🎮 Pack Steam
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip text-[9px] md:text-[10px]">VIP</span>
+            <span className="badge-vip text-[9px] md:text-[10px]">⭐ VIP</span>
           ) : (
             <span className="badge-free text-[9px] md:text-[10px]">Free</span>
           )}
