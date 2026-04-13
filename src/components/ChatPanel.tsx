@@ -1054,7 +1054,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-1 px-2 sm:px-1.5 md:px-2 py-1.5 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass overflow-x-auto scrollbar-thin">
+        <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className="p-2 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 mr-0.5 md:mr-1"
