@@ -803,22 +803,39 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       // Clear pending action after building request
       setPendingAction(null);
 
-      const res = await fetch(chatUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // Retry logic: auto-retry on 429/503 up to 3 times with delay
+      let res: Response | null = null;
+      const maxRetries = 3;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        res = await fetch(chatUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (res.ok) break;
+
+        // On 429 or 503, wait and retry silently
+        if ((res.status === 429 || res.status === 503) && attempt < maxRetries - 1) {
+          const waitSec = (attempt + 1) * 3; // 3s, 6s, 9s
+          setThinkingText("Reconectando...");
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+          continue;
+        }
+
+        // On 402 or final failure, show error
+        break;
+      }
 
       clearInterval(thinkingInterval);
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        const errorMsg = errData?.error || `Erro ${res.status}`;
-        clearInterval(thinkingInterval);
+      if (!res || !res.ok) {
+        const errData = await res?.json().catch(() => null);
+        const errorMsg = errData?.error || `Erro ${res?.status || "desconhecido"}`;
         setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${errorMsg}` }]);
         setIsLoading(false);
         setThinkingText("");
