@@ -500,6 +500,7 @@ export type Database = {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
+      admin_revoke_hosting: { Args: { p_user_id: string }; Returns: Json }
       admin_revoke_vip: { Args: { p_target_user_id: string }; Returns: Json }
       can_send_message: { Args: never; Returns: Json }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
@@ -508,6 +509,7 @@ export type Database = {
         Args: { p_ip: string; p_user_id?: string }
         Returns: Json
       }
+      find_user_by_email: { Args: { p_email: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
