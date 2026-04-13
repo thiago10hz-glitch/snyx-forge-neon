@@ -833,7 +833,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             if (jsonStr === "[DONE]") { streamDone = true; break; }
             try {
               const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              const content = parsed.text || parsed.choices?.[0]?.delta?.content as string | undefined;
               if (content) {
                 setThinkingText("");
                 upsertAssistant(content);
@@ -886,12 +886,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     : isRecording ? "🎤 Gravando... fale agora" : config.placeholder;
 
   return (
-    <div className="flex h-full bg-background/50 text-foreground">
+    <div className="flex h-full bg-background/50 text-foreground relative">
+      {/* Sidebar overlay for mobile */}
+      {showSidebar && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 sm:hidden" 
+          onClick={() => setShowSidebar(false)} 
+        />
+      )}
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0`}>
+      <div className={`${showSidebar ? 'w-64 fixed sm:relative inset-y-0 left-0 z-40 sm:z-auto' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0 bg-background sm:bg-transparent`}>
         <div className="p-3 border-b border-border/10">
           <button
-            onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); }}
+            onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); setShowSidebar(false); }}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground glass-input border hover:border-primary/15 transition-all duration-300 group"
           >
             <Plus size={16} className="text-muted-foreground/40 group-hover:text-primary transition-colors duration-300" />
@@ -910,7 +917,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                     ? "bg-muted/40 text-foreground font-medium border border-border/20"
                     : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
                 }`}
-                onClick={() => { setActiveConversationId(conv.id); setAttachment(null); }}
+                onClick={() => { setActiveConversationId(conv.id); setAttachment(null); setShowSidebar(false); }}
               >
                 <MessageCircle size={14} className="shrink-0 opacity-40" />
                 <span className="truncate flex-1 text-[13px]">{conv.title}</span>
@@ -940,7 +947,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -950,7 +957,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
@@ -1343,7 +1350,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               {/* School photo button */}
               <button
                 onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "school" 
                     ? "text-green-400 bg-green-500/10" 
                     : "text-muted-foreground/30 hover:text-green-400 hover:bg-green-500/10"
@@ -1357,7 +1364,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 onClick={() => {
                   setPendingAction(prev => prev === "imagegen" ? null : "imagegen");
                 }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
                   pendingAction === "imagegen"
                     ? "text-purple-400 bg-purple-500/10"
                     : "text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/10"
