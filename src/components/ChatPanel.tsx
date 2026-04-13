@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2 } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine } from "lucide-react";
 import { ChatSettings } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
@@ -751,6 +751,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-music`;
     } else if (pendingAction === "imagegen") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-imagegen`;
+    } else if (pendingAction === "rewrite") {
+      chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-rewrite`;
     } else if (pendingAction === "school") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-school`;
     } else if (mode === "programmer") {
@@ -976,6 +978,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     ? "Descreva a imagem que deseja criar... 🎨"
     : pendingAction === "school"
     ? "Tire uma foto ou pergunte sobre o exercício... 📚"
+    : pendingAction === "rewrite"
+    ? "Cole o texto que deseja reescrever... ✍️"
     : isRecording ? "🎤 Gravando... fale agora" : config.placeholder;
 
   return (
@@ -1439,10 +1443,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium ${
                 pendingAction === "school" 
                   ? "bg-green-500/10 text-green-400 border border-green-500/20" 
+                  : pendingAction === "rewrite"
+                  ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
                   : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
               }`}>
-                {pendingAction === "school" ? <Camera size={12} /> : <ImagePlus size={12} />}
-                {pendingAction === "school" ? "Modo Escola ativo" : "Modo Criar Imagem ativo"}
+                {pendingAction === "school" ? <Camera size={12} /> : pendingAction === "rewrite" ? <PenLine size={12} /> : <ImagePlus size={12} />}
+                {pendingAction === "school" ? "Modo Escola ativo" : pendingAction === "rewrite" ? "Modo Reescrever ativo" : "Modo Criar Imagem ativo"}
                 <button onClick={() => setPendingAction(null)} className="ml-1 opacity-60 hover:opacity-100">✕</button>
               </div>
             </div>
@@ -1480,6 +1486,20 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 title="🎨 Criar imagem com IA"
               >
                 <ImagePlus size={18} />
+              </button>
+              {/* Rewrite button */}
+              <button
+                onClick={() => {
+                  setPendingAction(prev => prev === "rewrite" ? null : "rewrite");
+                }}
+                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                  pendingAction === "rewrite"
+                    ? "text-sky-400 bg-sky-500/10"
+                    : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10"
+                }`}
+                title="✍️ Reescrever texto"
+              >
+                <PenLine size={18} />
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
