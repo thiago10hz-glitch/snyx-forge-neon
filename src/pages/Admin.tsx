@@ -593,7 +593,7 @@ export default function Admin() {
 
                         {/* Actions */}
                         {u.user_id !== user!.id && (
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                             <ActionButton
                               icon={Eye}
                               title="Detalhes"
