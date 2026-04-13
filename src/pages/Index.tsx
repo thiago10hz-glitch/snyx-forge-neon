@@ -4,7 +4,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -29,6 +29,7 @@ const Index = () => {
   const navItems = [
     { to: "/iptv", icon: MonitorPlay, label: "TV" },
     { to: "/hosting", icon: Server, label: "Hosting" },
+    { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
     { to: "/downloads", icon: Download, label: "App" },
   ];
 
