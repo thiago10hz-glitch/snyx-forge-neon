@@ -73,7 +73,7 @@ REGRAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
         messages: groqMessages,
         stream: true,
         max_tokens: 8192,
