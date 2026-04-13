@@ -242,7 +242,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
           Authorization: `Bearer ${authToken}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ text: vocalText.trim(), voiceId: selectedVoice }),
+        body: JSON.stringify({ text: vocalText.trim(), style: VOICES.find(v => v.id === selectedVoice)?.style || "Pop vocal" }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Erro ao gerar vocal");
@@ -630,6 +630,12 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
                     {SAMPLE_TRACKS.slice(0, 6).map((track, i) => (
                       <div
                         key={i}
+                        onClick={() => {
+                          if (!canUse) { setShowVipModal(true); return; }
+                          setEasyPrompt(track.title);
+                          setMode("easy");
+                          toast.info(`Prompt preenchido: "${track.title}" — clique em Criar Música!`);
+                        }}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/10 transition-all cursor-pointer group"
                       >
                         <span className="text-[10px] text-muted-foreground/30 w-4 text-right shrink-0">{i + 1}</span>
@@ -820,7 +826,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
               <h2 className="text-lg font-bold text-foreground mb-3">Explorar</h2>
               <HorizontalScroll>
                 {SAMPLE_TRACKS.map((track, i) => (
-                  <div key={i} className="shrink-0 w-[150px] sm:w-[170px] group cursor-pointer">
+                  <div key={i} className="shrink-0 w-[150px] sm:w-[170px] group cursor-pointer" onClick={() => { setEasyPrompt(track.title); setActiveTab("create"); setMode("easy"); toast.info(`Prompt: "${track.title}" — clique em Criar Música!`); }}>
                     <div className="rounded-xl overflow-hidden aspect-square mb-2 border border-border/10 group-hover:border-purple-500/30 transition-all relative">
                       <img src={track.image} alt={track.title} loading="lazy" width={512} height={512} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

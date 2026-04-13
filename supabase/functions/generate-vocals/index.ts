@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify user auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -35,7 +34,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user can use (VIP/DEV)
     const { data: canSend } = await supabase.rpc("can_send_message");
     if (!canSend?.is_vip) {
       return new Response(
@@ -53,18 +51,18 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { prompt, duration = 30 } = body;
+    const { text, style = "Pop vocal" } = body;
 
-    if (!prompt || typeof prompt !== "string" || prompt.length < 3) {
+    if (!text || typeof text !== "string" || text.length < 3) {
       return new Response(
-        JSON.stringify({ success: false, error: "Prompt inválido" }),
+        JSON.stringify({ success: false, error: "Texto inválido" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Generating music with Suno AI:", { prompt: prompt.slice(0, 100), duration });
+    console.log("Generating vocal with Suno AI:", { text: text.slice(0, 100), style });
 
-    // Step 1: Create generation task
+    // Use Suno custom mode with lyrics
     const createRes = await fetch("https://apibox.erweima.ai/api/v1/generate", {
       method: "POST",
       headers: {
@@ -72,8 +70,10 @@ Deno.serve(async (req) => {
         "Authorization": `Bearer ${SUNO_API_KEY}`,
       },
       body: JSON.stringify({
-        prompt: prompt.slice(0, 400),
-        customMode: false,
+        prompt: text.slice(0, 1500),
+        style: style,
+        title: "SnyX Vocal",
+        customMode: true,
         instrumental: false,
         model: "V3_5",
         callBackUrl: `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-music-callback`,
@@ -81,11 +81,11 @@ Deno.serve(async (req) => {
     });
 
     const createData = await createRes.json();
-    console.log("Suno create response:", JSON.stringify(createData));
+    console.log("Suno vocal create response:", JSON.stringify(createData));
 
     if (!createRes.ok || createData.code !== 200) {
       return new Response(
-        JSON.stringify({ success: false, error: createData.msg || "Erro ao criar música na Suno" }),
+        JSON.stringify({ success: false, error: createData.msg || "Erro ao criar vocal na Suno" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -98,50 +98,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 2: Poll for completion (max ~120s)
+    // Poll for completion
     let audioUrl = "";
     let title = "";
     const maxAttempts = 40;
-    
+
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise((r) => setTimeout(r, 3000));
 
       const checkRes = await fetch(
         `https://apibox.erweima.ai/api/v1/generate/record-info?taskId=${taskId}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${SUNO_API_KEY}`,
-          },
-        }
+        { headers: { "Authorization": `Bearer ${SUNO_API_KEY}` } }
       );
 
       const checkData = await checkRes.json();
-      console.log(`Poll attempt ${i + 1}:`, checkData.data?.status, JSON.stringify(checkData.data?.response?.sunoData?.[0] || {}).slice(0, 500));
-
       const status = checkData.data?.status;
+      console.log(`Vocal poll ${i + 1}: ${status}`);
 
-      if ((status === "complete" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
+      if ((status === "complete" || status === "TEXT_SUCCESS" || status === "FIRST_SUCCESS" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
         const tracks = checkData.data.response.sunoData;
         if (tracks.length > 0) {
           audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
-          title = tracks[0].title || prompt.slice(0, 40);
-          if (audioUrl) break;
-        }
-      }
-      
-      // Fallback: if stuck on FIRST_SUCCESS/TEXT_SUCCESS for too long, use stream URL
-      if ((status === "FIRST_SUCCESS" || status === "TEXT_SUCCESS") && i >= 20 && checkData.data?.response?.sunoData) {
-        const tracks = checkData.data.response.sunoData;
-        if (tracks.length > 0) {
-          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
-          title = tracks[0].title || prompt.slice(0, 40);
+          title = tracks[0].title || "SnyX Vocal";
           if (audioUrl) break;
         }
       }
 
       if (status === "failed" || status === "FAILED") {
         return new Response(
-          JSON.stringify({ success: false, error: "Geração falhou na Suno" }),
+          JSON.stringify({ success: false, error: "Geração de vocal falhou" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -149,7 +134,7 @@ Deno.serve(async (req) => {
 
     if (!audioUrl) {
       return new Response(
-        JSON.stringify({ success: false, error: "Timeout — a música está demorando. Tente novamente." }),
+        JSON.stringify({ success: false, error: "Timeout — tente novamente." }),
         { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -159,7 +144,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("Generate music error:", err);
+    console.error("Generate vocal error:", err);
     return new Response(
       JSON.stringify({ success: false, error: err.message || "Erro interno" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
