@@ -49,7 +49,7 @@ type MessageLimitState = {
 };
 
 type ChatMode = "friend" | "programmer" | "music";
-type PendingAction = "school" | "imagegen" | null;
+type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
   onCodeGenerated: (code: string) => void;
