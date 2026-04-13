@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       );
 
       const checkData = await checkRes.json();
-      console.log(`Poll attempt ${i + 1}:`, checkData.data?.status);
+      console.log(`Poll attempt ${i + 1}:`, checkData.data?.status, JSON.stringify(checkData.data?.response?.sunoData?.[0] || {}).slice(0, 500));
 
       const status = checkData.data?.status;
 
