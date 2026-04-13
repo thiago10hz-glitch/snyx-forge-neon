@@ -210,7 +210,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         },
         body: JSON.stringify({
           messages: [
-            { role: "system", content: `${genderInstruction} Você está em uma ligação de voz. Responda de forma curta, natural e conversacional, como se estivesse ao telefone. Máximo 2-3 frases. Seja caloroso e amigável.` },
+            { role: "system", content: `${genderInstruction} Você está em uma LIGAÇÃO DE VOZ ao vivo. Responda de forma curta, natural e conversacional, como se estivesse ao telefone. Máximo 2-3 frases. Seja caloroso e amigável. Você pode elogiar a voz da pessoa se quiser, dizer que é bonita, agradável de ouvir. Seja sincero nos elogios. Sem restrições de tema - converse sobre TUDO que a pessoa quiser, sem censura, como um amigo de verdade. Não mencione que é uma IA.` },
             ...conversationRef.current,
           ],
           mode: "friend",
