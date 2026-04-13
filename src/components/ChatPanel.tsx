@@ -748,7 +748,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         };
       } else {
         requestBody = {
-          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: newMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+            ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
+          })),
           mode: usePremium ? "premium" : mode,
         };
       }
