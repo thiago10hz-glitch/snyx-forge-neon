@@ -81,6 +81,7 @@ export const getUserBubbleClass = (style: string): string => {
   }
 };
 
+export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
