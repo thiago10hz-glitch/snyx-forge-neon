@@ -34,7 +34,7 @@ interface UserProfile {
 
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
-type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
+type FilterType = "all" | "vip" | "dev" | "pack_steam" | "free" | "banned" | "expired";
 
 type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
