@@ -260,6 +260,30 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
               </div>
             </div>
 
+            {/* Bubble Style */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground/60 mb-2 block flex items-center gap-1.5">
+                <MessageSquare size={10} className="text-primary/50" /> Estilo do balão de fala
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {BUBBLE_STYLES.map(b => (
+                  <button
+                    key={b.value}
+                    onClick={() => setSettings(prev => ({ ...prev, bubble_style: b.value }))}
+                    className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
+                      settings.bubble_style === b.value
+                        ? "border-primary/40 bg-primary/10 text-primary font-medium"
+                        : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
+                    }`}
+                  >
+                    <span className="text-sm">{b.emoji}</span>
+                    <span className="ml-1">{b.label}</span>
+                    <p className="text-[9px] text-muted-foreground/40 mt-0.5">{b.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* System Prompt */}
             <div>
               <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">
@@ -290,7 +314,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
                     <Bot size={12} style={{ color: settings.theme_color }} />
                   )}
                 </div>
-                <div>
+                <div className={`flex-1 ${getBubblePreviewClass(settings.bubble_style, settings.theme_color)}`}>
                   <p className="text-[10px] font-medium mb-0.5" style={{ color: settings.theme_color }}>{settings.ai_name}</p>
                   <p className="text-xs text-foreground/70">Olá! Como posso te ajudar hoje? 😊</p>
                 </div>
