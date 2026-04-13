@@ -55,6 +55,7 @@ const Hosting = () => {
   const [licenseKey, setLicenseKey] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [expandedSite, setExpandedSite] = useState<string | null>(null);
+  const [justActivated, setJustActivated] = useState(false);
 
   // AI generation
   const [aiPrompt, setAiPrompt] = useState("");
