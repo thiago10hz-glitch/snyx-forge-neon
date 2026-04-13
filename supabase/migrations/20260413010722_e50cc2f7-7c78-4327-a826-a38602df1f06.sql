@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_presence ADD CONSTRAINT admin_presence_user_id_unique UNIQUE (user_id);
