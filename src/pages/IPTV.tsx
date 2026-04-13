@@ -288,7 +288,7 @@ export default function IPTV() {
     return `${proxyBase}?url=${encodeURIComponent(originalUrl)}`;
   }, []);
 
-  // HLS playback through proxy
+  // HLS/Direct playback with retry logic
   useEffect(() => {
     if (!selectedChannel || !videoRef.current) return;
     const video = videoRef.current;
@@ -298,20 +298,54 @@ export default function IPTV() {
     setPlayerError("");
 
     let destroyed = false;
-    const streamUrl = getProxyUrl(selectedChannel.url);
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
 
-    const startPlayback = async () => {
+    const tryPlayback = async (useProxy: boolean) => {
       if (destroyed) return;
+
+      const streamUrl = useProxy ? getProxyUrl(selectedChannel.url) : selectedChannel.url;
+
+      // For direct TS streams (not m3u8), try video element directly
+      const isDirectTS = selectedChannel.url.endsWith("/ts") || selectedChannel.url.includes("/ts?");
+      
+      if (isDirectTS && !useProxy) {
+        // Direct MPEG-TS - try native video element
+        video.src = streamUrl;
+        video.load();
+        try {
+          await video.play();
+          if (!destroyed) setPlayerStatus("playing");
+          return;
+        } catch {
+          // Direct failed, try proxy
+          if (!destroyed && retryCount < MAX_RETRIES) {
+            retryCount++;
+            setTimeout(() => tryPlayback(true), 500);
+          } else if (!destroyed) {
+            setPlayerStatus("error");
+            setPlayerError("Servidor do canal indisponível. Tente outro canal.");
+          }
+          return;
+        }
+      }
 
       // Native HLS support (Safari/iOS)
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = streamUrl;
         try {
           await video.play();
-          setPlayerStatus("playing");
+          if (!destroyed) setPlayerStatus("playing");
         } catch {
-          setPlayerStatus("error");
-          setPlayerError("Não foi possível reproduzir este canal");
+          if (!destroyed) {
+            if (!useProxy && retryCount < MAX_RETRIES) {
+              retryCount++;
+              setTimeout(() => tryPlayback(true), 500);
+            } else {
+              setPlayerStatus("error");
+              setPlayerError("Servidor do canal indisponível. Tente outro canal.");
+            }
+          }
         }
         return;
       }
@@ -320,8 +354,10 @@ export default function IPTV() {
       if (!Hls.isSupported()) {
         video.src = streamUrl;
         video.play().catch(() => {
-          setPlayerStatus("error");
-          setPlayerError("Navegador não suporta este formato");
+          if (!destroyed) {
+            setPlayerStatus("error");
+            setPlayerError("Navegador não suporta este formato");
+          }
         });
         return;
       }
@@ -331,16 +367,25 @@ export default function IPTV() {
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
-        fragLoadingMaxRetry: 5,
-        manifestLoadingMaxRetry: 5,
-        levelLoadingMaxRetry: 5,
+        fragLoadingMaxRetry: 6,
+        manifestLoadingMaxRetry: 6,
+        levelLoadingMaxRetry: 6,
         fragLoadingRetryDelay: 1000,
-        manifestLoadingTimeOut: 20000,
-        fragLoadingTimeOut: 25000,
+        manifestLoadingTimeOut: 25000,
+        fragLoadingTimeOut: 30000,
+        xhrSetup: useProxy ? undefined : (xhr: XMLHttpRequest, url: string) => {
+          // For direct playback, rewrite HTTP URLs through proxy
+          if (url.startsWith("http://")) {
+            const proxyUrl = getProxyUrl(url);
+            xhr.open("GET", proxyUrl, true);
+          }
+        },
       });
       hlsRef.current = hls;
       hls.loadSource(streamUrl);
       hls.attachMedia(video);
+
+      let networkErrorCount = 0;
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         if (!destroyed) {
@@ -354,19 +399,33 @@ export default function IPTV() {
         if (destroyed) return;
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            // Try to recover network errors
-            hls.startLoad();
+            networkErrorCount++;
+            if (networkErrorCount <= 3) {
+              hls.startLoad();
+            } else {
+              hls.destroy();
+              hlsRef.current = null;
+              // Try with proxy if we were direct, or vice versa
+              if (!useProxy && retryCount < MAX_RETRIES) {
+                retryCount++;
+                setTimeout(() => tryPlayback(true), 500);
+              } else {
+                setPlayerStatus("error");
+                setPlayerError("Servidor do canal indisponível. O servidor de stream pode estar fora do ar.");
+              }
+            }
           } else {
             hls.destroy();
             hlsRef.current = null;
             setPlayerStatus("error");
-            setPlayerError("Canal indisponível ou offline");
+            setPlayerError("Formato não suportado ou canal offline");
           }
         }
       });
     };
 
-    startPlayback();
+    // Start with direct playback first (avoids DNS issues in proxy)
+    tryPlayback(false);
 
     const onPlaying = () => setPlayerStatus("playing");
     const onWaiting = () => setPlayerStatus("loading");
