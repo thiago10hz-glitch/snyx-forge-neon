@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock, Bot, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface LiveChat {
   id: string;
@@ -22,14 +23,17 @@ interface LiveMessage {
   created_at: string;
 }
 
+const AI_SENDER_ID = "00000000-0000-0000-0000-000000000000";
+
 export function AdminLiveChatsPanel() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [chats, setChats] = useState<LiveChat[]>([]);
   const [selectedChat, setSelectedChat] = useState<LiveChat | null>(null);
   const [messages, setMessages] = useState<LiveMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const fetchChats = async () => {
@@ -58,21 +62,17 @@ export function AdminLiveChatsPanel() {
 
   useEffect(() => {
     fetchChats();
-
     const channel = supabase
       .channel("admin-live-chats")
       .on("postgres_changes", { event: "*", schema: "public", table: "admin_live_chats" }, () => {
         fetchChats();
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Load messages for selected chat
   useEffect(() => {
     if (!selectedChat) { setMessages([]); return; }
-
     const loadMessages = async () => {
       const { data } = await supabase
         .from("admin_live_messages")
@@ -94,7 +94,6 @@ export function AdminLiveChatsPanel() {
         setMessages(prev => [...prev, payload.new as LiveMessage]);
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [selectedChat?.id]);
 
@@ -108,10 +107,7 @@ export function AdminLiveChatsPanel() {
       .from("admin_live_chats")
       .update({ status: "active", admin_id: user.id })
       .eq("id", chat.id);
-    if (error) {
-      toast.error("Erro ao aceitar chat");
-      return;
-    }
+    if (error) { toast.error("Erro ao aceitar chat"); return; }
     toast.success("Chat aceito!");
     setSelectedChat({ ...chat, status: "active", admin_id: user.id });
     fetchChats();
@@ -122,10 +118,7 @@ export function AdminLiveChatsPanel() {
       .from("admin_live_chats")
       .update({ status: "closed" })
       .eq("id", chatId);
-    if (error) {
-      toast.error("Erro ao fechar chat");
-      return;
-    }
+    if (error) { toast.error("Erro ao fechar chat"); return; }
     toast.success("Chat encerrado");
     setSelectedChat(null);
     fetchChats();
@@ -136,18 +129,80 @@ export function AdminLiveChatsPanel() {
     const content = input.trim();
     setInput("");
     setSending(true);
-
     const { error } = await supabase.from("admin_live_messages").insert({
       chat_id: selectedChat.id,
       sender_id: user.id,
       content,
     });
-
-    if (error) {
-      toast.error("Erro ao enviar mensagem");
-      setInput(content);
-    }
+    if (error) { toast.error("Erro ao enviar mensagem"); setInput(content); }
     setSending(false);
+  };
+
+  const askAI = async () => {
+    if (!selectedChat || aiLoading) return;
+    setAiLoading(true);
+
+    try {
+      // Build conversation for AI context
+      const adminName = profile?.display_name || user?.email || "Admin";
+      const userName = selectedChat.user_display_name || "Usuário";
+
+      const aiMessages = messages.map(msg => ({
+        role: msg.sender_id === user?.id ? "assistant" : "user",
+        content: msg.sender_id === AI_SENDER_ID ? `[SnyX IA]: ${msg.content}` : msg.content,
+      }));
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-live-ai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: aiMessages,
+          admin_name: adminName,
+          user_name: userName,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erro na IA");
+
+      // Stream response
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (!line || line === "data: [DONE]") continue;
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const parsed = JSON.parse(line.slice(6));
+            if (parsed.text) fullResponse += parsed.text;
+          } catch { /* skip */ }
+        }
+      }
+
+      if (fullResponse.trim()) {
+        // Send AI response as a message with AI sender ID
+        await supabase.from("admin_live_messages").insert({
+          chat_id: selectedChat.id,
+          sender_id: AI_SENDER_ID,
+          content: `🤖 **SnyX IA** (assistente do admin ${adminName}):\n\n${fullResponse.trim()}`,
+        });
+      }
+    } catch (e) {
+      console.error("AI error:", e);
+      toast.error("Erro ao consultar a IA");
+    }
+    setAiLoading(false);
   };
 
   const pendingChats = chats.filter(c => c.status === "pending");
@@ -179,17 +234,10 @@ export function AdminLiveChatsPanel() {
               <p className="text-xs text-muted-foreground/40 text-center py-8">Nenhum chat ao vivo</p>
             ) : (
               <>
-                {pendingChats.length > 0 && (
-                  <p className="text-[10px] font-bold text-yellow-400 px-2 pt-2">PENDENTES</p>
-                )}
+                {pendingChats.length > 0 && <p className="text-[10px] font-bold text-yellow-400 px-2 pt-2">PENDENTES</p>}
                 {pendingChats.map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all ${
-                      selectedChat?.id === chat.id ? "bg-primary/15 border border-primary/30" : "hover:bg-muted/30"
-                    }`}
-                  >
+                  <button key={chat.id} onClick={() => setSelectedChat(chat)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all ${selectedChat?.id === chat.id ? "bg-primary/15 border border-primary/30" : "hover:bg-muted/30"}`}>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium truncate">{chat.user_display_name}</p>
                       <Clock size={12} className="text-yellow-400 shrink-0" />
@@ -197,18 +245,10 @@ export function AdminLiveChatsPanel() {
                     <p className="text-[10px] text-muted-foreground/50 mt-0.5">{chat.subject}</p>
                   </button>
                 ))}
-
-                {activeChats.length > 0 && (
-                  <p className="text-[10px] font-bold text-emerald-400 px-2 pt-3">ATIVOS</p>
-                )}
+                {activeChats.length > 0 && <p className="text-[10px] font-bold text-emerald-400 px-2 pt-3">ATIVOS</p>}
                 {activeChats.map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all ${
-                      selectedChat?.id === chat.id ? "bg-emerald-500/15 border border-emerald-500/30" : "hover:bg-muted/30"
-                    }`}
-                  >
+                  <button key={chat.id} onClick={() => setSelectedChat(chat)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all ${selectedChat?.id === chat.id ? "bg-emerald-500/15 border border-emerald-500/30" : "hover:bg-muted/30"}`}>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium truncate">{chat.user_display_name}</p>
                       <div className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -216,18 +256,10 @@ export function AdminLiveChatsPanel() {
                     <p className="text-[10px] text-muted-foreground/50 mt-0.5">{chat.subject}</p>
                   </button>
                 ))}
-
-                {closedChats.length > 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground/40 px-2 pt-3">ENCERRADOS</p>
-                )}
+                {closedChats.length > 0 && <p className="text-[10px] font-bold text-muted-foreground/40 px-2 pt-3">ENCERRADOS</p>}
                 {closedChats.map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all opacity-50 ${
-                      selectedChat?.id === chat.id ? "bg-muted/30 border border-border/30" : "hover:bg-muted/20"
-                    }`}
-                  >
+                  <button key={chat.id} onClick={() => setSelectedChat(chat)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all opacity-50 ${selectedChat?.id === chat.id ? "bg-muted/30 border border-border/30" : "hover:bg-muted/20"}`}>
                     <p className="text-sm font-medium truncate">{chat.user_display_name}</p>
                     <p className="text-[10px] text-muted-foreground/50 mt-0.5">{chat.subject}</p>
                   </button>
@@ -255,19 +287,26 @@ export function AdminLiveChatsPanel() {
                   <p className="text-[10px] text-muted-foreground/50">{selectedChat.subject}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {selectedChat.status === "pending" && (
+                  {selectedChat.status === "active" && (
                     <button
-                      onClick={() => acceptChat(selectedChat)}
-                      className="px-3 py-1.5 text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all flex items-center gap-1"
+                      onClick={askAI}
+                      disabled={aiLoading}
+                      className="px-3 py-1.5 text-xs font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/20 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40"
+                      title="Pedir ajuda da IA SnyX"
                     >
+                      {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      Chamar IA
+                    </button>
+                  )}
+                  {selectedChat.status === "pending" && (
+                    <button onClick={() => acceptChat(selectedChat)}
+                      className="px-3 py-1.5 text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all flex items-center gap-1">
                       <CheckCircle size={12} /> Aceitar
                     </button>
                   )}
                   {selectedChat.status === "active" && (
-                    <button
-                      onClick={() => closeChat(selectedChat.id)}
-                      className="px-3 py-1.5 text-xs font-medium bg-destructive/80 hover:bg-destructive text-white rounded-lg transition-all flex items-center gap-1"
-                    >
+                    <button onClick={() => closeChat(selectedChat.id)}
+                      className="px-3 py-1.5 text-xs font-medium bg-destructive/80 hover:bg-destructive text-white rounded-lg transition-all flex items-center gap-1">
                       <XCircle size={12} /> Encerrar
                     </button>
                   )}
@@ -281,20 +320,41 @@ export function AdminLiveChatsPanel() {
                     {selectedChat.status === "pending" ? "Aceite o chat para começar a conversar" : "Nenhuma mensagem ainda"}
                   </p>
                 ) : (
-                  messages.map(msg => (
-                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[70%] rounded-2xl px-3.5 py-2 text-sm ${
-                        msg.sender_id === user?.id
-                          ? "bg-primary/20 text-foreground rounded-br-sm"
-                          : "bg-muted/40 text-foreground rounded-bl-sm"
-                      }`}>
-                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                        <p className="text-[9px] text-muted-foreground/30 mt-1 text-right">
-                          {new Date(msg.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                        </p>
+                  messages.map(msg => {
+                    const isAdmin = msg.sender_id === user?.id;
+                    const isAI = msg.sender_id === AI_SENDER_ID;
+                    return (
+                      <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[70%] rounded-2xl px-3.5 py-2 text-sm ${
+                          isAI
+                            ? "bg-purple-500/10 text-foreground border border-purple-500/15 rounded-bl-sm"
+                            : isAdmin
+                            ? "bg-primary/20 text-foreground rounded-br-sm"
+                            : "bg-muted/40 text-foreground rounded-bl-sm"
+                        }`}>
+                          {isAI ? (
+                            <div className="prose prose-sm prose-invert max-w-none">
+                              <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                          )}
+                          <p className="text-[9px] text-muted-foreground/30 mt-1 text-right">
+                            {new Date(msg.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
                       </div>
+                    );
+                  })
+                )}
+                {aiLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-purple-500/10 border border-purple-500/15 rounded-2xl rounded-bl-sm px-3.5 py-2.5 flex items-center gap-2">
+                      <Bot size={14} className="text-purple-400" />
+                      <span className="text-xs text-purple-400">SnyX IA está pensando...</span>
+                      <Loader2 size={12} className="text-purple-400 animate-spin" />
                     </div>
-                  ))
+                  </div>
                 )}
               </div>
 
@@ -310,11 +370,8 @@ export function AdminLiveChatsPanel() {
                       className="flex-1 bg-muted/20 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/30 border border-border/10 focus:outline-none focus:border-primary/30"
                       disabled={sending}
                     />
-                    <button
-                      onClick={sendMessage}
-                      disabled={!input.trim() || sending}
-                      className="w-10 h-10 rounded-xl bg-primary hover:bg-primary/80 text-white flex items-center justify-center disabled:opacity-40 transition-all"
-                    >
+                    <button onClick={sendMessage} disabled={!input.trim() || sending}
+                      className="w-10 h-10 rounded-xl bg-primary hover:bg-primary/80 text-white flex items-center justify-center disabled:opacity-40 transition-all">
                       {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                     </button>
                   </div>
