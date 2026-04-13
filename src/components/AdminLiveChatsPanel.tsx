@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock, Bot, Sparkles } from "lucide-react";
+import { Loader2, Send, MessageCircle, CheckCircle, XCircle, Clock, Bot, Sparkles, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface LiveChat {
