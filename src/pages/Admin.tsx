@@ -408,6 +408,7 @@ export default function Admin() {
             { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
             { key: "hosting" as AdminTab, label: "Hosting", icon: KeyRound, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
+            { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
           ]).map(tab => (
             <button
               key={tab.key}
