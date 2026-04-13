@@ -196,8 +196,8 @@ export default function Admin() {
       .order("created_at", { ascending: false });
     if (error) { toast.error("Erro ao carregar usuários"); setLoadingUsers(false); return; }
 
-    // Fetch tracking data separately from user_tracking table
-    const { data: trackingData } = await supabase
+    // Fetch tracking data separately from user_tracking table (cast to bypass type generation lag)
+    const { data: trackingData } = await (supabase as any)
       .from("user_tracking")
       .select("user_id, ip_address, device_fingerprint");
 
