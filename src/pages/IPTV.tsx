@@ -3,9 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { VipModal } from "@/components/VipModal";
 import {
   ArrowLeft, MonitorPlay, Maximize2, Minimize2, RefreshCw, Code2,
-  Search, Play, Loader2, Radio, X, Volume2, VolumeX,
+  Search, Loader2, Radio, X, Volume2, VolumeX,
   Film, Tv, Clapperboard, Sparkles, Baby, Heart, Skull, Swords, Popcorn,
-  List, Star, ChevronRight
+  List, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
