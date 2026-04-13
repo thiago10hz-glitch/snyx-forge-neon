@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Gamepad2, Sparkles, Zap, Shield, Download, CheckCircle2, Star } from "lucide-react";
+import { ArrowLeft, Gamepad2, Sparkles, Zap, Shield, Download, Star } from "lucide-react";
 
 export default function PackSteam() {
   const { profile } = useAuth();

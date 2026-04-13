@@ -12,6 +12,7 @@ import IPTV from "./pages/IPTV";
 import Hosting from "./pages/Hosting";
 import ResetPassword from "./pages/ResetPassword";
 import Downloads from "./pages/Downloads";
+import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -86,6 +87,7 @@ const App = () => {
               <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
               <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
               <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
+              <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
