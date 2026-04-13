@@ -163,6 +163,8 @@ export default function IPTV() {
   const [muted, setMuted] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [playerStatus, setPlayerStatus] = useState<"idle" | "loading" | "playing" | "error">("idle");
+  const [playerError, setPlayerError] = useState("");
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem("snyx_iptv_favs");
@@ -280,32 +282,134 @@ export default function IPTV() {
     };
   }, [channels, activeCategory, search, favorites, selectedGroup]);
 
-  // HLS playback
+  // HLS playback with error recovery
   useEffect(() => {
     if (!selectedChannel || !videoRef.current) return;
     const video = videoRef.current;
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
 
-    const playStream = async () => {
+    setPlayerStatus("loading");
+    setPlayerError("");
+
+    // Try HTTPS first, then HTTP
+    const urls: string[] = [];
+    const originalUrl = selectedChannel.url;
+    if (originalUrl.startsWith("http://")) {
+      urls.push(originalUrl.replace("http://", "https://"));
+      urls.push(originalUrl);
+    } else {
+      urls.push(originalUrl);
+    }
+
+    let attemptIndex = 0;
+    let destroyed = false;
+
+    const tryPlay = async (url: string) => {
+      if (destroyed) return;
+
+      // Native HLS support (Safari/iOS)
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = selectedChannel.url;
-        video.play().catch(() => {});
+        video.src = url;
+        try {
+          await video.play();
+          setPlayerStatus("playing");
+        } catch {
+          // Try next URL
+          attemptIndex++;
+          if (attemptIndex < urls.length) {
+            tryPlay(urls[attemptIndex]);
+          } else {
+            setPlayerStatus("error");
+            setPlayerError("Não foi possível reproduzir este canal");
+          }
+        }
         return;
       }
+
       const { default: Hls } = await import("hls.js");
-      if (Hls.isSupported()) {
-        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-        hlsRef.current = hls;
-        hls.loadSource(selectedChannel.url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-      } else {
-        video.src = selectedChannel.url;
-        video.play().catch(() => {});
+      if (!Hls.isSupported()) {
+        video.src = url;
+        video.play().catch(() => {
+          setPlayerStatus("error");
+          setPlayerError("Navegador não suporta este formato");
+        });
+        return;
+      }
+
+      if (destroyed) return;
+
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        fragLoadingMaxRetry: 3,
+        manifestLoadingMaxRetry: 3,
+        levelLoadingMaxRetry: 3,
+        fragLoadingRetryDelay: 1000,
+        manifestLoadingTimeOut: 15000,
+        fragLoadingTimeOut: 20000,
+        xhrSetup: (xhr: XMLHttpRequest, xhrUrl: string) => {
+          // Some servers need specific headers
+          xhr.withCredentials = false;
+        },
+      });
+      hlsRef.current = hls;
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (!destroyed) {
+          video.play().then(() => setPlayerStatus("playing")).catch(() => {
+            // Autoplay might be blocked, still show video
+            setPlayerStatus("playing");
+          });
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+        if (destroyed) return;
+        if (data.fatal) {
+          hls.destroy();
+          hlsRef.current = null;
+          // Try next URL
+          attemptIndex++;
+          if (attemptIndex < urls.length) {
+            tryPlay(urls[attemptIndex]);
+          } else {
+            setPlayerStatus("error");
+            setPlayerError("Canal indisponível ou offline");
+          }
+        }
+      });
+    };
+
+    tryPlay(urls[0]);
+
+    // Handle video events
+    const onPlaying = () => setPlayerStatus("playing");
+    const onWaiting = () => setPlayerStatus("loading");
+    const onError = () => {
+      if (!destroyed) {
+        attemptIndex++;
+        if (attemptIndex < urls.length) {
+          tryPlay(urls[attemptIndex]);
+        } else {
+          setPlayerStatus("error");
+          setPlayerError("Erro ao carregar stream");
+        }
       }
     };
-    playStream();
-    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("waiting", onWaiting);
+    video.addEventListener("error", onError);
+
+    return () => {
+      destroyed = true;
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("waiting", onWaiting);
+      video.removeEventListener("error", onError);
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    };
   }, [selectedChannel]);
 
   const toggleFullscreen = () => {
@@ -512,6 +616,28 @@ export default function IPTV() {
                     autoPlay
                     className="w-full h-full object-contain"
                   />
+                  {/* Loading overlay */}
+                  {playerStatus === "loading" && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-10">
+                      <Loader2 size={40} className="text-blue-500 animate-spin mb-3" />
+                      <p className="text-sm text-white/70">Carregando canal...</p>
+                      <p className="text-xs text-white/40 mt-1">{selectedChannel.name}</p>
+                    </div>
+                  )}
+                  {/* Error overlay */}
+                  {playerStatus === "error" && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
+                      <X size={40} className="text-red-500 mb-3" />
+                      <p className="text-sm text-white/70 mb-1">{playerError || "Canal indisponível"}</p>
+                      <p className="text-xs text-white/40 mb-4">Este canal pode estar offline ou indisponível</p>
+                      <button
+                        onClick={() => { setPlayerStatus("loading"); setSelectedChannel({ ...selectedChannel }); }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white transition-all flex items-center gap-2"
+                      >
+                        <RefreshCw size={14} /> Tentar novamente
+                      </button>
+                    </div>
+                  )}
                 </div>
                 {/* Now playing bar */}
                 <div className="h-14 bg-[#111827] border-t border-white/5 flex items-center px-4 gap-3 shrink-0">
