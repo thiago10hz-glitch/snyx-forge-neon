@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Search, Home, ShieldCheck, Tv, Globe, Download, Package, LogOut,
-  Crown, Code2, MessageCircle, Settings, Zap, Command
+  Search, Home, ShieldCheck, Tv, Globe, Download, Package, LogOut, Command
 } from "lucide-react";
 
 interface CommandItem {
@@ -24,7 +23,7 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { signOut } = useAuth();
 
   const commands: CommandItem[] = [
     // Navigation

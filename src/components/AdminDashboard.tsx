@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users, Crown, Code2, MessageCircle, TrendingUp, Ban, Clock, Package,
-  ShieldCheck, Globe, Activity, Zap
+  ShieldCheck, Globe, Activity
 } from "lucide-react";
 
 interface DashboardStats {
