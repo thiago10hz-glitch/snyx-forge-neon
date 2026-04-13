@@ -384,69 +384,44 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="h-12 border-b border-border/30 flex items-center justify-between px-4 bg-background sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-bold">Admin</h1>
+      <header className="border-b border-border/30 bg-background sticky top-0 z-10">
+        <div className="h-12 flex items-center justify-between px-3 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <h1 className="text-sm font-bold">Admin</h1>
+            </div>
           </div>
+          <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[200px]">{user.email}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setAdminTab("users")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${adminTab === "users" ? "bg-primary/15 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Users className="w-3 h-3 inline mr-1" />Usuários
-          </button>
-          <button
-            onClick={() => setAdminTab("messages")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "messages" ? "bg-primary/15 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <MessageCircle className="w-3 h-3" />Mensagens
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          </button>
-          <button
-            onClick={() => setAdminTab("support")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "support" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <ShieldCheck className="w-3 h-3" />Suporte
-          </button>
-          <button
-            onClick={() => setAdminTab("notes")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "notes" ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <StickyNote className="w-3 h-3" />Notas
-          </button>
-          <button
-            onClick={() => setAdminTab("connections")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "connections" ? "bg-purple-500/15 text-purple-400 border border-purple-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Link2 className="w-3 h-3" />Conexões
-          </button>
-          <button
-            onClick={() => setAdminTab("security")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "security" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Shield className="w-3 h-3" />Segurança
-          </button>
-          <button
-            onClick={() => setAdminTab("hosting")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "hosting" ? "bg-orange-500/15 text-orange-400 border border-orange-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <KeyRound className="w-3 h-3" />Hosting Keys
-          </button>
-          <button
-            onClick={() => setAdminTab("livechats")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "livechats" ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Phone className="w-3 h-3" />Chat ao Vivo
-          </button>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">{user.email}</span>
+        <div className="flex items-center gap-1.5 px-3 sm:px-4 pb-2 overflow-x-auto scrollbar-hide">
+          {([
+            { key: "users" as AdminTab, label: "Usuários", icon: Users, activeClass: "bg-primary/15 text-primary border-primary/30" },
+            { key: "messages" as AdminTab, label: "Mensagens", icon: MessageCircle, activeClass: "bg-primary/15 text-primary border-primary/30", dot: true },
+            { key: "support" as AdminTab, label: "Suporte", icon: ShieldCheck, activeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+            { key: "notes" as AdminTab, label: "Notas", icon: StickyNote, activeClass: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+            { key: "connections" as AdminTab, label: "Conexões", icon: Link2, activeClass: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+            { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
+            { key: "hosting" as AdminTab, label: "Hosting", icon: KeyRound, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
+            { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
+          ]).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setAdminTab(tab.key)}
+              className={`px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                adminTab === tab.key
+                  ? `${tab.activeClass} border`
+                  : "text-muted-foreground hover:text-foreground border border-transparent"
+              }`}
+            >
+              <tab.icon className="w-3 h-3" />
+              {tab.label}
+              {tab.dot && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+            </button>
+          ))}
         </div>
       </header>
 
