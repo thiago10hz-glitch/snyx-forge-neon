@@ -35,17 +35,17 @@ const Index = () => {
       </div>
 
       {/* Top Bar */}
-      <header className="relative z-20 h-14 flex items-center justify-between px-4 md:px-5 shrink-0 glass border-b border-border/20">
-        <div className="flex items-center gap-3">
+      <header className="relative z-20 h-12 md:h-14 flex items-center justify-between px-2 md:px-5 shrink-0 glass border-b border-border/20">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
-              <Zap className="w-[18px] h-[18px] text-primary" />
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
+              <Zap className="w-4 h-4 md:w-[18px] md:h-[18px] text-primary" />
             </div>
             <div className="absolute -inset-1 rounded-xl bg-primary/10 blur-md -z-10 animate-breathe" />
           </div>
           <div className="leading-none">
-            <h1 className="text-sm font-bold tracking-wide text-foreground">SnyX</h1>
-            <p className="text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5">AI Platform</p>
+            <h1 className="text-xs md:text-sm font-bold tracking-wide text-foreground">SnyX</h1>
+            <p className="text-[8px] md:text-[9px] text-muted-foreground/40 font-medium tracking-widest uppercase mt-0.5 hidden sm:block">AI Platform</p>
           </div>
         </div>
 
