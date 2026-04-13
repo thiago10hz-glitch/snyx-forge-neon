@@ -9,9 +9,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) {
-      return new Response(JSON.stringify({ error: "DEEPSEEK_API_KEY não configurada" }), {
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) {
+      return new Response(JSON.stringify({ error: "OPENROUTER_API_KEY não configurada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -58,7 +58,6 @@ REGRAS:
 - NÃO fale de assuntos pessoais. Se perguntarem, diga: "Esse assunto é pro modo Amigo! 😊"
 - Sempre que possível, gere JavaScript interativo (menus mobile, scroll smooth, animações)`;
 
-    // Keep last 30 messages, DeepSeek supports large context
     const truncatedMessages = messages.slice(-30).map((m: { role: string; content: string }) => ({
       role: m.role === "user" ? "user" : "assistant",
       content: m.content.length > 16000 ? m.content.slice(0, 16000) + "\n...(truncado)" : m.content,
@@ -69,14 +68,16 @@ REGRAS:
       ...truncatedMessages,
     ];
 
-    const res = await fetch("https://api.deepseek.com/chat/completions", {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
+        "X-Title": "SnyX Dev",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek/deepseek-chat-v3.1",
         messages: apiMessages,
         stream: true,
         max_tokens: 16384,
@@ -86,18 +87,18 @@ REGRAS:
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("DeepSeek error:", res.status, err);
+      console.error("OpenRouter error:", res.status, err);
       if (res.status === 429) {
         return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (res.status === 402) {
-        return new Response(JSON.stringify({ error: "Saldo insuficiente na API DeepSeek" }), {
+        return new Response(JSON.stringify({ error: "Saldo insuficiente na API OpenRouter" }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: `Erro DeepSeek: ${res.status}` }), {
+      return new Response(JSON.stringify({ error: `Erro OpenRouter: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
