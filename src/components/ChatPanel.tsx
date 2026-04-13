@@ -589,8 +589,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     }
     let freeLimitSnapshot: MessageLimitState | null = null;
 
-    // Image attachment requires VIP in friend mode (unless using school action)
-    if (attachment?.kind === "image" && mode === "friend" && pendingAction !== "school" && !profile?.is_vip) {
+    // Image attachment requires VIP/DEV in friend mode (unless using school action)
+    if (attachment?.kind === "image" && mode === "friend" && pendingAction !== "school" && !profile?.is_vip && !profile?.is_dev) {
       setVipModalPlan("vip");
       setShowVipModal(true);
       return;
