@@ -6,6 +6,7 @@ import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
+import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle,
@@ -31,7 +32,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security";
+type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting";
 
 interface ChatMessage {
   id: string;
@@ -412,6 +413,12 @@ export default function Admin() {
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "security" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "text-muted-foreground hover:text-foreground"}`}
           >
             <Shield className="w-3 h-3" />Segurança
+          </button>
+          <button
+            onClick={() => setAdminTab("hosting")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "hosting" ? "bg-orange-500/15 text-orange-400 border border-orange-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <KeyRound className="w-3 h-3" />Hosting Keys
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -882,6 +889,10 @@ export default function Admin() {
 
       {adminTab === "security" && (
         <AdminSecurityPanel />
+      )}
+
+      {adminTab === "hosting" && (
+        <AdminHostingKeysPanel />
       )}
 
       {vipModalUser && (
