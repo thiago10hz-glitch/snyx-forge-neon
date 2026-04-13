@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Gamepad2, Sparkles, Zap, Shield, Download, Star, Crown, Infinity, Clock } from "lucide-react";
+import { ArrowLeft, Gamepad2, Sparkles, Zap, Shield, Download, Star, Crown, Clock } from "lucide-react";
+const InfinityIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg>
+);
 
 export default function PackSteam() {
   const { profile } = useAuth();
@@ -70,7 +73,7 @@ export default function PackSteam() {
                   <span className="text-5xl sm:text-6xl font-black text-foreground">$30</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Infinity className="w-4 h-4 text-green-400" />
+                  <InfinityIcon className="w-4 h-4 text-green-400" />
                   <span className="text-sm font-bold text-green-400">Acesso Vitalício</span>
                 </div>
               </div>
@@ -96,7 +99,7 @@ export default function PackSteam() {
         <div className="flex items-center justify-center gap-4 sm:gap-8 py-4 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
           <HighlightStat icon={Gamepad2} value="40K+" label="Jogos" />
           <div className="w-px h-8 bg-border/15" />
-          <HighlightStat icon={Infinity} value="∞" label="Vitalício" />
+          <HighlightStat icon={InfinityIcon} value="∞" label="Vitalício" />
           <div className="w-px h-8 bg-border/15" />
           <HighlightStat icon={Zap} value="5min" label="Setup" />
         </div>
@@ -147,7 +150,7 @@ export default function PackSteam() {
   );
 }
 
-function FeatureCard({ icon: Icon, title, description, color }: { icon: any; title: string; description: string; color: string }) {
+function FeatureCard({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
   return (
     <div className="rounded-2xl border border-border/10 glass p-4 sm:p-5 space-y-2.5 hover:border-green-500/15 transition-all duration-300 group">
       <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/15 group-hover:bg-green-500/15 transition-colors">
