@@ -1072,11 +1072,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1 px-2.5 sm:px-2 md:px-3 py-1.5 sm:py-1.5 md:py-2 text-[11px] sm:text-[11px] md:text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap active:scale-95 ${
+                  className={`flex items-center gap-1 px-2 sm:px-2.5 md:px-3 py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs font-medium rounded-md sm:rounded-lg transition-all duration-300 whitespace-nowrap active:scale-95 ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={12} className="sm:hidden" />
+                  <Icon size={14} className="hidden sm:block" />
                   <span>{c.label}</span>
                   {isLocked && <span className="text-[8px] opacity-50">🔒</span>}
                 </button>
