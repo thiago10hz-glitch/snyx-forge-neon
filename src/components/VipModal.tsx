@@ -35,10 +35,10 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-      <div className="glass-elevated rounded-2xl max-w-3xl w-full overflow-hidden animate-enter border border-border/20 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
+      <div className="glass-elevated rounded-t-2xl sm:rounded-2xl max-w-3xl w-full overflow-hidden animate-enter border border-border/20 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="relative p-6 pb-4 shrink-0">
+        <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 shrink-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
           <button
             onClick={onClose}
@@ -58,9 +58,9 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
         </div>
 
         {/* Plans */}
-        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto flex-1 scrollbar-thin">
+        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
           {/* VIP Plan */}
-          <div className={`rounded-2xl border p-5 transition-all flex flex-col ${
+          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col ${
             highlightPlan === "vip"
               ? "border-yellow-500/25 bg-yellow-500/3 ring-1 ring-yellow-500/10"
               : "border-border/15 bg-muted/5"
@@ -105,7 +105,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
           </div>
 
           {/* Programmer Plan */}
-          <div className={`rounded-2xl border p-5 transition-all flex flex-col relative ${
+          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col relative ${
             highlightPlan === "programmer"
               ? "border-cyan-500/25 bg-cyan-500/3 ring-1 ring-cyan-500/10"
               : "border-border/15 bg-muted/5"
