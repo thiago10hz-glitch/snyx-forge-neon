@@ -120,10 +120,19 @@ Deno.serve(async (req) => {
 
       const status = checkData.data?.status;
 
-      if ((status === "complete" || status === "TEXT_SUCCESS" || status === "FIRST_SUCCESS" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
+      if ((status === "complete" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
         const tracks = checkData.data.response.sunoData;
         if (tracks.length > 0) {
-          // Try multiple possible field names
+          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
+          title = tracks[0].title || prompt.slice(0, 40);
+          if (audioUrl) break;
+        }
+      }
+      
+      // Fallback: if stuck on FIRST_SUCCESS/TEXT_SUCCESS for too long, use stream URL
+      if ((status === "FIRST_SUCCESS" || status === "TEXT_SUCCESS") && i >= 20 && checkData.data?.response?.sunoData) {
+        const tracks = checkData.data.response.sunoData;
+        if (tracks.length > 0) {
           audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
           title = tracks[0].title || prompt.slice(0, 40);
           if (audioUrl) break;
