@@ -235,6 +235,24 @@
   }
 }
 
+/* === Badge keyframes === */
+@keyframes badge-shimmer {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+@keyframes badge-glow-cyan {
+  0%, 100% { box-shadow: 0 0 8px rgba(6, 182, 212, 0.1), 0 0 20px rgba(6, 182, 212, 0.04); }
+  50% { box-shadow: 0 0 16px rgba(6, 182, 212, 0.25), 0 0 32px rgba(6, 182, 212, 0.1); }
+}
+@keyframes badge-glow-gold {
+  0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.1), 0 0 20px rgba(245, 158, 11, 0.04); }
+  50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.25), 0 0 32px rgba(245, 158, 11, 0.1); }
+}
+@keyframes badge-glow-green {
+  0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.1), 0 0 20px rgba(16, 185, 129, 0.04); }
+  50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.2), 0 0 32px rgba(16, 185, 129, 0.08); }
+}
+
 /* === Keyframes === */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
