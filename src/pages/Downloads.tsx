@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
-import { Download, ArrowLeft, Loader2, Lock, Package, Zap } from "lucide-react";
+import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface AppRelease {
@@ -87,90 +87,121 @@ export default function Downloads() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      {/* Ambient glow */}
+      {/* Ambient */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/6 blur-[120px] animate-glow-pulse" />
-        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-primary/4 blur-[100px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute -top-32 -right-32 h-72 w-72 rounded-full bg-primary/5 blur-[100px] animate-glow-pulse" />
+        <div className="absolute bottom-20 left-1/4 h-56 w-56 rounded-full bg-primary/3 blur-[80px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
       </div>
 
       {/* Header */}
-      <header className="border-b border-border/30 bg-background sticky top-0 z-10">
-        <div className="h-12 flex items-center px-3 sm:px-4 gap-3">
-          <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+      <header className="border-b border-border/8 glass sticky top-0 z-10">
+        <div className="h-14 flex items-center px-4 sm:px-6 gap-3">
+          <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all">
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <div className="flex items-center gap-2">
-            <Download className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-bold">Downloads</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/15">
+              <Download className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold">Downloads</h1>
+              <p className="text-[9px] text-muted-foreground/40 hidden sm:block">SnyX Desktop App</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 max-w-lg mx-auto p-4 sm:p-6 mt-6 sm:mt-10 md:mt-16">
+      <div className="relative z-10 max-w-lg mx-auto p-5 sm:p-8 mt-8 sm:mt-16 md:mt-20">
         {!isVipOrDev ? (
-          /* Locked state for free users */
-          <div className="text-center space-y-4 animate-fade-in-up">
-            <div className="w-20 h-20 rounded-2xl bg-muted/20 border border-border/30 flex items-center justify-center mx-auto">
-              <Lock className="w-8 h-8 text-muted-foreground/50" />
+          /* Locked state */
+          <div className="text-center space-y-5 animate-fade-in-up">
+            <div className="relative mx-auto w-fit">
+              <div className="w-24 h-24 rounded-3xl bg-muted/10 border border-border/15 flex items-center justify-center">
+                <Lock className="w-10 h-10 text-muted-foreground/30" />
+              </div>
+              <div className="absolute -inset-4 rounded-3xl bg-muted/5 blur-2xl -z-10" />
             </div>
-            <h2 className="text-lg font-bold">Acesso Restrito</h2>
-            <p className="text-sm text-muted-foreground">
-              O download do aplicativo é exclusivo para usuários <span className="text-primary font-semibold">VIP</span> e <span className="text-blue-400 font-semibold">DEV</span>.
-            </p>
-            <p className="text-xs text-muted-foreground/60">
-              Ative uma chave VIP ou DEV para ter acesso ao app.
-            </p>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black">Acesso Restrito</h2>
+              <p className="text-sm text-muted-foreground/50 leading-relaxed max-w-xs mx-auto">
+                O download do app é exclusivo para usuários <span className="text-primary font-semibold">VIP</span> e <span className="text-cyan-400 font-semibold">DEV</span>.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                Acesso seguro
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Atualizações automáticas
+              </div>
+            </div>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-16">
+          <div className="flex justify-center py-20">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : !release ? (
-          <div className="text-center space-y-4">
-            <div className="w-20 h-20 rounded-2xl bg-muted/20 border border-border/30 flex items-center justify-center mx-auto">
-              <Package className="w-8 h-8 text-muted-foreground/50" />
+          <div className="text-center space-y-5 animate-fade-in-up">
+            <div className="w-24 h-24 rounded-3xl bg-muted/10 border border-border/15 flex items-center justify-center mx-auto">
+              <Package className="w-10 h-10 text-muted-foreground/30" />
             </div>
-            <h2 className="text-lg font-bold">Nenhuma versão disponível</h2>
-            <p className="text-sm text-muted-foreground">O app ainda não foi publicado. Volte mais tarde!</p>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black">Nenhuma versão disponível</h2>
+              <p className="text-sm text-muted-foreground/50">O app ainda não foi publicado. Volte mais tarde!</p>
+            </div>
           </div>
         ) : (
           /* Download card */
-          <div className="rounded-2xl border border-border/20 bg-card/60 overflow-hidden glass-elevated animate-fade-in-up">
-            <div className="p-6 text-center space-y-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center mx-auto border border-primary/15 shadow-lg shadow-primary/10 relative">
-                <Zap className="w-8 h-8 text-primary" />
-                <div className="absolute -inset-2 rounded-2xl bg-primary/10 blur-xl -z-10 animate-breathe" />
+          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up">
+            <div className="p-6 sm:p-8 text-center space-y-5">
+              {/* App icon */}
+              <div className="relative mx-auto w-fit">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
+                  <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                </div>
+                <div className="absolute -inset-3 rounded-2xl bg-primary/8 blur-xl -z-10 animate-breathe" />
               </div>
 
-              <div>
-                <h2 className="text-xl font-bold">SnyX App</h2>
-                <p className="text-sm text-muted-foreground mt-1">Windows Desktop</p>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black">SnyX App</h2>
+                <p className="text-sm text-muted-foreground/40">Windows Desktop</p>
               </div>
 
-              <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-                <span className="px-2 py-1 rounded-md bg-primary/10 text-primary font-semibold">v{release.version}</span>
+              {/* Version info */}
+              <div className="flex items-center justify-center gap-2.5 flex-wrap">
+                <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/15">
+                  v{release.version}
+                </span>
                 {release.file_size && (
-                  <span>{formatSize(release.file_size)}</span>
+                  <span className="px-3 py-1.5 rounded-full bg-muted/10 text-muted-foreground/60 text-xs border border-border/10">
+                    {formatSize(release.file_size)}
+                  </span>
                 )}
-                <span>{new Date(release.created_at).toLocaleDateString("pt-BR")}</span>
+                <span className="px-3 py-1.5 rounded-full bg-muted/10 text-muted-foreground/60 text-xs border border-border/10">
+                  {new Date(release.created_at).toLocaleDateString("pt-BR")}
+                </span>
               </div>
 
+              {/* Changelog */}
               {release.changelog && (
-                <div className="text-left rounded-lg bg-muted/20 p-3 border border-border/20">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground/60 mb-1">Changelog</p>
-                  <p className="text-xs text-muted-foreground whitespace-pre-wrap">{release.changelog}</p>
+                <div className="text-left rounded-2xl bg-muted/8 p-4 border border-border/8">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground/40 mb-2 tracking-wider">Changelog</p>
+                  <p className="text-xs text-muted-foreground/60 whitespace-pre-wrap leading-relaxed">{release.changelog}</p>
                 </div>
               )}
 
+              {/* Download button */}
               <button
                 onClick={handleDownload}
                 disabled={downloading}
-                className="w-full px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                className="w-full px-6 py-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-2xl transition-all flex items-center justify-center gap-2.5 text-sm shadow-xl shadow-primary/20 hover:shadow-primary/30 btn-glow active:scale-[0.98]"
               >
                 {downloading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Download className="w-4 h-4" />
+                  <Download className="w-5 h-5" />
                 )}
                 {downloading ? "Baixando..." : "Baixar para Windows"}
               </button>
