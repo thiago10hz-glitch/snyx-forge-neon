@@ -67,7 +67,7 @@ export default function IPTV() {
             </button>
           </div>
         </div>
-        <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
       </div>
     );
   }
@@ -194,7 +194,7 @@ export default function IPTV() {
         )}
       </div>
 
-      <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
+      <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
     </div>
   );
 }
