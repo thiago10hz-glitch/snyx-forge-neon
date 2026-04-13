@@ -7,9 +7,10 @@ import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
+import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
-  Crown, Users, Search, RefreshCw, MessageCircle,
+  Crown, Users, Search, RefreshCw, MessageCircle, Phone,
   Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield
 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting";
+type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats";
 
 interface ChatMessage {
   id: string;
@@ -436,6 +437,12 @@ export default function Admin() {
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "hosting" ? "bg-orange-500/15 text-orange-400 border border-orange-500/30" : "text-muted-foreground hover:text-foreground"}`}
           >
             <KeyRound className="w-3 h-3" />Hosting Keys
+          </button>
+          <button
+            onClick={() => setAdminTab("livechats")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "livechats" ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Phone className="w-3 h-3" />Chat ao Vivo
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -910,6 +917,10 @@ export default function Admin() {
 
       {adminTab === "hosting" && (
         <AdminHostingKeysPanel />
+      )}
+
+      {adminTab === "livechats" && (
+        <AdminLiveChatsPanel />
       )}
 
       {vipModalUser && (
