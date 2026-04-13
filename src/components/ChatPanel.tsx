@@ -655,6 +655,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       return;
     }
 
+    // Rewrite is free for everyone - no check needed
+
     // Premium features in friend mode require VIP
     if (mode === "friend" && usePremium && !profile?.is_vip) {
       setVipModalPlan("vip");
