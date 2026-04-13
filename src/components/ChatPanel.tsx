@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive } from "lucide-react";
 import { ChatSettings } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import ReactMarkdown from "react-markdown";
@@ -500,7 +500,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     if (!file) return;
     try {
       if (file.type.startsWith("image/")) {
-        // Images allowed when pendingAction is school, or for VIP/DEV users
         if (!profile?.is_vip && !profile?.is_dev && pendingAction !== "school" && mode === "friend") {
           setVipModalPlan("vip");
           setShowVipModal(true);
@@ -511,12 +510,56 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         setAttachment({ kind: "image", name: file.name, mimeType: file.type || "image/png", size: file.size, dataUrl });
         return;
       }
+      // ZIP file support
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith(".zip") || file.type === "application/zip" || file.type === "application/x-zip-compressed") {
+        if (file.size > 20 * 1024 * 1024) { toast.error("O ZIP deve ter no máximo 20MB."); return; }
+        toast.info("Extraindo arquivos do ZIP...");
+        const zip = await JSZip.loadAsync(file);
+        const textExtensions = [...TEXT_FILE_EXTENSIONS, ".env", ".gitignore", ".dockerignore", ".sh", ".bash", ".bat", ".cfg", ".ini", ".conf", ".log", ".rs", ".go", ".java", ".c", ".cpp", ".h", ".hpp", ".rb", ".php", ".swift", ".kt", ".dart", ".r", ".scala", ".lua", ".makefile", ".gradle"];
+        const extractedFiles: string[] = [];
+        let totalSize = 0;
+        const maxExtractedSize = 500 * 1024; // 500KB max total extracted text
+
+        const entries = Object.entries(zip.files)
+          .filter(([path, entry]) => !entry.dir && !path.startsWith("__MACOSX") && !path.includes(".DS_Store"))
+          .sort(([a], [b]) => a.localeCompare(b));
+
+        for (const [path, entry] of entries) {
+          if (totalSize > maxExtractedSize) {
+            extractedFiles.push(`\n... (mais ${entries.length - extractedFiles.length} arquivos truncados por limite de tamanho)`);
+            break;
+          }
+          const lowerPath = path.toLowerCase();
+          const isText = textExtensions.some(ext => lowerPath.endsWith(ext)) || 
+                        lowerPath === "readme" || lowerPath === "license" || lowerPath === "makefile" ||
+                        lowerPath.endsWith("file"); // Dockerfile, Gemfile etc
+          if (isText) {
+            try {
+              const content = await entry.async("string");
+              const truncated = content.length > 10000 ? content.slice(0, 10000) + "\n... (truncado)" : content;
+              extractedFiles.push(`━━━ ${path} ━━━\n${truncated}`);
+              totalSize += truncated.length;
+            } catch { /* skip binary files that fail */ }
+          }
+        }
+
+        if (extractedFiles.length === 0) {
+          toast.error("Nenhum arquivo de código encontrado no ZIP.");
+          return;
+        }
+
+        const fullText = `📦 ZIP: ${file.name} (${entries.length} arquivos)\n\n${extractedFiles.join("\n\n")}`;
+        setAttachment({ kind: "text", name: file.name, mimeType: "application/zip", size: file.size, text: fullText });
+        toast.success(`${extractedFiles.length} arquivos extraídos do ZIP`);
+        return;
+      }
       if (isTextFile(file)) {
         const text = await file.text();
         setAttachment({ kind: "text", name: file.name, mimeType: file.type || "text/plain", size: file.size, text });
         return;
       }
-      toast.error("Por enquanto, envie imagens ou arquivos de texto.");
+      toast.error("Envie imagens, arquivos de texto ou ZIP.");
     } catch (err) {
       console.error("Erro ao ler arquivo:", err);
       toast.error("Não foi possível ler o arquivo.");
@@ -881,7 +924,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     setInput("");
   };
 
-  const acceptedFileTypes = "image/*,.txt,.md,.json,.csv,.js,.ts,.tsx,.jsx,.html,.css,.sql,.py,.xml,.yaml,.yml,.toml";
+  const acceptedFileTypes = "image/*,.txt,.md,.json,.csv,.js,.ts,.tsx,.jsx,.html,.css,.sql,.py,.xml,.yaml,.yml,.toml,.zip,.gz";
 
   const inputPlaceholder = pendingAction === "imagegen"
     ? "Descreva a imagem que deseja criar... 🎨"
@@ -1311,6 +1354,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               <div className="flex items-center gap-3 glass-input rounded-xl p-2.5 border border-border/10">
                 {attachment.kind === "image" ? (
                   <img src={attachment.dataUrl} alt={attachment.name} className="h-10 w-10 rounded-lg object-cover" />
+                ) : attachment.mimeType === "application/zip" ? (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                    <Archive size={14} className="text-amber-400" />
+                  </div>
                 ) : (
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/10">
                     <Paperclip size={14} className="text-muted-foreground/40" />
