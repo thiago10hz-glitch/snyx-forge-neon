@@ -73,6 +73,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
           ai_avatar_url: data.ai_avatar_url,
           ai_personality: data.ai_personality,
           system_prompt: data.system_prompt,
+          bubble_style: (data as any).bubble_style || "default",
         });
       }
       setLoading(false);
