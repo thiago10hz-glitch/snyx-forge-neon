@@ -22,20 +22,12 @@ export function ConnectionModal({ isOpen, onClose }: ConnectionModalProps) {
 
     setSending(true);
     try {
-      // Check if target user exists
-      const { data: targetProfile } = await supabase
-        .from("profiles")
-        .select("user_id, display_name")
-        .ilike("user_id", email.trim())
-        .maybeSingle();
-
-      // Try to find by checking if there's a profile — we'll store the email and admin will match
       const { error } = await supabase
         .from("chat_connections")
         .insert({
           requester_id: user.id,
           target_email: email.trim(),
-          target_user_id: targetProfile?.user_id || null,
+          target_user_id: null,
         });
 
       if (error) {
