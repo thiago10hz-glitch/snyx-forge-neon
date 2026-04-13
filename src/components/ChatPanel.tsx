@@ -895,8 +895,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         if (assistantSoFar) {
           await saveMessage(convId, "assistant", assistantSoFar);
           if (mode === "programmer") {
-            const codeMatch = assistantSoFar.match(/```[\w]*\n([\s\S]*?)```/);
-            if (codeMatch) onCodeGenerated(codeMatch[1]);
+            // Extract the largest code block (prefer html blocks)
+            const allBlocks = [...assistantSoFar.matchAll(/```(\w*)\n([\s\S]*?)```/g)];
+            if (allBlocks.length > 0) {
+              const htmlBlock = allBlocks.find(m => m[1] === "html");
+              const best = htmlBlock || allBlocks.reduce((a, b) => a[2].length > b[2].length ? a : b);
+              onCodeGenerated(best[2]);
+            }
           }
         }
       }
