@@ -1466,7 +1466,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Attachment preview */}
         {mode !== "music" && attachment && (
           <div className="px-4 py-2 border-t border-border/10">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto">
               <div className="flex items-center gap-3 glass-input rounded-xl p-2.5 border border-border/10">
                 {attachment.kind === "image" ? (
                   <img src={attachment.dataUrl} alt={attachment.name} className="h-10 w-10 rounded-lg object-cover" />
@@ -1494,7 +1494,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Pending action indicator */}
         {pendingAction && (
           <div className="px-4 py-1.5 border-t border-border/10">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto">
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium ${
                 pendingAction === "school" 
                   ? "bg-green-500/10 text-green-400 border border-green-500/20" 
@@ -1513,7 +1513,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         {/* Input area */}
         {mode !== "music" && (
         <div className="p-1.5 sm:p-2 md:p-4 safe-bottom">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl lg:max-w-4xl mx-auto">
             <div className="flex items-end gap-0.5 sm:gap-1 md:gap-2 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/10 focus-within:border-primary/15 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button - hidden on mobile */}
