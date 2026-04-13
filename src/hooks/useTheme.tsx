@@ -220,7 +220,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const getTheme = () => themes.find((t) => t.id === currentTheme) || themes[0];
 
   useEffect(() => {
-    applyTheme(getTheme());
+    const theme = themes.find((t) => t.id === currentTheme) || themes[0];
+    applyTheme(theme);
   }, [currentTheme]);
 
   const setTheme = (id: ThemeId) => {
