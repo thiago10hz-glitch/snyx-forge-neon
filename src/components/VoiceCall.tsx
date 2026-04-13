@@ -44,7 +44,22 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const synthRef = useRef(window.speechSynthesis);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
-  const { } = useAuth();
+  const voicesCacheRef = useRef<SpeechSynthesisVoice[]>([]);
+  useAuth();
+
+  // Pre-load voices (they load async in many browsers)
+  useEffect(() => {
+    const loadVoices = () => {
+      const allVoices = synthRef.current.getVoices();
+      if (allVoices.length > 0) {
+        voicesCacheRef.current = allVoices;
+        console.log("Voices loaded:", allVoices.filter(v => v.lang.startsWith("pt")).map(v => `${v.name} (${v.lang})`));
+      }
+    };
+    loadVoices();
+    speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+  }, []);
 
   const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
 
