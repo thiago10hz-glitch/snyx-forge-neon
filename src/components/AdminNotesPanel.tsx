@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Send, Trash2, CheckCircle2, Circle, AlertTriangle, Loader2,
-  StickyNote, Clock, ArrowUpCircle, Filter
+  StickyNote, Clock, Filter
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,7 +67,7 @@ export function AdminNotesPanel() {
       content: input.trim(),
       priority,
       user_id: user.id,
-    } as Record<string, unknown>);
+    });
     if (error) toast.error("Erro ao salvar nota");
     else {
       setInput("");
@@ -80,7 +80,7 @@ export function AdminNotesPanel() {
     const next: Status = note.status === "pending" ? "done" : note.status === "done" ? "cancelled" : "pending";
     const { error } = await supabase
       .from("admin_notes")
-      .update({ status: next, updated_at: new Date().toISOString() } as Record<string, unknown>)
+      .update({ status: next, updated_at: new Date().toISOString() })
       .eq("id", note.id);
     if (error) toast.error("Erro ao atualizar");
     else setNotes(prev => prev.map(n => n.id === note.id ? { ...n, status: next } : n));
