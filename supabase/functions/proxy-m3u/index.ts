@@ -55,28 +55,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const supabase = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // Use getClaims for faster, more resilient auth check (no network call to auth server)
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
 
-    if (userError || !user) {
+    if (claimsError || !claimsData?.claims?.sub) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const userId = claimsData.claims.sub as string;
+
     const [{ data: profile, error: profileError }, { data: isAdmin, error: roleError }] = await Promise.all([
-      supabase.from("profiles").select("is_dev").eq("user_id", user.id).single(),
-      supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+      supabase.from("profiles").select("is_dev").eq("user_id", userId).single(),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     ]);
 
     if (profileError) {
