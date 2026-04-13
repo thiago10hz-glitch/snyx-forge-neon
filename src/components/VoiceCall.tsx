@@ -44,7 +44,22 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const synthRef = useRef(window.speechSynthesis);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
-  const { } = useAuth();
+  const voicesCacheRef = useRef<SpeechSynthesisVoice[]>([]);
+  useAuth();
+
+  // Pre-load voices (they load async in many browsers)
+  useEffect(() => {
+    const loadVoices = () => {
+      const allVoices = synthRef.current.getVoices();
+      if (allVoices.length > 0) {
+        voicesCacheRef.current = allVoices;
+        console.log("Voices loaded:", allVoices.filter(v => v.lang.startsWith("pt")).map(v => `${v.name} (${v.lang})`));
+      }
+    };
+    loadVoices();
+    speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+  }, []);
 
   const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
 
@@ -114,37 +129,55 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
     synthRef.current.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedVoice.lang;
-    utterance.rate = selectedVoice.rate;
-    utterance.pitch = selectedVoice.pitch;
+    utterance.lang = "pt-BR";
 
-    const voices = synthRef.current.getVoices();
+    // Use cached voices (pre-loaded)
+    const voices = voicesCacheRef.current.length > 0 ? voicesCacheRef.current : synthRef.current.getVoices();
     const ptVoices = voices.filter(v => v.lang.startsWith("pt"));
     
-    // Known female voice name patterns in pt-BR across browsers
-    const femaleNames = ["luciana", "francisca", "fernanda", "google português do brasil", "maria", "raquel", "vitória", "tessa", "microsoft francisca"];
-    const maleNames = ["daniel", "felipe", "antonio", "ricardo", "microsoft daniel"];
+    // Priority lists - most natural sounding voices first
+    // Chrome: "Google português do Brasil" (female, very natural)
+    // Edge: "Microsoft Francisca Online (Natural)" (female, excellent)
+    // Edge: "Microsoft Daniel Online (Natural)" (male, excellent)
+    // Safari: "Luciana" (female), "Daniel" (male)
+    const femalePriority = [
+      "francisca online (natural)", "francisca", 
+      "google português do brasil", "google português",
+      "luciana", "fernanda", "vitória", "maria", "raquel", "tessa"
+    ];
+    const malePriority = [
+      "daniel online (natural)", "daniel",
+      "felipe", "antonio", "ricardo"
+    ];
     
-    let selectedSynthVoice: SpeechSynthesisVoice | undefined;
+    let bestVoice: SpeechSynthesisVoice | undefined;
+    const priorityList = selectedGender === "female" ? femalePriority : malePriority;
     
-    if (selectedGender === "female") {
-      // Try to find a known female voice first
-      selectedSynthVoice = ptVoices.find(v => femaleNames.some(n => v.name.toLowerCase().includes(n)));
-      // Fallback: pick the first pt-BR voice (usually female on most systems)
-      if (!selectedSynthVoice) selectedSynthVoice = ptVoices.find(v => v.lang === "pt-BR") || ptVoices[0];
-      // Force higher pitch for femininity
-      utterance.pitch = Math.max(selectedVoice.pitch, 1.15);
-    } else {
-      // Try to find a known male voice
-      selectedSynthVoice = ptVoices.find(v => maleNames.some(n => v.name.toLowerCase().includes(n)));
-      // Fallback: if multiple pt voices exist, pick the second one (often male)
-      if (!selectedSynthVoice && ptVoices.length > 1) selectedSynthVoice = ptVoices[1];
-      if (!selectedSynthVoice) selectedSynthVoice = ptVoices[0];
-      // Force lower pitch for masculinity
-      utterance.pitch = Math.min(selectedVoice.pitch, 0.85);
+    // Search by priority order
+    for (const name of priorityList) {
+      bestVoice = ptVoices.find(v => v.name.toLowerCase().includes(name));
+      if (bestVoice) break;
     }
     
-    if (selectedSynthVoice) utterance.voice = selectedSynthVoice;
+    // Fallback
+    if (!bestVoice) {
+      if (selectedGender === "female") {
+        // First pt-BR voice is usually female
+        bestVoice = ptVoices.find(v => v.lang === "pt-BR") || ptVoices[0];
+      } else {
+        // Try second voice for male, or last resort first
+        bestVoice = ptVoices.length > 1 ? ptVoices[1] : ptVoices[0];
+      }
+    }
+    
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      console.log("Using voice:", bestVoice.name, bestVoice.lang);
+    }
+    
+    // Natural speech parameters - keep close to 1.0 for realism
+    utterance.rate = selectedGender === "female" ? 0.95 : 0.9;
+    utterance.pitch = selectedGender === "female" ? 1.1 : 0.9;
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
