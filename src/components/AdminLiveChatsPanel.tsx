@@ -139,18 +139,20 @@ export function AdminLiveChatsPanel() {
   };
 
   const askAI = async () => {
-    if (!selectedChat || aiLoading) return;
+    if (!selectedChat || aiLoading || !user) return;
     setAiLoading(true);
 
     try {
-      // Build conversation for AI context
       const adminName = profile?.display_name || user?.email || "Admin";
       const userName = selectedChat.user_display_name || "Usuário";
 
-      const aiMessages = messages.map(msg => ({
-        role: msg.sender_id === user?.id ? "assistant" : "user",
-        content: msg.content.startsWith(AI_CONTENT_PREFIX) ? `[SnyX IA]: ${msg.content}` : msg.content,
-      }));
+      const aiMessages = messages
+        .filter(msg => !msg.content.startsWith(AI_CONTENT_PREFIX))
+        .slice(-20)
+        .map(msg => ({
+          role: msg.sender_id === user?.id ? "assistant" : "user",
+          content: msg.content,
+        }));
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-live-ai`, {
         method: "POST",
@@ -167,8 +169,9 @@ export function AdminLiveChatsPanel() {
 
       if (!response.ok) throw new Error("Erro na IA");
 
-      // Stream response
-      const reader = response.body!.getReader();
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream indisponível");
+
       const decoder = new TextDecoder();
       let buffer = "";
       let fullResponse = "";
@@ -191,18 +194,18 @@ export function AdminLiveChatsPanel() {
       }
 
       if (fullResponse.trim()) {
-        // Send AI response as admin message with AI prefix
         await supabase.from("admin_live_messages").insert({
           chat_id: selectedChat.id,
           sender_id: user!.id,
-          content: `🤖 **SnyX IA**:\n\n${fullResponse.trim()}`,
+          content: `${AI_CONTENT_PREFIX}\n\n${fullResponse.trim()}`,
         });
       }
     } catch (e) {
       console.error("AI error:", e);
       toast.error("Erro ao consultar a IA");
+    } finally {
+      setAiLoading(false);
     }
-    setAiLoading(false);
   };
 
   const pendingChats = chats.filter(c => c.status === "pending");
