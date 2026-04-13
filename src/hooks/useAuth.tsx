@@ -5,6 +5,7 @@ import type { User, Session } from "@supabase/supabase-js";
 interface Profile {
   is_vip: boolean;
   is_dev: boolean;
+  is_pack_steam: boolean;
   display_name: string | null;
   free_messages_used: number;
   banned_until: string | null;
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("is_vip, is_dev, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier")
+      .select("is_vip, is_dev, is_pack_steam, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier")
       .eq("user_id", userId)
       .single();
     if (data) setProfile(data as Profile);

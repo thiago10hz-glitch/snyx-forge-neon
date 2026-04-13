@@ -21,6 +21,7 @@ interface UserProfile {
   display_name: string | null;
   is_vip: boolean;
   is_dev: boolean;
+  is_pack_steam: boolean;
   free_messages_used: number;
   created_at: string;
   banned_until: string | null;
@@ -28,11 +29,12 @@ interface UserProfile {
   device_fingerprint: string | null;
   vip_expires_at: string | null;
   dev_expires_at: string | null;
+  pack_steam_expires_at: string | null;
 }
 
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
-type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
+type FilterType = "all" | "vip" | "dev" | "pack_steam" | "free" | "banned" | "expired";
 
 type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
@@ -194,7 +196,7 @@ export default function Admin() {
     setLoadingUsers(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, display_name, is_vip, is_dev, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at")
+      .select("user_id, display_name, is_vip, is_dev, is_pack_steam, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at")
       .order("created_at", { ascending: false });
     if (error) { toast.error("Erro ao carregar usuários"); setLoadingUsers(false); return; }
 
@@ -248,6 +250,38 @@ export default function Admin() {
       setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_dev: false, dev_expires_at: null } : u)));
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao revogar DEV");
+    }
+    setActionLoading(null);
+  };
+
+  const grantPackSteam = async (userId: string, months: number) => {
+    setActionLoading(userId + "-grant_pack_steam");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "grant_pack_steam", target_user_id: userId, vip_months: months },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Pack Steam ativado por ${months} mês(es)`);
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_pack_steam: true, pack_steam_expires_at: data.pack_steam_expires_at } : u)));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao conceder Pack Steam");
+    }
+    setActionLoading(null);
+  };
+
+  const revokePackSteam = async (userId: string) => {
+    setActionLoading(userId + "-revoke_pack_steam");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "revoke_pack_steam", target_user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Pack Steam removido");
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_pack_steam: false, pack_steam_expires_at: null } : u)));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao revogar Pack Steam");
     }
     setActionLoading(null);
   };
@@ -318,16 +352,17 @@ export default function Admin() {
 
   const isBanned = (u: UserProfile) => u.banned_until && new Date(u.banned_until) > new Date();
   const isVipExpired = (u: UserProfile) => u.vip_expires_at && new Date(u.vip_expires_at) < new Date();
-
   const isDevExpired = (u: UserProfile) => u.dev_expires_at && new Date(u.dev_expires_at) < new Date();
+  const isPackSteamExpired = (u: UserProfile) => u.pack_steam_expires_at && new Date(u.pack_steam_expires_at) < new Date();
 
   const filteredUsers = users
     .filter((u) => {
       if (filter === "vip") return u.is_vip && !isVipExpired(u);
       if (filter === "dev") return u.is_dev && !isDevExpired(u);
-      if (filter === "free") return !u.is_vip && !u.is_dev;
+      if (filter === "pack_steam") return u.is_pack_steam && !isPackSteamExpired(u);
+      if (filter === "free") return !u.is_vip && !u.is_dev && !u.is_pack_steam;
       if (filter === "banned") return isBanned(u);
-      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u));
+      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u));
       return true;
     })
     .filter((u) => {
@@ -355,9 +390,10 @@ export default function Admin() {
     total: users.length,
     vip: users.filter((u) => u.is_vip && !isVipExpired(u)).length,
     dev: users.filter((u) => u.is_dev && !isDevExpired(u)).length,
+    pack_steam: users.filter((u) => u.is_pack_steam && !isPackSteamExpired(u)).length,
     banned: users.filter((u) => isBanned(u)).length,
-    free: users.filter((u) => !u.is_vip && !u.is_dev).length,
-    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u))).length,
+    free: users.filter((u) => !u.is_vip && !u.is_dev && !u.is_pack_steam).length,
+    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u))).length,
     totalMessages: totalMessagesCount,
     todaySignups: users.filter((u) => {
       const d = new Date(u.created_at);
@@ -551,6 +587,11 @@ export default function Admin() {
                                 DEV
                               </span>
                             )}
+                            {u.is_pack_steam && !isPackSteamExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20">
+                                🎮 Pack Steam
+                              </span>
+                            )}
                             {u.is_vip && isVipExpired(u) && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                 VIP Expirado
@@ -561,7 +602,12 @@ export default function Admin() {
                                 DEV Expirado
                               </span>
                             )}
-                            {!u.is_vip && !u.is_dev && (
+                            {u.is_pack_steam && isPackSteamExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                Pack Steam Expirado
+                              </span>
+                            )}
+                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">
                                 Free
                               </span>
@@ -637,6 +683,24 @@ export default function Admin() {
                                 color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
                                 onClick={() => revokeDev(u.user_id)}
                                 loading={actionLoading === u.user_id + "-revoke_dev"}
+                                disabled={actionLoading !== null}
+                              />
+                            )}
+                            <ActionButton
+                              icon={Package}
+                              title="Dar Pack Steam"
+                              color="text-green-400 hover:bg-green-500/10 border-green-500/20"
+                              onClick={() => grantPackSteam(u.user_id, 1)}
+                              loading={actionLoading === u.user_id + "-grant_pack_steam"}
+                              disabled={actionLoading !== null}
+                            />
+                            {u.is_pack_steam && (
+                              <ActionButton
+                                icon={UserX}
+                                title="Revogar Pack Steam"
+                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
+                                onClick={() => revokePackSteam(u.user_id)}
+                                loading={actionLoading === u.user_id + "-revoke_pack_steam"}
                                 disabled={actionLoading !== null}
                               />
                             )}

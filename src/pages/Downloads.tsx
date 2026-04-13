@@ -21,7 +21,7 @@ export default function Downloads() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  const isVipOrDev = profile?.is_vip || profile?.is_dev;
+  const isVipOrDev = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam;
 
   useEffect(() => {
     if (!user || !isVipOrDev) {
@@ -124,7 +124,7 @@ export default function Downloads() {
             <div className="space-y-2">
               <h2 className="text-xl font-black">Acesso Restrito</h2>
               <p className="text-sm text-muted-foreground/50 leading-relaxed max-w-xs mx-auto">
-                O download do app é exclusivo para usuários <span className="text-primary font-semibold">VIP</span> e <span className="text-cyan-400 font-semibold">DEV</span>.
+                O download do app é exclusivo para usuários <span className="text-primary font-semibold">VIP</span>, <span className="text-cyan-400 font-semibold">DEV</span> e <span className="text-green-400 font-semibold">Pack Steam</span>.
               </p>
             </div>
             <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">

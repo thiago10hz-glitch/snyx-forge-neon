@@ -457,8 +457,10 @@ export type Database = {
           hosting_tier: string
           id: string
           is_dev: boolean
+          is_pack_steam: boolean
           is_vip: boolean
           last_free_message_at: string | null
+          pack_steam_expires_at: string | null
           relationship_status: string | null
           updated_at: string
           user_id: string
@@ -475,8 +477,10 @@ export type Database = {
           hosting_tier?: string
           id?: string
           is_dev?: boolean
+          is_pack_steam?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
+          pack_steam_expires_at?: string | null
           relationship_status?: string | null
           updated_at?: string
           user_id: string
@@ -493,8 +497,10 @@ export type Database = {
           hosting_tier?: string
           id?: string
           is_dev?: boolean
+          is_pack_steam?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
+          pack_steam_expires_at?: string | null
           relationship_status?: string | null
           updated_at?: string
           user_id?: string
@@ -597,11 +603,19 @@ export type Database = {
         Args: { p_expires_at?: string; p_is_dev: boolean; p_user_id: string }
         Returns: undefined
       }
+      admin_grant_pack_steam: {
+        Args: { p_months: number; p_target_user_id: string }
+        Returns: Json
+      }
       admin_grant_vip: {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
       admin_revoke_hosting: { Args: { p_user_id: string }; Returns: Json }
+      admin_revoke_pack_steam: {
+        Args: { p_target_user_id: string }
+        Returns: Json
+      }
       admin_revoke_vip: { Args: { p_target_user_id: string }; Returns: Json }
       can_send_message: { Args: never; Returns: Json }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
