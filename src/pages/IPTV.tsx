@@ -388,7 +388,7 @@ export default function IPTV() {
     const onPlaying = () => setPlayerStatus("playing");
     const onWaiting = () => setPlayerStatus("loading");
     const onError = () => {
-      if (!destroyed && playerStatus !== "playing") {
+      if (!destroyed) {
         attemptIndex++;
         if (attemptIndex < urls.length) {
           tryPlay(urls[attemptIndex]);
