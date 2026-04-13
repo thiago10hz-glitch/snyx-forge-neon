@@ -39,6 +39,15 @@ const PERSONALITIES = [
   { label: "Sarcástica", value: "Seja sarcástica e irônica de forma leve e divertida.", emoji: "😏" },
 ];
 
+const BUBBLE_STYLES = [
+  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico" },
+  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos" },
+  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado" },
+  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas" },
+  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism" },
+  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
+];
+
 export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
