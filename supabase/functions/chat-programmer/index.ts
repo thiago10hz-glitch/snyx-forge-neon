@@ -77,7 +77,7 @@ REGRAS:
         "X-Title": "SnyX Dev",
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat-v3-0324:free",
+        model: "deepseek/deepseek-chat-v3.1",
         messages: apiMessages,
         stream: true,
         max_tokens: 16384,
