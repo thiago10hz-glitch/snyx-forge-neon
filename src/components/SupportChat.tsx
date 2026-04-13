@@ -390,7 +390,7 @@ export function SupportChat() {
                         const isUser = mode === "ticket"
                           ? (msg as SupportMessage).sender_role === "user"
                           : (msg as LiveMessage).sender_id === user?.id;
-                        const isAI = mode === "live" && (msg as LiveMessage).sender_id === "00000000-0000-0000-0000-000000000000";
+                        const isAI = mode === "live" && (msg.content as string).startsWith("🤖 **SnyX IA**:");
                         return (
                           <div key={msg.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                             <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
