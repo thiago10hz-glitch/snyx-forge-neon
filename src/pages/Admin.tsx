@@ -587,6 +587,11 @@ export default function Admin() {
                                 DEV
                               </span>
                             )}
+                            {u.is_pack_steam && !isPackSteamExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20">
+                                🎮 Pack Steam
+                              </span>
+                            )}
                             {u.is_vip && isVipExpired(u) && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                 VIP Expirado
@@ -597,7 +602,12 @@ export default function Admin() {
                                 DEV Expirado
                               </span>
                             )}
-                            {!u.is_vip && !u.is_dev && (
+                            {u.is_pack_steam && isPackSteamExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                Pack Steam Expirado
+                              </span>
+                            )}
+                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">
                                 Free
                               </span>
