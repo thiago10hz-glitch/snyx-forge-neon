@@ -8,10 +8,11 @@ import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
+import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,7 +34,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats";
+type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
 interface ChatMessage {
   id: string;
@@ -407,6 +408,7 @@ export default function Admin() {
             { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
             { key: "hosting" as AdminTab, label: "Hosting", icon: KeyRound, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
+            { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
           ]).map(tab => (
             <button
               key={tab.key}
@@ -896,6 +898,10 @@ export default function Admin() {
 
       {adminTab === "livechats" && (
         <AdminLiveChatsPanel />
+      )}
+
+      {adminTab === "releases" && (
+        <AdminReleasesPanel />
       )}
 
       {vipModalUser && (
