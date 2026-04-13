@@ -62,18 +62,16 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Use getClaims for faster, more resilient auth check (no network call to auth server)
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (claimsError || !claimsData?.claims?.sub) {
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
 
     const [{ data: profile, error: profileError }, { data: isAdmin, error: roleError }] = await Promise.all([
       supabase.from("profiles").select("is_dev").eq("user_id", userId).single(),
