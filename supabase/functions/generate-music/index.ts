@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -44,16 +44,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    const SUNO_API_KEY = Deno.env.get("SUNO_API_KEY");
-    if (!SUNO_API_KEY) {
+    const HF_API_TOKEN = Deno.env.get("HF_API_TOKEN");
+    if (!HF_API_TOKEN) {
       return new Response(
-        JSON.stringify({ success: false, error: "SUNO_API_KEY não configurada" }),
+        JSON.stringify({ success: false, error: "HF_API_TOKEN não configurada" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.json();
-    const { prompt, duration = 30 } = body;
+    const { prompt } = body;
 
     if (!prompt || typeof prompt !== "string" || prompt.length < 3) {
       return new Response(
@@ -62,107 +62,107 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Generating music with Suno AI:", { prompt: prompt.slice(0, 100), duration });
+    console.log("Generating music with HuggingFace MusicGen:", prompt.slice(0, 100));
 
-    // Step 1: Create generation task
-    const createRes = await fetch("https://apibox.erweima.ai/api/v1/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${SUNO_API_KEY}`,
-      },
-      body: JSON.stringify({
-        prompt: prompt.slice(0, 400),
-        customMode: false,
-        instrumental: false,
-        model: "V3_5",
-        callBackUrl: `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-music-callback`,
-      }),
-    });
+    // Call HuggingFace Inference API with MusicGen
+    const hfRes = await fetch(
+      "https://router.huggingface.co/hf-inference/models/facebook/musicgen-small",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HF_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: prompt.slice(0, 400),
+        }),
+      }
+    );
 
-    const createData = await createRes.json();
-    console.log("Suno create response:", JSON.stringify(createData));
+    // Handle model loading (503)
+    if (hfRes.status === 503) {
+      const errData = await hfRes.json().catch(() => null);
+      const estimatedTime = errData?.estimated_time || 30;
+      console.log("Model loading, estimated time:", estimatedTime);
+      
+      // Wait and retry once
+      await new Promise(r => setTimeout(r, Math.min(estimatedTime * 1000, 60000)));
+      
+      const retryRes = await fetch(
+        "https://router.huggingface.co/hf-inference/models/facebook/musicgen-small",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${HF_API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ inputs: prompt.slice(0, 400) }),
+        }
+      );
 
-    if (!createRes.ok || createData.code !== 200) {
-      const errorMsg = createData.msg || "Erro ao criar música na Suno";
-      const isCredits = createData.code === 429 || errorMsg.toLowerCase().includes("insufficient") || errorMsg.toLowerCase().includes("credits");
+      if (!retryRes.ok) {
+        const retryErr = await retryRes.text();
+        console.error("HF retry failed:", retryRes.status, retryErr);
+        return new Response(
+          JSON.stringify({ success: false, error: "Modelo carregando, tente novamente em 30 segundos." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Return audio as base64
+      const audioBuffer = await retryRes.arrayBuffer();
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+      
       return new Response(
         JSON.stringify({ 
-          success: false, 
-          error: isCredits 
-            ? "Créditos da API de música esgotados. Tente novamente mais tarde." 
-            : errorMsg 
+          success: true, 
+          audioBase64: base64Audio,
+          mimeType: "audio/flac",
+          title: prompt.slice(0, 40),
         }),
-        { status: isCredits ? 200 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const taskId = createData.data?.taskId;
-    if (!taskId) {
+    if (!hfRes.ok) {
+      const errText = await hfRes.text();
+      console.error("HF API error:", hfRes.status, errText);
+      
+      if (hfRes.status === 429) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Limite de requisições atingido. Tente novamente em alguns minutos." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: "Não foi possível obter o taskId" }),
+        JSON.stringify({ success: false, error: "Erro ao gerar música. Tente novamente." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Step 2: Poll for completion (max ~120s)
-    let audioUrl = "";
-    let title = "";
-    const maxAttempts = 40;
+    // HF returns audio binary directly
+    const audioBuffer = await hfRes.arrayBuffer();
     
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
-
-      const checkRes = await fetch(
-        `https://apibox.erweima.ai/api/v1/generate/record-info?taskId=${taskId}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${SUNO_API_KEY}`,
-          },
-        }
-      );
-
-      const checkData = await checkRes.json();
-      console.log(`Poll attempt ${i + 1}:`, checkData.data?.status, JSON.stringify(checkData.data?.response?.sunoData?.[0] || {}).slice(0, 500));
-
-      const status = checkData.data?.status;
-
-      if ((status === "complete" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
-        const tracks = checkData.data.response.sunoData;
-        if (tracks.length > 0) {
-          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
-          title = tracks[0].title || prompt.slice(0, 40);
-          if (audioUrl) break;
-        }
-      }
-      
-      // Fallback: if stuck on FIRST_SUCCESS/TEXT_SUCCESS for too long, use stream URL
-      if ((status === "FIRST_SUCCESS" || status === "TEXT_SUCCESS") && i >= 20 && checkData.data?.response?.sunoData) {
-        const tracks = checkData.data.response.sunoData;
-        if (tracks.length > 0) {
-          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
-          title = tracks[0].title || prompt.slice(0, 40);
-          if (audioUrl) break;
-        }
-      }
-
-      if (status === "failed" || status === "FAILED") {
-        return new Response(
-          JSON.stringify({ success: false, error: "Geração falhou na Suno" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    // Convert to base64 in chunks to avoid stack overflow
+    const uint8 = new Uint8Array(audioBuffer);
+    let base64Audio = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+      const chunk = uint8.subarray(i, i + chunkSize);
+      base64Audio += String.fromCharCode(...chunk);
     }
+    base64Audio = btoa(base64Audio);
 
-    if (!audioUrl) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Timeout — a música está demorando. Tente novamente." }),
-        { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    console.log("Music generated successfully, size:", audioBuffer.byteLength);
 
     return new Response(
-      JSON.stringify({ success: true, audioUrl, title }),
+      JSON.stringify({ 
+        success: true, 
+        audioBase64: base64Audio,
+        mimeType: "audio/flac",
+        title: prompt.slice(0, 40),
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
