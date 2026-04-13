@@ -4,6 +4,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +62,7 @@ const Index = () => {
         {/* Desktop Navigation */}
         <nav className="hidden sm:flex items-center gap-1">
           <AdminPresenceIndicator />
+          <ThemeSelector />
           {navItems.map(({ to, icon: Icon, label }) => (
             <Link key={to} to={to} className="nav-link group">
               <Icon className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
