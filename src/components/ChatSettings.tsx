@@ -53,6 +53,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
     ai_avatar_url: null,
     ai_personality: null,
     system_prompt: null,
+    bubble_style: "default",
   });
 
   useEffect(() => {
