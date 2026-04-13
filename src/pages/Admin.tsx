@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { AdminSupportPanel } from "@/components/AdminSupportPanel";
+import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,7 +29,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support";
+type AdminTab = "users" | "messages" | "support" | "notes";
 
 interface ChatMessage {
   id: string;
@@ -391,6 +392,12 @@ export default function Admin() {
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "support" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "text-muted-foreground hover:text-foreground"}`}
           >
             <ShieldCheck className="w-3 h-3" />Suporte
+          </button>
+          <button
+            onClick={() => setAdminTab("notes")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "notes" ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <StickyNote className="w-3 h-3" />Notas
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -849,6 +856,10 @@ export default function Admin() {
 
       {adminTab === "support" && (
         <AdminSupportPanel />
+      )}
+
+      {adminTab === "notes" && (
+        <AdminNotesPanel />
       )}
 
       {vipModalUser && (
