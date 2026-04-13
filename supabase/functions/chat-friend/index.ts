@@ -9,8 +9,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) {
+      return new Response(JSON.stringify({ error: "GOOGLE_AI_API_KEY não configurada" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { messages, mode } = await req.json();
     if (!messages || !Array.isArray(messages)) {
@@ -19,7 +23,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if any message has an image
     const hasImages = messages.some((m: any) => m.imageData);
 
     const systemPrompt = mode === "premium"
@@ -79,135 +82,61 @@ SEU PAPEL:
 - NUNCA seja robótico ou curto. Seja HUMANO e PRESENTE.
 - Sempre termine com uma pergunta pra manter a conversa fluindo`;
 
-    // If messages have images, use Lovable AI Gateway (supports vision)
-    if (hasImages && LOVABLE_API_KEY) {
-      const aiMessages: any[] = [
-        { role: "system", content: systemPrompt },
-      ];
+    // Build Gemini API contents
+    const geminiContents: any[] = [];
 
-      for (const msg of messages.slice(-20)) {
-        if (msg.role === "user") {
-          if (msg.imageData) {
-            aiMessages.push({
-              role: "user",
-              content: [
-                { type: "text", text: msg.content || "Analise esta imagem." },
-                { type: "image_url", image_url: { url: msg.imageData } },
-              ],
-            });
-          } else {
-            aiMessages.push({ role: "user", content: msg.content });
-          }
+    const recentMessages = messages.slice(-20);
+    for (const msg of recentMessages) {
+      const role = msg.role === "user" ? "user" : "model";
+      if (msg.imageData && hasImages) {
+        // Extract base64 data and mime type from data URL
+        const match = msg.imageData.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          geminiContents.push({
+            role,
+            parts: [
+              { text: msg.content || "Analise esta imagem." },
+              { inlineData: { mimeType: match[1], data: match[2] } },
+            ],
+          });
         } else {
-          aiMessages.push({ role: "assistant", content: msg.content });
+          geminiContents.push({ role, parts: [{ text: msg.content }] });
         }
+      } else {
+        geminiContents.push({ role, parts: [{ text: msg.content }] });
       }
-
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: aiMessages,
-          stream: true,
-          max_tokens: 4096,
-          temperature: 0.85,
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("AI Gateway error:", errText);
-        return new Response(JSON.stringify({ error: `Erro: ${response.status}` }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const reader = response.body!.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop() || "";
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed === "data: [DONE]") continue;
-                if (!trimmed.startsWith("data: ")) continue;
-                try {
-                  const json = JSON.parse(trimmed.slice(6));
-                  const content = json.choices?.[0]?.delta?.content;
-                  if (content) {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
-                  }
-                } catch { /* skip */ }
-              }
-            }
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          } catch (e) { console.error("Stream error:", e); }
-          finally { controller.close(); }
-        },
-      });
-
-      return new Response(stream, {
-        headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
-      });
     }
 
-    // Text-only: use OpenRouter (same as programmer)
-    if (!OPENROUTER_API_KEY) {
-      return new Response(JSON.stringify({ error: "API key não configurada" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const geminiModel = "gemini-2.0-flash";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${GOOGLE_AI_API_KEY}`;
 
-    const orMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages.slice(-20).map((m: { role: string; content: string }) => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.content,
-      })),
-    ];
-
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch(apiUrl, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
-        "X-Title": "SnyX Amigo",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat-v3.1",
-        messages: orMessages,
-        stream: true,
-        max_tokens: 4096,
-        temperature: 0.85,
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiContents,
+        generationConfig: {
+          temperature: 0.85,
+          maxOutputTokens: 4096,
+        },
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("OpenRouter error:", res.status, err);
+      console.error("Gemini API error:", res.status, err);
       if (res.status === 429) {
         return new Response(JSON.stringify({ error: "rate_limit", message: "Muitas requisições. Aguarde um momento." }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: `Erro OpenRouter: ${res.status}` }), {
+      return new Response(JSON.stringify({ error: `Erro Gemini: ${res.status}` }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Stream Gemini SSE response
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
@@ -221,15 +150,15 @@ SEU PAPEL:
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
+
             for (const line of lines) {
               const trimmed = line.trim();
-              if (!trimmed || trimmed === "data: [DONE]") continue;
-              if (!trimmed.startsWith("data: ")) continue;
+              if (!trimmed || !trimmed.startsWith("data: ")) continue;
               try {
                 const json = JSON.parse(trimmed.slice(6));
-                const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
+                const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
                 }
               } catch { /* skip */ }
             }
@@ -241,7 +170,7 @@ SEU PAPEL:
     });
 
     return new Response(stream, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
     });
   } catch (err) {
     console.error("Error:", err);
