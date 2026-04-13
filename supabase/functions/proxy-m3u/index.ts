@@ -17,7 +17,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_HOSTS = new Set(["dns.acesse.digital"]);
+const ALLOWED_HOSTS = new Set([
+  "dns.acesse.digital",
+  "tvzplay.win",
+  "tvzplay.xyz",
+  "gestorx.uk",
+  "e.dns.acesse.digital",
+]);
 
 function validatePlaylistUrl(input: unknown) {
   if (typeof input !== "string" || !input.trim()) {
@@ -37,10 +43,6 @@ function validatePlaylistUrl(input: unknown) {
 
   if (!ALLOWED_HOSTS.has(parsed.hostname)) {
     throw new Error("Host da playlist não permitido");
-  }
-
-  if (parsed.pathname !== "/get.php") {
-    throw new Error("Caminho da playlist inválido");
   }
 
   return parsed.toString();
@@ -67,7 +69,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Decode JWT locally to avoid expensive getUser() call
     const token = authHeader.replace("Bearer ", "");
     const payload = decodeJwtPayload(token);
     if (!payload) {
@@ -78,8 +79,6 @@ Deno.serve(async (req) => {
     }
 
     const userId = payload.sub as string;
-
-    // Read body early before any async DB calls
     const { url } = await req.json();
     const playlistUrl = validatePlaylistUrl(url);
 
@@ -99,16 +98,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    const upstream = await fetch(playlistUrl, {
-      method: "GET",
-      redirect: "follow",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; SnyXTV/1.0)",
-        "Accept": "application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*",
-      },
-    });
+    // Use AbortController with timeout to avoid hanging
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
-    const body = await upstream.text();
+    let upstream: Response;
+    try {
+      upstream = await fetch(playlistUrl, {
+        method: "GET",
+        redirect: "follow",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SnyXTV/1.0)",
+          "Accept": "application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*",
+        },
+      });
+    } catch (e) {
+      clearTimeout(timeout);
+      const msg = e instanceof Error && e.name === "AbortError" 
+        ? "Servidor IPTV demorou demais para responder" 
+        : "Não foi possível conectar ao servidor IPTV";
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    clearTimeout(timeout);
 
     if (!upstream.ok) {
       return new Response(JSON.stringify({ error: `Servidor IPTV respondeu ${upstream.status}` }), {
@@ -117,6 +132,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Stream the response directly instead of buffering in memory
+    if (upstream.body) {
+      return new Response(upstream.body, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/vnd.apple.mpegurl; charset=utf-8",
+          "Cache-Control": "private, max-age=60",
+        },
+      });
+    }
+
+    // Fallback: if no body stream available
+    const body = await upstream.text();
     if (!body.trim().startsWith("#EXTM3U")) {
       return new Response(JSON.stringify({ error: "Playlist inválida ou vazia" }), {
         status: 502,
