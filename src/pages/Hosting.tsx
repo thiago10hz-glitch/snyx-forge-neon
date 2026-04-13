@@ -55,6 +55,7 @@ const Hosting = () => {
   const [licenseKey, setLicenseKey] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [expandedSite, setExpandedSite] = useState<string | null>(null);
+  const [justActivated, setJustActivated] = useState(false);
 
   // AI generation
   const [aiPrompt, setAiPrompt] = useState("");
@@ -476,11 +477,19 @@ const Hosting = () => {
                           const { data } = await supabase.rpc("redeem_license_key", { p_key_code: licenseKey.trim() });
                           const result = data as any;
                           if (result?.success) {
-                            toast.success("Plano ativado com sucesso! 🎉");
+                            toast.success("Plano ativado! Vamos criar seu primeiro site 🚀");
                             setShowPlans(false);
                             setLicenseKey("");
-                            checkLimit();
-                            window.location.reload();
+                            await checkLimit();
+                            // Pre-fill with user's name and scroll to AI creator
+                            const userName = (profile as any)?.display_name || user?.email?.split("@")[0] || "";
+                            setNewSiteName(`site-${userName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`);
+                            setAiPrompt(`Crie um site profissional e moderno para ${userName}. `);
+                            setJustActivated(true);
+                            // Scroll to AI section after state updates
+                            setTimeout(() => {
+                              document.getElementById("ai-creator")?.scrollIntoView({ behavior: "smooth" });
+                            }, 300);
                           } else {
                             toast.error(result?.error || "Chave inválida");
                           }
@@ -507,8 +516,21 @@ const Hosting = () => {
 
           {/* AI Site Generator */}
           {tier !== "none" && (
-            <div className="rounded-3xl border border-primary/15 overflow-hidden bg-gradient-to-b from-primary/[0.02] to-transparent">
+            <div id="ai-creator" className="rounded-3xl border border-primary/15 overflow-hidden bg-gradient-to-b from-primary/[0.02] to-transparent">
               <div className="p-6 md:p-8 space-y-5">
+                {/* Welcome after activation */}
+                {justActivated && !previewHtml && !aiGenerating && (
+                  <div className="rounded-2xl p-5 bg-gradient-to-r from-emerald-500/10 to-primary/5 border border-emerald-500/15 flex items-center gap-4 animate-in fade-in duration-500">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                      <Sparkles size={20} className="text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-emerald-300">Plano ativado com sucesso! 🎉</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Complete a descrição abaixo e clique enviar para criar seu site</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/25 to-primary/15 flex items-center justify-center border border-purple-500/15 shadow-lg shadow-purple-500/10 shrink-0">
