@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, X, Loader2, ShieldCheck, Minimize2, Maximize2, Phone } from "lucide-react";
+import { MessageCircle, Send, X, Loader2, ShieldCheck, Minimize2, Maximize2, Phone, Bot } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -389,19 +390,35 @@ export function SupportChat() {
                         const isUser = mode === "ticket"
                           ? (msg as SupportMessage).sender_role === "user"
                           : (msg as LiveMessage).sender_id === user?.id;
+                        const isAI = mode === "live" && (msg.content as string).startsWith("🤖 **SnyX IA**:");
                         return (
                           <div key={msg.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                             <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
-                              isUser
+                              isAI
+                                ? "bg-purple-500/10 text-foreground border border-purple-500/15 rounded-bl-sm"
+                                : isUser
                                 ? "bg-emerald-500/20 text-foreground rounded-br-sm"
                                 : "bg-muted/40 text-foreground rounded-bl-sm"
                             }`}>
-                              {!isUser && (
-                                <p className="text-[9px] font-bold text-emerald-400 mb-0.5 flex items-center gap-1">
-                                  <ShieldCheck size={10} /> Admin
-                                </p>
+                              {isAI ? (
+                                <>
+                                  <p className="text-[9px] font-bold text-purple-400 mb-0.5 flex items-center gap-1">
+                                    <Bot size={10} /> SnyX IA
+                                  </p>
+                                  <div className="prose prose-sm prose-invert max-w-none">
+                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  {!isUser && (
+                                    <p className="text-[9px] font-bold text-emerald-400 mb-0.5 flex items-center gap-1">
+                                      <ShieldCheck size={10} /> Admin
+                                    </p>
+                                  )}
+                                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                                </>
                               )}
-                              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                               <p className="text-[9px] text-muted-foreground/30 mt-1 text-right">
                                 {new Date(msg.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                               </p>
