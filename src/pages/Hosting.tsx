@@ -480,6 +480,7 @@ const Hosting = () => {
                             toast.success("Plano ativado! Vamos criar seu primeiro site 🚀");
                             setShowPlans(false);
                             setLicenseKey("");
+                            await refreshProfile();
                             await checkLimit();
                             // Pre-fill with user's name and scroll to AI creator
                             const userName = (profile as any)?.display_name || user?.email?.split("@")[0] || "";
