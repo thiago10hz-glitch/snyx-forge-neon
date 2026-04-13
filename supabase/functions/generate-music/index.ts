@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
         customMode: false,
         instrumental: false,
         model: "V3_5",
-        callBackUrl: "",
+        callBackUrl: `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-music-callback`,
       }),
     });
 
