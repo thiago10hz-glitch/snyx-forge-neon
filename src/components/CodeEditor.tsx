@@ -1,14 +1,27 @@
-import { useState } from "react";
-import { Copy, Download, Check, Code2, Eye, Terminal } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, RotateCcw, ExternalLink } from "lucide-react";
 
 interface CodeEditorProps {
   code: string;
   onCodeChange: (code: string) => void;
 }
 
+type ViewportSize = "desktop" | "tablet" | "mobile";
+
 export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const [activeTab, setActiveTab] = useState<"code" | "preview">("code");
   const [copied, setCopied] = useState(false);
+  const [viewport, setViewport] = useState<ViewportSize>("desktop");
+  const [previewKey, setPreviewKey] = useState(0);
+  const prevCodeRef = useRef("");
+
+  // Auto-switch to preview when full HTML is generated
+  useEffect(() => {
+    if (code && code.includes("<!DOCTYPE html") && !prevCodeRef.current.includes("<!DOCTYPE html")) {
+      setActiveTab("preview");
+    }
+    prevCodeRef.current = code;
+  }, [code]);
 
   const copyCode = async () => {
     await navigator.clipboard.writeText(code);
@@ -17,27 +30,44 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const downloadCode = () => {
-    const ext = code.includes("<") ? "html" : code.includes("import") ? "tsx" : "txt";
-    const blob = new Blob([code], { type: "text/plain" });
+    const isHtml = code.includes("<!DOCTYPE html") || code.includes("<html");
+    const ext = isHtml ? "html" : code.includes("import") ? "tsx" : "txt";
+    const blob = new Blob([code], { type: isHtml ? "text/html" : "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `snyx-output.${ext}`;
+    a.download = `snyx-site.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  const openInNewTab = () => {
+    const blob = new Blob([getPreviewHtml()], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  };
+
   const getPreviewHtml = () => {
+    // If code is already a full HTML page, use it directly
+    if (code.includes("<!DOCTYPE html") || code.includes("<html")) {
+      return code;
+    }
     return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>body{background:#050505;color:#e5e5e5;font-family:system-ui,sans-serif;margin:0;padding:1rem;}</style>
 </head>
 <body>${code}</body>
 </html>`;
+  };
+
+  const viewportWidths: Record<ViewportSize, string> = {
+    desktop: "100%",
+    tablet: "768px",
+    mobile: "375px",
   };
 
   const lines = code.split("\n");
@@ -72,6 +102,48 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {activeTab === "preview" && code && (
+            <>
+              {/* Viewport toggles */}
+              <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg p-0.5 border border-border/10 mr-1">
+                <button
+                  onClick={() => setViewport("desktop")}
+                  className={`p-1.5 rounded-md transition-all ${viewport === "desktop" ? "bg-primary/20 text-primary" : "text-muted-foreground/40 hover:text-foreground/60"}`}
+                  title="Desktop"
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewport("tablet")}
+                  className={`p-1.5 rounded-md transition-all ${viewport === "tablet" ? "bg-primary/20 text-primary" : "text-muted-foreground/40 hover:text-foreground/60"}`}
+                  title="Tablet"
+                >
+                  <Tablet className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewport("mobile")}
+                  className={`p-1.5 rounded-md transition-all ${viewport === "mobile" ? "bg-primary/20 text-primary" : "text-muted-foreground/40 hover:text-foreground/60"}`}
+                  title="Mobile"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <button
+                onClick={() => setPreviewKey(k => k + 1)}
+                className="p-1.5 text-muted-foreground/40 hover:text-foreground/60 rounded-md hover:bg-muted/15 transition-all"
+                title="Recarregar"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={openInNewTab}
+                className="p-1.5 text-muted-foreground/40 hover:text-foreground/60 rounded-md hover:bg-muted/15 transition-all"
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
           <button
             onClick={copyCode}
             disabled={!code}
@@ -119,16 +191,38 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                 <Terminal className="w-7 h-7 text-muted-foreground/20" />
               </div>
               <p className="text-sm font-medium text-muted-foreground/30 mb-1">Nenhum código ainda</p>
-              <p className="text-xs text-muted-foreground/20 max-w-xs">Use o modo Programador no chat para gerar código que aparecerá aqui</p>
+              <p className="text-xs text-muted-foreground/20 max-w-xs">
+                Converse no modo Programador — diga que tipo de site quer criar e a IA vai gerar pra você!
+              </p>
             </div>
           )
         ) : (
-          <iframe
-            srcDoc={getPreviewHtml()}
-            className="w-full h-full border-0"
-            sandbox="allow-scripts"
-            title="Preview"
-          />
+          code ? (
+            <div className="flex items-start justify-center h-full bg-[#1a1a2e] overflow-auto p-4">
+              <div
+                className="transition-all duration-300 h-full"
+                style={{
+                  width: viewportWidths[viewport],
+                  maxWidth: "100%",
+                  ...(viewport !== "desktop" ? { boxShadow: "0 0 40px rgba(0,0,0,0.5)", borderRadius: "12px", overflow: "hidden" } : {}),
+                }}
+              >
+                <iframe
+                  key={previewKey}
+                  srcDoc={getPreviewHtml()}
+                  className="w-full h-full border-0 bg-white"
+                  style={viewport !== "desktop" ? { borderRadius: "12px" } : {}}
+                  sandbox="allow-scripts allow-same-origin"
+                  title="Preview"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center px-8">
+              <Eye className="w-12 h-12 text-muted-foreground/15 mb-4" />
+              <p className="text-sm text-muted-foreground/30">Gere um site para ver o preview aqui</p>
+            </div>
+          )
         )}
       </div>
     </div>
