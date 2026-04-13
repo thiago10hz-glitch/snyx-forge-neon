@@ -376,27 +376,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
             </div>
           )}
 
-          {/* Transcript area */}
-          {isCallActive && (
-            <div className="px-6 pb-4 space-y-2 min-h-[80px]">
-              {transcript && (
-                <div className="text-xs text-foreground/60 bg-muted/20 rounded-xl px-3 py-2 border border-border/10">
-                  <span className="text-muted-foreground/40 text-[10px] block mb-0.5">Você:</span>
-                  {transcript}
-                </div>
-              )}
-              {aiResponse && !isProcessing && (
-                <div className="text-xs text-primary/80 bg-primary/5 rounded-xl px-3 py-2 border border-primary/10">
-                  <span className="text-primary/40 text-[10px] block mb-0.5">SnyX:</span>
-                  {aiResponse}
-                </div>
-              )}
-              {isProcessing && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground/40 px-3 py-2">
-                  <Loader2 size={12} className="animate-spin" />
-                  Processando...
-                </div>
-              )}
+          {/* Visual feedback only - no text */}
+          {isCallActive && isProcessing && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/40 px-6 pb-4">
+              <Loader2 size={12} className="animate-spin" />
+              Pensando...
             </div>
           )}
 
