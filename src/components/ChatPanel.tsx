@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2 } from "lucide-react";
 import { ChatSettings } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
+import { ConnectionModal } from "./ConnectionModal";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { VipModal } from "./VipModal";
@@ -146,6 +147,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [thinkingText, setThinkingText] = useState("");
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1092,6 +1094,16 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </button>
           )}
 
+          {mode === "friend" && (
+            <button
+              onClick={() => setShowConnectionModal(true)}
+              className="p-2 rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300 mr-1"
+              title="Conectar com alguém"
+            >
+              <Link2 size={16} />
+            </button>
+          )}
+
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
@@ -1520,6 +1532,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan={vipModalPlan} />
       <ChatSettings open={showChatSettings} onClose={() => setShowChatSettings(false)} />
       <VoiceCall open={showVoiceCall} onClose={() => setShowVoiceCall(false)} />
+      <ConnectionModal isOpen={showConnectionModal} onClose={() => setShowConnectionModal(false)} />
 
       {/* Limit modal */}
       {showLimitModal && (
