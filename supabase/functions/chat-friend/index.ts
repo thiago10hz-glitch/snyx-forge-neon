@@ -80,8 +80,8 @@ async function tryGroq(apiKey: string, systemPrompt: string, messages: any[]) {
   return { response: res, type: "openai" };
 }
 
-async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any[]) {
-  const orMessages = [
+async function trySiliconFlow(apiKey: string, systemPrompt: string, messages: any[]) {
+  const sfMessages = [
     { role: "system", content: systemPrompt },
     ...messages.slice(-20).map((m: any) => ({
       role: m.role === "user" ? "user" : "assistant",
@@ -89,17 +89,15 @@ async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any
     })),
   ];
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://snyx-forge-neon.lovable.app",
-      "X-Title": "SnyX Amigo",
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-chat-v3.1",
-      messages: orMessages,
+      model: "deepseek-ai/DeepSeek-V3",
+      messages: sfMessages,
       stream: true,
       max_tokens: 4096,
       temperature: 0.85,
@@ -108,7 +106,7 @@ async function tryOpenRouter(apiKey: string, systemPrompt: string, messages: any
 
   if (!res.ok) {
     const err = await res.text();
-    console.error("OpenRouter error:", res.status, err.slice(0, 200));
+    console.error("SiliconFlow error:", res.status, err.slice(0, 200));
     return null;
   }
 
