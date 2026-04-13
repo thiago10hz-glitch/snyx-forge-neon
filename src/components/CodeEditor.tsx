@@ -45,6 +45,32 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     URL.revokeObjectURL(url);
   };
 
+  const deployToVercel = async () => {
+    if (!code || deploying) return;
+    setDeploying(true);
+    setDeployedUrl(null);
+    try {
+      const htmlContent = getPreviewHtml();
+      const { data, error } = await supabase.functions.invoke("deploy-vercel", {
+        body: { html: htmlContent, projectName: "snyx-site" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        setDeployedUrl(data.url);
+        toast.success("Site publicado na Vercel!", {
+          description: data.url,
+          action: { label: "Abrir", onClick: () => window.open(data.url, "_blank") },
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao publicar";
+      toast.error("Falha no deploy", { description: msg });
+    } finally {
+      setDeploying(false);
+    }
+  };
+
   const openInNewTab = () => {
     const blob = new Blob([getPreviewHtml()], { type: "text/html" });
     const url = URL.createObjectURL(blob);
