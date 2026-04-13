@@ -58,12 +58,15 @@ REGRAS:
 - NÃO fale de assuntos pessoais. Se perguntarem, diga: "Esse assunto é pro modo Amigo! 😊"
 - Sempre que possível, gere JavaScript interativo (menus mobile, scroll smooth, animações)`;
 
+    // Truncate messages to avoid 413 - limit each message and total count
+    const truncatedMessages = messages.slice(-10).map((m: { role: string; content: string }) => ({
+      role: m.role === "user" ? "user" : "assistant",
+      content: m.content.length > 6000 ? m.content.slice(0, 6000) + "\n...(truncado)" : m.content,
+    }));
+
     const groqMessages = [
       { role: "system", content: systemPrompt },
-      ...messages.slice(-20).map((m: { role: string; content: string }) => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.content,
-      })),
+      ...truncatedMessages,
     ];
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -76,7 +79,7 @@ REGRAS:
         model: "llama-3.1-8b-instant",
         messages: groqMessages,
         stream: true,
-        max_tokens: 8192,
+        max_tokens: 4096,
         temperature: 0.7,
       }),
     });
