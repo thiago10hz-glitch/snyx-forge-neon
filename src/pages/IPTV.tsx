@@ -616,6 +616,28 @@ export default function IPTV() {
                     autoPlay
                     className="w-full h-full object-contain"
                   />
+                  {/* Loading overlay */}
+                  {playerStatus === "loading" && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-10">
+                      <Loader2 size={40} className="text-blue-500 animate-spin mb-3" />
+                      <p className="text-sm text-white/70">Carregando canal...</p>
+                      <p className="text-xs text-white/40 mt-1">{selectedChannel.name}</p>
+                    </div>
+                  )}
+                  {/* Error overlay */}
+                  {playerStatus === "error" && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
+                      <X size={40} className="text-red-500 mb-3" />
+                      <p className="text-sm text-white/70 mb-1">{playerError || "Canal indisponível"}</p>
+                      <p className="text-xs text-white/40 mb-4">Este canal pode estar offline ou indisponível</p>
+                      <button
+                        onClick={() => { setPlayerStatus("loading"); setSelectedChannel({ ...selectedChannel }); }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white transition-all flex items-center gap-2"
+                      >
+                        <RefreshCw size={14} /> Tentar novamente
+                      </button>
+                    </div>
+                  )}
                 </div>
                 {/* Now playing bar */}
                 <div className="h-14 bg-[#111827] border-t border-white/5 flex items-center px-4 gap-3 shrink-0">
