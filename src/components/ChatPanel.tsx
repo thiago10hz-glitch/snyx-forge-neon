@@ -1231,7 +1231,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                             style={{ maxHeight: 300 }}
                           />
                         )}
-                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10">
+                        <div className={`bg-primary text-primary-foreground ${getUserBubbleClass(bubbleStyle)} px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10`}>
                           {msg.content}
                         </div>
                       </div>
