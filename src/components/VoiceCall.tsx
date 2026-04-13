@@ -119,12 +119,32 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     utterance.pitch = selectedVoice.pitch;
 
     const voices = synthRef.current.getVoices();
-    const genderHint = selectedGender === "female" ? "female" : "male";
-    const ptVoice =
-      voices.find(v => v.lang.startsWith("pt") && v.name.toLowerCase().includes(genderHint)) ||
-      voices.find(v => v.lang.startsWith("pt-BR")) ||
-      voices.find(v => v.lang.startsWith("pt"));
-    if (ptVoice) utterance.voice = ptVoice;
+    const ptVoices = voices.filter(v => v.lang.startsWith("pt"));
+    
+    // Known female voice name patterns in pt-BR across browsers
+    const femaleNames = ["luciana", "francisca", "fernanda", "google português do brasil", "maria", "raquel", "vitória", "tessa", "microsoft francisca"];
+    const maleNames = ["daniel", "felipe", "antonio", "ricardo", "microsoft daniel"];
+    
+    let selectedSynthVoice: SpeechSynthesisVoice | undefined;
+    
+    if (selectedGender === "female") {
+      // Try to find a known female voice first
+      selectedSynthVoice = ptVoices.find(v => femaleNames.some(n => v.name.toLowerCase().includes(n)));
+      // Fallback: pick the first pt-BR voice (usually female on most systems)
+      if (!selectedSynthVoice) selectedSynthVoice = ptVoices.find(v => v.lang === "pt-BR") || ptVoices[0];
+      // Force higher pitch for femininity
+      utterance.pitch = Math.max(selectedVoice.pitch, 1.15);
+    } else {
+      // Try to find a known male voice
+      selectedSynthVoice = ptVoices.find(v => maleNames.some(n => v.name.toLowerCase().includes(n)));
+      // Fallback: if multiple pt voices exist, pick the second one (often male)
+      if (!selectedSynthVoice && ptVoices.length > 1) selectedSynthVoice = ptVoices[1];
+      if (!selectedSynthVoice) selectedSynthVoice = ptVoices[0];
+      // Force lower pitch for masculinity
+      utterance.pitch = Math.min(selectedVoice.pitch, 0.85);
+    }
+    
+    if (selectedSynthVoice) utterance.voice = selectedSynthVoice;
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
