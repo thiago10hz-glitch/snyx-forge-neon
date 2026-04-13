@@ -393,6 +393,12 @@ export default function Admin() {
           >
             <ShieldCheck className="w-3 h-3" />Suporte
           </button>
+          <button
+            onClick={() => setAdminTab("notes")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${adminTab === "notes" ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <StickyNote className="w-3 h-3" />Notas
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">{user.email}</span>
@@ -850,6 +856,10 @@ export default function Admin() {
 
       {adminTab === "support" && (
         <AdminSupportPanel />
+      )}
+
+      {adminTab === "notes" && (
+        <AdminNotesPanel />
       )}
 
       {vipModalUser && (
