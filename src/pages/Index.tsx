@@ -49,40 +49,40 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 md:gap-1">
           <AdminPresenceIndicator />
           <Link
             to="/iptv"
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+            className="flex items-center gap-1.5 text-xs font-medium px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
           >
             <MonitorPlay className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-            <span className="hidden sm:inline">TV</span>
+            <span className="hidden md:inline">TV</span>
           </Link>
 
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
+              className="flex items-center gap-1.5 text-xs font-medium px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all duration-300 group"
             >
               <ShieldCheck className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-              <span className="hidden sm:inline">Admin</span>
+              <span className="hidden md:inline">Admin</span>
             </Link>
           )}
 
           {profile?.is_dev ? (
-            <span className="badge-dev flex items-center gap-1">
+            <span className="badge-dev flex items-center gap-1 text-[10px] md:text-xs">
               <Code size={10} />
               DEV
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip">VIP</span>
+            <span className="badge-vip text-[10px] md:text-xs">VIP</span>
           ) : (
-            <span className="badge-free">Free</span>
+            <span className="badge-free text-[10px] md:text-xs">Free</span>
           )}
 
           <button
             onClick={() => setShowProfile(true)}
-            className="w-9 h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/5 group ml-1"
+            className="w-8 h-8 md:w-9 md:h-9 rounded-xl overflow-hidden border border-border/30 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/5 group ml-0.5 md:ml-1"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
@@ -94,7 +94,7 @@ const Index = () => {
 
           <button
             onClick={signOut}
-            className="p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all duration-300"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all duration-300"
             title="Sair"
           >
             <LogOut className="w-4 h-4" />
