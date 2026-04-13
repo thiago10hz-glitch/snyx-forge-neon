@@ -1033,7 +1033,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         <div className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-1"
+            className="p-1.5 md:p-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all duration-300 mr-0.5 md:mr-1"
           >
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
