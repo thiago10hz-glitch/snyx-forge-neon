@@ -1198,7 +1198,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
                     <div className="flex gap-3 justify-end">
-                      <div className="max-w-[80%]">
+                      <div className="max-w-[85%] md:max-w-[80%]">
                         {msg.attachment && (
                           <img
                             src={msg.attachment.dataUrl}
@@ -1207,18 +1207,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                             style={{ maxHeight: 300 }}
                           />
                         )}
-                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed shadow-lg shadow-primary/10">
+                        <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm leading-relaxed shadow-lg shadow-primary/10">
                           {msg.content}
                         </div>
                       </div>
-                      <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
-                        <User size={14} className="text-primary" />
+                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
+                        <User size={12} className="text-primary md:hidden" />
+                        <User size={14} className="text-primary hidden md:block" />
                       </div>
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        <Bot size={14} className={config.color} />
+                      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
+                        <Bot size={13} className={`${config.color} md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
