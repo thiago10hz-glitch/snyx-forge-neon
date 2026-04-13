@@ -1054,7 +1054,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with mode tabs */}
-        <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-2 py-1 sm:py-1.5 md:py-2 border-b border-border/10 shrink-0 glass">
+        <div className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border-b border-border/8 shrink-0 glass">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className="p-1.5 sm:p-2 md:p-2 rounded-lg sm:rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 shrink-0"
@@ -1062,7 +1062,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg sm:rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin flex-shrink min-w-0">
+          <div className="flex items-center gap-0.5 bg-muted/8 rounded-xl p-0.5 border border-border/6 overflow-x-auto scrollbar-hide flex-shrink min-w-0">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -1185,33 +1185,33 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         ) : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6 py-6 sm:py-8">
-              <div className="max-w-md lg:max-w-lg text-center space-y-4 sm:space-y-5 md:space-y-7 animate-fade-in-up">
-                {/* Icon with glow effect */}
-                <div className="relative mx-auto w-fit">
-                  <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-xl animate-float`}>
-                    <ModeIcon size={22} className={`${config.color} sm:hidden`} />
-                    <ModeIcon size={26} className={`${config.color} hidden sm:block md:hidden`} />
-                    <ModeIcon size={32} className={`${config.color} hidden md:block lg:hidden`} />
-                    <ModeIcon size={40} className={`${config.color} hidden lg:block`} />
+            <div className="flex flex-col items-center justify-center h-full px-5 sm:px-8 py-8 sm:py-12">
+              <div className="max-w-md lg:max-w-lg text-center space-y-5 sm:space-y-6 md:space-y-8">
+                {/* Icon with glow */}
+                <div className="relative mx-auto w-fit animate-reveal stagger-1">
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-2xl animate-float`}>
+                    <ModeIcon size={24} className={`${config.color} sm:hidden`} />
+                    <ModeIcon size={32} className={`${config.color} hidden sm:block md:hidden`} />
+                    <ModeIcon size={40} className={`${config.color} hidden md:block lg:hidden`} />
+                    <ModeIcon size={48} className={`${config.color} hidden lg:block`} />
                   </div>
-                  <div className={`absolute -inset-3 sm:-inset-4 md:-inset-6 ${config.bgColor} rounded-3xl blur-2xl opacity-25 -z-10 animate-pulse-ring`} />
+                  <div className={`absolute -inset-4 sm:-inset-6 md:-inset-8 ${config.bgColor} rounded-full blur-3xl opacity-20 -z-10 animate-pulse-ring`} />
                 </div>
 
-                {/* Title and description */}
-                <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
-                  <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-foreground tracking-tight">{config.emptyTitle}</h2>
-                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-muted-foreground/60 leading-relaxed max-w-xs sm:max-w-sm mx-auto">{config.emptyText}</p>
+                {/* Title */}
+                <div className="space-y-2 sm:space-y-3 animate-reveal stagger-2">
+                  <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">{config.emptyTitle}</h2>
+                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground/50 leading-relaxed max-w-sm mx-auto">{config.emptyText}</p>
                 </div>
 
-                {/* Suggestion chips */}
+                {/* Suggestions */}
                 {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-2.5 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
                     {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-xl glass-subtle text-muted-foreground/70 border border-border/15 hover:bg-muted/30 hover:text-foreground hover:border-border/30 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                       >
                         {suggestion}
                       </button>
@@ -1219,12 +1219,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
                 {mode === "friend" && (
-                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-2.5 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
                     {["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
-                        className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-xl glass-subtle text-muted-foreground/70 border border-border/15 hover:bg-muted/30 hover:text-foreground hover:border-border/30 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                       >
                         {suggestion}
                       </button>
@@ -1232,9 +1232,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   </div>
                 )}
 
-                {/* Keyboard hint for desktop */}
-                <p className="hidden md:block text-[10px] lg:text-[11px] text-muted-foreground/25 pt-1">
-                  Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted/20 border border-border/15 text-muted-foreground/40 font-mono text-[9px] lg:text-[10px]">Enter</kbd> para enviar
+                {/* Keyboard hint */}
+                <p className="hidden md:block text-[10px] lg:text-[11px] text-muted-foreground/20 animate-reveal stagger-4">
+                  Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
                 </p>
               </div>
             </div>
@@ -1513,9 +1513,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-1.5 sm:p-2 md:p-3 lg:p-4 safe-bottom">
+        <div className="p-2 sm:p-3 md:p-4 safe-bottom">
           <div className="max-w-3xl lg:max-w-4xl mx-auto">
-            <div className="flex items-end gap-0.5 sm:gap-1 md:gap-1.5 glass-elevated rounded-xl sm:rounded-2xl px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 border border-border/8 focus-within:border-primary/20 focus-within:shadow-xl focus-within:shadow-primary/5 transition-all duration-500">
+            <div className="flex items-end gap-1 sm:gap-1.5 glass-elevated rounded-2xl px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500">
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button - hidden on mobile */}
               <button

@@ -4,7 +4,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -15,6 +15,7 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [chatMode, setChatMode] = useState<string>("friend");
+  const [showMobileNav, setShowMobileNav] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -25,96 +26,137 @@ const Index = () => {
 
   useAdminHeartbeat();
 
+  const navItems = [
+    { to: "/iptv", icon: MonitorPlay, label: "TV" },
+    { to: "/hosting", icon: Server, label: "Hosting" },
+    { to: "/downloads", icon: Download, label: "App" },
+  ];
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden relative">
-      {/* Ambient background effects */}
+      {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-primary/6 blur-[120px] animate-glow-pulse" />
-        <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-primary/4 blur-[140px] animate-glow-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-primary/3 blur-[100px] animate-glow-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-primary/5 blur-[100px] animate-glow-pulse" />
+        <div className="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-primary/3 blur-[120px] animate-glow-pulse" style={{ animationDelay: '2.5s' }} />
+        <div className="absolute bottom-10 left-1/4 h-56 w-56 rounded-full bg-primary/4 blur-[90px] animate-glow-pulse" style={{ animationDelay: '5s' }} />
       </div>
 
-      {/* Top Bar */}
-      <header className="relative z-20 h-12 sm:h-13 md:h-14 flex items-center justify-between px-2.5 sm:px-4 md:px-6 lg:px-8 shrink-0 glass border-b border-border/15">
+      {/* Header */}
+      <header className="relative z-20 h-14 md:h-16 flex items-center justify-between px-3 sm:px-5 md:px-8 shrink-0 border-b border-border/10 glass">
         {/* Logo */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          <div className="relative group">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10 group-hover:shadow-primary/20 transition-all duration-500">
-              <Zap className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 text-primary" />
+        <div className="flex items-center gap-3">
+          <div className="relative group cursor-pointer" onClick={() => setShowProfile(true)}>
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/8 group-hover:shadow-primary/20 transition-all duration-500">
+              <Zap className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
-            <div className="absolute -inset-1.5 rounded-xl bg-primary/8 blur-lg -z-10 animate-breathe opacity-60" />
+            <div className="absolute -inset-1 rounded-xl bg-primary/6 blur-lg -z-10 animate-breathe opacity-50" />
           </div>
           <div className="leading-none">
-            <h1 className="text-xs sm:text-sm md:text-[15px] font-extrabold tracking-wide text-foreground gradient-text-subtle">SnyX</h1>
-            <p className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/35 font-semibold tracking-[0.2em] uppercase mt-0.5 hidden sm:block">AI Platform</p>
+            <h1 className="text-sm md:text-base font-black tracking-wide gradient-text-subtle">SnyX</h1>
+            <p className="text-[8px] md:text-[9px] text-muted-foreground/30 font-semibold tracking-[0.25em] uppercase hidden sm:block">AI Platform</p>
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5">
+        {/* Desktop Navigation */}
+        <nav className="hidden sm:flex items-center gap-1">
           <AdminPresenceIndicator />
-          
-          {/* Nav links */}
-          {[
-            { to: "/iptv", icon: MonitorPlay, label: "TV" },
-            { to: "/hosting", icon: Server, label: "Hosting" },
-            { to: "/downloads", icon: Download, label: "App" },
-          ].map(({ to, icon: Icon, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 text-xs font-medium sm:px-2.5 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/60 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 group"
-            >
-              <Icon className="w-[15px] h-[15px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
-              <span className="hidden sm:inline">{label}</span>
+          {navItems.map(({ to, icon: Icon, label }) => (
+            <Link key={to} to={to} className="nav-link group">
+              <Icon className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
+              <span>{label}</span>
             </Link>
           ))}
-
           {isAdmin && (
-            <Link
-              to="/admin"
-              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 text-xs font-medium sm:px-2.5 md:px-3 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl text-muted-foreground/60 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 group"
-            >
-              <ShieldCheck className="w-[15px] h-[15px] sm:w-4 sm:h-4 group-hover:text-primary transition-colors duration-300" />
-              <span className="hidden sm:inline">Admin</span>
+            <Link to="/admin" className="nav-link group">
+              <ShieldCheck className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
+              <span>Admin</span>
             </Link>
           )}
+        </nav>
 
+        {/* Right section */}
+        <div className="flex items-center gap-2">
           {/* Tier badge */}
           {profile?.is_dev ? (
-            <span className="badge-dev flex items-center gap-1 text-[8px] sm:text-[9px] md:text-[10px]">
-              <Code size={9} />
-              DEV
+            <span className="badge-dev flex items-center gap-1 text-[9px] md:text-[10px]">
+              <Code size={10} /> DEV
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip text-[8px] sm:text-[9px] md:text-[10px]">VIP</span>
+            <span className="badge-vip text-[9px] md:text-[10px]">VIP</span>
           ) : (
-            <span className="badge-free text-[8px] sm:text-[9px] md:text-[10px]">Free</span>
+            <span className="badge-free text-[9px] md:text-[10px]">Free</span>
           )}
 
           {/* Avatar */}
           <button
             onClick={() => setShowProfile(true)}
-            className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-border/20 hover:border-primary/25 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 active:bg-muted/30 group ml-0.5 ring-2 ring-transparent hover:ring-primary/10"
+            className="w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-border/15 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/8 hover:bg-muted/15 group ring-2 ring-transparent hover:ring-primary/8"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+              <User className="w-4 h-4 text-muted-foreground/35 group-hover:text-foreground transition-colors" />
             )}
           </button>
 
-          {/* Logout */}
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setShowMobileNav(!showMobileNav)}
+            className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+
+          {/* Logout (desktop) */}
           <button
             onClick={signOut}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-foreground hover:bg-muted/15 active:bg-muted/25 transition-all duration-300 flex items-center justify-center"
+            className="hidden sm:flex w-9 h-9 md:w-10 md:h-10 rounded-xl text-muted-foreground/35 hover:text-foreground hover:bg-muted/15 transition-all duration-300 items-center justify-center"
             title="Sair"
           >
-            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
+
+      {/* Mobile nav dropdown */}
+      {showMobileNav && (
+        <>
+          <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
+          <div className="absolute top-14 right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] animate-reveal">
+            {navItems.map(({ to, icon: Icon, label }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setShowMobileNav(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Link>
+            ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setShowMobileNav(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
+            <div className="border-t border-border/10 mt-1 pt-1">
+              <button
+                onClick={() => { signOut(); setShowMobileNav(false); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all w-full"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex overflow-hidden">
@@ -143,7 +185,7 @@ const Index = () => {
           </div>
         ) : (
           <>
-            <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/10`}>
+            <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
               <ChatPanel onCodeGenerated={setCode} onModeChange={(mode) => setChatMode(mode)} />
             </div>
             {chatMode === "programmer" && (
