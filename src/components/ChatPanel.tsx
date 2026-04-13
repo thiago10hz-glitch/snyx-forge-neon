@@ -1238,7 +1238,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+            <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
