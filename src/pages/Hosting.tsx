@@ -477,11 +477,19 @@ const Hosting = () => {
                           const { data } = await supabase.rpc("redeem_license_key", { p_key_code: licenseKey.trim() });
                           const result = data as any;
                           if (result?.success) {
-                            toast.success("Plano ativado com sucesso! 🎉");
+                            toast.success("Plano ativado! Vamos criar seu primeiro site 🚀");
                             setShowPlans(false);
                             setLicenseKey("");
-                            checkLimit();
-                            window.location.reload();
+                            await checkLimit();
+                            // Pre-fill with user's name and scroll to AI creator
+                            const userName = (profile as any)?.display_name || user?.email?.split("@")[0] || "";
+                            setNewSiteName(`site-${userName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`);
+                            setAiPrompt(`Crie um site profissional e moderno para ${userName}. `);
+                            setJustActivated(true);
+                            // Scroll to AI section after state updates
+                            setTimeout(() => {
+                              document.getElementById("ai-creator")?.scrollIntoView({ behavior: "smooth" });
+                            }, 300);
                           } else {
                             toast.error(result?.error || "Chave inválida");
                           }
