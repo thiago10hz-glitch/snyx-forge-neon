@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Phone, PhoneOff, Loader2, Volume2, VolumeX, ChevronDown } from "lucide-react";
+import { Phone, PhoneOff, Loader2, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -32,8 +32,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
+  const [_transcript, setTranscript] = useState("");
+  const [_aiResponse, setAiResponse] = useState("");
   const [callDuration, setCallDuration] = useState(0);
   const [muted, setMuted] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"female" | "male">("female");
@@ -44,7 +44,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const synthRef = useRef(window.speechSynthesis);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
-  const { profile } = useAuth();
+  const { } = useAuth();
 
   const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
 
