@@ -143,19 +143,20 @@ export function SupportChat() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-110 transition-all group"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-110 transition-all group"
           title="Suporte ao vivo"
         >
-          <MessageCircle size={22} />
+          <MessageCircle size={20} className="sm:hidden" />
+          <MessageCircle size={22} className="hidden sm:block" />
           {adminOnline && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
           )}
         </button>
       )}
 
       {/* Chat window */}
       {isOpen && (
-        <div className={`fixed z-50 ${isMinimized ? "bottom-6 right-6 w-72" : "bottom-6 right-6 w-96 h-[520px]"} flex flex-col rounded-2xl border border-border/30 bg-background shadow-2xl shadow-black/20 overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
+        <div className={`fixed z-50 ${isMinimized ? "bottom-4 right-4 sm:bottom-6 sm:right-6 w-64 sm:w-72" : "bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:w-96 h-full sm:h-[520px] sm:rounded-2xl"} flex flex-col rounded-t-2xl sm:rounded-2xl border border-border/30 bg-background shadow-2xl shadow-black/20 overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-emerald-500/10 border-b border-border/20">
             <div className="flex items-center gap-2">
