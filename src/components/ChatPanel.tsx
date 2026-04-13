@@ -947,7 +947,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             {showSidebar ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
 
-          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8">
+          <div className="flex items-center gap-0.5 bg-muted/10 rounded-xl p-0.5 border border-border/8 overflow-x-auto scrollbar-thin">
             {(Object.keys(MODE_CONFIG) as ChatMode[]).map((m) => {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
@@ -957,7 +957,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 <button
                   key={m}
                   onClick={() => switchMode(m)}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap ${
                     isActive ? `${c.activeTab} shadow-sm border border-transparent` : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
                   }`}
                 >
