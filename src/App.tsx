@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Downloads from "./pages/Downloads";
 import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
+import { CommandPalette } from "./components/CommandPalette";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <CommandPalette />
             <ThemeProvider>
             <Routes>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

@@ -465,8 +465,13 @@ export default function Admin() {
         </div>
       </header>
 
+      {adminTab === "dashboard" && (
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <AdminDashboard />
+        </div>
+      )}
+
       {adminTab === "users" && (
-      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
           {[
