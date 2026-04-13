@@ -11,6 +11,7 @@ interface Profile {
   avatar_url: string | null;
   bio: string | null;
   relationship_status: string | null;
+  hosting_tier: string;
 }
 
 interface AuthContextType {
