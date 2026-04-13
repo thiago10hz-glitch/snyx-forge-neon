@@ -15,6 +15,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const [copied, setCopied] = useState(false);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
   const [previewKey, setPreviewKey] = useState(0);
+  const [deploying, setDeploying] = useState(false);
+  const [deployedUrl, setDeployedUrl] = useState<string | null>(null);
   const prevCodeRef = useRef("");
 
   // Auto-switch to preview when full HTML is generated
