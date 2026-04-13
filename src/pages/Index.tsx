@@ -35,7 +35,7 @@ const Index = () => {
       </div>
 
       {/* Top Bar */}
-      <header className="relative z-20 h-11 sm:h-12 md:h-14 flex items-center justify-between px-2 sm:px-3 md:px-5 shrink-0 glass border-b border-border/20">
+      <header className="relative z-20 h-11 sm:h-12 md:h-14 flex items-center justify-between px-2 sm:px-3 md:px-6 lg:px-8 shrink-0 glass border-b border-border/20">
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
           <div className="relative">
             <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
