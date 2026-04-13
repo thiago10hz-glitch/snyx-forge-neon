@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { 
   Globe, Plus, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
-  Crown, Zap, Loader2, Edit, Copy, RefreshCw, Server
+  Crown, Zap, Loader2, Edit, Copy, RefreshCw, Server, Sparkles, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,13 @@ const Hosting = () => {
   const [activatingKey, setActivatingKey] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
 
+  // AI generation
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiMode, setAiMode] = useState(false);
+  const [generatedHtml, setGeneratedHtml] = useState("");
+  const [previewHtml, setPreviewHtml] = useState("");
+
   const loadSites = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -76,12 +83,30 @@ const Hosting = () => {
     checkLimit();
   }, [loadSites, checkLimit]);
 
-  const handleDeploy = async () => {
-    if (!newSiteName.trim() || !newSiteHtml.trim()) {
-      toast.error("Preencha o nome e o código HTML do site");
-      return;
-    }
+  const deployToVercel = async (html: string, siteName: string) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const safeName = siteName.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
 
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ html, projectName: `snyx-${safeName}` }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Erro ao hospedar site");
+    }
+    return data;
+  };
+
+  const handleAiGenerate = async () => {
+    if (!aiPrompt.trim()) return;
     if (limit && !limit.allowed) {
       if (limit.reason === "no_plan") {
         setShowPlans(true);
@@ -91,41 +116,106 @@ const Hosting = () => {
       return;
     }
 
-    setDeploying(true);
+    setAiGenerating(true);
+    setGeneratedHtml("");
+    setPreviewHtml("");
+
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const siteName = newSiteName.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
-
-      // Deploy to Vercel
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-hosting`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ html: newSiteHtml, siteName: `snyx-${siteName}` }),
+        body: JSON.stringify({ 
+          description: aiPrompt, 
+          siteName: newSiteName || aiPrompt.slice(0, 30) 
+        }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        toast.error(data.error || "Erro ao hospedar site");
+        toast.error(data.error || "Erro ao gerar site");
         return;
       }
 
-      // Save to database
+      setGeneratedHtml(data.html);
+      setPreviewHtml(data.html);
+      if (!newSiteName) {
+        setNewSiteName(aiPrompt.slice(0, 40).replace(/[^a-zA-Z0-9\s-]/g, "").trim());
+      }
+      toast.success("Site gerado! Confira o preview e clique em Hospedar 🚀");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar site com IA");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const handleAiDeploy = async () => {
+    if (!generatedHtml || !newSiteName.trim()) {
+      toast.error("Preencha o nome do site");
+      return;
+    }
+    setDeploying(true);
+    try {
+      const deployData = await deployToVercel(generatedHtml, newSiteName);
+      
+      const { error } = await supabase.from("hosted_sites").insert({
+        user_id: user!.id,
+        site_name: newSiteName.trim(),
+        html_content: generatedHtml,
+        vercel_project_id: deployData.projectId || null,
+        vercel_url: deployData.url || null,
+      });
+
+      if (error) {
+        toast.error("Site hospedado mas erro ao salvar");
+      } else {
+        toast.success("🚀 Site hospedado com sucesso!");
+        setAiPrompt("");
+        setNewSiteName("");
+        setGeneratedHtml("");
+        setPreviewHtml("");
+        setAiMode(false);
+        loadSites();
+        checkLimit();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao hospedar");
+    } finally {
+      setDeploying(false);
+    }
+  };
+
+  const handleDeploy = async () => {
+    if (!newSiteName.trim() || !newSiteHtml.trim()) {
+      toast.error("Preencha o nome e o código HTML do site");
+      return;
+    }
+    if (limit && !limit.allowed) {
+      if (limit.reason === "no_plan") { setShowPlans(true); return; }
+      toast.error(`Limite atingido (${limit.current}/${limit.max} sites)`);
+      return;
+    }
+    setDeploying(true);
+    try {
+      const deployData = await deployToVercel(newSiteHtml, newSiteName);
+
       const { error } = await supabase.from("hosted_sites").insert({
         user_id: user!.id,
         site_name: newSiteName.trim(),
         html_content: newSiteHtml,
-        vercel_project_id: data.projectId || null,
-        vercel_url: data.url || null,
+        vercel_project_id: deployData.projectId || null,
+        vercel_url: deployData.url || null,
       });
 
       if (error) {
-        console.error("DB error:", error);
         toast.error("Site hospedado mas erro ao salvar no banco");
       } else {
         toast.success("🚀 Site hospedado com sucesso!");
@@ -135,9 +225,8 @@ const Hosting = () => {
         loadSites();
         checkLimit();
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao hospedar site");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao hospedar site");
     } finally {
       setDeploying(false);
     }
@@ -147,30 +236,12 @@ const Hosting = () => {
     if (!editingSite) return;
     setDeploying(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      // Re-deploy to Vercel
       const siteName = editingSite.vercel_url?.replace("https://", "").split(".")[0] || `snyx-${Date.now()}`;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ html: editingSite.html_content, siteName }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        toast.error(data.error || "Erro ao atualizar site");
-        return;
-      }
+      const deployData = await deployToVercel(editingSite.html_content, siteName);
 
       await supabase.from("hosted_sites").update({
         html_content: editingSite.html_content,
-        vercel_url: data.url || editingSite.vercel_url,
+        vercel_url: deployData.url || editingSite.vercel_url,
         updated_at: new Date().toISOString(),
       }).eq("id", editingSite.id);
 
@@ -185,17 +256,13 @@ const Hosting = () => {
   };
 
   const handleDelete = async (site: HostedSite) => {
+    if (!confirm(`Excluir "${site.site_name}"?`)) return;
     setDeletingId(site.id);
-    try {
-      await supabase.from("hosted_sites").update({ status: "deleted" }).eq("id", site.id);
-      toast.success("Site removido!");
-      loadSites();
-      checkLimit();
-    } catch {
-      toast.error("Erro ao remover site");
-    } finally {
-      setDeletingId(null);
-    }
+    await supabase.from("hosted_sites").update({ status: "deleted" }).eq("id", site.id);
+    toast.success("Site excluído");
+    setSites(prev => prev.filter(s => s.id !== site.id));
+    setDeletingId(null);
+    checkLimit();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -280,7 +347,6 @@ const Hosting = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Basic */}
                 <div className="glass rounded-xl p-5 border border-emerald-500/20 space-y-3">
                   <div className="flex items-center gap-2">
                     <Globe size={18} className="text-emerald-400" />
@@ -293,8 +359,6 @@ const Hosting = () => {
                     <li>✅ SSL gratuito</li>
                   </ul>
                 </div>
-                
-                {/* Pro */}
                 <div className="glass rounded-xl p-5 border border-primary/30 space-y-3 relative">
                   <span className="absolute -top-2 right-3 text-[10px] bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-bold">POPULAR</span>
                   <div className="flex items-center gap-2">
@@ -308,8 +372,6 @@ const Hosting = () => {
                     <li>✅ Prioridade no deploy</li>
                   </ul>
                 </div>
-                
-                {/* Unlimited */}
                 <div className="glass rounded-xl p-5 border border-amber-500/20 space-y-3">
                   <div className="flex items-center gap-2">
                     <Crown size={18} className="text-amber-400" />
@@ -324,7 +386,6 @@ const Hosting = () => {
                 </div>
               </div>
               
-              {/* License Key Activation */}
               <div className="glass rounded-xl p-4 border border-border/10 space-y-3">
                 <h4 className="text-sm font-bold">Ativar com Chave de Licença</h4>
                 <div className="flex gap-2">
@@ -342,7 +403,7 @@ const Hosting = () => {
                         const { data } = await supabase.rpc("redeem_license_key", { p_key_code: licenseKey.trim() });
                         const result = data as any;
                         if (result?.success) {
-                          toast.success("Chave ativada! Plano de hospedagem liberado.");
+                          toast.success("Chave ativada! Plano de hospedagem liberado. 🎉");
                           setShowPlans(false);
                           setLicenseKey("");
                           checkLimit();
@@ -368,21 +429,117 @@ const Hosting = () => {
             </div>
           )}
 
-          {/* Action Bar */}
+          {/* AI Site Generator — Main Feature */}
           {tier !== "none" && (
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">Seus Sites</h2>
-              <Button onClick={() => setShowNewSite(true)} size="sm" className="gap-2" disabled={limit ? !limit.allowed : true}>
-                <Plus size={14} /> Novo Site
-              </Button>
+            <div className="glass rounded-2xl border border-primary/20 overflow-hidden">
+              <div className="p-5 md:p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/30 to-primary/20 flex items-center justify-center border border-purple-500/20">
+                    <Sparkles size={20} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold">Criar Site com IA ✨</h2>
+                    <p className="text-xs text-muted-foreground">Descreva o site que você quer e a IA cria e hospeda automaticamente</p>
+                  </div>
+                </div>
+
+                <Input
+                  value={newSiteName}
+                  onChange={(e) => setNewSiteName(e.target.value)}
+                  placeholder="Nome do site (ex: meu-portfolio)"
+                  className="text-sm"
+                />
+
+                <div className="relative">
+                  <Textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="Descreva o site que você quer... Ex: 'Um portfolio moderno e escuro para um designer chamado Lucas, com seções: sobre, projetos e contato'"
+                    className="text-sm min-h-[100px] pr-12 resize-none"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAiGenerate();
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleAiGenerate}
+                    disabled={aiGenerating || !aiPrompt.trim()}
+                    className="absolute bottom-3 right-3 p-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50"
+                  >
+                    {aiGenerating ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  </button>
+                </div>
+
+                {aiGenerating && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                    <Loader2 size={18} className="animate-spin text-purple-400" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-400">Gerando seu site...</p>
+                      <p className="text-xs text-muted-foreground">A IA está criando o design perfeito pra você</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview + Deploy */}
+                {previewHtml && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold flex items-center gap-2">
+                        <Globe size={14} className="text-primary" />
+                        Preview do Site
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => { setPreviewHtml(""); setGeneratedHtml(""); }}
+                        >
+                          Descartar
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={handleAiDeploy} 
+                          disabled={deploying || !newSiteName.trim()}
+                          className="gap-2"
+                        >
+                          {deploying ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                          {deploying ? "Hospedando..." : "Hospedar Agora 🚀"}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-border/20 overflow-hidden bg-white">
+                      <iframe
+                        srcDoc={previewHtml}
+                        className="w-full h-[400px] md:h-[500px]"
+                        title="Preview"
+                        sandbox="allow-scripts"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual mode toggle */}
+                {!previewHtml && (
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      onClick={() => { setAiMode(false); setShowNewSite(true); }}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                    >
+                      <Code size={12} /> Ou cole seu HTML manualmente
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* New Site Form */}
-          {showNewSite && (
+          {/* Manual New Site Form */}
+          {showNewSite && !aiMode && tier !== "none" && (
             <div className="glass rounded-2xl p-5 border border-border/20 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold">Hospedar Novo Site</h3>
+                <h3 className="font-bold">Hospedar com Código HTML</h3>
                 <button onClick={() => setShowNewSite(false)} className="text-muted-foreground hover:text-foreground text-sm">✕</button>
               </div>
               
@@ -444,75 +601,83 @@ const Hosting = () => {
           )}
 
           {/* Sites List */}
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : sites.length === 0 && tier !== "none" ? (
-            <div className="text-center py-16 space-y-3">
-              <Globe size={40} className="mx-auto text-muted-foreground/30" />
-              <p className="text-muted-foreground text-sm">Nenhum site hospedado ainda</p>
-              <p className="text-muted-foreground/50 text-xs">Crie um no chat Dev ou hospede direto aqui!</p>
-            </div>
-          ) : (
-            <div className="grid gap-3">
-              {sites.map((site) => (
-                <div key={site.id} className="glass rounded-xl p-4 border border-border/10 hover:border-primary/15 transition-all group">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Globe size={14} className="text-primary shrink-0" />
-                        <h4 className="font-bold text-sm truncate">{site.site_name}</h4>
-                      </div>
-                      {site.vercel_url && (
-                        <a
-                          href={site.vercel_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary/70 hover:text-primary truncate block mt-1 flex items-center gap-1"
-                        >
-                          <ExternalLink size={10} />
-                          {site.vercel_url}
-                        </a>
-                      )}
-                      <p className="text-[10px] text-muted-foreground/50 mt-1">
-                        Criado em {new Date(site.created_at).toLocaleDateString("pt-BR")}
-                        {site.updated_at !== site.created_at && ` • Atualizado ${new Date(site.updated_at).toLocaleDateString("pt-BR")}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {site.vercel_url && (
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(site.vercel_url!);
-                            toast.success("URL copiada!");
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                          title="Copiar URL"
-                        >
-                          <Copy size={13} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setEditingSite(site)}
-                        className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                        title="Editar"
-                      >
-                        <Edit size={13} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(site)}
-                        disabled={deletingId === site.id}
-                        className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Excluir"
-                      >
-                        {deletingId === site.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                      </button>
-                    </div>
-                  </div>
+          {tier !== "none" && (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">Seus Sites ({sites.length})</h2>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
-              ))}
-            </div>
+              ) : sites.length === 0 ? (
+                <div className="text-center py-16 space-y-3">
+                  <Globe size={40} className="mx-auto text-muted-foreground/30" />
+                  <p className="text-muted-foreground text-sm">Nenhum site hospedado ainda</p>
+                  <p className="text-muted-foreground/50 text-xs">Descreva o site acima e a IA cria pra você! ✨</p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {sites.map((site) => (
+                    <div key={site.id} className="glass rounded-xl p-4 border border-border/10 hover:border-primary/15 transition-all group">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Globe size={14} className="text-primary shrink-0" />
+                            <h4 className="font-bold text-sm truncate">{site.site_name}</h4>
+                          </div>
+                          {site.vercel_url && (
+                            <a
+                              href={site.vercel_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary/70 hover:text-primary truncate mt-1 flex items-center gap-1"
+                            >
+                              <ExternalLink size={10} />
+                              {site.vercel_url}
+                            </a>
+                          )}
+                          <p className="text-[10px] text-muted-foreground/50 mt-1">
+                            Criado em {new Date(site.created_at).toLocaleDateString("pt-BR")}
+                            {site.updated_at !== site.created_at && ` • Atualizado ${new Date(site.updated_at).toLocaleDateString("pt-BR")}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {site.vercel_url && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(site.vercel_url!);
+                                toast.success("URL copiada!");
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
+                              title="Copiar URL"
+                            >
+                              <Copy size={13} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setEditingSite(site)}
+                            className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
+                            title="Editar"
+                          >
+                            <Edit size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(site)}
+                            disabled={deletingId === site.id}
+                            className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                            title="Excluir"
+                          >
+                            {deletingId === site.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
