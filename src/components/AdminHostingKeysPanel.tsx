@@ -71,6 +71,27 @@ export function AdminHostingKeysPanel() {
     }
   };
 
+  const revokeAndDelete = async (key: LicenseKey) => {
+    if (!confirm(`Revogar acesso de ${key.used_by_email || "usuário"} e deletar a chave?`)) return;
+    try {
+      // Revoke hosting tier if used by someone
+      if (key.used_by_email) {
+        const { data: userId } = await supabase.rpc("find_user_by_email", { p_email: key.used_by_email });
+        if (userId) {
+          await supabase.rpc("admin_revoke_hosting", { p_user_id: userId });
+        }
+      }
+      // Delete the key
+      const { error } = await supabase.from("license_keys").delete().eq("id", key.id);
+      if (error) throw error;
+      toast.success(`Chave revogada e deletada! ${key.used_by_email || ""}`);
+      setKeys(prev => prev.filter(k => k.id !== key.id));
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao revogar chave");
+    }
+  };
+
   const copyKey = (id: string, code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
@@ -199,15 +220,13 @@ export function AdminHostingKeysPanel() {
                     >
                       {copiedId === key.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    {!key.is_used && (
-                      <button
-                        onClick={() => deleteKey(key.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 transition-all text-muted-foreground hover:text-red-400"
-                        title="Deletar"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => key.is_used ? revokeAndDelete(key) : deleteKey(key.id)}
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 transition-all text-muted-foreground hover:text-red-400"
+                      title={key.is_used ? "Revogar acesso e deletar" : "Deletar"}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );

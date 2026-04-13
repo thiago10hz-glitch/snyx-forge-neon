@@ -62,14 +62,24 @@ export function AdminConnectionsPanel() {
   const handleApprove = async (connection: ConnectionRequest) => {
     setActionLoading(connection.id);
     try {
-      // Find target user by email if not set
       let targetUserId = connection.target_user_id;
       if (!targetUserId) {
-        // Try to find user by email in profiles (we can't query auth.users)
-        // The edge function will handle this
-        toast.error("Usuário alvo não encontrado no sistema");
-        setActionLoading(null);
-        return;
+        // Look up user by email using security definer function
+        const { data: foundId, error: findErr } = await supabase
+          .rpc("find_user_by_email", { p_email: connection.target_email });
+
+        if (findErr || !foundId) {
+          toast.error("Usuário alvo não encontrado no sistema. Ele precisa se cadastrar primeiro!");
+          setActionLoading(null);
+          return;
+        }
+        targetUserId = foundId as string;
+
+        // Update the connection with the found user_id
+        await supabase
+          .from("chat_connections")
+          .update({ target_user_id: targetUserId })
+          .eq("id", connection.id);
       }
 
       // Update connection status
