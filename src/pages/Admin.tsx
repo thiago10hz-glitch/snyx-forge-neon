@@ -32,7 +32,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "free" | "banned" | "expired";
 
-type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security";
+type AdminTab = "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting";
 
 interface ChatMessage {
   id: string;
