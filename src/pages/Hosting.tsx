@@ -219,20 +219,45 @@ const Hosting = () => {
     try {
       const deployData = await deployToVercel(generatedHtml, newSiteName);
 
+      // Add custom domain if provided and user is DEV
+      let domainResult = null;
+      if (customDomain.trim() && profile?.is_dev && deployData.projectId) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const authToken = sessionData?.session?.access_token;
+          const domainRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ action: "add-domain", projectId: deployData.projectId, domain: customDomain.trim() }),
+          });
+          domainResult = await domainRes.json();
+        } catch (e) {
+          console.error("Erro ao adicionar domínio:", e);
+        }
+      }
+
       const { error } = await supabase.from("hosted_sites").insert({
         user_id: user!.id,
         site_name: newSiteName.trim(),
         html_content: generatedHtml,
         vercel_project_id: deployData.projectId || null,
         vercel_url: deployData.url || null,
+        custom_domain: customDomain.trim() || null,
       });
 
       if (error) {
         toast.error("Site hospedado mas erro ao salvar");
       } else {
+        const domainMsg = customDomain.trim() && domainResult?.success
+          ? `\n\n🌐 Domínio **${customDomain.trim()}** adicionado! Configure o DNS:\n- **CNAME** → \`cname.vercel-dns.com\`\n- ou **A** → \`76.76.21.21\``
+          : "";
         toast.success("🚀 Site publicado e online!");
-        setChatMessages(prev => [...prev, { role: "assistant", content: `✅ Site publicado com sucesso!\n\n🔗 ${deployData.url || "URL será gerada em breve"}\n\nVocê pode criar outro site ou editar os existentes.` }]);
+        setChatMessages(prev => [...prev, { role: "assistant", content: `✅ Site publicado com sucesso!\n\n🔗 ${deployData.url || "URL será gerada em breve"}${domainMsg}\n\nVocê pode criar outro site ou editar os existentes.` }]);
         setNewSiteName("");
+        setCustomDomain("");
         setGeneratedHtml("");
         setPreviewHtml("");
         loadSites();
