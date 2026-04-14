@@ -7,7 +7,8 @@ import {
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Monitor, Smartphone,
-  Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen
+  Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
+  Mic, MicOff, Plus, Paperclip, Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
