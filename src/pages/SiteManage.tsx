@@ -38,10 +38,17 @@ const SiteManage = () => {
   const [notFound, setNotFound] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
 
-  // Editing name
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Domain management
+  const [showDomainPanel, setShowDomainPanel] = useState(false);
+  const [domainInput, setDomainInput] = useState("");
+  const [addingDomain, setAddingDomain] = useState(false);
+  const [domains, setDomains] = useState<DomainInfo[]>([]);
+  const [loadingDomains, setLoadingDomains] = useState(false);
+  const [removingDomain, setRemovingDomain] = useState<string | null>(null);
 
   // Chat
   const [chatOpen, setChatOpen] = useState(false);
