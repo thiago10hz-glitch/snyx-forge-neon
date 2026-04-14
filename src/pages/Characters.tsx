@@ -193,7 +193,7 @@ const Characters = () => {
                 Desbloquear RPG Premium
               </button>
               <p className="text-[10px] text-muted-foreground/30">
-                Ative via chave ou entre em contato para adquirir
+                Entre em contato com o admin do SnyX para ativar
               </p>
             </div>
           </div>

@@ -60,8 +60,6 @@ const Hosting = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [_editingSite, setEditingSite] = useState<HostedSite | null>(null);
   const [showPlans, setShowPlans] = useState(false);
-  const [activatingKey, setActivatingKey] = useState(false);
-  const [licenseKey, setLicenseKey] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
   // AI Chat
@@ -510,41 +508,8 @@ const Hosting = () => {
                     </div>
                   ))}
                 </div>
-                {/* License Key */}
-                <div className="rounded-2xl p-5 border border-border/10 bg-muted/[0.03] space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Shield size={14} className="text-muted-foreground" />
-                    <h4 className="text-sm font-bold">Ativar com Chave de Licença</h4>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input value={licenseKey} onChange={(e) => setLicenseKey(e.target.value)} placeholder="HOST-PRO-XXXXXX" className="text-sm font-mono" />
-                    <Button
-                      onClick={async () => {
-                        if (!licenseKey.trim()) return;
-                        setActivatingKey(true);
-                        try {
-                          const { data } = await supabase.rpc("redeem_license_key", { p_key_code: licenseKey.trim() });
-                          const result = data as any;
-                          if (result?.success) {
-                            toast.success("Plano ativado! 🚀");
-                            setShowPlans(false);
-                            setLicenseKey("");
-                            await refreshProfile();
-                            await checkLimit();
-                            // Plan activated, page will re-render
-                          } else {
-                            toast.error(result?.error || "Chave inválida");
-                          }
-                        } catch { toast.error("Erro ao ativar chave"); } finally { setActivatingKey(false); }
-                      }}
-                      disabled={activatingKey || !licenseKey.trim()}
-                      size="sm"
-                    >
-                      {activatingKey ? <Loader2 size={14} className="animate-spin" /> : "Ativar"}
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground/50">Adquira uma chave com o administrador do SnyX</p>
-                </div>
+                {/* Contact admin */}
+                <p className="text-center text-xs text-muted-foreground/50">Entre em contato com o admin do SnyX para ativar seu plano</p>
               </div>
             )}
           </div>

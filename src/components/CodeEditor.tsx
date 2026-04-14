@@ -73,7 +73,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     if (!code || deploying) return;
     if (!profile?.hosting_tier || profile.hosting_tier === "none") {
       toast.error("Você precisa de um plano de Hosting para publicar sites", {
-        description: "Ative uma chave de hosting para desbloquear a publicação.",
+        description: "Entre em contato com o admin do SnyX para ativar.",
       });
       return;
     }
