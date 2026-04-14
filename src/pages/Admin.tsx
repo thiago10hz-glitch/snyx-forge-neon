@@ -789,7 +789,7 @@ export default function Admin() {
                               />
                             )}
                             <ActionButton
-                              icon={Package}
+                              icon={Swords}
                               title="Dar RPG Premium"
                               color="text-purple-400 hover:bg-purple-500/10 border-purple-500/20"
                               onClick={() => setRpgModalUser(u.user_id)}
