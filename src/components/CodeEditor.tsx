@@ -148,10 +148,10 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const renderCodeEditor = () => (
     code ? (
       <div className="flex h-full">
-        {/* Line numbers */}
-        <div className="py-3 px-2.5 text-right select-none border-r border-border/8 overflow-hidden bg-muted/[0.02] shrink-0">
+      {/* Line numbers */}
+        <div className="py-2 px-1.5 text-right select-none border-r border-border/8 overflow-hidden bg-muted/[0.02] shrink-0">
           {lines.map((_, i) => (
-            <div key={i} className="text-[10px] leading-6 text-muted-foreground/15 font-mono tabular-nums">
+            <div key={i} className="text-[9px] leading-5 text-muted-foreground/15 font-mono tabular-nums">
               {i + 1}
             </div>
           ))}
@@ -161,28 +161,27 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
           value={code}
           onChange={(e) => onCodeChange(e.target.value)}
           spellCheck={false}
-          className="flex-1 bg-transparent text-foreground/85 font-mono text-[12px] leading-6 p-3 resize-none focus:outline-none scrollbar-thin"
+          className="flex-1 bg-transparent text-foreground/85 font-mono text-[11px] leading-5 p-2 resize-none focus:outline-none scrollbar-thin"
           placeholder="// O código gerado aparecerá aqui..."
         />
       </div>
     ) : (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/[0.06] to-primary/[0.03] border border-cyan-500/[0.08] flex items-center justify-center shadow-2xl">
-            <Terminal className="w-8 h-8 text-cyan-400/25" />
+        <div className="relative mb-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/[0.06] to-primary/[0.03] border border-cyan-500/[0.08] flex items-center justify-center">
+            <Terminal className="w-6 h-6 text-cyan-400/25" />
           </div>
-          <div className="absolute -inset-6 bg-cyan-500/[0.03] rounded-full blur-3xl -z-10" />
         </div>
-        <p className="text-sm font-bold text-muted-foreground/40 mb-1.5">Nenhum código ainda</p>
-        <p className="text-[11px] text-muted-foreground/20 max-w-[240px] leading-relaxed mb-4">
-          Use o chat para descrever o que quer criar, ou adicione componentes prontos.
+        <p className="text-xs font-bold text-muted-foreground/40 mb-1">Nenhum código ainda</p>
+        <p className="text-[10px] text-muted-foreground/20 max-w-[200px] leading-relaxed mb-3">
+          Use o chat para descrever o que quer criar.
         </p>
         <button
           onClick={() => setShowComponents(true)}
-          className="text-[11px] px-4 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-500/20 transition-all"
+          className="text-[10px] px-3 py-1.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-500/20 transition-all"
         >
-          <Layers className="w-3 h-3 inline mr-1.5" />
-          Componentes Prontos
+          <Layers className="w-2.5 h-2.5 inline mr-1" />
+          Componentes
         </button>
       </div>
     )
@@ -201,15 +200,15 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         >
           <div className={`h-full ${viewport !== "desktop" ? "rounded-xl overflow-hidden shadow-2xl shadow-black/40" : ""}`}>
             {/* Browser chrome */}
-            <div className="h-7 bg-[#141414] flex items-center gap-1.5 px-3 border-b border-white/[0.04] rounded-t-xl">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+            <div className="h-6 bg-[#141414] flex items-center gap-1 px-2 border-b border-white/[0.04] rounded-t-lg">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 rounded-full bg-[#ff5f57]" />
+                <div className="w-2 h-2 rounded-full bg-[#febc2e]" />
+                <div className="w-2 h-2 rounded-full bg-[#28c840]" />
               </div>
-              <div className="flex-1 mx-6">
-                <div className="h-4 rounded-md bg-white/[0.06] flex items-center justify-center">
-                  <span className="text-[9px] text-white/25 font-mono">localhost:3000</span>
+              <div className="flex-1 mx-4">
+                <div className="h-3.5 rounded bg-white/[0.06] flex items-center justify-center">
+                  <span className="text-[8px] text-white/25 font-mono">localhost:3000</span>
                 </div>
               </div>
             </div>
@@ -217,7 +216,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
               key={previewKey}
               srcDoc={getPreviewHtml()}
               className={`w-full border-0 ${previewTheme === "dark" ? "bg-[#050505]" : "bg-white"}`}
-              style={{ height: "calc(100% - 28px)" }}
+              style={{ height: "calc(100% - 24px)" }}
               sandbox="allow-scripts allow-same-origin"
               title="Preview"
             />
@@ -226,14 +225,14 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       </div>
     ) : (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500/[0.06] to-primary/[0.03] border border-violet-500/[0.06] flex items-center justify-center">
-            <Eye className="w-8 h-8 text-violet-400/20" />
+        <div className="relative mb-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500/[0.06] to-primary/[0.03] border border-violet-500/[0.06] flex items-center justify-center">
+            <Eye className="w-6 h-6 text-violet-400/20" />
           </div>
         </div>
-        <p className="text-sm font-bold text-muted-foreground/40 mb-1.5">Preview em tempo real</p>
-        <p className="text-[11px] text-muted-foreground/20 max-w-[240px] leading-relaxed">
-          Gere um site e veja o resultado renderizado aqui.
+        <p className="text-xs font-bold text-muted-foreground/40 mb-1">Preview em tempo real</p>
+        <p className="text-[10px] text-muted-foreground/20 max-w-[200px] leading-relaxed">
+          Gere um site e veja o resultado aqui.
         </p>
       </div>
     )
@@ -453,7 +452,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
       {/* Console Panel */}
       {showConsole && (
-        <div className="h-32 border-t border-border/10 bg-[hsl(var(--background))] shrink-0 flex flex-col">
+        <div className="h-24 border-t border-border/10 bg-[hsl(var(--background))] shrink-0 flex flex-col">
           <div className="flex items-center justify-between px-3 py-1 border-b border-border/5">
             <div className="flex items-center gap-2">
               <Terminal className="w-3 h-3 text-muted-foreground/40" />
