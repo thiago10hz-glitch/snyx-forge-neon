@@ -187,12 +187,19 @@ const Index = () => {
           </div>
         ) : chatMode === "characters" ? (
           <div className="flex-1 overflow-hidden">
-            <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={(id) => { setChatMode("friend"); }} />
+            <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={async (id) => {
+              const { data } = await supabase.from("ai_characters").select("id, name, system_prompt, avatar_url").eq("id", id).single();
+              if (data) {
+                setActiveCharacter(data);
+                await supabase.rpc("increment_character_chat_count", { p_character_id: id });
+              }
+              setChatMode("friend");
+            }} />
           </div>
         ) : (
           <>
             <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
-              <ChatPanel onCodeGenerated={setCode} onModeChange={(mode) => setChatMode(mode)} />
+              <ChatPanel onCodeGenerated={setCode} onModeChange={(mode) => setChatMode(mode)} activeCharacter={activeCharacter} onClearCharacter={() => setActiveCharacter(null)} />
             </div>
             {chatMode === "programmer" && (
               <div className="hidden md:block flex-1 min-w-0">
