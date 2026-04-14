@@ -844,6 +844,17 @@ const Hosting = () => {
                                 >
                                   <Copy size={14} />
                                 </button>
+                                <button
+                                  onClick={() => {
+                                    const url = `${window.location.origin}/site/${site.id}`;
+                                    navigator.clipboard.writeText(url);
+                                    toast.success("Link de gerenciamento copiado!");
+                                  }}
+                                  className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Copiar link de gerenciamento"
+                                >
+                                  <Link2 size={14} />
+                                </button>
                               </>
                             )}
                             <button
