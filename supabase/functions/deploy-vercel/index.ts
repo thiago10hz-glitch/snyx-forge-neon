@@ -19,17 +19,24 @@ Deno.serve(async (req) => {
   try {
     // Authenticate the user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return jsonResponse({ error: "Não autorizado" }, 401);
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Não autorizado" }, 401);
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return jsonResponse({ error: "Não autorizado" }, 401);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      console.error("Auth failed:", claimsError?.message || "no claims");
+      return jsonResponse({ error: "Sessão expirada. Faça login novamente." }, 401);
+    }
+    const userId = claimsData.claims.sub;
 
     const VERCEL_TOKEN = Deno.env.get("VERCEL_TOKEN");
     if (!VERCEL_TOKEN) {
