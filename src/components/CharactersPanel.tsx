@@ -6,12 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 
 function CharacterImg({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  const imageSrc = resolveCharacterAvatar(alt, src);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  if (!src) {
+  useEffect(() => {
+    setLoaded(false);
+    setError(false);
+  }, [imageSrc]);
+
+  if (!imageSrc || error) {
     return (
       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-lg font-bold text-primary/40">
         {alt?.[0] || "?"}
@@ -21,23 +28,18 @@ function CharacterImg({ src, alt, className = "" }: { src: string; alt: string; 
 
   return (
     <div className="relative w-full h-full">
-      {!loaded && !error && (
-        <div className="absolute inset-0 bg-muted/20 animate-pulse rounded-lg" />
-      )}
-      {error ? (
-        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-lg font-bold text-primary/40">
-          {alt?.[0] || "?"}
-        </div>
-      ) : (
-        <img
-          src={src}
-          alt={alt}
-          className={`${className} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-          style={{ position: loaded ? 'relative' : 'absolute', inset: 0 }}
-          onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
-        />
-      )}
+      {!loaded && <div className="absolute inset-0 rounded-lg bg-muted/20 animate-pulse" />}
+      <img
+        src={imageSrc}
+        alt={alt}
+        className={`${className} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        style={{ position: loaded ? "relative" : "absolute", inset: 0 }}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        loading="lazy"
+        width={1024}
+        height={1024}
+      />
     </div>
   );
 }

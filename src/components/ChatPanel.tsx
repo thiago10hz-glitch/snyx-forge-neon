@@ -9,6 +9,7 @@ import { VipModal } from "./VipModal";
 import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
+import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 
 interface ImageAttachment {
   kind: "image";
@@ -162,6 +163,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
+  const activeCharacterAvatar = activeCharacter ? resolveCharacterAvatar(activeCharacter.name, activeCharacter.avatar_url) : null;
 
   const checkMessageLimit = useCallback(async (): Promise<MessageLimitState | null> => {
     if (!user || profile?.is_vip || profile?.is_dev) {
