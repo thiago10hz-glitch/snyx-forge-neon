@@ -742,8 +742,8 @@ const Hosting = () => {
                   </div>
                 )}
 
-                {/* Input Bar */}
-                <div className="p-2.5 border-t border-border/5 shrink-0">
+                {/* Input Bar - same style as main chat */}
+                <div className="p-2 sm:p-3 border-t border-border/5 shrink-0">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -751,39 +751,77 @@ const Hosting = () => {
                     className="hidden"
                     onChange={handleChatFileUpload}
                   />
-                  <div className="flex items-center gap-1.5 bg-muted/[0.04] border border-border/10 rounded-xl px-1.5 py-1 focus-within:border-primary/20 focus-within:ring-1 focus-within:ring-primary/10 transition-all">
+                  <div className="flex items-end gap-1 bg-muted/[0.04] rounded-2xl px-2 sm:px-3 py-2 border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500">
+                    {/* Image upload button */}
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
-                      title="Anexar"
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                      title="📸 Enviar imagem de referência"
                     >
-                      <Plus size={14} />
+                      <Camera size={18} />
                     </button>
-                    <input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendChat()}
-                      placeholder={previewHtml ? "Peça uma alteração..." : "Descreva o site que quer criar..."}
-                      disabled={chatLoading}
-                      className="flex-1 bg-transparent text-xs placeholder:text-muted-foreground/25 focus:outline-none disabled:opacity-40 py-1"
-                    />
+                    {/* Image gen placeholder */}
+                    <button
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300 shrink-0 mb-0.5 hidden sm:block"
+                      title="🎨 Criar imagem com IA"
+                      onClick={() => setChatInput("Adicione uma imagem hero gerada por IA ao site")}
+                    >
+                      <ImagePlus size={18} />
+                    </button>
+                    {/* Edit/rewrite */}
+                    <button
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10 transition-all duration-300 shrink-0 mb-0.5 hidden sm:block"
+                      title="✍️ Reescrever conteúdo"
+                      onClick={() => setChatInput("Reescreva todo o texto do site de forma mais profissional")}
+                    >
+                      <PenLine size={18} />
+                    </button>
+                    {/* File attach */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                      title="Anexar arquivo"
+                    >
+                      <Paperclip size={18} />
+                    </button>
+                    {/* Mic */}
                     <button
                       onClick={handleVoiceToggle}
-                      className={`p-1.5 rounded-md transition-all shrink-0 ${
+                      className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                         isRecording
-                          ? "bg-destructive/15 text-destructive animate-pulse"
-                          : "hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground"
+                          ? "bg-destructive/10 text-destructive animate-pulse"
+                          : "text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10"
                       }`}
-                      title={isRecording ? "Parar" : "Falar"}
+                      title={isRecording ? "Parar gravação" : "Gravar áudio"}
                     >
-                      {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
+                      {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
                     </button>
+                    {/* Text input */}
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendChat();
+                        }
+                      }}
+                      placeholder={previewHtml ? "Peça uma alteração... 💬" : "Descreva o site que quer criar... 🚀"}
+                      rows={1}
+                      disabled={chatLoading}
+                      className="flex-1 min-w-0 bg-transparent py-1.5 text-[12px] sm:text-[13px] outline-none placeholder:text-muted-foreground/20 resize-none max-h-[120px] leading-relaxed disabled:opacity-40"
+                    />
+                    {/* Send */}
                     <button
                       onClick={handleSendChat}
                       disabled={chatLoading || !chatInput.trim()}
-                      className="p-1.5 rounded-md bg-primary/90 text-primary-foreground hover:bg-primary transition-all disabled:opacity-30 shrink-0"
+                      className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                        chatInput.trim()
+                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105'
+                          : 'bg-muted/10 text-muted-foreground/15'
+                      } disabled:opacity-40 disabled:hover:scale-100`}
                     >
-                      {chatLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                      {chatLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     </button>
                   </div>
                 </div>
