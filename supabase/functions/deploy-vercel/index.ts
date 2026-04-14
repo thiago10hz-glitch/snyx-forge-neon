@@ -30,13 +30,12 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
-      console.error("Auth failed:", claimsError?.message || "no claims");
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      console.error("Auth failed:", userError?.message || "no user");
       return jsonResponse({ error: "Sessão expirada. Faça login novamente." }, 401);
     }
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
 
     const VERCEL_TOKEN = Deno.env.get("VERCEL_TOKEN");
     if (!VERCEL_TOKEN) {
