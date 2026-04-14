@@ -72,6 +72,10 @@ const Hosting = () => {
   const [chatPanelOpen, setChatPanelOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"chat" | "sites">("chat");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const loadSites = useCallback(async () => {
     if (!user) return;
