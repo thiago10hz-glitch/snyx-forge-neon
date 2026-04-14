@@ -829,7 +829,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
           mode: usePremium ? "premium" : mode,
-          is_vip: !!(profile?.is_vip || profile?.is_dev || profile?.is_pack_steam),
+          is_vip: !!profile?.is_vip,
         };
       }
 
