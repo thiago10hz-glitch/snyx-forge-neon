@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChatPanel } from "@/components/ChatPanel";
-import { CodeEditor } from "@/components/CodeEditor";
-import { MusicPanel } from "@/components/MusicPanel";
+import { CharacterHub } from "@/components/CharacterHub";
 import { CharacterHub } from "@/components/CharacterHub";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
