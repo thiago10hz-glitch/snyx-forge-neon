@@ -7,6 +7,7 @@ import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { VipModal } from "@/components/VipModal";
 import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ const Index = () => {
   const { profile, user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showVipModal, setShowVipModal] = useState(false);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [activeCharacter, setActiveCharacter] = useState<{ id: string; name: string; system_prompt: string; avatar_url: string | null } | null>(null);
@@ -28,6 +30,16 @@ const Index = () => {
     });
   }, [user]);
 
+  const hasRpgAccess = !!(profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin);
+  const safeChatMode = chatMode === "characters" && !hasRpgAccess ? "friend" : chatMode;
+
+  useEffect(() => {
+    if (!hasRpgAccess) {
+      if (chatMode === "characters") setChatMode("friend");
+      if (activeCharacter) setActiveCharacter(null);
+    }
+  }, [hasRpgAccess, chatMode, activeCharacter]);
+
   useAdminHeartbeat();
 
   const navItems = [
@@ -36,6 +48,46 @@ const Index = () => {
     { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
     { to: "/downloads", icon: Download, label: "App" },
   ];
+
+  const toggleCharactersPanel = () => {
+    if (!hasRpgAccess) {
+      setShowVipModal(true);
+      return;
+    }
+
+    setChatMode((current) => current === "characters" ? "friend" : "characters");
+  };
+
+  const openCharactersPanel = () => {
+    setShowMobileNav(false);
+
+    if (!hasRpgAccess) {
+      setShowVipModal(true);
+      return;
+    }
+
+    setChatMode("characters");
+  };
+
+  const handleCharacterStartChat = async (id: string) => {
+    if (!hasRpgAccess) {
+      setShowVipModal(true);
+      return;
+    }
+
+    const { data } = await supabase
+      .from("ai_characters")
+      .select("id, name, system_prompt, avatar_url")
+      .eq("id", id)
+      .single();
+
+    if (data) {
+      setActiveCharacter(data);
+      await supabase.rpc("increment_character_chat_count", { p_character_id: id });
+    }
+
+    setChatMode("friend");
+  };
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden relative">
@@ -66,7 +118,7 @@ const Index = () => {
         <nav className="hidden sm:flex items-center gap-1">
           <AdminPresenceIndicator />
           <ThemeSelector />
-          <button onClick={() => setChatMode(chatMode === "characters" ? "friend" : "characters")} className={`nav-link group ${chatMode === "characters" ? "text-primary" : ""}`}>
+          <button onClick={toggleCharactersPanel} className={`nav-link group ${safeChatMode === "characters" ? "text-primary" : ""}`}>
             <Users className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
             <span>Criar RPG</span>
           </button>
@@ -143,7 +195,7 @@ const Index = () => {
           <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
           <div className="absolute top-14 right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] animate-reveal">
             <button
-              onClick={() => { setChatMode("characters"); setShowMobileNav(false); }}
+              onClick={openCharactersPanel}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
             >
               <Users className="w-4 h-4" />
@@ -185,27 +237,25 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex overflow-hidden">
-        {chatMode === "music" ? (
+        {safeChatMode === "music" ? (
           <div className="flex-1 overflow-hidden">
             <MusicPanel onBack={() => setChatMode("friend")} />
           </div>
-        ) : chatMode === "characters" ? (
+        ) : safeChatMode === "characters" ? (
           <div className="flex-1 overflow-hidden">
-            <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={async (id) => {
-              const { data } = await supabase.from("ai_characters").select("id, name, system_prompt, avatar_url").eq("id", id).single();
-              if (data) {
-                setActiveCharacter(data);
-                await supabase.rpc("increment_character_chat_count", { p_character_id: id });
-              }
-              setChatMode("friend");
-            }} />
+            <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
           </div>
         ) : (
           <>
-            <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
-              <ChatPanel onCodeGenerated={setCode} onModeChange={(mode) => setChatMode(mode)} activeCharacter={activeCharacter} onClearCharacter={() => setActiveCharacter(null)} />
+            <div className={`w-full ${safeChatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
+              <ChatPanel
+                onCodeGenerated={setCode}
+                onModeChange={(mode) => setChatMode(mode)}
+                activeCharacter={hasRpgAccess ? activeCharacter : null}
+                onClearCharacter={() => setActiveCharacter(null)}
+              />
             </div>
-            {chatMode === "programmer" && (
+            {safeChatMode === "programmer" && (
               <div className="hidden md:block flex-1 min-w-0">
                 <CodeEditor code={code} onCodeChange={setCode} />
               </div>
@@ -216,6 +266,7 @@ const Index = () => {
 
       <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
       <SupportChat />
+      <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
     </div>
   );
 };
