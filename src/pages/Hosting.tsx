@@ -558,6 +558,14 @@ const Hosting = () => {
                 placeholder="Nome do projeto..."
                 className="h-7 w-40 text-[11px] bg-muted/5 border-border/10 rounded-md hidden md:flex"
               />
+              {profile?.is_dev && (
+                <Input
+                  value={customDomain}
+                  onChange={(e) => setCustomDomain(e.target.value)}
+                  placeholder="meudominio.com (opcional)"
+                  className="h-7 w-44 text-[11px] bg-muted/5 border-border/10 rounded-md hidden md:flex"
+                />
+              )}
               <Button size="sm" onClick={handlePublish} disabled={deploying || !newSiteName.trim()} className="gap-1.5 h-7 text-[11px] px-4 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 border-0">
                 {deploying ? <Loader2 size={11} className="animate-spin" /> : <Rocket size={11} />}
                 {deploying ? "Publicando..." : "Publicar"}
