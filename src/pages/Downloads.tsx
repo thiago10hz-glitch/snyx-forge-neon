@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
-import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles } from "lucide-react";
+import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AppRelease {
@@ -20,6 +20,7 @@ export default function Downloads() {
   const [release, setRelease] = useState<AppRelease | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const hasAccess = !!profile?.is_pack_steam;
 
@@ -111,7 +112,7 @@ export default function Downloads() {
         </div>
       </header>
 
-      <div className="relative z-10 max-w-lg mx-auto p-5 sm:p-8 mt-8 sm:mt-16 md:mt-20">
+      <div className="relative z-10 max-w-2xl mx-auto p-4 sm:p-6 mt-6 sm:mt-10">
         {!hasAccess ? (
           /* Locked state */
           <div className="text-center space-y-5 animate-fade-in-up">
@@ -153,65 +154,127 @@ export default function Downloads() {
             </div>
           </div>
         ) : (
-          /* Download card */
-          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up relative">
-            {/* Pack Steam Tag */}
-            <div className="absolute top-4 right-4 z-10">
-              <span className="px-3 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-black uppercase tracking-wider border border-primary/20 flex items-center gap-1.5">
-                <Package className="w-3 h-3" />
-                Pack Steam
-              </span>
-            </div>
-            <div className="p-6 sm:p-8 text-center space-y-5">
-              {/* App icon */}
-              <div className="relative mx-auto w-fit">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
-                  <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+          /* App Store style card */
+          <div className="animate-fade-in-up space-y-4">
+            {/* Main app card */}
+            <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated">
+              <div className="p-5 sm:p-6">
+                <div className="flex items-start gap-4 sm:gap-5">
+                  {/* App icon */}
+                  <div className="relative shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[22px] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
+                      <Zap className="w-9 h-9 sm:w-11 sm:h-11 text-primary" />
+                    </div>
+                    <div className="absolute -inset-2 rounded-[26px] bg-primary/8 blur-xl -z-10 animate-breathe" />
+                  </div>
+
+                  {/* App info */}
+                  <div className="flex-1 min-w-0 space-y-2.5">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black leading-tight">SnyX App</h2>
+                      <p className="text-xs text-muted-foreground/40 mt-0.5">Thiago Dev • Pack Steam</p>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-0.5">
+                        {[1,2,3,4,5].map(i => (
+                          <Star key={i} className="w-3.5 h-3.5 text-primary fill-primary" />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground/40 font-medium">5.0</span>
+                    </div>
+
+                    {/* Install button */}
+                    <button
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="mt-1 px-6 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-2 w-fit"
+                    >
+                      {downloading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      {downloading ? "Baixando..." : "Instalar"}
+                    </button>
+                  </div>
                 </div>
-                <div className="absolute -inset-3 rounded-2xl bg-primary/8 blur-xl -z-10 animate-breathe" />
               </div>
 
-              <div className="space-y-1">
-                <h2 className="text-2xl font-black">SnyX App</h2>
-                <p className="text-sm text-muted-foreground/40">Windows Desktop</p>
-              </div>
-
-              {/* Version info */}
-              <div className="flex items-center justify-center gap-2.5 flex-wrap">
-                <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/15">
-                  v{release.version}
-                </span>
+              {/* Stats bar */}
+              <div className="border-t border-border/8 px-5 sm:px-6 py-3 flex items-center gap-4 sm:gap-6 overflow-x-auto">
+                <div className="flex flex-col items-center min-w-fit">
+                  <span className="text-xs font-bold text-foreground/80">v{release.version}</span>
+                  <span className="text-[10px] text-muted-foreground/40">Versão</span>
+                </div>
+                <div className="w-px h-8 bg-border/10" />
                 {release.file_size && (
-                  <span className="px-3 py-1.5 rounded-full bg-muted/10 text-muted-foreground/60 text-xs border border-border/10">
-                    {formatSize(release.file_size)}
-                  </span>
+                  <>
+                    <div className="flex flex-col items-center min-w-fit">
+                      <span className="text-xs font-bold text-foreground/80">{formatSize(release.file_size)}</span>
+                      <span className="text-[10px] text-muted-foreground/40">Tamanho</span>
+                    </div>
+                    <div className="w-px h-8 bg-border/10" />
+                  </>
                 )}
-                <span className="px-3 py-1.5 rounded-full bg-muted/10 text-muted-foreground/60 text-xs border border-border/10">
-                  {new Date(release.created_at).toLocaleDateString("pt-BR")}
-                </span>
+                <div className="flex flex-col items-center min-w-fit">
+                  <span className="text-xs font-bold text-foreground/80">{new Date(release.created_at).toLocaleDateString("pt-BR")}</span>
+                  <span className="text-[10px] text-muted-foreground/40">Atualizado</span>
+                </div>
+                <div className="w-px h-8 bg-border/10" />
+                <div className="flex flex-col items-center min-w-fit">
+                  <div className="flex items-center gap-1">
+                    <Monitor className="w-3 h-3 text-foreground/80" />
+                    <span className="text-xs font-bold text-foreground/80">Windows</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/40">Plataforma</span>
+                </div>
               </div>
+            </div>
 
-              {/* Changelog */}
-              {release.changelog && (
-                <div className="text-left rounded-2xl bg-muted/8 p-4 border border-border/8">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground/40 mb-2 tracking-wider">Changelog</p>
+            {/* Features section */}
+            <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
+              <h3 className="text-sm font-bold text-foreground/70">Recursos</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Shield, label: "Anti-ban seguro" },
+                  { icon: Sparkles, label: "Auto atualização" },
+                  { icon: Zap, label: "Desempenho máximo" },
+                  { icon: CheckCircle2, label: "Fácil instalação" },
+                ].map((feat) => (
+                  <div key={feat.label} className="flex items-center gap-2.5 p-3 rounded-2xl bg-muted/8 border border-border/8">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <feat.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-xs font-medium text-foreground/70">{feat.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Changelog section */}
+            {release.changelog && (
+              <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
+                <button
+                  onClick={() => setShowChangelog(!showChangelog)}
+                  className="w-full flex items-center justify-between"
+                >
+                  <h3 className="text-sm font-bold text-foreground/70">Novidades</h3>
+                  <span className="text-xs text-primary font-medium">
+                    {showChangelog ? "Ocultar" : "Ver mais"}
+                  </span>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 ${showChangelog ? "max-h-96" : "max-h-16"}`}>
                   <p className="text-xs text-muted-foreground/60 whitespace-pre-wrap leading-relaxed">{release.changelog}</p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Download button */}
-              <button
-                onClick={handleDownload}
-                disabled={downloading}
-                className="w-full px-6 py-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-2xl transition-all flex items-center justify-center gap-2.5 text-sm shadow-xl shadow-primary/20 hover:shadow-primary/30 btn-glow active:scale-[0.98]"
-              >
-                {downloading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Download className="w-5 h-5" />
-                )}
-                {downloading ? "Baixando..." : "Baixar para Windows"}
-              </button>
+            {/* Pack Steam badge */}
+            <div className="flex items-center justify-center gap-2 py-2">
+              <Package className="w-3.5 h-3.5 text-primary/50" />
+              <span className="text-[11px] text-muted-foreground/30 font-medium">Exclusivo Pack Steam</span>
             </div>
           </div>
         )}
