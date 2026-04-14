@@ -120,7 +120,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     }
 
     recognitionRef.current?.stop();
-    synthRef.current.cancel();
+    synthRef.current?.cancel();
   }, []);
 
   const speak = useCallback((text: string, onEnd?: () => void) => {
