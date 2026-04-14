@@ -729,6 +729,17 @@ export default function Admin() {
                                 disabled={actionLoading !== null}
                               />
                             )}
+                            <ActionButton
+                              icon={ShieldCheck}
+                              title="Badge SnyX"
+                              color="text-primary hover:bg-primary/10 border-primary/20"
+                              onClick={() => {
+                                const badge = prompt("Badge da equipe (ex: SnyX, Primeira-Dama)\nDeixe vazio para remover:");
+                                setTeamBadge(u.user_id, badge?.trim() || null);
+                              }}
+                              loading={actionLoading === u.user_id + "-badge"}
+                              disabled={actionLoading !== null}
+                            />
                             {isBanned(u) ? (
                               <ActionButton
                                 icon={ShieldOff}
