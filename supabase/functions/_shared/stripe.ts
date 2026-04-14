@@ -32,7 +32,6 @@ export function createStripeClient(env: StripeEnv): Stripe {
   };
 
   return new Stripe(connectionApiKey, {
-    apiVersion: '2025-03-31.basil',
     httpClient: Stripe.createFetchHttpClient(customFetch),
   });
 }
