@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, TrendingUp, Star, Filter } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, TrendingUp, Star, Filter, Lock, Swords, Wand2, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { VipModal } from "@/components/VipModal";
 
 type Character = {
   id: string;
@@ -28,18 +28,31 @@ const CATEGORIES = [
 ];
 
 const Characters = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [showVipModal, setShowVipModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
 
   useEffect(() => {
-    fetchCharacters();
-    if (user) fetchLikes();
+    if (user) {
+      fetchCharacters();
+      fetchLikes();
+      checkAdmin();
+    }
   }, [user]);
+
+  const checkAdmin = async () => {
+    if (!user) return;
+    const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    setIsAdmin(!!data);
+  };
 
   const fetchCharacters = async () => {
     const { data } = await supabase
@@ -64,6 +77,7 @@ const Characters = () => {
   const toggleLike = async (charId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) return;
+    if (!hasAccess) { setShowVipModal(true); return; }
     if (likedIds.has(charId)) {
       await supabase.from("character_likes").delete().eq("character_id", charId).eq("user_id", user.id);
       setLikedIds((prev) => { const s = new Set(prev); s.delete(charId); return s; });
@@ -76,6 +90,7 @@ const Characters = () => {
   };
 
   const startChat = (charId: string) => {
+    if (!hasAccess) { setShowVipModal(true); return; }
     navigate("/?character=" + charId);
   };
 
@@ -87,6 +102,109 @@ const Characters = () => {
 
   const topRanking = [...characters].sort((a, b) => b.chat_count - a.chat_count).slice(0, 5);
 
+  // === PAYWALL — sem acesso ===
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        {/* Ambient */}
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-purple-500/8 blur-[120px] animate-glow-pulse" />
+          <div className="absolute bottom-20 left-1/4 h-64 w-64 rounded-full bg-pink-500/5 blur-[100px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+        </div>
+
+        {/* Header */}
+        <header className="sticky top-0 z-20 glass border-b border-border/10">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+            <Link to="/" className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted/15 transition-all text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Personagens RPG</h1>
+              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase">Premium</p>
+            </div>
+          </div>
+        </header>
+
+        {/* Paywall Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-4">
+          <div className="max-w-md w-full text-center space-y-6 animate-fade-in-up">
+            {/* Icon */}
+            <div className="relative mx-auto w-fit">
+              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-pink-500/5 flex items-center justify-center border border-purple-500/20 shadow-2xl shadow-purple-500/15">
+                <Swords className="w-12 h-12 text-purple-400" />
+              </div>
+              <div className="absolute -inset-5 rounded-3xl bg-purple-500/8 blur-2xl -z-10 animate-breathe" />
+              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center border-2 border-background shadow-lg shadow-purple-500/30">
+                <Lock className="w-4 h-4 text-white" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                RPG Premium
+              </h2>
+              <p className="text-sm text-muted-foreground/60 leading-relaxed">
+                Crie e converse com <span className="text-purple-400 font-bold">personagens AI únicos</span>. 
+                Aventuras épicas, romances, batalhas e muito mais!
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <div className="rounded-xl border border-purple-500/15 bg-purple-500/5 p-4 space-y-2">
+                <Wand2 className="w-5 h-5 text-purple-400" />
+                <h4 className="text-xs font-bold">Criar Personagens</h4>
+                <p className="text-[10px] text-muted-foreground/50">Crie seus próprios personagens com personalidade única</p>
+              </div>
+              <div className="rounded-xl border border-pink-500/15 bg-pink-500/5 p-4 space-y-2">
+                <MessageCircle className="w-5 h-5 text-pink-400" />
+                <h4 className="text-xs font-bold">Chat Imersivo</h4>
+                <p className="text-[10px] text-muted-foreground/50">Conversas profundas e roleplay sem limites</p>
+              </div>
+              <div className="rounded-xl border border-purple-500/15 bg-purple-500/5 p-4 space-y-2">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                <h4 className="text-xs font-bold">IA Avançada</h4>
+                <p className="text-[10px] text-muted-foreground/50">Respostas inteligentes e adaptativas</p>
+              </div>
+              <div className="rounded-xl border border-pink-500/15 bg-pink-500/5 p-4 space-y-2">
+                <ShieldCheck className="w-5 h-5 text-pink-400" />
+                <h4 className="text-xs font-bold">Acesso Total</h4>
+                <p className="text-[10px] text-muted-foreground/50">Todos os personagens da comunidade</p>
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="inline-flex flex-col items-center gap-1 px-8 py-5 rounded-2xl bg-purple-500/5 border border-purple-500/15">
+              <span className="text-xs text-muted-foreground/50">A partir de</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-foreground">R$80</span>
+                <span className="text-sm text-muted-foreground/50">/mês</span>
+              </div>
+              <span className="text-[10px] text-purple-400 font-medium">ou incluso no plano VIP/DEV</span>
+            </div>
+
+            {/* CTA */}
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowVipModal(true)}
+                className="w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl transition-all text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-[0.98] hover:-translate-y-0.5"
+              >
+                <Swords className="w-5 h-5 inline mr-2" />
+                Desbloquear RPG Premium
+              </button>
+              <p className="text-[10px] text-muted-foreground/30">
+                Ative via chave ou entre em contato para adquirir
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
+      </div>
+    );
+  }
+
+  // === COM ACESSO ===
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -97,7 +215,7 @@ const Characters = () => {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-lg font-bold gradient-text-subtle">Personagens AI</h1>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Personagens AI</h1>
               <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase">Explore & Chat</p>
             </div>
           </div>
@@ -198,7 +316,6 @@ const Characters = () => {
                 onClick={() => startChat(char.id)}
                 className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
               >
-                {/* Image */}
                 {char.avatar_url ? (
                   <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
@@ -207,10 +324,8 @@ const Characters = () => {
                   </div>
                 )}
 
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                {/* Like button */}
                 <button
                   onClick={(e) => toggleLike(char.id, e)}
                   className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all"
@@ -218,7 +333,6 @@ const Characters = () => {
                   <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
                 </button>
 
-                {/* Likes badge */}
                 {char.likes_count > 0 && (
                   <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white/80">
                     <Heart className="w-3 h-3 fill-red-500 text-red-500" />
@@ -226,7 +340,6 @@ const Characters = () => {
                   </div>
                 )}
 
-                {/* Info */}
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <h3 className="text-sm font-bold text-white truncate">{char.name}</h3>
                   <p className="text-[10px] text-white/50 truncate mt-0.5">{char.description}</p>
@@ -247,6 +360,8 @@ const Characters = () => {
           </div>
         )}
       </div>
+
+      <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
     </div>
   );
 };
