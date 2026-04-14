@@ -123,17 +123,24 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setUploadingAvatar(true);
-    const ext = file.name.split(".").pop();
-    const path = `characters/${user.id}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file);
-    if (error) {
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/characters_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (error) {
+        console.error("Upload error:", error);
+        toast.error("Erro ao enviar imagem");
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      setForm((f) => ({ ...f, avatar_url: urlData.publicUrl }));
+      toast.success("Imagem enviada!");
+    } catch (err) {
+      console.error(err);
       toast.error("Erro ao enviar imagem");
+    } finally {
       setUploadingAvatar(false);
-      return;
     }
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    setForm((f) => ({ ...f, avatar_url: urlData.publicUrl }));
-    setUploadingAvatar(false);
   };
 
   const handleSave = async () => {
