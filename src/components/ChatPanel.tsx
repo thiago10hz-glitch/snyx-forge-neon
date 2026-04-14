@@ -131,7 +131,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onClearCharacter }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
