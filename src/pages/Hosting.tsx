@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
-  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown, Link2,
+  Eye, Rocket, Shield, Monitor, Smartphone,
   Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,8 +61,6 @@ const Hosting = () => {
   const [activatingKey, setActivatingKey] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
-  const [expandedSite, setExpandedSite] = useState<string | null>(null);
-  const [justActivated, setJustActivated] = useState(false);
 
   // AI Chat
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
@@ -337,7 +335,7 @@ const Hosting = () => {
   };
 
   const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
-  const tierColor = tier === "pro" ? "text-primary" : tier === "basic" ? "text-emerald-400" : tier === "unlimited" ? "text-amber-400" : "text-muted-foreground";
+  const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
 
   // No plan view
   if (tier === "none") {
