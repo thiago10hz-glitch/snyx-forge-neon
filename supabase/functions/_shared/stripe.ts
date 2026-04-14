@@ -1,5 +1,3 @@
-import { encode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
-
 export type StripeEnv = 'sandbox' | 'live';
 
 export function getConnectionApiKey(env: StripeEnv): string {
@@ -10,7 +8,7 @@ export function getConnectionApiKey(env: StripeEnv): string {
   return key;
 }
 
-import Stripe from "https://esm.sh/stripe@18.5.0";
+import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 
 const GATEWAY_STRIPE_BASE = 'https://connector-gateway.lovable.dev/stripe';
 
@@ -35,6 +33,7 @@ export function createStripeClient(env: StripeEnv): Stripe {
 }
 
 export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ type: string; data: { object: any } }> {
+  const { encode } = await import("https://deno.land/std@0.168.0/encoding/hex.ts");
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret = env === 'sandbox'
