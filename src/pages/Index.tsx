@@ -19,6 +19,7 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [activeCharacter, setActiveCharacter] = useState<{ id: string; name: string; system_prompt: string; avatar_url: string | null } | null>(null);
 
   useEffect(() => {
     if (!user) return;
