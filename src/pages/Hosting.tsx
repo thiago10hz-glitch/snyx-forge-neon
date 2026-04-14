@@ -341,7 +341,8 @@ const Hosting = () => {
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recognition = new (window as any).webkitSpeechRecognition?.() || new (window as any).SpeechRecognition?.();
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = SpeechRecognition ? new SpeechRecognition() : null;
       if (!recognition) {
         // Fallback: just record and tell user
         toast.error("Reconhecimento de voz não suportado neste navegador");
