@@ -60,8 +60,10 @@ export default function Admin() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [vipModalUser, setVipModalUser] = useState<string | null>(null);
   const [devModalUser, setDevModalUser] = useState<string | null>(null);
+  const [rpgModalUser, setRpgModalUser] = useState<string | null>(null);
   const [vipMonths, setVipMonths] = useState(1);
   const [devMonths, setDevMonths] = useState(1);
+  const [rpgMonths, setRpgMonths] = useState(1);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
