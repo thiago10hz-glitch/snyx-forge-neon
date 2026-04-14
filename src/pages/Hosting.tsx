@@ -53,6 +53,7 @@ const Hosting = () => {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState<HostingLimit | null>(null);
   const [showNewSite, setShowNewSite] = useState(false);
+  const [customDomain, setCustomDomain] = useState("");
   const [newSiteName, setNewSiteName] = useState("");
   const [newSiteHtml, setNewSiteHtml] = useState("");
   const [deploying, setDeploying] = useState(false);
@@ -218,20 +219,45 @@ const Hosting = () => {
     try {
       const deployData = await deployToVercel(generatedHtml, newSiteName);
 
+      // Add custom domain if provided and user is DEV
+      let domainResult = null;
+      if (customDomain.trim() && profile?.is_dev && deployData.projectId) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const authToken = sessionData?.session?.access_token;
+          const domainRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ action: "add-domain", projectId: deployData.projectId, domain: customDomain.trim() }),
+          });
+          domainResult = await domainRes.json();
+        } catch (e) {
+          console.error("Erro ao adicionar domínio:", e);
+        }
+      }
+
       const { error } = await supabase.from("hosted_sites").insert({
         user_id: user!.id,
         site_name: newSiteName.trim(),
         html_content: generatedHtml,
         vercel_project_id: deployData.projectId || null,
         vercel_url: deployData.url || null,
+        custom_domain: customDomain.trim() || null,
       });
 
       if (error) {
         toast.error("Site hospedado mas erro ao salvar");
       } else {
+        const domainMsg = customDomain.trim() && domainResult?.success
+          ? `\n\n🌐 Domínio **${customDomain.trim()}** adicionado! Configure o DNS:\n- **CNAME** → \`cname.vercel-dns.com\`\n- ou **A** → \`76.76.21.21\``
+          : "";
         toast.success("🚀 Site publicado e online!");
-        setChatMessages(prev => [...prev, { role: "assistant", content: `✅ Site publicado com sucesso!\n\n🔗 ${deployData.url || "URL será gerada em breve"}\n\nVocê pode criar outro site ou editar os existentes.` }]);
+        setChatMessages(prev => [...prev, { role: "assistant", content: `✅ Site publicado com sucesso!\n\n🔗 ${deployData.url || "URL será gerada em breve"}${domainMsg}\n\nVocê pode criar outro site ou editar os existentes.` }]);
         setNewSiteName("");
+        setCustomDomain("");
         setGeneratedHtml("");
         setPreviewHtml("");
         loadSites();
@@ -557,6 +583,14 @@ const Hosting = () => {
                 placeholder="Nome do projeto..."
                 className="h-7 w-40 text-[11px] bg-muted/5 border-border/10 rounded-md hidden md:flex"
               />
+              {profile?.is_dev && (
+                <Input
+                  value={customDomain}
+                  onChange={(e) => setCustomDomain(e.target.value)}
+                  placeholder="meudominio.com (opcional)"
+                  className="h-7 w-44 text-[11px] bg-muted/5 border-border/10 rounded-md hidden md:flex"
+                />
+              )}
               <Button size="sm" onClick={handlePublish} disabled={deploying || !newSiteName.trim()} className="gap-1.5 h-7 text-[11px] px-4 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 border-0">
                 {deploying ? <Loader2 size={11} className="animate-spin" /> : <Rocket size={11} />}
                 {deploying ? "Publicando..." : "Publicar"}
