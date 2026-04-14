@@ -43,11 +43,39 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode } = await req.json();
+    const { messages, mode, is_vip } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Detect +18 content in the last user message
+    const lastUserMsg = [...messages].reverse().find((m: any) => m.role === "user");
+    if (lastUserMsg && !is_vip) {
+      const content = (lastUserMsg.content || "").toLowerCase();
+      const adultKeywords = [
+        "+18", "18+", "nsfw", "sexo", "porn", "nudes", "hentai", "safada", "safado",
+        "putaria", "gostosa", "gostoso", "tesão", "transar", "foder", "buceta", "pau",
+        "punheta", "masturbação", "oral", "anal", "fetiche", "dominação", "submissão",
+        "role play +18", "roleplay +18", "conteúdo adulto", "conteudo adulto",
+        "sem censura", "erótico", "erotico", "erótica", "erotica"
+      ];
+      const isAdultContent = adultKeywords.some(kw => content.includes(kw));
+      if (isAdultContent) {
+        const encoder = new TextEncoder();
+        const paywall = "🔞 **Conteúdo +18 detectado!**\n\nEsse tipo de conversa é exclusivo para assinantes **VIP** ou **Pack Steam**. 🔒\n\n✨ Assine agora para desbloquear conversas sem limites e conteúdo adulto!\n\n💎 Use uma chave VIP ou Pack Steam para ativar.";
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: paywall })}\n\n`));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        });
+        return new Response(stream, {
+          headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+        });
+      }
     }
 
     if (!LOVABLE_API_KEY) {
