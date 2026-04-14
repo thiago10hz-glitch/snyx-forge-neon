@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, TrendingUp, Star, Filter, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2 } from "lucide-react";
