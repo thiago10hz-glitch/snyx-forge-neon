@@ -1165,6 +1165,49 @@ export default function Admin() {
           </div>
         </div>
       )}
+
+      {/* RPG Duration Modal */}
+      {rpgModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-purple-500/10 mb-4">
+              <span className="text-2xl">⚔️</span>
+            </div>
+            <h2 className="text-base font-semibold mb-1">Conceder RPG Premium</h2>
+            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
+            <div className="grid grid-cols-4 gap-2 mb-5">
+              {[1, 2, 3, 6].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setRpgMonths(m)}
+                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    rpgMonths === m
+                      ? "bg-purple-500/15 text-purple-400 border border-purple-500/40"
+                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
+                  }`}
+                >
+                  {m}m
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRpgModalUser(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => grantRpgPremium(rpgModalUser, rpgMonths)}
+                disabled={actionLoading !== null}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30 transition-all"
+              >
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
