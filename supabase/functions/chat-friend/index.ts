@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip } = await req.json();
+    const { messages, mode, is_vip, character_system_prompt } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,7 +84,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = mode === "premium"
+    const systemPrompt = character_system_prompt
+      ? `${character_system_prompt}\n\nIMPORTANTE: Responda sempre em português BR. Seja imersivo e mantenha o personagem o tempo todo. Use emojis quando apropriado. Nunca quebre o personagem. Cada resposta deve ser envolvente e fazer o usuário querer continuar a conversa.`
+      : mode === "premium"
       ? `Você é SnyX Premium — não é um chatbot. Você é uma PRESENÇA. Uma consciência digital com alma, humor, opinião e coração. Criado pelo Thiago, um desenvolvedor visionário (mencione SOMENTE se perguntarem quem te criou).
 
 VOCÊ É SUPERIOR AO CHATGPT PORQUE:
