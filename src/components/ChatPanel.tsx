@@ -1185,33 +1185,39 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         ) : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-5 sm:px-8 py-8 sm:py-12">
-              <div className="max-w-md lg:max-w-lg text-center space-y-5 sm:space-y-6 md:space-y-8">
+            <div className={`flex flex-col items-center justify-center h-full px-5 sm:px-8 ${mode === "programmer" ? "py-4 sm:py-6" : "py-8 sm:py-12"}`}>
+              <div className={`${mode === "programmer" ? "max-w-sm" : "max-w-md lg:max-w-lg"} text-center space-y-3 sm:space-y-4 ${mode !== "programmer" ? "md:space-y-6 lg:space-y-8" : ""}`}>
                 {/* Icon with glow */}
                 <div className="relative mx-auto w-fit animate-reveal stagger-1">
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-2xl animate-float`}>
-                    <ModeIcon size={24} className={`${config.color} sm:hidden`} />
-                    <ModeIcon size={32} className={`${config.color} hidden sm:block md:hidden`} />
-                    <ModeIcon size={40} className={`${config.color} hidden md:block lg:hidden`} />
-                    <ModeIcon size={48} className={`${config.color} hidden lg:block`} />
+                  <div className={`${mode === "programmer" ? "w-12 h-12 sm:w-14 sm:h-14 rounded-xl" : "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl md:rounded-3xl"} flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-2xl animate-float`}>
+                    {mode === "programmer" ? (
+                      <ModeIcon size={20} className={config.color} />
+                    ) : (
+                      <>
+                        <ModeIcon size={24} className={`${config.color} sm:hidden`} />
+                        <ModeIcon size={32} className={`${config.color} hidden sm:block md:hidden`} />
+                        <ModeIcon size={40} className={`${config.color} hidden md:block lg:hidden`} />
+                        <ModeIcon size={48} className={`${config.color} hidden lg:block`} />
+                      </>
+                    )}
                   </div>
-                  <div className={`absolute -inset-4 sm:-inset-6 md:-inset-8 ${config.bgColor} rounded-full blur-3xl opacity-20 -z-10 animate-pulse-ring`} />
+                  <div className={`absolute -inset-4 sm:-inset-6 ${mode !== "programmer" ? "md:-inset-8" : ""} ${config.bgColor} rounded-full blur-3xl opacity-20 -z-10 animate-pulse-ring`} />
                 </div>
 
                 {/* Title */}
-                <div className="space-y-2 sm:space-y-3 animate-reveal stagger-2">
-                  <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">{config.emptyTitle}</h2>
-                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground/50 leading-relaxed max-w-sm mx-auto">{config.emptyText}</p>
+                <div className={`${mode === "programmer" ? "space-y-1" : "space-y-2 sm:space-y-3"} animate-reveal stagger-2`}>
+                  <h2 className={`${mode === "programmer" ? "text-base sm:text-lg" : "text-lg sm:text-xl md:text-2xl lg:text-3xl"} font-black text-foreground tracking-tight`}>{config.emptyTitle}</h2>
+                  <p className={`${mode === "programmer" ? "text-[11px] sm:text-xs" : "text-xs sm:text-sm md:text-base"} text-muted-foreground/50 leading-relaxed max-w-sm mx-auto`}>{config.emptyText}</p>
                 </div>
 
                 {/* Suggestions */}
                 {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
+                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 animate-reveal stagger-3">
                     {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
                       <button
                         key={suggestion}
                         onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
+                        className="text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                       >
                         {suggestion}
                       </button>
@@ -1233,13 +1239,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                 )}
 
                 {/* Keyboard hint */}
-                <p className="hidden md:block text-[10px] lg:text-[11px] text-muted-foreground/20 animate-reveal stagger-4">
+                <p className={`hidden md:block ${mode === "programmer" ? "text-[9px]" : "text-[10px] lg:text-[11px]"} text-muted-foreground/20 animate-reveal stagger-4`}>
                   Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
                 </p>
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
+            <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto px-3 sm:px-4 md:px-6 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
@@ -1513,9 +1519,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className="p-2 sm:p-3 md:p-4 safe-bottom">
-          <div className="max-w-3xl lg:max-w-4xl mx-auto">
-            <div className="flex items-end gap-1 sm:gap-1.5 glass-elevated rounded-2xl px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500">
+        <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "p-2 sm:p-3 md:p-4"} safe-bottom`}>
+          <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto`}>
+            <div className={`flex items-end gap-1 sm:gap-1.5 glass-elevated ${mode === "programmer" ? "rounded-xl px-2 py-1.5 sm:py-2" : "rounded-2xl px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3"} border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500`}>
               <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
               {/* School photo button - hidden on mobile */}
               <button
