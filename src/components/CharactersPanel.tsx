@@ -263,20 +263,25 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
 
               {/* Avatar */}
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-border/15 bg-muted/10 flex items-center justify-center shrink-0">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-border/15 bg-muted/10 flex items-center justify-center shrink-0">
                   {form.avatar_url ? (
                     <img src={form.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <Sparkles className="w-8 h-8 text-muted-foreground/20" />
                   )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-background/70 flex items-center justify-center backdrop-blur-sm">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 space-y-1">
-                  <label className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/10 border border-border/10 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-all">
-                    <Upload className="w-4 h-4" />
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/10 border border-border/10 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-all ${uploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {uploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     {uploadingAvatar ? "Enviando..." : "Upload Avatar"}
-                    <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                    <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" disabled={uploadingAvatar} />
                   </label>
-                  {form.avatar_url && (
+                  {form.avatar_url && !uploadingAvatar && (
                     <button onClick={() => setForm((f) => ({ ...f, avatar_url: "" }))} className="text-xs text-destructive hover:underline">Remover</button>
                   )}
                 </div>
