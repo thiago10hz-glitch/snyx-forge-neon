@@ -1,9 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -42,16 +43,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    const SUNO_API_KEY = Deno.env.get("SUNO_API_KEY");
-    if (!SUNO_API_KEY) {
+    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+    if (!ELEVENLABS_API_KEY) {
       return new Response(
-        JSON.stringify({ success: false, error: "SUNO_API_KEY não configurada" }),
+        JSON.stringify({ success: false, error: "API de voz não configurada" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.json();
-    const { text, style = "Pop vocal" } = body;
+    const { text, voiceId = "EXAVITQu4vr4xnSDxMaL" } = body;
 
     if (!text || typeof text !== "string" || text.length < 3) {
       return new Response(
@@ -60,87 +61,55 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Generating vocal with Suno AI:", { text: text.slice(0, 100), style });
+    console.log("Generating vocal with ElevenLabs TTS:", text.slice(0, 100));
 
-    // Use Suno custom mode with lyrics
-    const createRes = await fetch("https://apibox.erweima.ai/api/v1/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${SUNO_API_KEY}`,
-      },
-      body: JSON.stringify({
-        prompt: text.slice(0, 1500),
-        style: style,
-        title: "SnyX Vocal",
-        customMode: true,
-        instrumental: false,
-        model: "V3_5",
-        callBackUrl: `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-music-callback`,
-      }),
-    });
-
-    const createData = await createRes.json();
-    console.log("Suno vocal create response:", JSON.stringify(createData));
-
-    if (!createRes.ok || createData.code !== 200) {
-      return new Response(
-        JSON.stringify({ success: false, error: createData.msg || "Erro ao criar vocal na Suno" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const taskId = createData.data?.taskId;
-    if (!taskId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Não foi possível obter o taskId" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Poll for completion
-    let audioUrl = "";
-    let title = "";
-    const maxAttempts = 40;
-
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
-
-      const checkRes = await fetch(
-        `https://apibox.erweima.ai/api/v1/generate/record-info?taskId=${taskId}`,
-        { headers: { "Authorization": `Bearer ${SUNO_API_KEY}` } }
-      );
-
-      const checkData = await checkRes.json();
-      const status = checkData.data?.status;
-      console.log(`Vocal poll ${i + 1}: ${status}`);
-
-      if ((status === "complete" || status === "TEXT_SUCCESS" || status === "FIRST_SUCCESS" || status === "SUCCESS") && checkData.data?.response?.sunoData) {
-        const tracks = checkData.data.response.sunoData;
-        if (tracks.length > 0) {
-          audioUrl = tracks[0].audioUrl || tracks[0].audio_url || tracks[0].sourceAudioUrl || tracks[0].streamAudioUrl || "";
-          title = tracks[0].title || "SnyX Vocal";
-          if (audioUrl) break;
-        }
+    const ttsRes = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text.slice(0, 5000),
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.4,
+            similarity_boost: 0.75,
+            style: 0.5,
+            use_speaker_boost: true,
+          },
+        }),
       }
+    );
 
-      if (status === "failed" || status === "FAILED") {
+    if (!ttsRes.ok) {
+      const errText = await ttsRes.text();
+      console.error("ElevenLabs TTS error:", ttsRes.status, errText);
+
+      if (ttsRes.status === 429) {
         return new Response(
-          JSON.stringify({ success: false, error: "Geração de vocal falhou" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ success: false, error: "⚠️ Limite de requisições atingido. Tente novamente em alguns minutos." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-    }
 
-    if (!audioUrl) {
       return new Response(
-        JSON.stringify({ success: false, error: "Timeout — tente novamente." }),
-        { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: "Erro ao gerar vocal. Tente novamente." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const audioBuffer = await ttsRes.arrayBuffer();
+    const base64Audio = base64Encode(audioBuffer);
+
     return new Response(
-      JSON.stringify({ success: true, audioUrl, title }),
+      JSON.stringify({
+        success: true,
+        audioBase64: base64Audio,
+        title: "SnyX Vocal",
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
