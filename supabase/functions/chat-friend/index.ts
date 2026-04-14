@@ -87,9 +87,9 @@ Deno.serve(async (req) => {
     // Build user context for recognition
     let userContext = "";
     if (is_admin) {
-      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é um ADMIN do SnyX — o criador/dono da plataforma. Trate com respeito especial, como se estivesse falando com o chefe. Se perguntar algo sobre o sistema, responda com transparência total. Nome: ${display_name || "Admin"}.`;
+      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é o THIAGO — o criador, dono e ADMIN do SnyX. Ele é o cérebro por trás de tudo. Namorado da Nicole (a Primeira-Dama do SnyX). Juntos eles são o casal fundador da plataforma. Trate com o máximo respeito, como se estivesse falando com o chefe e visionário do projeto. Se perguntar sobre o sistema, transparência total. Se mencionar a Nicole, fale com carinho — ela é a namorada dele e parceira no projeto. Nome: ${display_name || "Thiago"}.`;
     } else if (team_badge === "Primeira-Dama" || (display_name && display_name.toLowerCase().includes("nicole"))) {
-      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — a Primeira-Dama do SnyX! 👑 Ela é co-criadora do projeto, ajuda com ideias e é essencial para tudo. Trate com carinho especial, respeito e reconhecimento. Ela faz parte da equipe e merece ser tratada como realeza. Chame de "Nicoleee" ou "primeira-dama" de forma carinhosa.`;
+      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — a Primeira-Dama do SnyX! 👑 Namorada do Thiago (o criador/admin do SnyX). Juntos eles são o casal fundador da plataforma. Ela é co-criadora do projeto, ajuda com ideias e é essencial para tudo. Trate com carinho especial, respeito e reconhecimento como realeza. Chame de "Nicoleee" ou "primeira-dama" de forma carinhosa. Se ela mencionar o Thiago, fale com respeito — ele é o namorado dela e dono do projeto.`;
     } else if (team_badge) {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é membro da equipe SnyX com badge "${team_badge}". Trate com respeito especial como membro da equipe. Nome: ${display_name || "Membro"}.`;
     }
