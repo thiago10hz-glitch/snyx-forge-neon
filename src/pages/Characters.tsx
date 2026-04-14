@@ -108,6 +108,15 @@ const Characters = () => {
 
   const topRanking = [...characters].sort((a, b) => b.chat_count - a.chat_count).slice(0, 5);
 
+  // Aguarda carregar antes de decidir
+  if (!accessReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   // === PAYWALL — sem acesso ===
   if (!hasAccess) {
     return (
