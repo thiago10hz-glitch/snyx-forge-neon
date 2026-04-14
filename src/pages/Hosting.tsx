@@ -818,6 +818,13 @@ const Hosting = () => {
                                   {site.vercel_url.replace("https://", "")}
                                 </a>
                               )}
+                              <Link
+                                to={`/site/${site.id}`}
+                                className="text-[10px] text-purple-400/60 hover:text-purple-400 flex items-center gap-1 w-fit"
+                              >
+                                <Link2 size={9} />
+                                Gerenciar site
+                              </Link>
                               <p className="text-[10px] text-muted-foreground/40 mt-1.5">
                                 {new Date(site.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                                 {site.updated_at !== site.created_at && ` • editado`}
