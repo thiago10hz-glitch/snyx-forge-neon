@@ -449,10 +449,17 @@ export default function Admin() {
     vip: users.filter((u) => u.is_vip && !isVipExpired(u)).length,
     dev: users.filter((u) => u.is_dev && !isDevExpired(u)).length,
     pack_steam: users.filter((u) => u.is_pack_steam && !isPackSteamExpired(u)).length,
+    rpg_premium: users.filter((u) => u.is_rpg_premium && !isRpgExpired(u)).length,
     banned: users.filter((u) => isBanned(u)).length,
-    free: users.filter((u) => !u.is_vip && !u.is_dev && !u.is_pack_steam).length,
-    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u))).length,
+    free: users.filter((u) => !u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium).length,
+    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u)) || (u.is_rpg_premium && isRpgExpired(u))).length,
     totalMessages: totalMessagesCount,
+    todaySignups: users.filter((u) => {
+      const d = new Date(u.created_at);
+      const today = new Date();
+      return d.toDateString() === today.toDateString();
+    }).length,
+  };
     todaySignups: users.filter((u) => {
       const d = new Date(u.created_at);
       const today = new Date();
