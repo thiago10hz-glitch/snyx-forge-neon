@@ -154,7 +154,14 @@ export default function Downloads() {
           </div>
         ) : (
           /* Download card */
-          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up">
+          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up relative">
+            {/* Pack Steam Tag */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className="px-3 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-black uppercase tracking-wider border border-primary/20 flex items-center gap-1.5">
+                <Package className="w-3 h-3" />
+                Pack Steam
+              </span>
+            </div>
             <div className="p-6 sm:p-8 text-center space-y-5">
               {/* App icon */}
               <div className="relative mx-auto w-fit">
