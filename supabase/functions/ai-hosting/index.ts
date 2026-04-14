@@ -72,21 +72,45 @@ Nome do site: ${siteName || "Meu Site"}`;
     }
 
     const data = await response.json();
-    let html = data.choices?.[0]?.message?.content || "";
+    const rawContent = data.choices?.[0]?.message?.content || "";
+    let html = String(rawContent);
 
     // Clean up markdown code blocks if present (handle ```html, ```HTML, ``` etc)
     html = html.replace(/```html?\s*\n?/gi, "").replace(/```\s*/g, "").trim();
 
     // Try to extract HTML if there's extra text around it
     if (!html.includes("<!DOCTYPE") && !html.includes("<html")) {
-      // Look for HTML tags within the response
       const htmlMatch = html.match(/(<!DOCTYPE[\s\S]*<\/html>)/i) || html.match(/(<html[\s\S]*<\/html>)/i);
       if (htmlMatch) {
         html = htmlMatch[1].trim();
       } else {
+        const lowered = html.toLowerCase();
+        const isRefusal = [
+          "não posso",
+          "nao posso",
+          "não posso ajudar",
+          "cannot help",
+          "can't help",
+          "i can't",
+          "i cannot",
+          "policy",
+          "unsafe",
+          "sexual",
+          "adult",
+          "explicit",
+          "conteúdo adulto",
+          "conteudo adulto",
+        ].some((token) => lowered.includes(token));
+
         console.error("No valid HTML found in response. First 500 chars:", html.substring(0, 500));
-        return new Response(JSON.stringify({ error: "IA não gerou HTML válido, tente novamente" }), {
-          status: 422,
+        return new Response(JSON.stringify({
+          success: false,
+          error: isRefusal
+            ? "Esse pedido foi bloqueado pela IA. Tente descrever um site permitido ou reformule o prompt."
+            : "A IA não retornou HTML válido. Tente novamente com uma descrição mais clara.",
+          raw: html.substring(0, 500),
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

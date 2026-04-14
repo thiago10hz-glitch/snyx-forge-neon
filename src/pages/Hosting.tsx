@@ -142,6 +142,7 @@ const Hosting = () => {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
+        console.error("AI hosting generation failed:", data);
         toast.error(data.error || "Erro ao gerar site");
         return;
       }
