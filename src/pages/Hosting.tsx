@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
-  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown
+  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown, Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -818,6 +818,13 @@ const Hosting = () => {
                                   {site.vercel_url.replace("https://", "")}
                                 </a>
                               )}
+                              <Link
+                                to={`/site/${site.id}`}
+                                className="text-[10px] text-purple-400/60 hover:text-purple-400 flex items-center gap-1 w-fit"
+                              >
+                                <Link2 size={9} />
+                                Gerenciar site
+                              </Link>
                               <p className="text-[10px] text-muted-foreground/40 mt-1.5">
                                 {new Date(site.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                                 {site.updated_at !== site.created_at && ` • editado`}
@@ -843,6 +850,17 @@ const Hosting = () => {
                                   title="Copiar URL"
                                 >
                                   <Copy size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const url = `${window.location.origin}/site/${site.id}`;
+                                    navigator.clipboard.writeText(url);
+                                    toast.success("Link de gerenciamento copiado!");
+                                  }}
+                                  className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Copiar link de gerenciamento"
+                                >
+                                  <Link2 size={14} />
                                 </button>
                               </>
                             )}
