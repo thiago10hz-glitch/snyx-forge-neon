@@ -848,6 +848,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           })),
           mode: usePremium ? "premium" : mode,
           is_vip: !!profile?.is_vip,
+          ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
         };
       }
 
