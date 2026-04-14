@@ -114,7 +114,7 @@ Nome do site: ${siteName || "Meu Site"}`;
           { role: "system", content: systemPrompt },
           { role: "user", content: `Crie um site com esta descrição: ${description}` },
         ],
-        max_tokens: 8000,
+        max_tokens: 16000,
         temperature: 0.7,
       }),
     });
