@@ -549,10 +549,12 @@ export type Database = {
           id: string
           is_dev: boolean
           is_pack_steam: boolean
+          is_rpg_premium: boolean
           is_vip: boolean
           last_free_message_at: string | null
           pack_steam_expires_at: string | null
           relationship_status: string | null
+          rpg_premium_expires_at: string | null
           updated_at: string
           user_id: string
           vip_expires_at: string | null
@@ -569,10 +571,12 @@ export type Database = {
           id?: string
           is_dev?: boolean
           is_pack_steam?: boolean
+          is_rpg_premium?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
           pack_steam_expires_at?: string | null
           relationship_status?: string | null
+          rpg_premium_expires_at?: string | null
           updated_at?: string
           user_id: string
           vip_expires_at?: string | null
@@ -589,10 +593,12 @@ export type Database = {
           id?: string
           is_dev?: boolean
           is_pack_steam?: boolean
+          is_rpg_premium?: boolean
           is_vip?: boolean
           last_free_message_at?: string | null
           pack_steam_expires_at?: string | null
           relationship_status?: string | null
+          rpg_premium_expires_at?: string | null
           updated_at?: string
           user_id?: string
           vip_expires_at?: string | null
@@ -725,12 +731,20 @@ export type Database = {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
+      admin_grant_rpg_premium: {
+        Args: { p_months: number; p_target_user_id: string }
+        Returns: Json
+      }
       admin_grant_vip: {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
       admin_revoke_hosting: { Args: { p_user_id: string }; Returns: Json }
       admin_revoke_pack_steam: {
+        Args: { p_target_user_id: string }
+        Returns: Json
+      }
+      admin_revoke_rpg_premium: {
         Args: { p_target_user_id: string }
         Returns: Json
       }

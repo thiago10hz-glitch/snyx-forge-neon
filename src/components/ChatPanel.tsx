@@ -54,6 +54,8 @@ type PendingAction = "school" | "imagegen" | "rewrite" | null;
 interface ChatPanelProps {
   onCodeGenerated: (code: string) => void;
   onModeChange?: (mode: ChatMode) => void;
+  activeCharacter?: { id: string; name: string; system_prompt: string; avatar_url: string | null } | null;
+  onClearCharacter?: () => void;
 }
 
 const TEXT_FILE_EXTENSIONS = [
@@ -129,7 +131,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onClearCharacter }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -846,6 +848,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           })),
           mode: usePremium ? "premium" : mode,
           is_vip: !!profile?.is_vip,
+          ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
         };
       }
 
@@ -1199,6 +1202,26 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </div>
           )}
         </div>
+
+        {/* Character banner */}
+        {activeCharacter && (
+          <div className="flex items-center gap-3 px-4 py-2 border-b border-border/10 bg-primary/5 shrink-0">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 bg-muted/10 shrink-0">
+              {activeCharacter.avatar_url ? (
+                <img src={activeCharacter.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-primary">{activeCharacter.name[0]}</div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-bold text-foreground">{activeCharacter.name}</span>
+              <span className="text-[10px] text-muted-foreground/50 ml-2">Personagem RPG</span>
+            </div>
+            <button onClick={onClearCharacter} className="text-[10px] px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+              ✕ Sair
+            </button>
+          </div>
+        )}
 
         {mode === "music" ? (
           <div className="flex-1 flex items-center justify-center text-center px-6">
