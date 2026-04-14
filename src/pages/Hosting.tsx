@@ -630,41 +630,50 @@ const Hosting = () => {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
                   {chatMessages.length === 0 && (
-                    <div className="flex flex-col items-center pt-8 pb-4 space-y-5">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-primary/5 flex items-center justify-center border border-violet-500/10">
-                          <Sparkles size={26} className="text-violet-400/40" />
+                    <div className="flex flex-col items-center justify-center flex-1 py-8 space-y-6">
+                      {/* Icon with glow */}
+                      <div className="relative mx-auto w-fit">
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto bg-gradient-to-br from-violet-500/10 to-primary/5 border border-violet-500/10 shadow-2xl">
+                          <Rocket size={36} className="text-primary/50 hidden md:block" />
+                          <Rocket size={28} className="text-primary/50 md:hidden" />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/10">
-                          <Bot size={9} className="text-emerald-400" />
-                        </div>
+                        <div className="absolute -inset-6 bg-violet-500/5 rounded-full blur-3xl -z-10" />
                       </div>
-                      <div className="space-y-1.5 text-center">
-                        <p className="text-[13px] font-bold text-foreground/80">O que vamos criar?</p>
-                        <p className="text-[10px] text-muted-foreground/40 max-w-[220px] leading-relaxed">
-                          Descreva seu site e a IA cria em segundos. Peça alterações quantas vezes quiser.
+
+                      {/* Title */}
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">SnyX Hosting</h2>
+                        <p className="text-xs text-muted-foreground/50 leading-relaxed max-w-[240px] mx-auto">
+                          Descreva o site que você quer e a IA cria em segundos. Peça alterações quantas vezes quiser.
                         </p>
                       </div>
-                      <div className="w-full space-y-1.5 pt-2">
+
+                      {/* Suggestion pills */}
+                      <div className="flex flex-wrap justify-center gap-2">
                         {[
-                          "Portfolio moderno para designer",
-                          "Landing page de startup tech",
-                          "Site institucional de empresa",
-                          "Loja virtual com catálogo",
-                        ].map((s) => (
+                          "Portfolio moderno",
+                          "Landing Page",
+                          "Loja Virtual",
+                          "Site Institucional",
+                        ].map((suggestion) => (
                           <button
-                            key={s}
-                            onClick={() => setChatInput(s)}
-                            className="group w-full text-left text-[10px] px-3 py-2 rounded-lg bg-muted/[0.03] border border-border/5 text-muted-foreground/50 hover:bg-violet-500/5 hover:border-violet-500/10 hover:text-foreground/70 transition-all flex items-center gap-2"
+                            key={suggestion}
+                            onClick={() => setChatInput(`Crie um ${suggestion.toLowerCase()} profissional e bonito`)}
+                            className="text-[11px] px-4 py-2 rounded-xl bg-muted/[0.04] text-muted-foreground/60 border border-border/10 hover:bg-muted/15 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                           >
-                            <Sparkles size={9} className="text-violet-400/30 group-hover:text-violet-400/60 transition-colors shrink-0" />
-                            {s}
+                            {suggestion}
                           </button>
                         ))}
                       </div>
+
+                      {/* Keyboard hint */}
+                      <p className="text-[10px] text-muted-foreground/20">
+                        Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
+                      </p>
+
                       <button
                         onClick={() => setShowNewSite(!showNewSite)}
-                        className="text-[9px] text-muted-foreground/30 hover:text-muted-foreground/60 flex items-center gap-1 transition-colors pt-2"
+                        className="text-[9px] text-muted-foreground/25 hover:text-muted-foreground/50 flex items-center gap-1 transition-colors"
                       >
                         <Code size={9} /> Ou cole HTML manualmente
                       </button>
