@@ -8,7 +8,7 @@ import {
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Monitor, Smartphone,
   Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
-  Mic, MicOff, Plus, Paperclip, Image
+  Mic, MicOff, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,7 +74,7 @@ const Hosting = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const loadSites = useCallback(async () => {
