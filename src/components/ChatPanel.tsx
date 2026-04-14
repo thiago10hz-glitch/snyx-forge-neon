@@ -659,12 +659,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       return;
     }
 
-    // Programmer mode requires DEV only
-    if (mode === "programmer" && !profile?.is_dev) {
-      setVipModalPlan("programmer");
-      setShowVipModal(true);
-      return;
-    }
+    // Programmer mode is free for all users
 
     // School/imagegen actions require VIP or DEV
     if ((pendingAction === "school" || pendingAction === "imagegen") && !profile?.is_vip && !profile?.is_dev) {
