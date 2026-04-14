@@ -28,7 +28,7 @@ const CATEGORIES = [
 ];
 
 const Characters = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,16 +37,21 @@ const Characters = () => {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showVipModal, setShowVipModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
   const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
+  const accessReady = !authLoading && profile !== null && adminChecked;
 
   useEffect(() => {
     if (user) {
       fetchCharacters();
       fetchLikes();
       checkAdmin();
+    } else if (!authLoading) {
+      setAdminChecked(true);
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const checkAdmin = async () => {
     if (!user) return;
