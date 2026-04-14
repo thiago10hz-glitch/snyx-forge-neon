@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, 
   RotateCcw, ExternalLink, Loader2, Rocket, Maximize2, Minimize2,
@@ -26,6 +27,7 @@ const COMPONENT_SNIPPETS = [
 ];
 
 export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
+  const { profile } = useAuth();
   const [activeView, setActiveView] = useState<EditorView>("code");
   const [copied, setCopied] = useState(false);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
@@ -69,6 +71,12 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const deployToVercel = async () => {
     if (!code || deploying) return;
+    if (!profile?.hosting_tier || profile.hosting_tier === "none") {
+      toast.error("Você precisa de um plano de Hosting para publicar sites", {
+        description: "Ative uma chave de hosting para desbloquear a publicação.",
+      });
+      return;
+    }
     setDeploying(true);
     setDeployedUrl(null);
     try {
