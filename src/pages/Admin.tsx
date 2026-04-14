@@ -658,6 +658,11 @@ export default function Admin() {
                                 🎮 Pack Steam
                               </span>
                             )}
+                            {u.is_rpg_premium && !isRpgExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                ⚔️ RPG
+                              </span>
+                            )}
                             {u.is_vip && isVipExpired(u) && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                 VIP Expirado
@@ -673,7 +678,17 @@ export default function Admin() {
                                 Pack Steam Expirado
                               </span>
                             )}
-                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && (
+                            {u.is_rpg_premium && isRpgExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                RPG Expirado
+                              </span>
+                            )}
+                            {u.team_badge && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                                🛡️ {u.team_badge}
+                              </span>
+                            )}
+                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">
                                 Free
                               </span>
