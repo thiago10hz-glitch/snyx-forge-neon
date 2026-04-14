@@ -28,7 +28,7 @@ const CATEGORIES = [
 ];
 
 const Characters = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,21 +37,27 @@ const Characters = () => {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showVipModal, setShowVipModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
   const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
+  const accessReady = !authLoading && profile !== null && adminChecked;
 
   useEffect(() => {
     if (user) {
       fetchCharacters();
       fetchLikes();
       checkAdmin();
+    } else if (!authLoading) {
+      setAdminChecked(true);
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const checkAdmin = async () => {
-    if (!user) return;
+    if (!user) { setAdminChecked(true); return; }
     const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
     setIsAdmin(!!data);
+    setAdminChecked(true);
   };
 
   const fetchCharacters = async () => {
@@ -101,6 +107,15 @@ const Characters = () => {
   });
 
   const topRanking = [...characters].sort((a, b) => b.chat_count - a.chat_count).slice(0, 5);
+
+  // Aguarda carregar antes de decidir
+  if (!accessReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // === PAYWALL — sem acesso ===
   if (!hasAccess) {
