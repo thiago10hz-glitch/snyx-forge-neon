@@ -335,7 +335,6 @@ const Hosting = () => {
   };
 
   const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
-  const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
 
   // No plan view
   if (tier === "none") {
@@ -423,7 +422,7 @@ const Hosting = () => {
                             setLicenseKey("");
                             await refreshProfile();
                             await checkLimit();
-                            setJustActivated(true);
+                            // Plan activated, page will re-render
                           } else {
                             toast.error(result?.error || "Chave inválida");
                           }
