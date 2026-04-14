@@ -54,9 +54,10 @@ const Characters = () => {
   }, [user, authLoading]);
 
   const checkAdmin = async () => {
-    if (!user) return;
+    if (!user) { setAdminChecked(true); return; }
     const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
     setIsAdmin(!!data);
+    setAdminChecked(true);
   };
 
   const fetchCharacters = async () => {
