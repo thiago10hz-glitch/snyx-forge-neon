@@ -32,7 +32,8 @@ interface ChatMsg {
 
 const SiteManage = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const hasTag = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam || false;
   const [site, setSite] = useState<SiteData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
