@@ -13,7 +13,7 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package, Swords
 } from "lucide-react";
 import { toast } from "sonner";
 
