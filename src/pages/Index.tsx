@@ -184,6 +184,10 @@ const Index = () => {
           <div className="flex-1 overflow-hidden">
             <MusicPanel onBack={() => setChatMode("friend")} />
           </div>
+        ) : chatMode === "characters" ? (
+          <div className="flex-1 overflow-hidden">
+            <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={(id) => { setChatMode("friend"); }} />
+          </div>
         ) : (
           <>
             <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
