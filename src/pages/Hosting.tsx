@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
-  Eye, Rocket, Shield, Monitor, Smartphone,
+  Eye, Rocket, Monitor, Smartphone,
   Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
-  Mic, MicOff, Plus, Camera, ImagePlus, PenLine, Paperclip
+  Mic, MicOff, Camera, ImagePlus, PenLine, Paperclip
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,7 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const Hosting = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const [sites, setSites] = useState<HostedSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState<HostingLimit | null>(null);
