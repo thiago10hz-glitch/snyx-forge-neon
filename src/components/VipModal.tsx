@@ -1,6 +1,8 @@
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy } from "lucide-react";
-
-const VIP_LINK = "https://wa.me/554388691650";
+import { useState } from "react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2 } from "lucide-react";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { useAuth } from "@/hooks/useAuth";
+import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
 interface VipModalProps {
   open: boolean;
@@ -40,11 +42,51 @@ const programmerFeatures = [
   { icon: MessageCircle, text: "Chat ilimitado com a IA Dev", desc: "Sem limites de mensagens" },
   { icon: Tv, text: "Acesso ao IPTV/Streaming", desc: "Filmes e séries inclusos" },
   { icon: Shield, text: "Tudo do VIP + RPG incluído", desc: "Todos os benefícios anteriores + Dev" },
-  { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido via WhatsApp" },
+  { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido" },
 ];
 
+const PLAN_PRICES: Record<string, string> = {
+  vip: "vip_monthly",
+  rpg: "rpg_monthly",
+  programmer: "dev_monthly",
+};
+
 export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps) {
+  const { openCheckout, isOpen, CheckoutForm, closeCheckout } = useStripeCheckout();
+  const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
   if (!open) return null;
+
+  const handleSubscribe = (plan: "vip" | "rpg" | "programmer") => {
+    setLoadingPlan(plan);
+    openCheckout({
+      priceId: PLAN_PRICES[plan],
+      quantity: 1,
+      customerEmail: user?.email || undefined,
+      userId: user?.id || "",
+      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+    });
+  };
+
+  if (isOpen && CheckoutForm) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+        <div className="glass-elevated rounded-2xl max-w-2xl w-full overflow-hidden animate-enter border border-border/20 max-h-[90vh] flex flex-col">
+          <div className="p-4 flex items-center justify-between border-b border-border/10 shrink-0">
+            <h2 className="text-sm font-bold">Finalizar Pagamento</h2>
+            <button onClick={() => { closeCheckout(); setLoadingPlan(null); }} className="p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all">
+              <X size={18} />
+            </button>
+          </div>
+          <PaymentTestModeBanner />
+          <div className="flex-1 overflow-y-auto p-4">
+            <CheckoutForm />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
@@ -108,15 +150,14 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               ))}
             </div>
 
-            <a
-              href={VIP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-yellow-500/15 hover:shadow-lg hover:shadow-yellow-500/5"
+            <button
+              onClick={() => handleSubscribe("vip")}
+              disabled={loadingPlan === "vip"}
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-yellow-500/15 hover:shadow-lg hover:shadow-yellow-500/5 disabled:opacity-50"
             >
-              <Crown className="w-4 h-4" />
+              {loadingPlan === "vip" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
               ASSINAR VIP
-            </a>
+            </button>
           </div>
 
           {/* RPG Premium Plan */}
@@ -159,15 +200,14 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               ))}
             </div>
 
-            <a
-              href={VIP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-purple-500/15 hover:shadow-lg hover:shadow-purple-500/10"
+            <button
+              onClick={() => handleSubscribe("rpg")}
+              disabled={loadingPlan === "rpg"}
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-purple-500/15 hover:shadow-lg hover:shadow-purple-500/10 disabled:opacity-50"
             >
-              <Swords className="w-4 h-4" />
+              {loadingPlan === "rpg" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
               ASSINAR RPG
-            </a>
+            </button>
           </div>
 
           {/* Programmer Plan */}
@@ -210,22 +250,21 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               ))}
             </div>
 
-            <a
-              href={VIP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold rounded-xl py-3 transition-all duration-300 text-sm shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25"
+            <button
+              onClick={() => handleSubscribe("programmer")}
+              disabled={loadingPlan === "programmer"}
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold rounded-xl py-3 transition-all duration-300 text-sm shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25 disabled:opacity-50"
             >
-              <Rocket className="w-4 h-4" />
+              {loadingPlan === "programmer" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               ASSINAR DEV
-            </a>
+            </button>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-5 pb-4 shrink-0">
           <p className="text-[10px] text-muted-foreground/30 text-center">
-            Pagamento via WhatsApp • Ativação instantânea • Cancele quando quiser
+            Pagamento seguro via Stripe • Cartão de crédito/débito • Cancele quando quiser
           </p>
         </div>
       </div>
