@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
