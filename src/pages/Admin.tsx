@@ -13,7 +13,7 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package, Swords
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +23,7 @@ interface UserProfile {
   is_vip: boolean;
   is_dev: boolean;
   is_pack_steam: boolean;
+  is_rpg_premium: boolean;
   free_messages_used: number;
   created_at: string;
   banned_until: string | null;
@@ -31,11 +32,13 @@ interface UserProfile {
   vip_expires_at: string | null;
   dev_expires_at: string | null;
   pack_steam_expires_at: string | null;
+  rpg_premium_expires_at: string | null;
+  team_badge: string | null;
 }
 
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
-type FilterType = "all" | "vip" | "dev" | "pack_steam" | "free" | "banned" | "expired";
+type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
 type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
@@ -57,8 +60,10 @@ export default function Admin() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [vipModalUser, setVipModalUser] = useState<string | null>(null);
   const [devModalUser, setDevModalUser] = useState<string | null>(null);
+  const [rpgModalUser, setRpgModalUser] = useState<string | null>(null);
   const [vipMonths, setVipMonths] = useState(1);
   const [devMonths, setDevMonths] = useState(1);
+  const [rpgMonths, setRpgMonths] = useState(1);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -197,7 +202,7 @@ export default function Admin() {
     setLoadingUsers(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, display_name, is_vip, is_dev, is_pack_steam, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at")
+      .select("user_id, display_name, is_vip, is_dev, is_pack_steam, is_rpg_premium, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at, rpg_premium_expires_at, team_badge")
       .order("created_at", { ascending: false });
     if (error) { toast.error("Erro ao carregar usuários"); setLoadingUsers(false); return; }
 
@@ -287,6 +292,39 @@ export default function Admin() {
     setActionLoading(null);
   };
 
+  const grantRpgPremium = async (userId: string, months: number) => {
+    setActionLoading(userId + "-grant_rpg");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "grant_rpg_premium", target_user_id: userId, vip_months: months },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`RPG Premium ativado por ${months} mês(es) ⚔️`);
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: true, rpg_premium_expires_at: data.rpg_premium_expires_at } : u)));
+      setRpgModalUser(null);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao conceder RPG Premium");
+    }
+    setActionLoading(null);
+  };
+
+  const revokeRpgPremium = async (userId: string) => {
+    setActionLoading(userId + "-revoke_rpg");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "revoke_rpg_premium", target_user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("RPG Premium removido");
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: false, rpg_premium_expires_at: null } : u)));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao revogar RPG Premium");
+    }
+    setActionLoading(null);
+  };
+
   const grantVip = async (userId: string, months: number) => {
     setActionLoading(userId + "-grant_vip");
     try {
@@ -372,15 +410,17 @@ export default function Admin() {
   const isVipExpired = (u: UserProfile) => u.vip_expires_at && new Date(u.vip_expires_at) < new Date();
   const isDevExpired = (u: UserProfile) => u.dev_expires_at && new Date(u.dev_expires_at) < new Date();
   const isPackSteamExpired = (u: UserProfile) => u.pack_steam_expires_at && new Date(u.pack_steam_expires_at) < new Date();
+  const isRpgExpired = (u: UserProfile) => u.rpg_premium_expires_at && new Date(u.rpg_premium_expires_at) < new Date();
 
   const filteredUsers = users
     .filter((u) => {
       if (filter === "vip") return u.is_vip && !isVipExpired(u);
       if (filter === "dev") return u.is_dev && !isDevExpired(u);
       if (filter === "pack_steam") return u.is_pack_steam && !isPackSteamExpired(u);
-      if (filter === "free") return !u.is_vip && !u.is_dev && !u.is_pack_steam;
+      if (filter === "rpg_premium") return u.is_rpg_premium && !isRpgExpired(u);
+      if (filter === "free") return !u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium;
       if (filter === "banned") return isBanned(u);
-      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u));
+      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u)) || (u.is_rpg_premium && isRpgExpired(u));
       return true;
     })
     .filter((u) => {
@@ -409,9 +449,10 @@ export default function Admin() {
     vip: users.filter((u) => u.is_vip && !isVipExpired(u)).length,
     dev: users.filter((u) => u.is_dev && !isDevExpired(u)).length,
     pack_steam: users.filter((u) => u.is_pack_steam && !isPackSteamExpired(u)).length,
+    rpg_premium: users.filter((u) => u.is_rpg_premium && !isRpgExpired(u)).length,
     banned: users.filter((u) => isBanned(u)).length,
-    free: users.filter((u) => !u.is_vip && !u.is_dev && !u.is_pack_steam).length,
-    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u))).length,
+    free: users.filter((u) => !u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium).length,
+    expired: users.filter((u) => (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u)) || (u.is_rpg_premium && isRpgExpired(u))).length,
     totalMessages: totalMessagesCount,
     todaySignups: users.filter((u) => {
       const d = new Date(u.created_at);
@@ -617,6 +658,11 @@ export default function Admin() {
                                 🎮 Pack Steam
                               </span>
                             )}
+                            {u.is_rpg_premium && !isRpgExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                ⚔️ RPG
+                              </span>
+                            )}
                             {u.is_vip && isVipExpired(u) && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                 VIP Expirado
@@ -632,7 +678,17 @@ export default function Admin() {
                                 Pack Steam Expirado
                               </span>
                             )}
-                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && (
+                            {u.is_rpg_premium && isRpgExpired(u) && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                RPG Expirado
+                              </span>
+                            )}
+                            {u.team_badge && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                                🛡️ {u.team_badge}
+                              </span>
+                            )}
+                            {!u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">
                                 Free
                               </span>
@@ -657,6 +713,9 @@ export default function Admin() {
                             )}
                             {u.dev_expires_at && (
                               <span className="text-cyan-400/70">DEV até: {new Date(u.dev_expires_at).toLocaleDateString("pt-BR")}</span>
+                            )}
+                            {u.rpg_premium_expires_at && (
+                              <span className="text-purple-400/70">RPG até: {new Date(u.rpg_premium_expires_at).toLocaleDateString("pt-BR")}</span>
                             )}
                             {isBanned(u) && (
                               <span className="text-destructive/70">Ban até: {new Date(u.banned_until!).toLocaleString("pt-BR")}</span>
@@ -726,6 +785,24 @@ export default function Admin() {
                                 color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
                                 onClick={() => revokePackSteam(u.user_id)}
                                 loading={actionLoading === u.user_id + "-revoke_pack_steam"}
+                                disabled={actionLoading !== null}
+                              />
+                            )}
+                            <ActionButton
+                              icon={Swords}
+                              title="Dar RPG Premium"
+                              color="text-purple-400 hover:bg-purple-500/10 border-purple-500/20"
+                              onClick={() => setRpgModalUser(u.user_id)}
+                              loading={false}
+                              disabled={actionLoading !== null}
+                            />
+                            {u.is_rpg_premium && (
+                              <ActionButton
+                                icon={UserX}
+                                title="Revogar RPG"
+                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
+                                onClick={() => revokeRpgPremium(u.user_id)}
+                                loading={actionLoading === u.user_id + "-revoke_rpg"}
                                 disabled={actionLoading !== null}
                               />
                             )}
@@ -1081,6 +1158,49 @@ export default function Admin() {
                 onClick={() => grantDev(devModalUser, devMonths)}
                 disabled={actionLoading !== null}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all"
+              >
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RPG Duration Modal */}
+      {rpgModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-purple-500/10 mb-4">
+              <span className="text-2xl">⚔️</span>
+            </div>
+            <h2 className="text-base font-semibold mb-1">Conceder RPG Premium</h2>
+            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
+            <div className="grid grid-cols-4 gap-2 mb-5">
+              {[1, 2, 3, 6].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setRpgMonths(m)}
+                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    rpgMonths === m
+                      ? "bg-purple-500/15 text-purple-400 border border-purple-500/40"
+                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
+                  }`}
+                >
+                  {m}m
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRpgModalUser(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => grantRpgPremium(rpgModalUser, rpgMonths)}
+                disabled={actionLoading !== null}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30 transition-all"
               >
                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
               </button>

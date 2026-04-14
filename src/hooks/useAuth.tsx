@@ -6,6 +6,7 @@ interface Profile {
   is_vip: boolean;
   is_dev: boolean;
   is_pack_steam: boolean;
+  is_rpg_premium: boolean;
   display_name: string | null;
   free_messages_used: number;
   banned_until: string | null;
@@ -13,6 +14,7 @@ interface Profile {
   bio: string | null;
   relationship_status: string | null;
   hosting_tier: string;
+  team_badge: string | null;
 }
 
 interface AuthContextType {
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("is_vip, is_dev, is_pack_steam, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier")
+      .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge")
       .eq("user_id", userId)
       .single();
     if (data) setProfile(data as Profile);

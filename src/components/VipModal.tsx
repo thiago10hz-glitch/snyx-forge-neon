@@ -1,11 +1,11 @@
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay } from "lucide-react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy } from "lucide-react";
 
 const VIP_LINK = "https://wa.me/554388691650";
 
 interface VipModalProps {
   open: boolean;
   onClose: () => void;
-  highlightPlan?: "vip" | "programmer";
+  highlightPlan?: "vip" | "rpg" | "programmer";
 }
 
 const vipFeatures = [
@@ -18,6 +18,18 @@ const vipFeatures = [
   { icon: Palette, text: "Temas e personalização", desc: "Customize a aparência do chat" },
 ];
 
+const rpgFeatures = [
+  { icon: Swords, text: "RPG com IA avançada", desc: "Aventuras imersivas com narrativa inteligente" },
+  { icon: Wand2, text: "Personagens exclusivos", desc: "Crie e use personagens premium ilimitados" },
+  { icon: ScrollText, text: "Histórias infinitas", desc: "Narrativas sem limite de contexto" },
+  { icon: Flame, text: "Batalhas épicas com IA", desc: "Sistema de combate dinâmico e realista" },
+  { icon: Trophy, text: "Rankings e conquistas", desc: "Compita e desbloqueie conquistas únicas" },
+  { icon: Users, text: "Multiplayer com amigos", desc: "Jogue com amigos no mesmo universo" },
+  { icon: MessageCircle, text: "Mensagens ilimitadas", desc: "Sem limite em todas as sessões" },
+  { icon: Image, text: "Geração de cenários", desc: "Imagens dos seus cenários com IA" },
+  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios VIP + RPG" },
+];
+
 const programmerFeatures = [
   { icon: Code, text: "Criar sites completos com IA", desc: "HTML, CSS, JS gerados automaticamente" },
   { icon: Globe, text: "Publicar sites online", desc: "Deploy automático com link público" },
@@ -27,7 +39,7 @@ const programmerFeatures = [
   { icon: MonitorPlay, text: "Preview em tempo real", desc: "Veja o resultado enquanto cria" },
   { icon: MessageCircle, text: "Chat ilimitado com a IA Dev", desc: "Sem limites de mensagens" },
   { icon: Tv, text: "Acesso ao IPTV/Streaming", desc: "Filmes e séries inclusos" },
-  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios VIP + Dev" },
+  { icon: Shield, text: "Tudo do VIP + RPG incluído", desc: "Todos os benefícios anteriores + Dev" },
   { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido via WhatsApp" },
 ];
 
@@ -36,7 +48,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
-      <div className="glass-elevated rounded-t-2xl sm:rounded-2xl max-w-3xl w-full overflow-hidden animate-enter border border-border/20 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+      <div className="glass-elevated rounded-t-2xl sm:rounded-2xl max-w-5xl w-full overflow-hidden animate-enter border border-border/20 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 shrink-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
@@ -58,7 +70,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
         </div>
 
         {/* Plans */}
-        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
+        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
           {/* VIP Plan */}
           <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col ${
             highlightPlan === "vip"
@@ -74,7 +86,10 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             </div>
             <p className="text-[11px] text-muted-foreground/50 mb-3">Para quem quer o máximo do chat</p>
             
-            <div className="mb-4">
+            <div className="mb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-bold border border-yellow-500/20">👑 VIP</span>
+              </div>
               <span className="text-3xl font-black text-foreground">R$50</span>
               <span className="text-xs text-muted-foreground/40">/mês</span>
             </div>
@@ -104,6 +119,57 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             </a>
           </div>
 
+          {/* RPG Premium Plan */}
+          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col relative ${
+            highlightPlan === "rpg"
+              ? "border-purple-500/25 bg-purple-500/3 ring-1 ring-purple-500/10"
+              : "border-border/15 bg-muted/5"
+          }`}>
+            <div className="absolute -top-2.5 right-4">
+              <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/20">
+                ⚔️ RPG
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 mb-1">
+              <Swords size={18} className="text-purple-400" />
+              <span className="text-base font-bold text-foreground">RPG Premium</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/50 mb-3">A experiência RPG definitiva</p>
+
+            <div className="mb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/20">⚔️ RPG Premium</span>
+              </div>
+              <span className="text-3xl font-black text-foreground">R$80</span>
+              <span className="text-xs text-muted-foreground/40">/mês</span>
+            </div>
+
+            <div className="space-y-2.5 flex-1">
+              {rpgFeatures.map((f, i) => (
+                <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
+                  <div className="w-5 h-5 rounded-md bg-purple-500/8 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={11} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-foreground/90">{f.text}</span>
+                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <a
+              href={VIP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-purple-500/15 hover:shadow-lg hover:shadow-purple-500/10"
+            >
+              <Swords className="w-4 h-4" />
+              ASSINAR RPG
+            </a>
+          </div>
+
           {/* Programmer Plan */}
           <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col relative ${
             highlightPlan === "programmer"
@@ -112,7 +178,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
           }`}>
             <div className="absolute -top-2.5 right-4">
               <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/20">
-                DEV
+                🚀 MELHOR
               </span>
             </div>
 
@@ -122,7 +188,10 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             </div>
             <p className="text-[11px] text-muted-foreground/50 mb-3">Crie projetos profissionais com IA</p>
 
-            <div className="mb-4">
+            <div className="mb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/20">💻 DEV</span>
+              </div>
               <span className="text-3xl font-black text-foreground">R$120</span>
               <span className="text-xs text-muted-foreground/40">/mês</span>
             </div>
