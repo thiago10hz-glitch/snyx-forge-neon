@@ -53,6 +53,7 @@ const Hosting = () => {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState<HostingLimit | null>(null);
   const [showNewSite, setShowNewSite] = useState(false);
+  const [customDomain, setCustomDomain] = useState("");
   const [newSiteName, setNewSiteName] = useState("");
   const [newSiteHtml, setNewSiteHtml] = useState("");
   const [deploying, setDeploying] = useState(false);
