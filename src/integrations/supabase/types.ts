@@ -506,36 +506,6 @@ export type Database = {
         }
         Relationships: []
       }
-      license_keys: {
-        Row: {
-          created_at: string
-          id: string
-          is_used: boolean
-          key_code: string
-          used_at: string | null
-          used_by_email: string | null
-          used_by_user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_used?: boolean
-          key_code: string
-          used_at?: string | null
-          used_by_email?: string | null
-          used_by_user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_used?: boolean
-          key_code?: string
-          used_at?: string | null
-          used_by_email?: string | null
-          used_by_user_id?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -605,6 +575,54 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vip_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          price_id: string
+          product_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id: string
+          product_id: string
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -764,6 +782,10 @@ export type Database = {
         Returns: Json
       }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
+      has_active_subscription: {
+        Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -776,7 +798,6 @@ export type Database = {
         Returns: undefined
       }
       increment_free_messages: { Args: never; Returns: undefined }
-      redeem_license_key: { Args: { p_key_code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
