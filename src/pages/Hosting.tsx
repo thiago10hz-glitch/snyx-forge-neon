@@ -528,145 +528,145 @@ const Hosting = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="h-12 flex items-center justify-between px-3 md:px-6 shrink-0 border-b border-border/10 bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Top Header Bar */}
+      <header className="h-11 flex items-center justify-between px-4 shrink-0 border-b border-border/10 bg-background/80 backdrop-blur-xl z-10">
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size={16} />
+          <Link to="/" className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={15} />
           </Link>
-          <div className="w-px h-5 bg-border/20" />
+          <div className="w-px h-4 bg-border/15" />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/30 to-purple-500/20 flex items-center justify-center border border-primary/20">
-              <Rocket size={14} className="text-primary" />
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+              <Zap size={11} className="text-primary-foreground" />
             </div>
-            <span className="text-sm font-bold hidden sm:inline">SnyX Hosting</span>
+            <span className="text-xs font-bold tracking-tight hidden sm:inline">SnyX Hosting</span>
           </div>
           {!chatPanelOpen && (
-            <button onClick={() => setChatPanelOpen(true)} className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors">
-              <PanelLeftOpen size={16} />
+            <button onClick={() => setChatPanelOpen(true)} className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground hover:text-foreground transition-colors ml-1" title="Abrir chat">
+              <PanelLeftOpen size={15} />
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {/* Publish button when preview exists */}
+        <div className="flex items-center gap-2.5">
           {previewHtml && (
-            <Button size="sm" onClick={handlePublish} disabled={deploying || !newSiteName.trim()} className="gap-1.5 h-8 text-xs shadow-lg shadow-primary/20">
-              {deploying ? <Loader2 size={12} className="animate-spin" /> : <Rocket size={12} />}
-              {deploying ? "Publicando..." : "Publicar"}
-            </Button>
+            <>
+              <Input
+                value={newSiteName}
+                onChange={(e) => setNewSiteName(e.target.value)}
+                placeholder="Nome do projeto..."
+                className="h-7 w-40 text-[11px] bg-muted/5 border-border/10 rounded-md hidden md:flex"
+              />
+              <Button size="sm" onClick={handlePublish} disabled={deploying || !newSiteName.trim()} className="gap-1.5 h-7 text-[11px] px-4 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 border-0">
+                {deploying ? <Loader2 size={11} className="animate-spin" /> : <Rocket size={11} />}
+                {deploying ? "Publicando..." : "Publicar"}
+              </Button>
+            </>
           )}
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold ${
-            tier === "pro" ? "border-primary/30 bg-primary/10 text-primary" :
-            tier === "basic" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" :
-            "border-amber-500/30 bg-amber-500/10 text-amber-400"
+          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+            tier === "pro" ? "bg-primary/10 text-primary" :
+            tier === "basic" ? "bg-emerald-500/10 text-emerald-400" :
+            "bg-amber-500/10 text-amber-400"
           }`}>
-            {tier === "unlimited" ? <Crown size={10} /> : <Zap size={10} />}
+            {tier === "unlimited" ? <Crown size={9} /> : <Zap size={9} />}
             {TIER_LABELS[tier]}
+            {limit && <span className="text-[9px] opacity-60 ml-0.5">{limit.current}/{limit.max}</span>}
           </div>
-          {limit && (
-            <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">{limit.current}/{limit.max}</span>
-          )}
         </div>
       </header>
 
-      {/* Main Layout: Chat + Preview */}
+      {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
 
-        {/* LEFT: AI Chat Panel */}
+        {/* LEFT: Chat Sidebar */}
         {chatPanelOpen && (
-          <div className="w-80 lg:w-96 border-r border-border/10 flex flex-col bg-background shrink-0">
-            {/* Chat Header */}
-            <div className="h-11 px-3 flex items-center justify-between border-b border-border/10 shrink-0">
+          <div className="w-[340px] lg:w-[380px] border-r border-border/10 flex flex-col bg-background shrink-0">
+            {/* Sidebar Header */}
+            <div className="h-10 px-3 flex items-center justify-between shrink-0 border-b border-border/5">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center">
-                  <Bot size={12} className="text-purple-400" />
+                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500/25 to-primary/15 flex items-center justify-center">
+                  <Sparkles size={10} className="text-violet-400" />
                 </div>
-                <span className="text-xs font-bold">IA Assistente</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] font-semibold text-foreground/80">Assistente IA</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {(chatMessages.length > 0 || previewHtml) && (
-                  <button onClick={handleNewChat} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors" title="Novo chat">
-                    <RefreshCw size={12} />
+                  <button onClick={handleNewChat} className="p-1 rounded-md hover:bg-muted/15 text-muted-foreground/50 hover:text-foreground transition-colors" title="Nova conversa">
+                    <RefreshCw size={11} />
                   </button>
                 )}
-                <button onClick={() => setChatPanelOpen(false)} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground transition-colors">
-                  <PanelLeftClose size={14} />
+                <button onClick={() => setChatPanelOpen(false)} className="p-1 rounded-md hover:bg-muted/15 text-muted-foreground/50 hover:text-foreground transition-colors">
+                  <PanelLeftClose size={13} />
                 </button>
               </div>
             </div>
 
-            {/* Site Name Input */}
-            <div className="px-3 py-2 border-b border-border/5">
-              <Input
-                value={newSiteName}
-                onChange={(e) => setNewSiteName(e.target.value)}
-                placeholder="Nome do site..."
-                className="h-8 text-xs bg-muted/5 border-border/10"
-              />
-            </div>
-
-            {/* Tabs: Chat / Sites */}
-            <div className="flex border-b border-border/10 shrink-0">
+            {/* Tabs */}
+            <div className="flex shrink-0 px-3 pt-2 gap-1">
               <button
                 onClick={() => setActiveTab("chat")}
-                className={`flex-1 py-2 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors ${
-                  activeTab === "chat" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 py-1.5 text-[10px] font-medium flex items-center justify-center gap-1.5 rounded-md transition-all ${
+                  activeTab === "chat" ? "bg-muted/15 text-foreground shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/5"
                 }`}
               >
-                <MessageSquare size={12} />
-                Chat IA
+                <MessageSquare size={10} />
+                Chat
               </button>
               <button
                 onClick={() => setActiveTab("sites")}
-                className={`flex-1 py-2 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors ${
-                  activeTab === "sites" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 py-1.5 text-[10px] font-medium flex items-center justify-center gap-1.5 rounded-md transition-all ${
+                  activeTab === "sites" ? "bg-muted/15 text-foreground shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/5"
                 }`}
               >
-                <Globe size={12} />
-                Meus Sites
-                {sites.length > 0 && <span className="px-1.5 py-0.5 rounded-full bg-muted/15 text-[9px]">{sites.length}</span>}
+                <Globe size={10} />
+                Sites
+                {sites.length > 0 && <span className="px-1 py-px rounded bg-muted/20 text-[8px]">{sites.length}</span>}
               </button>
             </div>
 
             {activeTab === "chat" ? (
               <>
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
                   {chatMessages.length === 0 && (
-                    <div className="text-center py-6 space-y-4">
-                      <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/10 to-primary/10 flex items-center justify-center border border-purple-500/10">
-                        <Sparkles size={24} className="text-purple-400/60" />
+                    <div className="flex flex-col items-center pt-8 pb-4 space-y-5">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-primary/5 flex items-center justify-center border border-violet-500/10">
+                          <Sparkles size={26} className="text-violet-400/40" />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/10">
+                          <Bot size={9} className="text-emerald-400" />
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold">Crie seu site com IA</p>
-                        <p className="text-[10px] text-muted-foreground/50 max-w-52 mx-auto leading-relaxed">
-                          Descreva o site que você quer e a IA vai criar. Depois, peça alterações no chat.
+                      <div className="space-y-1.5 text-center">
+                        <p className="text-[13px] font-bold text-foreground/80">O que vamos criar?</p>
+                        <p className="text-[10px] text-muted-foreground/40 max-w-[220px] leading-relaxed">
+                          Descreva seu site e a IA cria em segundos. Peça alterações quantas vezes quiser.
                         </p>
                       </div>
-                      <div className="space-y-1.5 pt-1">
+                      <div className="w-full space-y-1.5 pt-2">
                         {[
-                          "Portfolio moderno e escuro para designer",
-                          "Landing page de startup de IA",
-                          "Site institucional de advocacia",
-                          "Loja virtual com produtos de exemplo",
+                          "Portfolio moderno para designer",
+                          "Landing page de startup tech",
+                          "Site institucional de empresa",
+                          "Loja virtual com catálogo",
                         ].map((s) => (
                           <button
                             key={s}
                             onClick={() => setChatInput(s)}
-                            className="block w-full text-left text-[10px] px-3 py-2 rounded-lg bg-muted/5 border border-border/5 text-muted-foreground/70 hover:bg-muted/10 hover:border-border/15 hover:text-foreground transition-all"
+                            className="group w-full text-left text-[10px] px-3 py-2 rounded-lg bg-muted/[0.03] border border-border/5 text-muted-foreground/50 hover:bg-violet-500/5 hover:border-violet-500/10 hover:text-foreground/70 transition-all flex items-center gap-2"
                           >
-                            ✨ {s}
+                            <Sparkles size={9} className="text-violet-400/30 group-hover:text-violet-400/60 transition-colors shrink-0" />
+                            {s}
                           </button>
                         ))}
                       </div>
-                      {/* Manual HTML toggle */}
                       <button
                         onClick={() => setShowNewSite(!showNewSite)}
-                        className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground flex items-center gap-1 mx-auto transition-colors"
+                        className="text-[9px] text-muted-foreground/30 hover:text-muted-foreground/60 flex items-center gap-1 transition-colors pt-2"
                       >
-                        <Code size={10} /> Hospedar com HTML
+                        <Code size={9} /> Ou cole HTML manualmente
                       </button>
                     </div>
                   )}
@@ -674,24 +674,24 @@ const Hosting = () => {
                   {chatMessages.map((msg, i) => (
                     <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
-                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <Bot size={10} className="text-purple-400" />
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500/20 to-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                          <Bot size={9} className="text-violet-400" />
                         </div>
                       )}
-                      <div className={`max-w-[85%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
+                      <div className={`max-w-[82%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-muted/10 border border-border/10 rounded-bl-sm"
+                          ? "bg-primary/90 text-primary-foreground rounded-br-sm"
+                          : "bg-muted/[0.06] border border-border/8 rounded-bl-sm"
                       }`}>
                         {msg.role === "assistant" ? (
-                          <div className="prose prose-xs prose-invert max-w-none [&>p]:m-0 [&>p]:text-[11px]">
+                          <div className="prose prose-xs prose-invert max-w-none [&>p]:m-0 [&>p]:text-[11px] [&>p]:leading-relaxed">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
                         ) : msg.content}
                       </div>
                       {msg.role === "user" && (
-                        <div className="w-5 h-5 rounded-md bg-muted/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <User size={10} className="text-muted-foreground" />
+                        <div className="w-5 h-5 rounded-md bg-muted/15 flex items-center justify-center shrink-0 mt-0.5">
+                          <User size={9} className="text-muted-foreground/60" />
                         </div>
                       )}
                     </div>
@@ -699,14 +699,14 @@ const Hosting = () => {
 
                   {chatLoading && (
                     <div className="flex gap-2 items-start">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center shrink-0">
-                        <Bot size={10} className="text-purple-400" />
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500/20 to-primary/15 flex items-center justify-center shrink-0">
+                        <Bot size={9} className="text-violet-400" />
                       </div>
-                      <div className="bg-muted/10 border border-border/10 rounded-xl rounded-bl-sm px-3 py-2.5">
+                      <div className="bg-muted/[0.06] border border-border/8 rounded-xl rounded-bl-sm px-3 py-2.5">
                         <div className="flex gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "300ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                         </div>
                       </div>
                     </div>
@@ -714,27 +714,27 @@ const Hosting = () => {
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Manual HTML form */}
+                {/* Manual HTML */}
                 {showNewSite && !previewHtml && (
-                  <div className="px-3 pb-2 space-y-2 border-t border-border/10 pt-2">
+                  <div className="px-3 pb-2 space-y-2 border-t border-border/5 pt-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-medium text-muted-foreground">HTML Manual</span>
-                      <button onClick={() => setShowNewSite(false)} className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground">✕</button>
+                      <span className="text-[10px] font-medium text-muted-foreground/60">HTML Manual</span>
+                      <button onClick={() => setShowNewSite(false)} className="text-[10px] text-muted-foreground/30 hover:text-muted-foreground">✕</button>
                     </div>
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/10 cursor-pointer hover:bg-muted/10 text-[10px]">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/8 cursor-pointer hover:bg-muted/5 text-[10px] text-muted-foreground/60">
                       <Upload size={10} /> Upload .html
                       <input type="file" accept=".html,.htm" className="hidden" onChange={handleFileUpload} />
                     </label>
-                    <Textarea value={newSiteHtml} onChange={(e) => setNewSiteHtml(e.target.value)} placeholder="Cole o HTML aqui..." className="text-[10px] font-mono min-h-[100px]" />
+                    <Textarea value={newSiteHtml} onChange={(e) => setNewSiteHtml(e.target.value)} placeholder="Cole o HTML aqui..." className="text-[10px] font-mono min-h-[80px] bg-muted/[0.03] border-border/8" />
                     <Button size="sm" onClick={handleDeploy} disabled={deploying} className="w-full gap-1 h-7 text-[10px]">
                       {deploying ? <Loader2 size={10} className="animate-spin" /> : <Rocket size={10} />}
-                      Publicar HTML
+                      Publicar
                     </Button>
                   </div>
                 )}
 
-                {/* Chat Input */}
-                <div className="p-3 border-t border-border/10 shrink-0">
+                {/* Input Bar */}
+                <div className="p-2.5 border-t border-border/5 shrink-0">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -742,87 +742,83 @@ const Hosting = () => {
                     className="hidden"
                     onChange={handleChatFileUpload}
                   />
-                  <div className="flex items-end gap-1.5">
-                    {/* Plus / Attach button */}
+                  <div className="flex items-center gap-1.5 bg-muted/[0.04] border border-border/10 rounded-xl px-1.5 py-1 focus-within:border-primary/20 focus-within:ring-1 focus-within:ring-primary/10 transition-all">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                      title="Enviar arquivo"
+                      className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
+                      title="Anexar"
                     >
-                      <Plus size={16} />
+                      <Plus size={14} />
                     </button>
                     <input
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendChat()}
-                      placeholder={previewHtml ? "Peça uma alteração..." : "Descreva o site que você quer..."}
+                      placeholder={previewHtml ? "Peça uma alteração..." : "Descreva o site que quer criar..."}
                       disabled={chatLoading}
-                      className="flex-1 bg-muted/5 border border-border/10 rounded-lg px-3 py-2 text-xs placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
+                      className="flex-1 bg-transparent text-xs placeholder:text-muted-foreground/25 focus:outline-none disabled:opacity-40 py-1"
                     />
-                    {/* Mic button */}
                     <button
                       onClick={handleVoiceToggle}
-                      className={`p-2 rounded-lg transition-all shrink-0 ${
+                      className={`p-1.5 rounded-md transition-all shrink-0 ${
                         isRecording
-                          ? "bg-destructive/20 text-destructive animate-pulse"
-                          : "hover:bg-muted/20 text-muted-foreground hover:text-foreground"
+                          ? "bg-destructive/15 text-destructive animate-pulse"
+                          : "hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground"
                       }`}
-                      title={isRecording ? "Parar gravação" : "Falar"}
+                      title={isRecording ? "Parar" : "Falar"}
                     >
-                      {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
+                      {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
                     </button>
-                    {/* Send button */}
                     <button
                       onClick={handleSendChat}
                       disabled={chatLoading || !chatInput.trim()}
-                      className="p-2 rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-40 disabled:shadow-none shrink-0"
+                      className="p-1.5 rounded-md bg-primary/90 text-primary-foreground hover:bg-primary transition-all disabled:opacity-30 shrink-0"
                     >
-                      {chatLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      {chatLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                     </button>
                   </div>
                 </div>
               </>
             ) : (
-              /* Sites List Tab */
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              /* Sites List */
+              <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
                 {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary/50" />
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary/40" />
                   </div>
                 ) : sites.length === 0 ? (
-                  <div className="text-center py-12 space-y-3">
-                    <Globe size={24} className="mx-auto text-muted-foreground/20" />
-                    <p className="text-xs text-muted-foreground">Nenhum site ainda</p>
-                    <button onClick={() => setActiveTab("chat")} className="text-xs text-primary hover:underline">Criar com IA →</button>
+                  <div className="text-center py-16 space-y-3">
+                    <Globe size={20} className="mx-auto text-muted-foreground/15" />
+                    <p className="text-[11px] text-muted-foreground/40">Nenhum site publicado</p>
+                    <button onClick={() => setActiveTab("chat")} className="text-[10px] text-primary/60 hover:text-primary transition-colors">Criar com IA →</button>
                   </div>
                 ) : (
                   sites.map(site => (
-                    <div key={site.id} className="rounded-xl border border-border/10 hover:border-primary/15 transition-all p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold truncate">{site.site_name}</h4>
+                    <div key={site.id} className="group rounded-lg border border-border/5 hover:border-border/15 transition-all p-2.5 hover:bg-muted/[0.03]">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-[11px] font-semibold truncate">{site.site_name}</h4>
                           {site.vercel_url && (
-                            <a href={site.vercel_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary/50 hover:text-primary truncate flex items-center gap-1 w-fit">
-                              <ExternalLink size={8} />
+                            <a href={site.vercel_url} target="_blank" rel="noopener noreferrer" className="text-[9px] text-muted-foreground/30 hover:text-primary/60 truncate flex items-center gap-1 w-fit transition-colors">
+                              <ExternalLink size={7} />
                               {site.vercel_url.replace("https://", "")}
                             </a>
                           )}
                         </div>
-                        <div className="flex items-center gap-0.5">
-                          <Link to={`/site/${site.id}`} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors" title="Gerenciar">
-                            <Edit size={11} />
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link to={`/site/${site.id}`} className="p-1 rounded hover:bg-muted/15 text-muted-foreground/40 hover:text-foreground transition-colors" title="Editar">
+                            <Edit size={10} />
                           </Link>
                           {site.vercel_url && (
-                            <button onClick={() => { navigator.clipboard.writeText(site.vercel_url!); toast.success("URL copiada!"); }} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground" title="Copiar URL">
-                              <Copy size={11} />
+                            <button onClick={() => { navigator.clipboard.writeText(site.vercel_url!); toast.success("URL copiada!"); }} className="p-1 rounded hover:bg-muted/15 text-muted-foreground/40 hover:text-foreground transition-colors" title="Copiar">
+                              <Copy size={10} />
                             </button>
                           )}
-                          <button onClick={() => handleDelete(site)} disabled={deletingId === site.id} className="p-1.5 rounded-md hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors" title="Excluir">
-                            {deletingId === site.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                          <button onClick={() => handleDelete(site)} disabled={deletingId === site.id} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive transition-colors" title="Excluir">
+                            {deletingId === site.id ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
                           </button>
                         </div>
                       </div>
-                      <p className="text-[9px] text-muted-foreground/30">{new Date(site.created_at).toLocaleDateString("pt-BR")}</p>
                     </div>
                   ))
                 )}
@@ -831,49 +827,50 @@ const Hosting = () => {
           </div>
         )}
 
-        {/* RIGHT: Preview Area */}
-        <div className="flex-1 flex flex-col bg-muted/[0.02] overflow-hidden">
+        {/* RIGHT: Preview */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[hsl(var(--background))]/50">
           {previewHtml ? (
             <>
-              {/* Preview Header */}
-              <div className="h-10 px-3 flex items-center justify-between border-b border-border/10 shrink-0 bg-background">
-                <div className="flex items-center gap-2">
-                  <Eye size={13} className="text-primary" />
-                  <span className="text-[11px] font-bold">Preview</span>
-                  <span className="text-[10px] text-muted-foreground/40">{newSiteName || "Sem nome"}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-muted/10 border border-border/5">
-                    <button onClick={() => setPreviewDevice("desktop")} className={`p-1 rounded transition-colors ${previewDevice === "desktop" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}>
+              {/* Preview toolbar */}
+              <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-border/5 bg-background/50 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 p-0.5 rounded-md bg-muted/8 border border-border/5">
+                    <button onClick={() => setPreviewDevice("desktop")} className={`p-1 rounded-sm transition-all ${previewDevice === "desktop" ? "bg-muted/20 text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-muted-foreground"}`}>
                       <Monitor size={11} />
                     </button>
-                    <button onClick={() => setPreviewDevice("mobile")} className={`p-1 rounded transition-colors ${previewDevice === "mobile" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}>
+                    <button onClick={() => setPreviewDevice("mobile")} className={`p-1 rounded-sm transition-all ${previewDevice === "mobile" ? "bg-muted/20 text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-muted-foreground"}`}>
                       <Smartphone size={11} />
                     </button>
                   </div>
-                  <button onClick={() => { setPreviewHtml(""); setGeneratedHtml(""); }} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground text-[10px]">
-                    <X size={12} />
-                  </button>
+                  <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/5 border border-border/5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/60" />
+                    <span className="text-[9px] text-muted-foreground/40 font-mono">snyx-{(newSiteName || "site").toLowerCase().replace(/[^a-z0-9-]/g, "-")}.vercel.app</span>
+                  </div>
                 </div>
+                <button onClick={() => { setPreviewHtml(""); setGeneratedHtml(""); }} className="p-1 rounded-md hover:bg-muted/15 text-muted-foreground/30 hover:text-muted-foreground transition-colors">
+                  <X size={12} />
+                </button>
               </div>
-              {/* Preview Frame */}
-              <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
-                <div className={`rounded-xl border border-border/15 overflow-hidden bg-white shadow-2xl shadow-black/20 transition-all duration-500 ${
-                  previewDevice === "mobile" ? "w-[375px]" : "w-full max-w-5xl"
+              {/* Preview iframe */}
+              <div className="flex-1 flex items-start justify-center p-3 overflow-auto bg-[hsl(var(--muted))]/[0.02]">
+                <div className={`rounded-lg border border-border/10 overflow-hidden bg-white shadow-2xl shadow-black/30 transition-all duration-500 ${
+                  previewDevice === "mobile" ? "w-[375px]" : "w-full max-w-6xl"
                 }`}>
-                  <div className="h-6 bg-[#1a1a1a] flex items-center gap-1.5 px-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500/60" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
-                    <div className="w-2 h-2 rounded-full bg-green-500/60" />
-                    <div className="flex-1 mx-6">
-                      <div className="h-3.5 rounded bg-white/10 flex items-center justify-center">
-                        <span className="text-[8px] text-white/40 font-mono">snyx-{(newSiteName || "site").toLowerCase().replace(/[^a-z0-9-]/g, "-")}.vercel.app</span>
+                  <div className="h-7 bg-[#141414] flex items-center gap-1.5 px-3 border-b border-white/[0.04]">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+                    </div>
+                    <div className="flex-1 mx-8">
+                      <div className="h-4 rounded-md bg-white/[0.06] flex items-center justify-center">
+                        <span className="text-[9px] text-white/30 font-mono">snyx-{(newSiteName || "site").toLowerCase().replace(/[^a-z0-9-]/g, "-")}.vercel.app</span>
                       </div>
                     </div>
                   </div>
                   <iframe
                     srcDoc={previewHtml}
-                    className={`w-full ${previewDevice === "mobile" ? "h-[667px]" : "h-[calc(100vh-10rem)]"}`}
+                    className={`w-full border-0 ${previewDevice === "mobile" ? "h-[667px]" : "h-[calc(100vh-8rem)]"}`}
                     title="Preview"
                     sandbox="allow-scripts"
                   />
@@ -881,21 +878,23 @@ const Hosting = () => {
               </div>
             </>
           ) : (
-            /* Empty State */
+            /* Empty state */
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4 max-w-xs">
-                <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-purple-500/10 to-primary/5 flex items-center justify-center border border-purple-500/10">
-                  <Sparkles size={32} className="text-purple-400/30" />
+              <div className="text-center space-y-5 max-w-xs">
+                <div className="relative mx-auto w-fit">
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-500/[0.06] to-primary/[0.03] flex items-center justify-center border border-violet-500/[0.06]">
+                    <Eye size={36} className="text-violet-400/20" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-sm font-bold text-muted-foreground/60">Seu site aparecerá aqui</h3>
-                  <p className="text-[11px] text-muted-foreground/30 leading-relaxed">
-                    Use o chat ao lado para descrever o site que você quer. A IA vai criar e você pode pedir alterações em tempo real.
+                  <h3 className="text-sm font-bold text-muted-foreground/50">Preview em tempo real</h3>
+                  <p className="text-[11px] text-muted-foreground/25 leading-relaxed">
+                    Descreva seu site no chat e veja ele sendo construído aqui. Peça ajustes e publique quando quiser.
                   </p>
                 </div>
                 {!chatPanelOpen && (
-                  <Button variant="outline" size="sm" onClick={() => setChatPanelOpen(true)} className="gap-1.5 text-xs">
-                    <PanelLeftOpen size={12} /> Abrir Chat IA
+                  <Button variant="outline" size="sm" onClick={() => setChatPanelOpen(true)} className="gap-1.5 text-[11px] h-8 border-border/10">
+                    <PanelLeftOpen size={12} /> Abrir Chat
                   </Button>
                 )}
               </div>
