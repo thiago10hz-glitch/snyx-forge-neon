@@ -16,6 +16,7 @@ import Downloads from "./pages/Downloads";
 import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
 import SiteManage from "./pages/SiteManage";
+import Characters from "./pages/Characters";
 import { CommandPalette } from "./components/CommandPalette";
 import { Loader2 } from "lucide-react";
 
