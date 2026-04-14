@@ -138,17 +138,6 @@ export default function Downloads() {
               </div>
             </div>
           </div>
-            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
-              <div className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5" />
-                Acesso seguro
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Atualizações automáticas
-              </div>
-            </div>
-          </div>
         ) : loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
