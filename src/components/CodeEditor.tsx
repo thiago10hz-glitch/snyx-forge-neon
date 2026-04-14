@@ -27,6 +27,7 @@ const COMPONENT_SNIPPETS = [
 ];
 
 export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
+  const { profile } = useAuth();
   const [activeView, setActiveView] = useState<EditorView>("code");
   const [copied, setCopied] = useState(false);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
