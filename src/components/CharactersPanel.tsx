@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, TrendingUp, Star, Filter, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2 } from "lucide-react";
@@ -6,6 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+
+function CharacterImg({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  return (
+    <div className="relative w-full h-full">
+      {!loaded && !error && (
+        <div className="absolute inset-0 bg-muted/20 animate-pulse rounded-inherit" />
+      )}
+      {error ? (
+        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-lg font-bold text-primary/40">
+          {alt?.[0] || "?"}
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          className={`${className} transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
+}
 
 type Character = {
   id: string;
