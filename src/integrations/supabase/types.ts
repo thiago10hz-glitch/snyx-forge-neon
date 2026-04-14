@@ -750,6 +750,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_character_chat_count: {
+        Args: { p_character_id: string }
+        Returns: undefined
+      }
       increment_free_messages: { Args: never; Returns: undefined }
       redeem_license_key: { Args: { p_key_code: string }; Returns: Json }
     }
