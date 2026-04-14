@@ -129,12 +129,12 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       return;
     }
 
-    synthRef.current.cancel();
+    synthRef.current?.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "pt-BR";
 
     // Use cached voices (pre-loaded)
-    const voices = voicesCacheRef.current.length > 0 ? voicesCacheRef.current : synthRef.current.getVoices();
+    const voices = voicesCacheRef.current.length > 0 ? voicesCacheRef.current : (synthRef.current?.getVoices() ?? []);
     const ptVoices = voices.filter(v => v.lang.startsWith("pt"));
     
     // Priority lists - most natural sounding voices first
