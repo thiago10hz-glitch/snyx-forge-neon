@@ -103,7 +103,7 @@ export function AdminSecurityPanel() {
               <PolicyRow table="chat_connections" select="own+admin" insert="own" update="admin" del="—" />
               <PolicyRow table="support_tickets" select="own+admin" insert="own" update="own+admin" del="—" />
               <PolicyRow table="support_messages" select="own+admin" insert="own+admin" update="—" del="—" />
-              <PolicyRow table="license_keys" select="own+admin" insert="admin" update="admin" del="admin" />
+              
               <PolicyRow table="admin_notes" select="admin" insert="admin" update="admin" del="admin" />
               <PolicyRow table="admin_presence" select="todos" insert="admin" update="admin" del="—" />
               <PolicyRow table="chat_customization" select="own" insert="own" update="own" del="—" />
