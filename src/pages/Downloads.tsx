@@ -46,7 +46,8 @@ export default function Downloads() {
   const handleDownload = async (rel: AppRelease) => {
     setDownloadingId(rel.id);
     try {
-      const ext = rel.platform === "windows" ? "exe" : "apk";
+      // Pega a extensão real do arquivo (exe, bat, apk, zip, etc.)
+      const ext = rel.file_url.split('.').pop() || (rel.platform === "windows" ? "exe" : "apk");
       const { data, error } = await supabase.storage
         .from("app-downloads")
         .createSignedUrl(rel.file_url, 60, {
