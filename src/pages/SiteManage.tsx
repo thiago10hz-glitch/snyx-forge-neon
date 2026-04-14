@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Globe, Edit, ExternalLink, Loader2, Check, X, ArrowLeft, Lock, MessageSquare, Send, Bot, User } from "lucide-react";
+import { Globe, Edit, ExternalLink, Loader2, Check, X, ArrowLeft, Lock, MessageSquare, Send, Bot, User, Link2, Plus, Trash2, AlertCircle, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ReactMarkdown from "react-markdown";
 
@@ -11,10 +11,18 @@ interface SiteData {
   id: string;
   site_name: string;
   vercel_url: string | null;
+  vercel_project_id: string | null;
+  custom_domain: string | null;
   html_content: string;
   created_at: string;
   updated_at: string;
   user_id: string;
+}
+
+interface DomainInfo {
+  name: string;
+  verified: boolean;
+  verification: Array<{ type: string; domain: string; value: string }>;
 }
 
 interface ChatMsg {
@@ -30,10 +38,17 @@ const SiteManage = () => {
   const [notFound, setNotFound] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
 
-  // Editing name
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Domain management
+  const [showDomainPanel, setShowDomainPanel] = useState(false);
+  const [domainInput, setDomainInput] = useState("");
+  const [addingDomain, setAddingDomain] = useState(false);
+  const [domains, setDomains] = useState<DomainInfo[]>([]);
+  const [loadingDomains, setLoadingDomains] = useState(false);
+  const [removingDomain, setRemovingDomain] = useState<string | null>(null);
 
   // Chat
   const [chatOpen, setChatOpen] = useState(false);
@@ -43,12 +58,23 @@ const SiteManage = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  const getAuthHeaders = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error("Não autenticado");
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    };
+  };
+
   useEffect(() => {
     const loadSite = async () => {
       if (!id) { setNotFound(true); setLoading(false); return; }
       const { data, error } = await supabase
         .from("hosted_sites")
-        .select("id, site_name, vercel_url, html_content, created_at, updated_at, user_id")
+        .select("id, site_name, vercel_url, vercel_project_id, custom_domain, html_content, created_at, updated_at, user_id")
         .eq("id", id)
         .eq("status", "active")
         .single();
@@ -67,6 +93,102 @@ const SiteManage = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, chatLoading]);
+
+  // Load domains when panel opens
+  useEffect(() => {
+    if (showDomainPanel && site?.vercel_project_id) {
+      loadDomains();
+    }
+  }, [showDomainPanel]);
+
+  const loadDomains = async () => {
+    if (!site?.vercel_project_id) return;
+    setLoadingDomains(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "list-domains", projectId: site.vercel_project_id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDomains(data.domains || []);
+      }
+    } catch {
+      toast.error("Erro ao carregar domínios");
+    } finally {
+      setLoadingDomains(false);
+    }
+  };
+
+  const handleAddDomain = async () => {
+    if (!domainInput.trim() || !site?.vercel_project_id) return;
+    const domain = domainInput.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    
+    setAddingDomain(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "add-domain", projectId: site.vercel_project_id, domain }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Erro ao adicionar domínio");
+        return;
+      }
+
+      // Update custom_domain in DB
+      await supabase
+        .from("hosted_sites")
+        .update({ custom_domain: domain, updated_at: new Date().toISOString() })
+        .eq("id", site.id);
+
+      setSite(prev => prev ? { ...prev, custom_domain: domain } : prev);
+      setDomainInput("");
+      toast.success("Domínio adicionado! Configure o DNS para ativar.");
+      await loadDomains();
+    } catch {
+      toast.error("Erro ao adicionar domínio");
+    } finally {
+      setAddingDomain(false);
+    }
+  };
+
+  const handleRemoveDomain = async (domain: string) => {
+    if (!site?.vercel_project_id) return;
+    setRemovingDomain(domain);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "remove-domain", projectId: site.vercel_project_id, domain }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Erro ao remover domínio");
+        return;
+      }
+
+      if (site.custom_domain === domain) {
+        await supabase
+          .from("hosted_sites")
+          .update({ custom_domain: null, updated_at: new Date().toISOString() })
+          .eq("id", site.id);
+        setSite(prev => prev ? { ...prev, custom_domain: null } : prev);
+      }
+
+      setDomains(prev => prev.filter(d => d.name !== domain));
+      toast.success("Domínio removido!");
+    } catch {
+      toast.error("Erro ao remover domínio");
+    } finally {
+      setRemovingDomain(null);
+    }
+  };
 
   const handleSaveName = async () => {
     if (!site || !newName.trim() || newName.trim() === site.site_name) {
@@ -96,21 +218,10 @@ const SiteManage = () => {
     setChatLoading(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) {
-        toast.error("Faça login novamente");
-        setChatLoading(false);
-        return;
-      }
-
+      const headers = await getAuthHeaders();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/site-chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
+        headers,
         body: JSON.stringify({
           siteId: site.id,
           message: userMsg.content,
@@ -120,21 +231,18 @@ const SiteManage = () => {
       });
 
       const data = await res.json();
-
       if (!res.ok || !data.success) {
-        const errMsg = data.error || "Erro ao processar";
-        setChatMessages(prev => [...prev, { role: "assistant", content: `❌ ${errMsg}` }]);
+        setChatMessages(prev => [...prev, { role: "assistant", content: `❌ ${data.error || "Erro ao processar"}` }]);
         setChatLoading(false);
         return;
       }
 
       setChatMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
-
       if (data.hasChanges && data.updatedHtml) {
         setSite(prev => prev ? { ...prev, html_content: data.updatedHtml } : prev);
         toast.success("Site atualizado! ✨");
       }
-    } catch (err) {
+    } catch {
       setChatMessages(prev => [...prev, { role: "assistant", content: "❌ Erro de conexão. Tente novamente." }]);
     } finally {
       setChatLoading(false);
@@ -210,17 +318,30 @@ const SiteManage = () => {
 
         <div className="flex items-center gap-2">
           {isOwner && (
-            <button
-              onClick={() => setChatOpen(!chatOpen)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                chatOpen
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
-              }`}
-            >
-              <MessageSquare size={14} />
-              <span className="hidden sm:inline">Editar com IA</span>
-            </button>
+            <>
+              <button
+                onClick={() => { setShowDomainPanel(!showDomainPanel); setChatOpen(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                  showDomainPanel
+                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                    : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+                }`}
+              >
+                <Link2 size={14} />
+                <span className="hidden sm:inline">Domínio</span>
+              </button>
+              <button
+                onClick={() => { setChatOpen(!chatOpen); setShowDomainPanel(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                  chatOpen
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+                }`}
+              >
+                <MessageSquare size={14} />
+                <span className="hidden sm:inline">Editar com IA</span>
+              </button>
+            </>
           )}
           {site.vercel_url && (
             <a
@@ -236,7 +357,7 @@ const SiteManage = () => {
         </div>
       </header>
 
-      {/* Main content with optional chat */}
+      {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Site Preview */}
         <div className="flex-1 relative">
@@ -249,10 +370,167 @@ const SiteManage = () => {
           />
         </div>
 
+        {/* Domain Panel */}
+        {showDomainPanel && isOwner && (
+          <div className="w-80 md:w-96 border-l border-border/10 flex flex-col bg-background shrink-0">
+            <div className="p-3 border-b border-border/10 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
+                <Link2 size={14} className="text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate">Domínio Personalizado</p>
+                <p className="text-[10px] text-muted-foreground">Conecte seu próprio domínio</p>
+              </div>
+              <button onClick={() => setShowDomainPanel(false)} className="p-1 rounded-md hover:bg-muted/20 text-muted-foreground">
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Current domain info */}
+              {site.custom_domain && (
+                <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-3 space-y-1">
+                  <p className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Domínio ativo</p>
+                  <p className="text-sm font-mono text-foreground">{site.custom_domain}</p>
+                </div>
+              )}
+
+              {/* No vercel project warning */}
+              {!site.vercel_project_id && (
+                <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 flex gap-2">
+                  <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-amber-400">Site não publicado</p>
+                    <p className="text-[10px] text-muted-foreground">Publique o site primeiro para poder adicionar um domínio personalizado.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Add domain form */}
+              {site.vercel_project_id && (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Adicionar domínio</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={domainInput}
+                        onChange={(e) => setDomainInput(e.target.value)}
+                        placeholder="meusite.com"
+                        className="h-9 text-xs font-mono"
+                        onKeyDown={(e) => e.key === "Enter" && handleAddDomain()}
+                      />
+                      <button
+                        onClick={handleAddDomain}
+                        disabled={addingDomain || !domainInput.trim()}
+                        className="px-3 h-9 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors text-xs font-medium disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                      >
+                        {addingDomain ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                        Adicionar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* DNS Instructions */}
+                  <div className="rounded-xl bg-muted/5 border border-border/10 p-3 space-y-2">
+                    <p className="text-[11px] font-semibold text-foreground">Como configurar o DNS</p>
+                    <div className="space-y-1.5 text-[10px] text-muted-foreground leading-relaxed">
+                      <p>1. Acesse o painel do seu registrador de domínio</p>
+                      <p>2. Adicione um registro <span className="font-mono bg-muted/10 px-1 rounded text-foreground">CNAME</span> apontando para:</p>
+                      <div className="flex items-center gap-2 bg-muted/10 rounded-lg px-2.5 py-1.5 font-mono text-foreground">
+                        <span className="flex-1 truncate text-[10px]">cname.vercel-dns.com</span>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText("cname.vercel-dns.com"); toast.success("Copiado!"); }}
+                          className="p-0.5 rounded hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        >
+                          <Copy size={10} />
+                        </button>
+                      </div>
+                      <p>3. Para o domínio raiz (@), adicione um registro <span className="font-mono bg-muted/10 px-1 rounded text-foreground">A</span> apontando para <span className="font-mono text-foreground">76.76.21.21</span></p>
+                      <p>4. Aguarde até 48h para a propagação do DNS</p>
+                    </div>
+                  </div>
+
+                  {/* Domain list */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-medium text-muted-foreground">Domínios configurados</p>
+                      <button
+                        onClick={loadDomains}
+                        disabled={loadingDomains}
+                        className="text-[10px] text-primary hover:underline"
+                      >
+                        {loadingDomains ? "Carregando..." : "Atualizar"}
+                      </button>
+                    </div>
+
+                    {loadingDomains ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+                      </div>
+                    ) : domains.length === 0 ? (
+                      <div className="text-center py-6">
+                        <Globe size={20} className="mx-auto text-muted-foreground/20 mb-2" />
+                        <p className="text-[10px] text-muted-foreground/50">Nenhum domínio configurado</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {domains.map((d) => (
+                          <div key={d.name} className="rounded-xl bg-muted/5 border border-border/10 p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className={`w-2 h-2 rounded-full shrink-0 ${d.verified ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`} />
+                                <span className="text-xs font-mono truncate">{d.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${d.verified ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+                                  {d.verified ? "Ativo" : "Pendente"}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveDomain(d.name)}
+                                  disabled={removingDomain === d.name}
+                                  className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive transition-colors"
+                                >
+                                  {removingDomain === d.name ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* DNS verification records if not verified */}
+                            {!d.verified && d.verification.length > 0 && (
+                              <div className="space-y-1.5 pt-1 border-t border-border/5">
+                                <p className="text-[9px] text-amber-400 font-medium">Configure estes registros DNS:</p>
+                                {d.verification.map((v, vi) => (
+                                  <div key={vi} className="bg-muted/10 rounded-lg p-2 space-y-0.5">
+                                    <p className="text-[9px] text-muted-foreground">
+                                      <span className="font-mono font-medium text-foreground">{v.type}</span> → {v.domain}
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                      <p className="text-[9px] font-mono text-foreground truncate flex-1">{v.value}</p>
+                                      <button
+                                        onClick={() => { navigator.clipboard.writeText(v.value); toast.success("Copiado!"); }}
+                                        className="p-0.5 rounded hover:bg-muted/20 shrink-0"
+                                      >
+                                        <Copy size={8} className="text-muted-foreground" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Chat Panel */}
         {chatOpen && isOwner && (
           <div className="w-80 md:w-96 border-l border-border/10 flex flex-col bg-background shrink-0">
-            {/* Chat Header */}
             <div className="p-3 border-b border-border/10 flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
                 <Bot size={14} className="text-primary" />
@@ -266,7 +544,6 @@ const SiteManage = () => {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3">
               {chatMessages.length === 0 && (
                 <div className="text-center py-8 space-y-3">
@@ -340,7 +617,6 @@ const SiteManage = () => {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input */}
             <div className="p-3 border-t border-border/10">
               <div className="flex gap-2">
                 <input
