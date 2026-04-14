@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Copy, Download, Check, Code2, Eye, Terminal, Smartphone, Monitor, Tablet, 
   RotateCcw, ExternalLink, Loader2, Rocket, Maximize2, Minimize2,

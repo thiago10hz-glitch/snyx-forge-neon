@@ -314,6 +314,14 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   };
 
   const handleDeploySite = async (content: string, msgIndex: number, existingSiteName?: string) => {
+    // Publishing requires a hosting plan
+    if (!profile?.hosting_tier || profile.hosting_tier === "none") {
+      toast.error("Você precisa de um plano de Hosting para publicar sites", {
+        description: "Ative uma chave de hosting para desbloquear a publicação.",
+      });
+      return;
+    }
+
     const html = extractHtmlFromMessage(content);
     if (!html) {
       toast.error("Nenhum código HTML encontrado nesta mensagem");
