@@ -460,12 +460,6 @@ export default function Admin() {
       return d.toDateString() === today.toDateString();
     }).length,
   };
-    todaySignups: users.filter((u) => {
-      const d = new Date(u.created_at);
-      const today = new Date();
-      return d.toDateString() === today.toDateString();
-    }).length,
-  };
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(prev => prev === "asc" ? "desc" : "asc");
