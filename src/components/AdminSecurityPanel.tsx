@@ -46,7 +46,7 @@ export function AdminSecurityPanel() {
           <ProtectionRow title="Row Level Security (RLS)" description="Todas as tabelas têm RLS habilitado com políticas específicas por role" />
           <ProtectionRow title="Proteção de Perfil" description="Usuários não podem alterar: is_vip, is_dev, is_pack_steam, banned_until, free_messages_used, IP, fingerprint" />
           <ProtectionRow title="User Roles Lockdown" description="Apenas admins podem inserir, atualizar ou deletar roles" />
-          <ProtectionRow title="License Keys" description="Resgate via SECURITY DEFINER function com validação de propriedade" />
+          <ProtectionRow title="Acesso Controlado" description="Admin concede VIP, RPG Premium, DEV e badges manualmente" />
           <ProtectionRow title="Anti-Clone" description="Detecção de fingerprint e IP duplicado via functions seguras" />
           <ProtectionRow title="Admin Actions" description="Ações admin (VIP, ban, delete) passam por verificação de role no edge function" />
           <ProtectionRow title="CORS Headers" description="Todas as edge functions têm CORS configurado" />
@@ -69,13 +69,6 @@ export function AdminSecurityPanel() {
               description="Schema reservado do Supabase (realtime.*) não pode ser modificado. As tabelas de dados já têm RLS."
               expanded={expandedFinding === "realtime"}
               onToggle={() => setExpandedFinding(expandedFinding === "realtime" ? null : "realtime")}
-            />
-            <FindingRow
-              level="warn"
-              name="License Keys - UPDATE sem policy de user"
-              description="Resgate é feito via SECURITY DEFINER function (redeem_license_key). Nenhum acesso direto UPDATE é dado a usuários."
-              expanded={expandedFinding === "license"}
-              onToggle={() => setExpandedFinding(expandedFinding === "license" ? null : "license")}
             />
           </div>
         </div>
