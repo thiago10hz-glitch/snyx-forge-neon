@@ -333,6 +333,82 @@ const Hosting = () => {
     reader.readAsText(file);
   };
 
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recognition = new (window as any).webkitSpeechRecognition?.() || new (window as any).SpeechRecognition?.();
+      if (!recognition) {
+        // Fallback: just record and tell user
+        toast.error("Reconhecimento de voz não suportado neste navegador");
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+      recognition.lang = "pt-BR";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      setIsRecording(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setChatInput(prev => prev ? prev + " " + transcript : transcript);
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recognition.onerror = () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+        toast.error("Erro ao captar áudio");
+      };
+      recognition.onend = () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recognition.start();
+    } catch {
+      toast.error("Permissão de microfone negada");
+      setIsRecording(false);
+    }
+  };
+
+  const handleChatFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    if (file.name.endsWith(".html") || file.name.endsWith(".htm")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target?.result as string;
+        setGeneratedHtml(content);
+        setPreviewHtml(content);
+        if (!newSiteName) setNewSiteName(file.name.replace(/\.(html|htm)$/, ""));
+        setChatMessages(prev => [...prev,
+          { role: "user", content: `📎 Arquivo enviado: ${file.name}` },
+          { role: "assistant", content: "✅ HTML carregado no preview! Agora você pode me pedir alterações." }
+        ]);
+      };
+      reader.readAsText(file);
+    } else if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        setChatMessages(prev => [...prev,
+          { role: "user", content: `📎 Imagem enviada: ${file.name}` },
+          { role: "assistant", content: `Imagem recebida! Use o chat para me dizer onde inserir no site.\n\n![preview](${dataUrl.substring(0, 100)}...)` }
+        ]);
+        // Store for AI to reference
+        setChatInput(prev => prev ? prev + ` [imagem: ${file.name}]` : `Adicione esta imagem ao site: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast.error("Envie arquivos HTML ou imagens");
+    }
+  };
+
   const handleNewChat = () => {
     setChatMessages([]);
     setPreviewHtml("");
