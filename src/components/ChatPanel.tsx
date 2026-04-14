@@ -651,6 +651,22 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     if (!trimmedInput && !attachment) return;
 
     const shouldTrackFreeMessage = mode === "friend" && !profile?.is_vip && !profile?.is_dev;
+
+    // +18 content detection - only VIP can access
+    if (mode === "friend" && !profile?.is_vip) {
+      const contentLower = trimmedInput.toLowerCase();
+      const adultKeywords = [
+        "+18", "18+", "nsfw", "sexo", "porn", "nudes", "hentai", "safada", "safado",
+        "putaria", "gostosa", "gostoso", "tesão", "transar", "foder", "buceta", "pau",
+        "punheta", "masturbação", "oral", "anal", "fetiche", "dominação", "submissão",
+        "sem censura", "erótico", "erotico", "erótica", "erotica", "conteúdo adulto", "conteudo adulto"
+      ];
+      if (adultKeywords.some(kw => contentLower.includes(kw))) {
+        setVipModalPlan("vip");
+        setShowVipModal(true);
+        return;
+      }
+    }
     
     // Music mode requires VIP or DEV
     if (mode === "music" && !profile?.is_vip && !profile?.is_dev) {
