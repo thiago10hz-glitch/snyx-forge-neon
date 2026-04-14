@@ -32,7 +32,8 @@ interface ChatMsg {
 
 const SiteManage = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const hasTag = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam || false;
   const [site, setSite] = useState<SiteData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -320,15 +321,24 @@ const SiteManage = () => {
           {isOwner && (
             <>
               <button
-                onClick={() => { setShowDomainPanel(!showDomainPanel); setChatOpen(false); }}
+                onClick={() => {
+                  if (!hasTag) {
+                    toast.error("Recurso exclusivo para VIP, DEV ou Pack Steam. Adquira uma tag para usar domínios personalizados!");
+                    return;
+                  }
+                  setShowDomainPanel(!showDomainPanel); setChatOpen(false);
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                  showDomainPanel
+                  !hasTag
+                    ? "text-muted-foreground/50 cursor-not-allowed"
+                    : showDomainPanel
                     ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
                     : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
                 }`}
               >
-                <Link2 size={14} />
+                {!hasTag ? <Lock size={14} /> : <Link2 size={14} />}
                 <span className="hidden sm:inline">Domínio</span>
+                {!hasTag && <span className="text-[9px] text-amber-400/70 hidden sm:inline">(VIP)</span>}
               </button>
               <button
                 onClick={() => { setChatOpen(!chatOpen); setShowDomainPanel(false); }}
