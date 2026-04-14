@@ -9,6 +9,7 @@ import { VipModal } from "./VipModal";
 import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
+import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 
 interface ImageAttachment {
   kind: "image";
@@ -162,6 +163,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
+  const activeCharacterAvatar = activeCharacter ? resolveCharacterAvatar(activeCharacter.name, activeCharacter.avatar_url) : null;
 
   const checkMessageLimit = useCallback(async (): Promise<MessageLimitState | null> => {
     if (!user || profile?.is_vip || profile?.is_dev) {
@@ -1207,8 +1209,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
         {activeCharacter && (
           <div className="flex items-center gap-3 px-4 py-2 border-b border-border/10 bg-primary/5 shrink-0">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 bg-muted/10 shrink-0">
-              {activeCharacter.avatar_url ? (
-                <img src={activeCharacter.avatar_url} alt="" className="w-full h-full object-cover" />
+              {activeCharacterAvatar ? (
+                <img src={activeCharacterAvatar} alt="" className="w-full h-full object-cover" loading="lazy" width={1024} height={1024} />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs font-bold text-primary">{activeCharacter.name[0]}</div>
               )}
