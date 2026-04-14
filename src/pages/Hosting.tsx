@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
-  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown
+  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown, Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
