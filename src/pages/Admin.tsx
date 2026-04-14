@@ -320,6 +320,23 @@ export default function Admin() {
     setActionLoading(null);
   };
 
+  const setTeamBadge = async (userId: string, badge: string | null) => {
+    setActionLoading(userId + "-badge");
+    try {
+      const { data, error } = await supabase.rpc("admin_set_team_badge", {
+        p_user_id: userId,
+        p_badge: badge,
+      });
+      if (error) throw error;
+      if (data && typeof data === "object" && "error" in data) throw new Error((data as any).error);
+      toast.success(badge ? `Badge "${badge}" concedido! 🏷️` : "Badge removido!");
+      fetchUsers();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao alterar badge");
+    }
+    setActionLoading(null);
+  };
+
   const adminAction = async (action: string, targetUserId: string, banHours?: number) => {
     setActionLoading(targetUserId + "-" + action);
     try {
