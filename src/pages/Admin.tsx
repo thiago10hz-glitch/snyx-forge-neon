@@ -23,6 +23,7 @@ interface UserProfile {
   is_vip: boolean;
   is_dev: boolean;
   is_pack_steam: boolean;
+  is_rpg_premium: boolean;
   free_messages_used: number;
   created_at: string;
   banned_until: string | null;
@@ -31,11 +32,13 @@ interface UserProfile {
   vip_expires_at: string | null;
   dev_expires_at: string | null;
   pack_steam_expires_at: string | null;
+  rpg_premium_expires_at: string | null;
+  team_badge: string | null;
 }
 
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
-type FilterType = "all" | "vip" | "dev" | "pack_steam" | "free" | "banned" | "expired";
+type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
 type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
 
@@ -197,7 +200,7 @@ export default function Admin() {
     setLoadingUsers(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, display_name, is_vip, is_dev, is_pack_steam, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at")
+      .select("user_id, display_name, is_vip, is_dev, is_pack_steam, is_rpg_premium, free_messages_used, created_at, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at, rpg_premium_expires_at, team_badge")
       .order("created_at", { ascending: false });
     if (error) { toast.error("Erro ao carregar usuários"); setLoadingUsers(false); return; }
 

@@ -139,6 +139,29 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "grant_rpg_premium": {
+        const months = vip_months || 1;
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + months);
+        const { error } = await adminClient
+          .from("profiles")
+          .update({ is_rpg_premium: true, rpg_premium_expires_at: expiresAt.toISOString() })
+          .eq("user_id", target_user_id);
+        if (error) throw error;
+        result = { success: true, rpg_premium_expires_at: expiresAt.toISOString() };
+        break;
+      }
+
+      case "revoke_rpg_premium": {
+        const { error } = await adminClient
+          .from("profiles")
+          .update({ is_rpg_premium: false, rpg_premium_expires_at: null })
+          .eq("user_id", target_user_id);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
         throw new Error(`Ação desconhecida: ${action}`);
     }
