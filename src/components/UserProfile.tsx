@@ -121,17 +121,26 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || user.email}</p>
               <p className="text-xs text-muted-foreground/50 truncate">{user.email}</p>
-              <div className="flex items-center gap-1.5 mt-1.5">
+              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 {profile?.is_dev ? (
-                  <span className="badge-dev flex items-center gap-0.5 !text-[9px] !px-1.5 !py-0.5">
+                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/20">
                     <Code size={8} /> DEV
                   </span>
+                ) : profile?.is_rpg_premium ? (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/20">
+                    ⚔️ RPG
+                  </span>
                 ) : profile?.is_vip ? (
-                  <span className="badge-vip flex items-center gap-0.5 !text-[9px] !px-1.5 !py-0.5">
+                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-bold border border-yellow-500/20">
                     <Crown size={8} /> VIP
                   </span>
                 ) : (
                   <span className="badge-free !text-[9px] !px-1.5 !py-0.5">Free</span>
+                )}
+                {profile?.team_badge && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
+                    🛡️ {profile.team_badge}
+                  </span>
                 )}
               </div>
             </div>
