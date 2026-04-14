@@ -21,7 +21,7 @@ export default function Downloads() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  const isVipOrDev = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam;
+  const hasAccess = !!profile?.is_pack_steam;
 
   useEffect(() => {
     if (!user || !isVipOrDev) {
