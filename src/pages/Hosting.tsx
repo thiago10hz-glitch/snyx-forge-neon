@@ -8,7 +8,7 @@ import {
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Monitor, Smartphone,
   Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
-  Mic, MicOff, Plus
+  Mic, MicOff, Plus, Camera, ImagePlus, PenLine, Paperclip
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
