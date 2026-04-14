@@ -1,21 +1,18 @@
 import { useState, useEffect } from "react";
 import { CharacterHub } from "@/components/CharacterHub";
-import { CharacterHub } from "@/components/CharacterHub";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
 import { ThemeSelector } from "@/components/ThemeSelector";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2 } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, User, Server, Download, Menu, Gamepad2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  const [code, setCode] = useState("");
   const { profile, user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [chatMode, setChatMode] = useState<string>("friend");
   const [showMobileNav, setShowMobileNav] = useState(false);
 
   useEffect(() => {
