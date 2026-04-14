@@ -410,15 +410,17 @@ export default function Admin() {
   const isVipExpired = (u: UserProfile) => u.vip_expires_at && new Date(u.vip_expires_at) < new Date();
   const isDevExpired = (u: UserProfile) => u.dev_expires_at && new Date(u.dev_expires_at) < new Date();
   const isPackSteamExpired = (u: UserProfile) => u.pack_steam_expires_at && new Date(u.pack_steam_expires_at) < new Date();
+  const isRpgExpired = (u: UserProfile) => u.rpg_premium_expires_at && new Date(u.rpg_premium_expires_at) < new Date();
 
   const filteredUsers = users
     .filter((u) => {
       if (filter === "vip") return u.is_vip && !isVipExpired(u);
       if (filter === "dev") return u.is_dev && !isDevExpired(u);
       if (filter === "pack_steam") return u.is_pack_steam && !isPackSteamExpired(u);
-      if (filter === "free") return !u.is_vip && !u.is_dev && !u.is_pack_steam;
+      if (filter === "rpg_premium") return u.is_rpg_premium && !isRpgExpired(u);
+      if (filter === "free") return !u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium;
       if (filter === "banned") return isBanned(u);
-      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u));
+      if (filter === "expired") return (u.is_vip && isVipExpired(u)) || (u.is_dev && isDevExpired(u)) || (u.is_pack_steam && isPackSteamExpired(u)) || (u.is_rpg_premium && isRpgExpired(u));
       return true;
     })
     .filter((u) => {
