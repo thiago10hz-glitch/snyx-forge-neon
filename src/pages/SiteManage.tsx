@@ -11,10 +11,18 @@ interface SiteData {
   id: string;
   site_name: string;
   vercel_url: string | null;
+  vercel_project_id: string | null;
+  custom_domain: string | null;
   html_content: string;
   created_at: string;
   updated_at: string;
   user_id: string;
+}
+
+interface DomainInfo {
+  name: string;
+  verified: boolean;
+  verification: Array<{ type: string; domain: string; value: string }>;
 }
 
 interface ChatMsg {
