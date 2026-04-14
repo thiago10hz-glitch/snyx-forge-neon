@@ -112,7 +112,7 @@ export default function Downloads() {
       </header>
 
       <div className="relative z-10 max-w-lg mx-auto p-5 sm:p-8 mt-8 sm:mt-16 md:mt-20">
-        {!isVipOrDev ? (
+        {!hasAccess ? (
           /* Locked state */
           <div className="text-center space-y-5 animate-fade-in-up">
             <div className="relative mx-auto w-fit">
@@ -124,9 +124,20 @@ export default function Downloads() {
             <div className="space-y-2">
               <h2 className="text-xl font-black">Acesso Restrito</h2>
               <p className="text-sm text-muted-foreground/50 leading-relaxed max-w-xs mx-auto">
-                O download do app é exclusivo para usuários <span className="text-primary font-semibold">VIP</span>, <span className="text-cyan-400 font-semibold">DEV</span> e <span className="text-green-400 font-semibold">Pack Steam</span>.
+                O download do app é exclusivo para usuários <span className="text-primary font-semibold">Pack Steam</span>.
               </p>
             </div>
+            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                Acesso seguro
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Atualizações automáticas
+              </div>
+            </div>
+          </div>
             <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
               <div className="flex items-center gap-1.5">
                 <Shield className="w-3.5 h-3.5" />
