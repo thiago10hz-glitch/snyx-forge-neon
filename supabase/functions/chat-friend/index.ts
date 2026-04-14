@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip, character_system_prompt } = await req.json();
+    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
