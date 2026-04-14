@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { 
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
-  Eye, Rocket, Shield, Palette, Layout, Monitor, Smartphone, ChevronDown, Link2
+  Eye, Rocket, Shield, Monitor, Smartphone,
+  Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import ReactMarkdown from "react-markdown";
 
 interface HostedSite {
   id: string;
@@ -32,6 +34,11 @@ type HostingLimit = {
   tier?: string;
 };
 
+interface ChatMsg {
+  role: "user" | "assistant";
+  content: string;
+}
+
 const TIER_LABELS: Record<string, string> = {
   none: "Sem Plano",
   basic: "Basic",
@@ -49,19 +56,21 @@ const Hosting = () => {
   const [newSiteHtml, setNewSiteHtml] = useState("");
   const [deploying, setDeploying] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingSite, setEditingSite] = useState<HostedSite | null>(null);
+  const [_editingSite, setEditingSite] = useState<HostedSite | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [activatingKey, setActivatingKey] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
-  const [expandedSite, setExpandedSite] = useState<string | null>(null);
-  const [justActivated, setJustActivated] = useState(false);
 
-  // AI generation
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiGenerating, setAiGenerating] = useState(false);
-  const [generatedHtml, setGeneratedHtml] = useState("");
+  // AI Chat
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
   const [previewHtml, setPreviewHtml] = useState("");
+  const [generatedHtml, setGeneratedHtml] = useState("");
+  const [chatPanelOpen, setChatPanelOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<"chat" | "sites">("chat");
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const loadSites = useCallback(async () => {
     if (!user) return;
@@ -86,6 +95,10 @@ const Hosting = () => {
     checkLimit();
   }, [loadSites, checkLimit]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, chatLoading]);
+
   const deployToVercel = async (html: string, siteName: string) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -108,8 +121,11 @@ const Hosting = () => {
     return data;
   };
 
-  const handleAiGenerate = async () => {
-    if (!aiPrompt.trim()) return;
+  // AI Chat - send message
+  const handleSendChat = async () => {
+    const msg = chatInput.trim();
+    if (!msg || chatLoading) return;
+
     if (limit && !limit.allowed) {
       if (limit.reason === "no_plan") {
         setShowPlans(true);
@@ -119,49 +135,76 @@ const Hosting = () => {
       return;
     }
 
-    setAiGenerating(true);
-    setGeneratedHtml("");
-    setPreviewHtml("");
+    const userMsg: ChatMsg = { role: "user", content: msg };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput("");
+    setChatLoading(true);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-hosting`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ 
-          description: aiPrompt, 
-          siteName: newSiteName || aiPrompt.slice(0, 30) 
-        }),
-      });
+      // If we have an existing site being edited via chat, use site-chat function
+      // Otherwise, generate new site
+      if (previewHtml && generatedHtml) {
+        // Edit existing preview via site-chat-style approach
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-hosting`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            description: `O site atual tem este HTML:\n\n${generatedHtml.substring(0, 3000)}\n\nO usuário pede: ${msg}\n\nRetorne o HTML COMPLETO atualizado com a alteração pedida. Mantenha todo o resto igual.`,
+            siteName: newSiteName || "Meu Site",
+          }),
+        });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        console.error("AI hosting generation failed:", data);
-        toast.error(data.error || "Erro ao gerar site");
-        return;
-      }
+        const data = await res.json();
+        if (data.success && data.html) {
+          setGeneratedHtml(data.html);
+          setPreviewHtml(data.html);
+          setChatMessages(prev => [...prev, { role: "assistant", content: "✅ Site atualizado! Confira o preview ao lado." }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", content: data.error || "❌ Não consegui aplicar essa alteração. Tente de outra forma." }]);
+        }
+      } else {
+        // Generate new site
+        if (!newSiteName) {
+          setNewSiteName(msg.slice(0, 40).replace(/[^a-zA-Z0-9\s-]/g, "").trim());
+        }
 
-      setGeneratedHtml(data.html);
-      setPreviewHtml(data.html);
-      if (!newSiteName) {
-        setNewSiteName(aiPrompt.slice(0, 40).replace(/[^a-zA-Z0-9\s-]/g, "").trim());
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-hosting`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            description: msg,
+            siteName: newSiteName || msg.slice(0, 30),
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success && data.html) {
+          setGeneratedHtml(data.html);
+          setPreviewHtml(data.html);
+          setChatMessages(prev => [...prev, { role: "assistant", content: "🚀 Site criado! Confira o preview ao lado. Você pode me pedir alterações ou clicar em **Publicar** quando estiver satisfeito." }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", content: data.error || "❌ Erro ao gerar o site. Tente descrever de outra forma." }]);
+        }
       }
-      toast.success("Site gerado com sucesso! Confira o preview 🚀");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao gerar site com IA");
+    } catch {
+      setChatMessages(prev => [...prev, { role: "assistant", content: "❌ Erro de conexão. Tente novamente." }]);
     } finally {
-      setAiGenerating(false);
+      setChatLoading(false);
     }
   };
 
-  const handleAiDeploy = async () => {
+  const handlePublish = async () => {
     if (!generatedHtml || !newSiteName.trim()) {
       toast.error("Preencha o nome do site");
       return;
@@ -169,7 +212,7 @@ const Hosting = () => {
     setDeploying(true);
     try {
       const deployData = await deployToVercel(generatedHtml, newSiteName);
-      
+
       const { error } = await supabase.from("hosted_sites").insert({
         user_id: user!.id,
         site_name: newSiteName.trim(),
@@ -181,8 +224,8 @@ const Hosting = () => {
       if (error) {
         toast.error("Site hospedado mas erro ao salvar");
       } else {
-        toast.success("🚀 Site hospedado e online!");
-        setAiPrompt("");
+        toast.success("🚀 Site publicado e online!");
+        setChatMessages(prev => [...prev, { role: "assistant", content: `✅ Site publicado com sucesso!\n\n🔗 ${deployData.url || "URL será gerada em breve"}\n\nVocê pode criar outro site ou editar os existentes.` }]);
         setNewSiteName("");
         setGeneratedHtml("");
         setPreviewHtml("");
@@ -236,6 +279,7 @@ const Hosting = () => {
   };
 
   const handleUpdate = async () => {
+    const editingSite = _editingSite;
     if (!editingSite) return;
     setDeploying(true);
     try {
@@ -284,63 +328,28 @@ const Hosting = () => {
     reader.readAsText(file);
   };
 
+  const handleNewChat = () => {
+    setChatMessages([]);
+    setPreviewHtml("");
+    setGeneratedHtml("");
+    setNewSiteName("");
+  };
+
   const tier = (limit?.tier as string) || profile?.hosting_tier || "none";
-  const tierColor = tier === "pro" ? "text-primary" : tier === "basic" ? "text-emerald-400" : tier === "unlimited" ? "text-amber-400" : "text-muted-foreground";
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header Premium */}
-      <header className="h-14 md:h-16 flex items-center justify-between px-4 md:px-8 shrink-0 border-b border-border/10 bg-gradient-to-r from-background via-background to-background relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] via-transparent to-purple-500/[0.03]" />
-        <div className="flex items-center gap-4 relative z-10">
-          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group">
-            <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-sm hidden sm:inline">Voltar</span>
+  // No plan view
+  if (tier === "none") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="h-14 flex items-center px-4 md:px-8 border-b border-border/10">
+          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={18} />
+            <span className="text-sm">Voltar</span>
           </Link>
-          <div className="w-px h-6 bg-border/20" />
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-purple-500/20 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10">
-              <Rocket size={18} className="text-primary" />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold tracking-tight">SnyX Hosting</h1>
-              <p className="text-[10px] text-muted-foreground/50 tracking-wider uppercase">Deploy Inteligente</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 relative z-10">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
-            tier === "none" ? "border-border/20 bg-muted/10" :
-            tier === "pro" ? "border-primary/30 bg-primary/10" :
-            tier === "basic" ? "border-emerald-500/30 bg-emerald-500/10" :
-            "border-amber-500/30 bg-amber-500/10"
-          }`}>
-            {tier !== "none" && (tier === "unlimited" ? <Crown size={12} className={tierColor} /> : <Zap size={12} className={tierColor} />)}
-            <span className={`text-xs font-bold ${tierColor}`}>
-              {TIER_LABELS[tier] || tier}
-            </span>
-          </div>
-          {limit && tier !== "none" && (
-            <div className="hidden sm:flex items-center gap-1.5">
-              <div className="w-20 h-1.5 rounded-full bg-muted/20 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500"
-                  style={{ width: `${Math.min((limit.current / limit.max) * 100, 100)}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {limit.current}/{limit.max}
-              </span>
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8">
-          
-          {/* Hero Banner - No Plan */}
-          {tier === "none" && (
+        </header>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full space-y-8">
+            {/* Hero */}
             <div className="relative rounded-3xl overflow-hidden border border-primary/20">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent" />
               <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3" />
@@ -352,111 +361,47 @@ const Hosting = () => {
                   <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
                     Hospede Sites com <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Inteligência Artificial</span>
                   </h2>
-                  <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto leading-relaxed">
-                    Descreva o site que você quer e nossa IA cria, estiliza e publica automaticamente com URL pública.
+                  <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">
+                    Converse com a IA, ela cria o site, e você publica com um clique.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button onClick={() => setShowPlans(true)} size="lg" className="gap-2 px-8 shadow-xl shadow-primary/20">
-                    <Zap size={18} /> Começar Agora
-                  </Button>
+                <Button onClick={() => setShowPlans(true)} size="lg" className="gap-2 px-8 shadow-xl shadow-primary/20">
+                  <Zap size={18} /> Começar Agora
+                </Button>
+              </div>
+            </div>
+
+            {/* Plans */}
+            {showPlans && (
+              <div className="rounded-3xl border border-border/20 overflow-hidden bg-gradient-to-b from-muted/5 to-transparent p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Escolha seu Plano</h3>
+                  <button onClick={() => setShowPlans(false)} className="w-8 h-8 rounded-full bg-muted/20 hover:bg-muted/40 flex items-center justify-center text-muted-foreground">✕</button>
                 </div>
-                <div className="flex items-center justify-center gap-6 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
-                    { icon: Shield, text: "SSL Grátis" },
-                    { icon: Zap, text: "Deploy Instantâneo" },
-                    { icon: Sparkles, text: "IA Inclusa" },
-                  ].map(({ icon: Icon, text }) => (
-                    <div key={text} className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                      <Icon size={12} />
-                      <span>{text}</span>
+                    { name: "Basic", sites: "3", color: "emerald", icon: Globe },
+                    { name: "Pro", sites: "10", color: "primary", icon: Zap, popular: true },
+                    { name: "Unlimited", sites: "∞", color: "amber", icon: Crown },
+                  ].map(plan => (
+                    <div key={plan.name} className={`relative rounded-2xl p-6 border transition-all ${
+                      plan.popular ? "border-2 border-primary/30 bg-gradient-to-b from-primary/[0.05] scale-[1.02] shadow-xl shadow-primary/5" : `border-${plan.color}-500/15 bg-gradient-to-b from-${plan.color}-500/[0.03] hover:border-${plan.color}-500/30`
+                    }`}>
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                          <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-primary/30">Popular</span>
+                        </div>
+                      )}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2.5">
+                          <plan.icon size={16} className={plan.color === "primary" ? "text-primary" : `text-${plan.color}-400`} />
+                          <h4 className={`font-bold ${plan.color === "primary" ? "text-primary" : `text-${plan.color}-400`}`}>{plan.name}</h4>
+                        </div>
+                        <p className="text-3xl font-extrabold">{plan.sites} <span className="text-sm font-normal text-muted-foreground">sites</span></p>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Plans Panel */}
-          {showPlans && (
-            <div className="rounded-3xl border border-border/20 overflow-hidden bg-gradient-to-b from-muted/5 to-transparent">
-              <div className="p-6 md:p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold">Escolha seu Plano</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Hospede sites profissionais em segundos</p>
-                  </div>
-                  <button onClick={() => setShowPlans(false)} className="w-8 h-8 rounded-full bg-muted/20 hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">✕</button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Basic */}
-                  <div className="group relative rounded-2xl p-6 border border-emerald-500/15 bg-gradient-to-b from-emerald-500/[0.03] to-transparent hover:border-emerald-500/30 transition-all duration-300">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                          <Globe size={16} className="text-emerald-400" />
-                        </div>
-                        <h4 className="font-bold text-emerald-400">Basic</h4>
-                      </div>
-                      <div>
-                        <p className="text-3xl font-extrabold">3 <span className="text-sm font-normal text-muted-foreground">sites</span></p>
-                      </div>
-                      <ul className="text-xs text-muted-foreground space-y-2.5">
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500" /> Hospedagem instantânea</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500" /> URL personalizada</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500" /> SSL gratuito</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500" /> Geração com IA</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Pro */}
-                  <div className="group relative rounded-2xl p-6 border-2 border-primary/30 bg-gradient-to-b from-primary/[0.05] to-transparent shadow-xl shadow-primary/5 scale-[1.02]">
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-primary/30">Popular</span>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                          <Zap size={16} className="text-primary" />
-                        </div>
-                        <h4 className="font-bold text-primary">Pro</h4>
-                      </div>
-                      <div>
-                        <p className="text-3xl font-extrabold">10 <span className="text-sm font-normal text-muted-foreground">sites</span></p>
-                      </div>
-                      <ul className="text-xs text-muted-foreground space-y-2.5">
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Tudo do Basic</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Domínio customizado</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Prioridade no deploy</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Preview ao vivo</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Unlimited */}
-                  <div className="group relative rounded-2xl p-6 border border-amber-500/15 bg-gradient-to-b from-amber-500/[0.03] to-transparent hover:border-amber-500/30 transition-all duration-300">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                          <Crown size={16} className="text-amber-400" />
-                        </div>
-                        <h4 className="font-bold text-amber-400">Unlimited</h4>
-                      </div>
-                      <div>
-                        <p className="text-3xl font-extrabold">∞ <span className="text-sm font-normal text-muted-foreground">sites</span></p>
-                      </div>
-                      <ul className="text-xs text-muted-foreground space-y-2.5">
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500" /> Tudo do Pro</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500" /> Sites ilimitados</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500" /> Suporte prioritário</li>
-                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500" /> Analytics avançado</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                
                 {/* License Key */}
                 <div className="rounded-2xl p-5 border border-border/10 bg-muted/[0.03] space-y-3">
                   <div className="flex items-center gap-2">
@@ -464,12 +409,7 @@ const Hosting = () => {
                     <h4 className="text-sm font-bold">Ativar com Chave de Licença</h4>
                   </div>
                   <div className="flex gap-2">
-                    <Input
-                      value={licenseKey}
-                      onChange={(e) => setLicenseKey(e.target.value)}
-                      placeholder="HOST-PRO-XXXXXX"
-                      className="text-sm font-mono"
-                    />
+                    <Input value={licenseKey} onChange={(e) => setLicenseKey(e.target.value)} placeholder="HOST-PRO-XXXXXX" className="text-sm font-mono" />
                     <Button
                       onClick={async () => {
                         if (!licenseKey.trim()) return;
@@ -478,434 +418,377 @@ const Hosting = () => {
                           const { data } = await supabase.rpc("redeem_license_key", { p_key_code: licenseKey.trim() });
                           const result = data as any;
                           if (result?.success) {
-                            toast.success("Plano ativado! Vamos criar seu primeiro site 🚀");
+                            toast.success("Plano ativado! 🚀");
                             setShowPlans(false);
                             setLicenseKey("");
                             await refreshProfile();
                             await checkLimit();
-                            // Pre-fill with user's name and scroll to AI creator
-                            const userName = (profile as any)?.display_name || user?.email?.split("@")[0] || "";
-                            setNewSiteName(`site-${userName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`);
-                            setAiPrompt(`Crie um site profissional e moderno para ${userName}. `);
-                            setJustActivated(true);
-                            // Scroll to AI section after state updates
-                            setTimeout(() => {
-                              document.getElementById("ai-creator")?.scrollIntoView({ behavior: "smooth" });
-                            }, 300);
+                            // Plan activated, page will re-render
                           } else {
                             toast.error(result?.error || "Chave inválida");
                           }
-                        } catch {
-                          toast.error("Erro ao ativar chave");
-                        } finally {
-                          setActivatingKey(false);
-                        }
+                        } catch { toast.error("Erro ao ativar chave"); } finally { setActivatingKey(false); }
                       }}
                       disabled={activatingKey || !licenseKey.trim()}
                       size="sm"
-                      className="px-6"
                     >
                       {activatingKey ? <Loader2 size={14} className="animate-spin" /> : "Ativar"}
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/50">
-                    Adquira uma chave com o administrador do SnyX
-                  </p>
+                  <p className="text-[10px] text-muted-foreground/50">Adquira uma chave com o administrador do SnyX</p>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="h-12 flex items-center justify-between px-3 md:px-6 shrink-0 border-b border-border/10 bg-background">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={16} />
+          </Link>
+          <div className="w-px h-5 bg-border/20" />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/30 to-purple-500/20 flex items-center justify-center border border-primary/20">
+              <Rocket size={14} className="text-primary" />
             </div>
+            <span className="text-sm font-bold hidden sm:inline">SnyX Hosting</span>
+          </div>
+          {!chatPanelOpen && (
+            <button onClick={() => setChatPanelOpen(true)} className="p-1.5 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors">
+              <PanelLeftOpen size={16} />
+            </button>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Publish button when preview exists */}
+          {previewHtml && (
+            <Button size="sm" onClick={handlePublish} disabled={deploying || !newSiteName.trim()} className="gap-1.5 h-8 text-xs shadow-lg shadow-primary/20">
+              {deploying ? <Loader2 size={12} className="animate-spin" /> : <Rocket size={12} />}
+              {deploying ? "Publicando..." : "Publicar"}
+            </Button>
+          )}
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold ${
+            tier === "pro" ? "border-primary/30 bg-primary/10 text-primary" :
+            tier === "basic" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" :
+            "border-amber-500/30 bg-amber-500/10 text-amber-400"
+          }`}>
+            {tier === "unlimited" ? <Crown size={10} /> : <Zap size={10} />}
+            {TIER_LABELS[tier]}
+          </div>
+          {limit && (
+            <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">{limit.current}/{limit.max}</span>
+          )}
+        </div>
+      </header>
 
-          {/* AI Site Generator */}
-          {tier !== "none" && (
-            <div id="ai-creator" className="rounded-3xl border border-primary/15 overflow-hidden bg-gradient-to-b from-primary/[0.02] to-transparent">
-              <div className="p-6 md:p-8 space-y-5">
-                {/* Welcome after activation */}
-                {justActivated && !previewHtml && !aiGenerating && (
-                  <div className="rounded-2xl p-5 bg-gradient-to-r from-emerald-500/10 to-primary/5 border border-emerald-500/15 flex items-center gap-4 animate-in fade-in duration-500">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                      <Sparkles size={20} className="text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-emerald-300">Plano ativado com sucesso! 🎉</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Complete a descrição abaixo e clique enviar para criar seu site</p>
-                    </div>
-                  </div>
+      {/* Main Layout: Chat + Preview */}
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* LEFT: AI Chat Panel */}
+        {chatPanelOpen && (
+          <div className="w-80 lg:w-96 border-r border-border/10 flex flex-col bg-background shrink-0">
+            {/* Chat Header */}
+            <div className="h-11 px-3 flex items-center justify-between border-b border-border/10 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center">
+                  <Bot size={12} className="text-purple-400" />
+                </div>
+                <span className="text-xs font-bold">IA Assistente</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-1">
+                {(chatMessages.length > 0 || previewHtml) && (
+                  <button onClick={handleNewChat} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors" title="Novo chat">
+                    <RefreshCw size={12} />
+                  </button>
                 )}
+                <button onClick={() => setChatPanelOpen(false)} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground transition-colors">
+                  <PanelLeftClose size={14} />
+                </button>
+              </div>
+            </div>
 
-                {/* Header */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/25 to-primary/15 flex items-center justify-center border border-purple-500/15 shadow-lg shadow-purple-500/10 shrink-0">
-                    <Sparkles size={22} className="text-purple-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-bold tracking-tight">Criar Site com IA</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Descreva o que você precisa — a IA projeta, codifica e hospeda automaticamente
-                    </p>
-                  </div>
-                </div>
+            {/* Site Name Input */}
+            <div className="px-3 py-2 border-b border-border/5">
+              <Input
+                value={newSiteName}
+                onChange={(e) => setNewSiteName(e.target.value)}
+                placeholder="Nome do site..."
+                className="h-8 text-xs bg-muted/5 border-border/10"
+              />
+            </div>
 
-                {/* Site Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Nome do site</label>
-                  <Input
-                    value={newSiteName}
-                    onChange={(e) => setNewSiteName(e.target.value)}
-                    placeholder="meu-portfolio"
-                    className="text-sm h-10"
-                  />
-                </div>
+            {/* Tabs: Chat / Sites */}
+            <div className="flex border-b border-border/10 shrink-0">
+              <button
+                onClick={() => setActiveTab("chat")}
+                className={`flex-1 py-2 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors ${
+                  activeTab === "chat" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <MessageSquare size={12} />
+                Chat IA
+              </button>
+              <button
+                onClick={() => setActiveTab("sites")}
+                className={`flex-1 py-2 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors ${
+                  activeTab === "sites" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Globe size={12} />
+                Meus Sites
+                {sites.length > 0 && <span className="px-1.5 py-0.5 rounded-full bg-muted/15 text-[9px]">{sites.length}</span>}
+              </button>
+            </div>
 
-                {/* AI Prompt */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Descreva seu site</label>
-                  <div className="relative">
-                    <Textarea
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      placeholder="Ex: 'Portfolio moderno e escuro para um designer chamado Lucas. Seções: hero com animação, sobre mim, projetos com cards e contato com formulário'"
-                      className="text-sm min-h-[120px] pr-14 resize-none leading-relaxed"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleAiGenerate();
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={handleAiGenerate}
-                      disabled={aiGenerating || !aiPrompt.trim()}
-                      className="absolute bottom-3 right-3 w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 text-primary-foreground hover:shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center"
-                    >
-                      {aiGenerating ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Quick Suggestions */}
-                {!previewHtml && !aiGenerating && (
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { icon: Palette, text: "Portfolio criativo" },
-                      { icon: Layout, text: "Landing page startup" },
-                      { icon: Globe, text: "Site institucional" },
-                    ].map(({ icon: Icon, text }) => (
+            {activeTab === "chat" ? (
+              <>
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                  {chatMessages.length === 0 && (
+                    <div className="text-center py-6 space-y-4">
+                      <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/10 to-primary/10 flex items-center justify-center border border-purple-500/10">
+                        <Sparkles size={24} className="text-purple-400/60" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold">Crie seu site com IA</p>
+                        <p className="text-[10px] text-muted-foreground/50 max-w-52 mx-auto leading-relaxed">
+                          Descreva o site que você quer e a IA vai criar. Depois, peça alterações no chat.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        {[
+                          "Portfolio moderno e escuro para designer",
+                          "Landing page de startup de IA",
+                          "Site institucional de advocacia",
+                          "Loja virtual com produtos de exemplo",
+                        ].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setChatInput(s)}
+                            className="block w-full text-left text-[10px] px-3 py-2 rounded-lg bg-muted/5 border border-border/5 text-muted-foreground/70 hover:bg-muted/10 hover:border-border/15 hover:text-foreground transition-all"
+                          >
+                            ✨ {s}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Manual HTML toggle */}
                       <button
-                        key={text}
-                        onClick={() => setAiPrompt(text)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] border border-border/15 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all"
+                        onClick={() => setShowNewSite(!showNewSite)}
+                        className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground flex items-center gap-1 mx-auto transition-colors"
                       >
-                        <Icon size={11} />
-                        {text}
+                        <Code size={10} /> Hospedar com HTML
                       </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Loading State */}
-                {aiGenerating && (
-                  <div className="rounded-2xl p-6 bg-gradient-to-r from-purple-500/5 to-primary/5 border border-purple-500/10 flex items-center gap-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                        <Loader2 size={22} className="animate-spin text-purple-400" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-purple-300">Gerando seu site...</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Design responsivo, moderno e otimizado</p>
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Preview */}
-                {previewHtml && (
-                  <div className="space-y-4 animate-in fade-in duration-500">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Eye size={16} className="text-primary" />
-                        <h3 className="text-sm font-bold">Preview</h3>
-                        {/* Device Toggle */}
-                        <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-muted/10 border border-border/10">
-                          <button
-                            onClick={() => setPreviewDevice("desktop")}
-                            className={`p-1.5 rounded-md transition-all ${previewDevice === "desktop" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                          >
-                            <Monitor size={13} />
-                          </button>
-                          <button
-                            onClick={() => setPreviewDevice("mobile")}
-                            className={`p-1.5 rounded-md transition-all ${previewDevice === "mobile" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                          >
-                            <Smartphone size={13} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => { setPreviewHtml(""); setGeneratedHtml(""); }}
-                          className="text-xs"
-                        >
-                          Descartar
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          onClick={handleAiDeploy} 
-                          disabled={deploying || !newSiteName.trim()}
-                          className="gap-2 shadow-lg shadow-primary/20"
-                        >
-                          {deploying ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />}
-                          {deploying ? "Publicando..." : "Publicar Site"}
-                        </Button>
-                      </div>
-                    </div>
-                    <div className={`mx-auto rounded-2xl border border-border/15 overflow-hidden bg-white shadow-2xl shadow-black/20 transition-all duration-500 ${
-                      previewDevice === "mobile" ? "max-w-[375px]" : "w-full"
-                    }`}>
-                      <div className="h-7 bg-[#1a1a1a] flex items-center gap-1.5 px-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-                        <div className="flex-1 mx-8">
-                          <div className="h-4 rounded-md bg-white/10 flex items-center justify-center">
-                            <span className="text-[9px] text-white/40 font-mono">snyx-{newSiteName || "site"}.vercel.app</span>
-                          </div>
-                        </div>
-                      </div>
-                      <iframe
-                        srcDoc={previewHtml}
-                        className={`w-full transition-all duration-500 ${previewDevice === "mobile" ? "h-[667px]" : "h-[500px] md:h-[600px]"}`}
-                        title="Preview"
-                        sandbox="allow-scripts"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Manual Mode */}
-                {!previewHtml && !aiGenerating && (
-                  <div className="pt-2 border-t border-border/10">
-                    <button
-                      onClick={() => setShowNewSite(!showNewSite)}
-                      className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors flex items-center gap-1.5"
-                    >
-                      <Code size={12} /> Hospedar com código HTML
-                      <ChevronDown size={12} className={`transition-transform ${showNewSite ? "rotate-180" : ""}`} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Manual HTML Form */}
-          {showNewSite && tier !== "none" && !previewHtml && (
-            <div className="rounded-2xl p-6 border border-border/15 bg-muted/[0.02] space-y-4 animate-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Code size={16} className="text-muted-foreground" />
-                  <h3 className="font-bold text-sm">Hospedar com Código HTML</h3>
-                </div>
-                <button onClick={() => setShowNewSite(false)} className="w-6 h-6 rounded-full bg-muted/20 hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors text-xs">✕</button>
-              </div>
-              
-              <div className="flex gap-2">
-                <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/15 cursor-pointer hover:bg-muted/10 transition-colors text-sm">
-                  <Upload size={14} className="text-muted-foreground" />
-                  <span className="text-xs font-medium">Upload .html</span>
-                  <input type="file" accept=".html,.htm" className="hidden" onChange={handleFileUpload} />
-                </label>
-                <span className="text-[10px] text-muted-foreground/40 self-center">ou cole abaixo</span>
-              </div>
-              
-              <Textarea
-                value={newSiteHtml}
-                onChange={(e) => setNewSiteHtml(e.target.value)}
-                placeholder="<!DOCTYPE html>&#10;<html>&#10;  <head>...</head>&#10;  <body>...</body>&#10;</html>"
-                className="text-xs font-mono min-h-[200px] leading-relaxed"
-              />
-              
-              <div className="flex gap-2 justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setShowNewSite(false)}>
-                  Cancelar
-                </Button>
-                <Button size="sm" onClick={handleDeploy} disabled={deploying} className="gap-2">
-                  {deploying ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />}
-                  {deploying ? "Publicando..." : "Publicar"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Edit Site */}
-          {editingSite && (
-            <div className="rounded-2xl p-6 border border-primary/20 bg-primary/[0.02] space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Edit size={16} className="text-primary" />
-                  <h3 className="font-bold text-sm">Editando: {editingSite.site_name}</h3>
-                </div>
-                <button onClick={() => setEditingSite(null)} className="w-6 h-6 rounded-full bg-muted/20 hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors text-xs">✕</button>
-              </div>
-              <Textarea
-                value={editingSite.html_content}
-                onChange={(e) => setEditingSite({ ...editingSite, html_content: e.target.value })}
-                className="text-xs font-mono min-h-[300px] leading-relaxed"
-              />
-              <div className="flex gap-2 justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setEditingSite(null)}>Cancelar</Button>
-                <Button size="sm" onClick={handleUpdate} disabled={deploying} className="gap-2">
-                  {deploying ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                  {deploying ? "Atualizando..." : "Atualizar"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Sites List */}
-          {tier !== "none" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold tracking-tight">Seus Sites</h2>
-                  <span className="px-2 py-0.5 rounded-full bg-muted/15 text-xs font-mono text-muted-foreground">{sites.length}</span>
-                </div>
-              </div>
-
-              {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
-                    <span className="text-xs text-muted-foreground">Carregando sites...</span>
-                  </div>
-                </div>
-              ) : sites.length === 0 ? (
-                <div className="text-center py-20 space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-muted/10 flex items-center justify-center">
-                    <Globe size={28} className="text-muted-foreground/20" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground text-sm font-medium">Nenhum site hospedado</p>
-                    <p className="text-muted-foreground/40 text-xs">Use a IA acima para criar seu primeiro site ✨</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {sites.map((site) => (
-                    <div 
-                      key={site.id} 
-                      className="group rounded-2xl border border-border/10 hover:border-primary/15 transition-all duration-300 overflow-hidden"
-                    >
-                      <div className="p-4 md:p-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0 flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-purple-500/10 flex items-center justify-center border border-primary/10 shrink-0 mt-0.5">
-                              <Globe size={16} className="text-primary" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-sm">{site.site_name}</h4>
-                              {site.vercel_url && (
-                                <a
-                                  href={site.vercel_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-primary/60 hover:text-primary truncate mt-0.5 flex items-center gap-1 w-fit"
-                                >
-                                  <ExternalLink size={10} />
-                                  {site.vercel_url.replace("https://", "")}
-                                </a>
-                              )}
-                              <Link
-                                to={`/site/${site.id}`}
-                                className="text-[10px] text-purple-400/60 hover:text-purple-400 flex items-center gap-1 w-fit"
-                              >
-                                <Link2 size={9} />
-                                Gerenciar site
-                              </Link>
-                              <p className="text-[10px] text-muted-foreground/40 mt-1.5">
-                                {new Date(site.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-                                {site.updated_at !== site.created_at && ` • editado`}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {site.vercel_url && (
-                              <>
-                                <button
-                                  onClick={() => window.open(site.vercel_url!, "_blank")}
-                                  className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                                  title="Abrir"
-                                >
-                                  <ExternalLink size={14} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(site.vercel_url!);
-                                    toast.success("URL copiada!");
-                                  }}
-                                  className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                                  title="Copiar URL"
-                                >
-                                  <Copy size={14} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const url = `${window.location.origin}/site/${site.id}`;
-                                    navigator.clipboard.writeText(url);
-                                    toast.success("Link de gerenciamento copiado!");
-                                  }}
-                                  className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                                  title="Copiar link de gerenciamento"
-                                >
-                                  <Link2 size={14} />
-                                </button>
-                              </>
-                            )}
-                            <button
-                              onClick={() => setEditingSite(site)}
-                              className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors"
-                              title="Editar"
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(site)}
-                              disabled={deletingId === site.id}
-                              className="p-2 rounded-lg hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
-                              title="Excluir"
-                            >
-                              {deletingId === site.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Expandable Preview */}
-                      {expandedSite === site.id && (
-                        <div className="border-t border-border/10 bg-white">
-                          <iframe
-                            srcDoc={site.html_content}
-                            className="w-full h-[300px]"
-                            title={`Preview ${site.site_name}`}
-                            sandbox="allow-scripts"
-                          />
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {msg.role === "assistant" && (
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <Bot size={10} className="text-purple-400" />
                         </div>
                       )}
-                      
-                      <button
-                        onClick={() => setExpandedSite(expandedSite === site.id ? null : site.id)}
-                        className="w-full py-1.5 border-t border-border/5 text-[10px] text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/5 transition-colors flex items-center justify-center gap-1"
-                      >
-                        <Eye size={10} />
-                        {expandedSite === site.id ? "Fechar preview" : "Ver preview"}
-                      </button>
+                      <div className={`max-w-[85%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-muted/10 border border-border/10 rounded-bl-sm"
+                      }`}>
+                        {msg.role === "assistant" ? (
+                          <div className="prose prose-xs prose-invert max-w-none [&>p]:m-0 [&>p]:text-[11px]">
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : msg.content}
+                      </div>
+                      {msg.role === "user" && (
+                        <div className="w-5 h-5 rounded-md bg-muted/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <User size={10} className="text-muted-foreground" />
+                        </div>
+                      )}
                     </div>
                   ))}
+
+                  {chatLoading && (
+                    <div className="flex gap-2 items-start">
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center shrink-0">
+                        <Bot size={10} className="text-purple-400" />
+                      </div>
+                      <div className="bg-muted/10 border border-border/10 rounded-xl rounded-bl-sm px-3 py-2.5">
+                        <div className="flex gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
                 </div>
-              )}
+
+                {/* Manual HTML form */}
+                {showNewSite && !previewHtml && (
+                  <div className="px-3 pb-2 space-y-2 border-t border-border/10 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-muted-foreground">HTML Manual</span>
+                      <button onClick={() => setShowNewSite(false)} className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground">✕</button>
+                    </div>
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/10 cursor-pointer hover:bg-muted/10 text-[10px]">
+                      <Upload size={10} /> Upload .html
+                      <input type="file" accept=".html,.htm" className="hidden" onChange={handleFileUpload} />
+                    </label>
+                    <Textarea value={newSiteHtml} onChange={(e) => setNewSiteHtml(e.target.value)} placeholder="Cole o HTML aqui..." className="text-[10px] font-mono min-h-[100px]" />
+                    <Button size="sm" onClick={handleDeploy} disabled={deploying} className="w-full gap-1 h-7 text-[10px]">
+                      {deploying ? <Loader2 size={10} className="animate-spin" /> : <Rocket size={10} />}
+                      Publicar HTML
+                    </Button>
+                  </div>
+                )}
+
+                {/* Chat Input */}
+                <div className="p-3 border-t border-border/10 shrink-0">
+                  <div className="flex gap-2">
+                    <input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendChat()}
+                      placeholder={previewHtml ? "Peça uma alteração..." : "Descreva o site que você quer..."}
+                      disabled={chatLoading}
+                      className="flex-1 bg-muted/5 border border-border/10 rounded-lg px-3 py-2 text-xs placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
+                    />
+                    <button
+                      onClick={handleSendChat}
+                      disabled={chatLoading || !chatInput.trim()}
+                      className="p-2 rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-40 disabled:shadow-none"
+                    >
+                      {chatLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Sites List Tab */
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary/50" />
+                  </div>
+                ) : sites.length === 0 ? (
+                  <div className="text-center py-12 space-y-3">
+                    <Globe size={24} className="mx-auto text-muted-foreground/20" />
+                    <p className="text-xs text-muted-foreground">Nenhum site ainda</p>
+                    <button onClick={() => setActiveTab("chat")} className="text-xs text-primary hover:underline">Criar com IA →</button>
+                  </div>
+                ) : (
+                  sites.map(site => (
+                    <div key={site.id} className="rounded-xl border border-border/10 hover:border-primary/15 transition-all p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold truncate">{site.site_name}</h4>
+                          {site.vercel_url && (
+                            <a href={site.vercel_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary/50 hover:text-primary truncate flex items-center gap-1 w-fit">
+                              <ExternalLink size={8} />
+                              {site.vercel_url.replace("https://", "")}
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <Link to={`/site/${site.id}`} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors" title="Gerenciar">
+                            <Edit size={11} />
+                          </Link>
+                          {site.vercel_url && (
+                            <button onClick={() => { navigator.clipboard.writeText(site.vercel_url!); toast.success("URL copiada!"); }} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground" title="Copiar URL">
+                              <Copy size={11} />
+                            </button>
+                          )}
+                          <button onClick={() => handleDelete(site)} disabled={deletingId === site.id} className="p-1.5 rounded-md hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors" title="Excluir">
+                            {deletingId === site.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground/30">{new Date(site.created_at).toLocaleDateString("pt-BR")}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RIGHT: Preview Area */}
+        <div className="flex-1 flex flex-col bg-muted/[0.02] overflow-hidden">
+          {previewHtml ? (
+            <>
+              {/* Preview Header */}
+              <div className="h-10 px-3 flex items-center justify-between border-b border-border/10 shrink-0 bg-background">
+                <div className="flex items-center gap-2">
+                  <Eye size={13} className="text-primary" />
+                  <span className="text-[11px] font-bold">Preview</span>
+                  <span className="text-[10px] text-muted-foreground/40">{newSiteName || "Sem nome"}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-muted/10 border border-border/5">
+                    <button onClick={() => setPreviewDevice("desktop")} className={`p-1 rounded transition-colors ${previewDevice === "desktop" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}>
+                      <Monitor size={11} />
+                    </button>
+                    <button onClick={() => setPreviewDevice("mobile")} className={`p-1 rounded transition-colors ${previewDevice === "mobile" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}>
+                      <Smartphone size={11} />
+                    </button>
+                  </div>
+                  <button onClick={() => { setPreviewHtml(""); setGeneratedHtml(""); }} className="p-1.5 rounded-md hover:bg-muted/20 text-muted-foreground hover:text-foreground text-[10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+              {/* Preview Frame */}
+              <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
+                <div className={`rounded-xl border border-border/15 overflow-hidden bg-white shadow-2xl shadow-black/20 transition-all duration-500 ${
+                  previewDevice === "mobile" ? "w-[375px]" : "w-full max-w-5xl"
+                }`}>
+                  <div className="h-6 bg-[#1a1a1a] flex items-center gap-1.5 px-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500/60" />
+                    <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
+                    <div className="w-2 h-2 rounded-full bg-green-500/60" />
+                    <div className="flex-1 mx-6">
+                      <div className="h-3.5 rounded bg-white/10 flex items-center justify-center">
+                        <span className="text-[8px] text-white/40 font-mono">snyx-{(newSiteName || "site").toLowerCase().replace(/[^a-z0-9-]/g, "-")}.vercel.app</span>
+                      </div>
+                    </div>
+                  </div>
+                  <iframe
+                    srcDoc={previewHtml}
+                    className={`w-full ${previewDevice === "mobile" ? "h-[667px]" : "h-[calc(100vh-10rem)]"}`}
+                    title="Preview"
+                    sandbox="allow-scripts"
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Empty State */
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4 max-w-xs">
+                <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-purple-500/10 to-primary/5 flex items-center justify-center border border-purple-500/10">
+                  <Sparkles size={32} className="text-purple-400/30" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold text-muted-foreground/60">Seu site aparecerá aqui</h3>
+                  <p className="text-[11px] text-muted-foreground/30 leading-relaxed">
+                    Use o chat ao lado para descrever o site que você quer. A IA vai criar e você pode pedir alterações em tempo real.
+                  </p>
+                </div>
+                {!chatPanelOpen && (
+                  <Button variant="outline" size="sm" onClick={() => setChatPanelOpen(true)} className="gap-1.5 text-xs">
+                    <PanelLeftOpen size={12} /> Abrir Chat IA
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
