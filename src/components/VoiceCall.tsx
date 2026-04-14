@@ -185,7 +185,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
     utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
 
-    synthRef.current.speak(utterance);
+    synthRef.current?.speak(utterance);
   }, [muted, selectedVoice, selectedGender]);
 
   const startListening = useCallback(() => {
