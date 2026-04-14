@@ -17,10 +17,10 @@ interface AppRelease {
 
 export default function Downloads() {
   const { user, profile, loading: authLoading } = useAuth();
-  const [release, setRelease] = useState<AppRelease | null>(null);
+  const [releases, setReleases] = useState<AppRelease[]>([]);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
-  const [showChangelog, setShowChangelog] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [showChangelogId, setShowChangelogId] = useState<string | null>(null);
 
   const hasAccess = !!profile?.is_pack_steam;
 
@@ -29,30 +29,28 @@ export default function Downloads() {
       setLoading(false);
       return;
     }
-    fetchLatestRelease();
+    fetchReleases();
   }, [user, hasAccess]);
 
-  const fetchLatestRelease = async () => {
+  const fetchReleases = async () => {
     const { data, error } = await supabase
       .from("app_releases")
       .select("*")
-      .eq("platform", "windows")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+      .limit(2);
 
-    if (!error && data) setRelease(data as AppRelease);
+    if (!error && data) setReleases(data as AppRelease[]);
     setLoading(false);
   };
 
-  const handleDownload = async () => {
-    if (!release) return;
-    setDownloading(true);
+  const handleDownload = async (rel: AppRelease) => {
+    setDownloadingId(rel.id);
     try {
+      const ext = rel.platform === "windows" ? "exe" : "apk";
       const { data, error } = await supabase.storage
         .from("app-downloads")
-        .createSignedUrl(release.file_url, 60, {
-          download: `SnyX-v${release.version}.exe`,
+        .createSignedUrl(rel.file_url, 60, {
+          download: `SnyX-v${rel.version}.${ext}`,
         });
 
       if (error) throw error;
@@ -67,13 +65,17 @@ export default function Downloads() {
     } catch (err: any) {
       toast.error("Erro no download: " + (err.message || "tente novamente"));
     }
-    setDownloading(false);
+    setDownloadingId(null);
   };
 
   const formatSize = (bytes: number | null) => {
     if (!bytes) return "";
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    return platform === "windows" ? Monitor : Package;
   };
 
   if (authLoading) {
@@ -85,6 +87,113 @@ export default function Downloads() {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+
+  const renderAppCard = (rel: AppRelease, index: number) => {
+    const isDownloading = downloadingId === rel.id;
+    const isChangelogOpen = showChangelogId === rel.id;
+    const PlatIcon = getPlatformIcon(rel.platform);
+
+    return (
+      <div key={rel.id} className="animate-fade-in-up space-y-4" style={{ animationDelay: `${index * 100}ms` }}>
+        {/* Main app card */}
+        <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-start gap-4 sm:gap-5">
+              {/* App icon */}
+              <div className="relative shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[22px] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
+                  <Zap className="w-9 h-9 sm:w-11 sm:h-11 text-primary" />
+                </div>
+                <div className="absolute -inset-2 rounded-[26px] bg-primary/8 blur-xl -z-10 animate-breathe" />
+              </div>
+
+              {/* App info */}
+              <div className="flex-1 min-w-0 space-y-2.5">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black leading-tight">SnyX App</h2>
+                  <p className="text-xs text-muted-foreground/40 mt-0.5">
+                    Thiago Dev • {rel.platform === "windows" ? "Windows" : rel.platform.charAt(0).toUpperCase() + rel.platform.slice(1)}
+                  </p>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5">
+                    {[1,2,3,4,5].map(i => (
+                      <Star key={i} className="w-3.5 h-3.5 text-primary fill-primary" />
+                    ))}
+                  </div>
+                  <span className="text-xs text-muted-foreground/40 font-medium">5.0</span>
+                </div>
+
+                {/* Install button */}
+                <button
+                  onClick={() => handleDownload(rel)}
+                  disabled={isDownloading}
+                  className="mt-1 px-6 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-2 w-fit"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isDownloading ? "Baixando..." : "Instalar"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats bar */}
+          <div className="border-t border-border/8 px-5 sm:px-6 py-3 flex items-center gap-4 sm:gap-6 overflow-x-auto">
+            <div className="flex flex-col items-center min-w-fit">
+              <span className="text-xs font-bold text-foreground/80">v{rel.version}</span>
+              <span className="text-[10px] text-muted-foreground/40">Versão</span>
+            </div>
+            <div className="w-px h-8 bg-border/10" />
+            {rel.file_size && (
+              <>
+                <div className="flex flex-col items-center min-w-fit">
+                  <span className="text-xs font-bold text-foreground/80">{formatSize(rel.file_size)}</span>
+                  <span className="text-[10px] text-muted-foreground/40">Tamanho</span>
+                </div>
+                <div className="w-px h-8 bg-border/10" />
+              </>
+            )}
+            <div className="flex flex-col items-center min-w-fit">
+              <span className="text-xs font-bold text-foreground/80">{new Date(rel.created_at).toLocaleDateString("pt-BR")}</span>
+              <span className="text-[10px] text-muted-foreground/40">Atualizado</span>
+            </div>
+            <div className="w-px h-8 bg-border/10" />
+            <div className="flex flex-col items-center min-w-fit">
+              <div className="flex items-center gap-1">
+                <PlatIcon className="w-3 h-3 text-foreground/80" />
+                <span className="text-xs font-bold text-foreground/80 capitalize">{rel.platform}</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground/40">Plataforma</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Changelog section */}
+        {rel.changelog && (
+          <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
+            <button
+              onClick={() => setShowChangelogId(isChangelogOpen ? null : rel.id)}
+              className="w-full flex items-center justify-between"
+            >
+              <h3 className="text-sm font-bold text-foreground/70">Novidades</h3>
+              <span className="text-xs text-primary font-medium">
+                {isChangelogOpen ? "Ocultar" : "Ver mais"}
+              </span>
+            </button>
+            <div className={`overflow-hidden transition-all duration-300 ${isChangelogOpen ? "max-h-96" : "max-h-16"}`}>
+              <p className="text-xs text-muted-foreground/60 whitespace-pre-wrap leading-relaxed">{rel.changelog}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -106,15 +215,14 @@ export default function Downloads() {
             </div>
             <div>
               <h1 className="text-sm font-bold">Downloads</h1>
-              <p className="text-[9px] text-muted-foreground/40 hidden sm:block">SnyX Desktop App</p>
+              <p className="text-[9px] text-muted-foreground/40 hidden sm:block">SnyX Desktop & Apps</p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 max-w-2xl mx-auto p-4 sm:p-6 mt-6 sm:mt-10">
+      <div className="relative z-10 max-w-4xl mx-auto p-4 sm:p-6 mt-6 sm:mt-10">
         {!hasAccess ? (
-          /* Locked state */
           <div className="text-center space-y-5 animate-fade-in-up">
             <div className="relative mx-auto w-fit">
               <div className="w-24 h-24 rounded-3xl bg-muted/10 border border-border/15 flex items-center justify-center">
@@ -143,7 +251,7 @@ export default function Downloads() {
           <div className="flex justify-center py-20">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
-        ) : !release ? (
+        ) : releases.length === 0 ? (
           <div className="text-center space-y-5 animate-fade-in-up">
             <div className="w-24 h-24 rounded-3xl bg-muted/10 border border-border/15 flex items-center justify-center mx-auto">
               <Package className="w-10 h-10 text-muted-foreground/30" />
@@ -154,89 +262,11 @@ export default function Downloads() {
             </div>
           </div>
         ) : (
-          /* App Store style card */
-          <div className="animate-fade-in-up space-y-4">
-            {/* Main app card */}
-            <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated">
-              <div className="p-5 sm:p-6">
-                <div className="flex items-start gap-4 sm:gap-5">
-                  {/* App icon */}
-                  <div className="relative shrink-0">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[22px] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
-                      <Zap className="w-9 h-9 sm:w-11 sm:h-11 text-primary" />
-                    </div>
-                    <div className="absolute -inset-2 rounded-[26px] bg-primary/8 blur-xl -z-10 animate-breathe" />
-                  </div>
-
-                  {/* App info */}
-                  <div className="flex-1 min-w-0 space-y-2.5">
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-black leading-tight">SnyX App</h2>
-                      <p className="text-xs text-muted-foreground/40 mt-0.5">Thiago Dev • Pack Steam</p>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-0.5">
-                        {[1,2,3,4,5].map(i => (
-                          <Star key={i} className="w-3.5 h-3.5 text-primary fill-primary" />
-                        ))}
-                      </div>
-                      <span className="text-xs text-muted-foreground/40 font-medium">5.0</span>
-                    </div>
-
-                    {/* Install button */}
-                    <button
-                      onClick={handleDownload}
-                      disabled={downloading}
-                      className="mt-1 px-6 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-2 w-fit"
-                    >
-                      {downloading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Download className="w-4 h-4" />
-                      )}
-                      {downloading ? "Baixando..." : "Instalar"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats bar */}
-              <div className="border-t border-border/8 px-5 sm:px-6 py-3 flex items-center gap-4 sm:gap-6 overflow-x-auto">
-                <div className="flex flex-col items-center min-w-fit">
-                  <span className="text-xs font-bold text-foreground/80">v{release.version}</span>
-                  <span className="text-[10px] text-muted-foreground/40">Versão</span>
-                </div>
-                <div className="w-px h-8 bg-border/10" />
-                {release.file_size && (
-                  <>
-                    <div className="flex flex-col items-center min-w-fit">
-                      <span className="text-xs font-bold text-foreground/80">{formatSize(release.file_size)}</span>
-                      <span className="text-[10px] text-muted-foreground/40">Tamanho</span>
-                    </div>
-                    <div className="w-px h-8 bg-border/10" />
-                  </>
-                )}
-                <div className="flex flex-col items-center min-w-fit">
-                  <span className="text-xs font-bold text-foreground/80">{new Date(release.created_at).toLocaleDateString("pt-BR")}</span>
-                  <span className="text-[10px] text-muted-foreground/40">Atualizado</span>
-                </div>
-                <div className="w-px h-8 bg-border/10" />
-                <div className="flex flex-col items-center min-w-fit">
-                  <div className="flex items-center gap-1">
-                    <Monitor className="w-3 h-3 text-foreground/80" />
-                    <span className="text-xs font-bold text-foreground/80">Windows</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground/40">Plataforma</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Features section */}
+          <div className="space-y-8">
+            {/* Features section - shared */}
             <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
               <h3 className="text-sm font-bold text-foreground/70">Recursos</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { icon: Shield, label: "Anti-ban seguro" },
                   { icon: Sparkles, label: "Auto atualização" },
@@ -253,23 +283,10 @@ export default function Downloads() {
               </div>
             </div>
 
-            {/* Changelog section */}
-            {release.changelog && (
-              <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
-                <button
-                  onClick={() => setShowChangelog(!showChangelog)}
-                  className="w-full flex items-center justify-between"
-                >
-                  <h3 className="text-sm font-bold text-foreground/70">Novidades</h3>
-                  <span className="text-xs text-primary font-medium">
-                    {showChangelog ? "Ocultar" : "Ver mais"}
-                  </span>
-                </button>
-                <div className={`overflow-hidden transition-all duration-300 ${showChangelog ? "max-h-96" : "max-h-16"}`}>
-                  <p className="text-xs text-muted-foreground/60 whitespace-pre-wrap leading-relaxed">{release.changelog}</p>
-                </div>
-              </div>
-            )}
+            {/* App cards grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {releases.map((rel, i) => renderAppCard(rel, i))}
+            </div>
 
             {/* Pack Steam badge */}
             <div className="flex items-center justify-center gap-2 py-2">
