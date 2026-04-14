@@ -115,11 +115,11 @@ export function AdminReleasesPanel() {
           <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border/30 cursor-pointer hover:bg-muted/50 transition-colors">
             <HardDrive className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground truncate">
-              {file ? file.name : "Escolher arquivo .exe"}
+              {file ? file.name : "Escolher arquivo (.exe, .bat, .zip, etc.)"}
             </span>
             <input
               type="file"
-              accept=".exe,.msi,.zip"
+              accept=".exe,.msi,.zip,.bat,.apk,.rar,.7z"
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
