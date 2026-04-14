@@ -41,7 +41,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [showVoicePicker, setShowVoicePicker] = useState(true);
 
   const recognitionRef = useRef<any>(null);
-  const synthRef = useRef(window.speechSynthesis);
+  const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
   const voicesCacheRef = useRef<SpeechSynthesisVoice[]>([]);
@@ -49,16 +49,18 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
   // Pre-load voices (they load async in many browsers)
   useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    synthRef.current = window.speechSynthesis;
     const loadVoices = () => {
-      const allVoices = synthRef.current.getVoices();
+      const allVoices = window.speechSynthesis.getVoices();
       if (allVoices.length > 0) {
         voicesCacheRef.current = allVoices;
         console.log("Voices loaded:", allVoices.filter(v => v.lang.startsWith("pt")).map(v => `${v.name} (${v.lang})`));
       }
     };
     loadVoices();
-    speechSynthesis.addEventListener("voiceschanged", loadVoices);
-    return () => speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
   }, []);
 
   const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
