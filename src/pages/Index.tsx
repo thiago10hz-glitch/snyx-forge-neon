@@ -137,6 +137,13 @@ const Index = () => {
         <>
           <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
           <div className="absolute top-14 right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] animate-reveal">
+            <button
+              onClick={() => { setChatMode("characters"); setShowMobileNav(false); }}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
+            >
+              <Users className="w-4 h-4" />
+              Personagens
+            </button>
             {navItems.map(({ to, icon: Icon, label }) => (
               <Link
                 key={to}
