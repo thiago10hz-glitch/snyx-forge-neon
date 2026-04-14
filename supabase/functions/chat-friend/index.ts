@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       const isAdultContent = adultKeywords.some(kw => content.includes(kw));
       if (isAdultContent) {
         const encoder = new TextEncoder();
-        const paywall = "🔞 **Conteúdo +18 detectado!**\n\nEsse tipo de conversa é exclusivo para assinantes **VIP** ou **Pack Steam**. 🔒\n\n✨ Assine agora para desbloquear conversas sem limites e conteúdo adulto!\n\n💎 Use uma chave VIP ou Pack Steam para ativar.";
+        const paywall = "🔞 **Conteúdo +18 detectado!**\n\nEsse tipo de conversa é exclusivo para assinantes **VIP**. 🔒\n\n✨ Assine agora para desbloquear conversas sem limites e conteúdo adulto!\n\n💎 Use uma chave VIP para ativar.";
         const stream = new ReadableStream({
           start(controller) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: paywall })}\n\n`));
