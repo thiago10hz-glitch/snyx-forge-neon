@@ -7,7 +7,8 @@ import {
   Globe, Trash2, ExternalLink, ArrowLeft, Upload, Code, 
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Monitor, Smartphone,
-  Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen
+  Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
+  Mic, MicOff, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +72,10 @@ const Hosting = () => {
   const [chatPanelOpen, setChatPanelOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"chat" | "sites">("chat");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const loadSites = useCallback(async () => {
     if (!user) return;
@@ -326,6 +331,83 @@ const Hosting = () => {
       if (!newSiteName) setNewSiteName(file.name.replace(/\.(html|htm)$/, ""));
     };
     reader.readAsText(file);
+  };
+
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+      if (!recognition) {
+        // Fallback: just record and tell user
+        toast.error("Reconhecimento de voz não suportado neste navegador");
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+      recognition.lang = "pt-BR";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      setIsRecording(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setChatInput(prev => prev ? prev + " " + transcript : transcript);
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recognition.onerror = () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+        toast.error("Erro ao captar áudio");
+      };
+      recognition.onend = () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recognition.start();
+    } catch {
+      toast.error("Permissão de microfone negada");
+      setIsRecording(false);
+    }
+  };
+
+  const handleChatFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    if (file.name.endsWith(".html") || file.name.endsWith(".htm")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target?.result as string;
+        setGeneratedHtml(content);
+        setPreviewHtml(content);
+        if (!newSiteName) setNewSiteName(file.name.replace(/\.(html|htm)$/, ""));
+        setChatMessages(prev => [...prev,
+          { role: "user", content: `📎 Arquivo enviado: ${file.name}` },
+          { role: "assistant", content: "✅ HTML carregado no preview! Agora você pode me pedir alterações." }
+        ]);
+      };
+      reader.readAsText(file);
+    } else if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        setChatMessages(prev => [...prev,
+          { role: "user", content: `📎 Imagem enviada: ${file.name}` },
+          { role: "assistant", content: `Imagem recebida! Use o chat para me dizer onde inserir no site.\n\n![preview](${dataUrl.substring(0, 100)}...)` }
+        ]);
+        // Store for AI to reference
+        setChatInput(prev => prev ? prev + ` [imagem: ${file.name}]` : `Adicione esta imagem ao site: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast.error("Envie arquivos HTML ou imagens");
+    }
   };
 
   const handleNewChat = () => {
@@ -653,7 +735,22 @@ const Hosting = () => {
 
                 {/* Chat Input */}
                 <div className="p-3 border-t border-border/10 shrink-0">
-                  <div className="flex gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".html,.htm,image/*"
+                    className="hidden"
+                    onChange={handleChatFileUpload}
+                  />
+                  <div className="flex items-end gap-1.5">
+                    {/* Plus / Attach button */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      title="Enviar arquivo"
+                    >
+                      <Plus size={16} />
+                    </button>
                     <input
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
@@ -662,10 +759,23 @@ const Hosting = () => {
                       disabled={chatLoading}
                       className="flex-1 bg-muted/5 border border-border/10 rounded-lg px-3 py-2 text-xs placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
                     />
+                    {/* Mic button */}
+                    <button
+                      onClick={handleVoiceToggle}
+                      className={`p-2 rounded-lg transition-all shrink-0 ${
+                        isRecording
+                          ? "bg-destructive/20 text-destructive animate-pulse"
+                          : "hover:bg-muted/20 text-muted-foreground hover:text-foreground"
+                      }`}
+                      title={isRecording ? "Parar gravação" : "Falar"}
+                    >
+                      {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
+                    </button>
+                    {/* Send button */}
                     <button
                       onClick={handleSendChat}
                       disabled={chatLoading || !chatInput.trim()}
-                      className="p-2 rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-40 disabled:shadow-none"
+                      className="p-2 rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-40 disabled:shadow-none shrink-0"
                     >
                       {chatLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                     </button>
