@@ -714,6 +714,9 @@ export default function Admin() {
                             {u.dev_expires_at && (
                               <span className="text-cyan-400/70">DEV até: {new Date(u.dev_expires_at).toLocaleDateString("pt-BR")}</span>
                             )}
+                            {u.rpg_premium_expires_at && (
+                              <span className="text-purple-400/70">RPG até: {new Date(u.rpg_premium_expires_at).toLocaleDateString("pt-BR")}</span>
+                            )}
                             {isBanned(u) && (
                               <span className="text-destructive/70">Ban até: {new Date(u.banned_until!).toLocaleString("pt-BR")}</span>
                             )}
@@ -782,6 +785,24 @@ export default function Admin() {
                                 color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
                                 onClick={() => revokePackSteam(u.user_id)}
                                 loading={actionLoading === u.user_id + "-revoke_pack_steam"}
+                                disabled={actionLoading !== null}
+                              />
+                            )}
+                            <ActionButton
+                              icon={Package}
+                              title="Dar RPG Premium"
+                              color="text-purple-400 hover:bg-purple-500/10 border-purple-500/20"
+                              onClick={() => setRpgModalUser(u.user_id)}
+                              loading={false}
+                              disabled={actionLoading !== null}
+                            />
+                            {u.is_rpg_premium && (
+                              <ActionButton
+                                icon={UserX}
+                                title="Revogar RPG"
+                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
+                                onClick={() => revokeRpgPremium(u.user_id)}
+                                loading={actionLoading === u.user_id + "-revoke_rpg"}
                                 disabled={actionLoading !== null}
                               />
                             )}
