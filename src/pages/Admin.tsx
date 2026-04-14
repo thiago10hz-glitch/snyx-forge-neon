@@ -292,6 +292,39 @@ export default function Admin() {
     setActionLoading(null);
   };
 
+  const grantRpgPremium = async (userId: string, months: number) => {
+    setActionLoading(userId + "-grant_rpg");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "grant_rpg_premium", target_user_id: userId, vip_months: months },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`RPG Premium ativado por ${months} mês(es) ⚔️`);
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: true, rpg_premium_expires_at: data.rpg_premium_expires_at } : u)));
+      setRpgModalUser(null);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao conceder RPG Premium");
+    }
+    setActionLoading(null);
+  };
+
+  const revokeRpgPremium = async (userId: string) => {
+    setActionLoading(userId + "-revoke_rpg");
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "revoke_rpg_premium", target_user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("RPG Premium removido");
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: false, rpg_premium_expires_at: null } : u)));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao revogar RPG Premium");
+    }
+    setActionLoading(null);
+  };
+
   const grantVip = async (userId: string, months: number) => {
     setActionLoading(userId + "-grant_vip");
     try {
