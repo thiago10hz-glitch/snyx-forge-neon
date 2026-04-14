@@ -56,7 +56,7 @@ const Hosting = () => {
   const [newSiteHtml, setNewSiteHtml] = useState("");
   const [deploying, setDeploying] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingSite, setEditingSite] = useState<HostedSite | null>(null);
+  const [_editingSite, setEditingSite] = useState<HostedSite | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [activatingKey, setActivatingKey] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
@@ -279,6 +279,7 @@ const Hosting = () => {
   };
 
   const handleUpdate = async () => {
+    const editingSite = _editingSite;
     if (!editingSite) return;
     setDeploying(true);
     try {
