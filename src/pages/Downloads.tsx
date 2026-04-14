@@ -21,15 +21,15 @@ export default function Downloads() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  const isVipOrDev = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam;
+  const hasAccess = !!profile?.is_pack_steam;
 
   useEffect(() => {
-    if (!user || !isVipOrDev) {
+    if (!user || !hasAccess) {
       setLoading(false);
       return;
     }
     fetchLatestRelease();
-  }, [user, isVipOrDev]);
+  }, [user, hasAccess]);
 
   const fetchLatestRelease = async () => {
     const { data, error } = await supabase
@@ -112,7 +112,7 @@ export default function Downloads() {
       </header>
 
       <div className="relative z-10 max-w-lg mx-auto p-5 sm:p-8 mt-8 sm:mt-16 md:mt-20">
-        {!isVipOrDev ? (
+        {!hasAccess ? (
           /* Locked state */
           <div className="text-center space-y-5 animate-fade-in-up">
             <div className="relative mx-auto w-fit">
@@ -124,7 +124,7 @@ export default function Downloads() {
             <div className="space-y-2">
               <h2 className="text-xl font-black">Acesso Restrito</h2>
               <p className="text-sm text-muted-foreground/50 leading-relaxed max-w-xs mx-auto">
-                O download do app é exclusivo para usuários <span className="text-primary font-semibold">VIP</span>, <span className="text-cyan-400 font-semibold">DEV</span> e <span className="text-green-400 font-semibold">Pack Steam</span>.
+                O download do app é exclusivo para usuários <span className="text-primary font-semibold">Pack Steam</span>.
               </p>
             </div>
             <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
@@ -154,7 +154,14 @@ export default function Downloads() {
           </div>
         ) : (
           /* Download card */
-          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up">
+          <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated animate-fade-in-up relative">
+            {/* Pack Steam Tag */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className="px-3 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-black uppercase tracking-wider border border-primary/20 flex items-center gap-1.5">
+                <Package className="w-3 h-3" />
+                Pack Steam
+              </span>
+            </div>
             <div className="p-6 sm:p-8 text-center space-y-5">
               {/* App icon */}
               <div className="relative mx-auto w-fit">
