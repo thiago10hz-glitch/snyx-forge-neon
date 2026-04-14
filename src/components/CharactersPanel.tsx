@@ -204,7 +204,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-base font-bold gradient-text-subtle">Personagens AI</h2>
+            <h2 className="text-base font-bold gradient-text-subtle">Criar RPG</h2>
             <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase">Explore & Crie</p>
           </div>
         </div>

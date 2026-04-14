@@ -67,7 +67,7 @@ const Index = () => {
           <ThemeSelector />
           <button onClick={() => setChatMode(chatMode === "characters" ? "friend" : "characters")} className={`nav-link group ${chatMode === "characters" ? "text-primary" : ""}`}>
             <Users className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-            <span>Personagens</span>
+            <span>Criar RPG</span>
           </button>
           {navItems.map(({ to, icon: Icon, label }) => (
             <Link key={to} to={to} className="nav-link group">
@@ -142,7 +142,7 @@ const Index = () => {
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
             >
               <Users className="w-4 h-4" />
-              Personagens
+              Criar RPG
             </button>
             {navItems.map(({ to, icon: Icon, label }) => (
               <Link
