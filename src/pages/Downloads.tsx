@@ -24,12 +24,12 @@ export default function Downloads() {
   const hasAccess = !!profile?.is_pack_steam;
 
   useEffect(() => {
-    if (!user || !isVipOrDev) {
+    if (!user || !hasAccess) {
       setLoading(false);
       return;
     }
     fetchLatestRelease();
-  }, [user, isVipOrDev]);
+  }, [user, hasAccess]);
 
   const fetchLatestRelease = async () => {
     const { data, error } = await supabase
