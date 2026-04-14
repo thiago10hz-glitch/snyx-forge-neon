@@ -6,7 +6,7 @@ import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
-import { AdminHostingKeysPanel } from "@/components/AdminHostingKeysPanel";
+
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
@@ -40,7 +40,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "hosting" | "livechats" | "releases";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases";
 
 interface ChatMessage {
   id: string;
@@ -502,7 +502,7 @@ export default function Admin() {
             { key: "notes" as AdminTab, label: "Notas", icon: StickyNote, activeClass: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
             { key: "connections" as AdminTab, label: "Conexões", icon: Link2, activeClass: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
             { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
-            { key: "hosting" as AdminTab, label: "Hosting", icon: KeyRound, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
+            
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
             { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
           ]).map(tab => (
@@ -1069,9 +1069,6 @@ export default function Admin() {
         <AdminSecurityPanel />
       )}
 
-      {adminTab === "hosting" && (
-        <AdminHostingKeysPanel />
-      )}
 
       {adminTab === "livechats" && (
         <AdminLiveChatsPanel />
