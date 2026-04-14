@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Heart, MessageCircle, TrendingUp, Sparkles, Star, Filter } from "lucide-react";
+import { Search, Plus, Heart, MessageCircle, TrendingUp, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CharacterChat } from "./CharacterChat";
 import { CreateCharacter } from "./CreateCharacter";
-import { toast } from "sonner";
+
 
 interface Character {
   id: string;
