@@ -199,7 +199,7 @@ const Characters = () => {
           </div>
         </div>
 
-        <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
       </div>
     );
   }
@@ -361,7 +361,7 @@ const Characters = () => {
         )}
       </div>
 
-      <VipModal open={showVipModal} onOpenChange={setShowVipModal} />
+      <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
     </div>
   );
 };
