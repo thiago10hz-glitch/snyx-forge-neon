@@ -3,8 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Globe, Edit, ExternalLink, Loader2, Check, X, ArrowLeft, Lock, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Globe, Edit, ExternalLink, Loader2, Check, X, ArrowLeft, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface SiteData {
