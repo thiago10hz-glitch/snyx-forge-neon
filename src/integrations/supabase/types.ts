@@ -555,6 +555,7 @@ export type Database = {
           pack_steam_expires_at: string | null
           relationship_status: string | null
           rpg_premium_expires_at: string | null
+          team_badge: string | null
           updated_at: string
           user_id: string
           vip_expires_at: string | null
@@ -577,6 +578,7 @@ export type Database = {
           pack_steam_expires_at?: string | null
           relationship_status?: string | null
           rpg_premium_expires_at?: string | null
+          team_badge?: string | null
           updated_at?: string
           user_id: string
           vip_expires_at?: string | null
@@ -599,6 +601,7 @@ export type Database = {
           pack_steam_expires_at?: string | null
           relationship_status?: string | null
           rpg_premium_expires_at?: string | null
+          team_badge?: string | null
           updated_at?: string
           user_id?: string
           vip_expires_at?: string | null
@@ -749,6 +752,10 @@ export type Database = {
         Returns: Json
       }
       admin_revoke_vip: { Args: { p_target_user_id: string }; Returns: Json }
+      admin_set_team_badge: {
+        Args: { p_badge?: string; p_user_id: string }
+        Returns: Json
+      }
       can_send_message: { Args: never; Returns: Json }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
       check_hosting_limit: { Args: never; Returns: Json }
