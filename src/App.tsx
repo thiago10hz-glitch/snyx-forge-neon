@@ -17,6 +17,7 @@ import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
 import SiteManage from "./pages/SiteManage";
 import Characters from "./pages/Characters";
+import CheckoutReturn from "./pages/CheckoutReturn";
 import { CommandPalette } from "./components/CommandPalette";
 import { Loader2 } from "lucide-react";
 
@@ -97,6 +98,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
               <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
+              <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             </ThemeProvider>
