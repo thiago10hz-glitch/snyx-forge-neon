@@ -50,18 +50,18 @@ export default function Downloads() {
     try {
       const { data, error } = await supabase.storage
         .from("app-downloads")
-        .download(release.file_url);
+        .createSignedUrl(release.file_url, 60, {
+          download: `SnyX-v${release.version}.exe`,
+        });
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `SnyX-v${release.version}.exe`;
+      a.href = data.signedUrl;
+      a.rel = "noopener noreferrer";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       toast.success("Download iniciado!");
     } catch (err: any) {
       toast.error("Erro no download: " + (err.message || "tente novamente"));

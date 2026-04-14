@@ -157,7 +157,12 @@ export default function Auth() {
       }
 
       const { data, error } = await supabase.functions.invoke("signup-with-fingerprint", {
-        body: { email: trimmedEmail, password, fingerprint },
+        body: {
+          email: trimmedEmail,
+          password,
+          fingerprint,
+          redirectTo: window.location.origin,
+        },
       });
 
       if (error) {
@@ -169,18 +174,32 @@ export default function Auth() {
       if (data?.error) {
         const isDeviceRegistered = data.error === "DEVICE_ALREADY_REGISTERED";
         const isWeakPassword = data.error === "WEAK_PASSWORD";
+        const isEmailRegistered = data.error === "EMAIL_ALREADY_REGISTERED";
 
         toast({
-          title: isDeviceRegistered ? "Dispositivo já registrado" : isWeakPassword ? "Senha fraca" : "Erro",
+          title: isDeviceRegistered
+            ? "Dispositivo já registrado"
+            : isWeakPassword
+              ? "Senha fraca"
+              : isEmailRegistered
+                ? "E-mail já cadastrado"
+                : "Erro",
           description: isDeviceRegistered
             ? "Este dispositivo já possui uma conta. Não é permitido criar múltiplas contas."
-            : data.message || data.error,
+            : isEmailRegistered
+              ? "Já existe uma conta com esse e-mail. Tente entrar ou recuperar sua senha."
+              : data.message || data.error,
           variant: "destructive",
         });
         return;
       }
 
-      toast({ title: "Cadastro realizado", description: "Conta criada com sucesso. Agora entre com seu e-mail e senha." });
+      toast({
+        title: "Cadastro realizado",
+        description: data?.requires_email_confirmation
+          ? "Conta criada com sucesso. Verifique seu e-mail para confirmar o cadastro."
+          : "Conta criada com sucesso. Agora entre com seu e-mail e senha.",
+      });
       setPassword("");
       setView("login");
     } catch (err: unknown) {
