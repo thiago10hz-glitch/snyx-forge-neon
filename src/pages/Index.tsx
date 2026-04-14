@@ -91,6 +91,10 @@ const Index = () => {
             <span className="badge-dev flex items-center gap-1 text-[9px] md:text-[10px]">
               <Code size={10} /> DEV
             </span>
+          ) : (profile as any)?.is_rpg_premium ? (
+            <span className="flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold shadow-lg shadow-purple-500/10">
+              🎭 RPG Premium
+            </span>
           ) : profile?.is_pack_steam ? (
             <span className="badge-pack-steam flex items-center gap-1 text-[9px] md:text-[10px]">
               🎮 Pack Steam
