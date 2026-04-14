@@ -133,6 +133,57 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_characters: {
+        Row: {
+          avatar_url: string | null
+          category: string
+          chat_count: number
+          created_at: string
+          creator_id: string
+          description: string
+          id: string
+          is_public: boolean
+          likes_count: number
+          name: string
+          personality: string
+          system_prompt: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          category?: string
+          chat_count?: number
+          created_at?: string
+          creator_id: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          likes_count?: number
+          name: string
+          personality?: string
+          system_prompt?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          category?: string
+          chat_count?: number
+          created_at?: string
+          creator_id?: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          likes_count?: number
+          name?: string
+          personality?: string
+          system_prompt?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_releases: {
         Row: {
           changelog: string | null
@@ -169,6 +220,35 @@ export type Database = {
         }
         Relationships: []
       }
+      character_likes: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_likes_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "ai_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_connections: {
         Row: {
           approved_by: string | null
@@ -204,6 +284,7 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
+          character_id: string | null
           created_at: string
           id: string
           mode: string
@@ -212,6 +293,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          character_id?: string | null
           created_at?: string
           id?: string
           mode?: string
@@ -220,6 +302,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          character_id?: string | null
           created_at?: string
           id?: string
           mode?: string
@@ -227,7 +310,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "ai_characters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_customization: {
         Row: {
@@ -658,6 +749,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_character_chat_count: {
+        Args: { p_character_id: string }
+        Returns: undefined
       }
       increment_free_messages: { Args: never; Returns: undefined }
       redeem_license_key: { Args: { p_key_code: string }; Returns: Json }

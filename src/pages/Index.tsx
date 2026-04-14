@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChatPanel } from "@/components/ChatPanel";
-import { CodeEditor } from "@/components/CodeEditor";
-import { MusicPanel } from "@/components/MusicPanel";
+import { CharacterHub } from "@/components/CharacterHub";
 import { UserProfile } from "@/components/UserProfile";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import { SupportChat } from "@/components/SupportChat";
@@ -12,11 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  const [code, setCode] = useState("");
   const { profile, user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [chatMode, setChatMode] = useState<string>("friend");
   const [showMobileNav, setShowMobileNav] = useState(false);
 
   useEffect(() => {
@@ -168,22 +164,9 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex overflow-hidden">
-        {chatMode === "music" ? (
-          <div className="flex-1 overflow-hidden">
-            <MusicPanel onBack={() => setChatMode("friend")} />
-          </div>
-        ) : (
-          <>
-            <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
-              <ChatPanel onCodeGenerated={setCode} onModeChange={(mode) => setChatMode(mode)} />
-            </div>
-            {chatMode === "programmer" && (
-              <div className="hidden md:block flex-1 min-w-0">
-                <CodeEditor code={code} onCodeChange={setCode} />
-              </div>
-            )}
-          </>
-        )}
+        <div className="flex-1 overflow-hidden">
+          <CharacterHub />
+        </div>
       </div>
 
       <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
