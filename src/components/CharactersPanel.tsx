@@ -406,11 +406,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                 {myCharacters.map((char) => (
                   <div key={char.id} className="glass-elevated rounded-2xl border border-border/10 p-4 flex gap-3">
                     <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-border/15 bg-muted/10">
-                      {char.avatar_url ? (
-                        <CharacterImg src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary/30">{char.name[0]}</div>
-                      )}
+                      <CharacterImg src={char.avatar_url ?? ""} alt={char.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -459,11 +455,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                     <button key={char.id} onClick={() => startChat(char.id)} className="flex flex-col items-center gap-2 min-w-[80px] group">
                       <div className="relative">
                         <div className={`w-16 h-16 rounded-full overflow-hidden border-2 ${i === 0 ? "border-yellow-500" : i === 1 ? "border-gray-400" : i === 2 ? "border-amber-700" : "border-border/20"} group-hover:scale-105 transition-transform`}>
-                          {char.avatar_url ? (
-                            <CharacterImg src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-lg font-bold text-primary">{char.name[0]}</div>
-                          )}
+                          <CharacterImg src={char.avatar_url ?? ""} alt={char.name} className="w-full h-full object-cover" />
                         </div>
                         <span className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-gray-400 text-black" : i === 2 ? "bg-amber-700 text-white" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
                       </div>
@@ -500,13 +492,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {filtered.map((char) => (
                   <button key={char.id} onClick={() => startChat(char.id)} className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
-                    {char.avatar_url ? (
-                      <CharacterImg src={char.avatar_url} alt={char.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/5 to-background flex items-center justify-center">
-                        <span className="text-4xl font-black text-primary/30">{char.name[0]}</span>
-                      </div>
-                    )}
+                    <CharacterImg src={char.avatar_url ?? ""} alt={char.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     <button onClick={(e) => toggleLike(char.id, e)} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all">
                       <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
