@@ -29,6 +29,7 @@ const Index = () => {
   useAdminHeartbeat();
 
   const navItems = [
+    { to: "/characters", icon: Users, label: "Personagens" },
     { to: "/iptv", icon: MonitorPlay, label: "TV" },
     { to: "/hosting", icon: Server, label: "Hosting" },
     { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
