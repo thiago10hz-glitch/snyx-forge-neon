@@ -8,7 +8,7 @@ import {
   Crown, Zap, Loader2, Edit, Copy, RefreshCw, Sparkles, Send,
   Eye, Rocket, Shield, Monitor, Smartphone,
   Bot, User, MessageSquare, X, PanelLeftClose, PanelLeftOpen,
-  Mic, MicOff, Plus
+  Mic, MicOff, Plus, Camera, ImagePlus, PenLine, Paperclip
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -630,41 +630,50 @@ const Hosting = () => {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
                   {chatMessages.length === 0 && (
-                    <div className="flex flex-col items-center pt-8 pb-4 space-y-5">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-primary/5 flex items-center justify-center border border-violet-500/10">
-                          <Sparkles size={26} className="text-violet-400/40" />
+                    <div className="flex flex-col items-center justify-center flex-1 py-8 space-y-6">
+                      {/* Icon with glow */}
+                      <div className="relative mx-auto w-fit">
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto bg-gradient-to-br from-violet-500/10 to-primary/5 border border-violet-500/10 shadow-2xl">
+                          <Rocket size={36} className="text-primary/50 hidden md:block" />
+                          <Rocket size={28} className="text-primary/50 md:hidden" />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/10">
-                          <Bot size={9} className="text-emerald-400" />
-                        </div>
+                        <div className="absolute -inset-6 bg-violet-500/5 rounded-full blur-3xl -z-10" />
                       </div>
-                      <div className="space-y-1.5 text-center">
-                        <p className="text-[13px] font-bold text-foreground/80">O que vamos criar?</p>
-                        <p className="text-[10px] text-muted-foreground/40 max-w-[220px] leading-relaxed">
-                          Descreva seu site e a IA cria em segundos. Peça alterações quantas vezes quiser.
+
+                      {/* Title */}
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">SnyX Hosting</h2>
+                        <p className="text-xs text-muted-foreground/50 leading-relaxed max-w-[240px] mx-auto">
+                          Descreva o site que você quer e a IA cria em segundos. Peça alterações quantas vezes quiser.
                         </p>
                       </div>
-                      <div className="w-full space-y-1.5 pt-2">
+
+                      {/* Suggestion pills */}
+                      <div className="flex flex-wrap justify-center gap-2">
                         {[
-                          "Portfolio moderno para designer",
-                          "Landing page de startup tech",
-                          "Site institucional de empresa",
-                          "Loja virtual com catálogo",
-                        ].map((s) => (
+                          "Portfolio moderno",
+                          "Landing Page",
+                          "Loja Virtual",
+                          "Site Institucional",
+                        ].map((suggestion) => (
                           <button
-                            key={s}
-                            onClick={() => setChatInput(s)}
-                            className="group w-full text-left text-[10px] px-3 py-2 rounded-lg bg-muted/[0.03] border border-border/5 text-muted-foreground/50 hover:bg-violet-500/5 hover:border-violet-500/10 hover:text-foreground/70 transition-all flex items-center gap-2"
+                            key={suggestion}
+                            onClick={() => setChatInput(`Crie um ${suggestion.toLowerCase()} profissional e bonito`)}
+                            className="text-[11px] px-4 py-2 rounded-xl bg-muted/[0.04] text-muted-foreground/60 border border-border/10 hover:bg-muted/15 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
                           >
-                            <Sparkles size={9} className="text-violet-400/30 group-hover:text-violet-400/60 transition-colors shrink-0" />
-                            {s}
+                            {suggestion}
                           </button>
                         ))}
                       </div>
+
+                      {/* Keyboard hint */}
+                      <p className="text-[10px] text-muted-foreground/20">
+                        Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
+                      </p>
+
                       <button
                         onClick={() => setShowNewSite(!showNewSite)}
-                        className="text-[9px] text-muted-foreground/30 hover:text-muted-foreground/60 flex items-center gap-1 transition-colors pt-2"
+                        className="text-[9px] text-muted-foreground/25 hover:text-muted-foreground/50 flex items-center gap-1 transition-colors"
                       >
                         <Code size={9} /> Ou cole HTML manualmente
                       </button>
@@ -733,8 +742,8 @@ const Hosting = () => {
                   </div>
                 )}
 
-                {/* Input Bar */}
-                <div className="p-2.5 border-t border-border/5 shrink-0">
+                {/* Input Bar - same style as main chat */}
+                <div className="p-2 sm:p-3 border-t border-border/5 shrink-0">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -742,39 +751,77 @@ const Hosting = () => {
                     className="hidden"
                     onChange={handleChatFileUpload}
                   />
-                  <div className="flex items-center gap-1.5 bg-muted/[0.04] border border-border/10 rounded-xl px-1.5 py-1 focus-within:border-primary/20 focus-within:ring-1 focus-within:ring-primary/10 transition-all">
+                  <div className="flex items-end gap-1 bg-muted/[0.04] rounded-2xl px-2 sm:px-3 py-2 border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500">
+                    {/* Image upload button */}
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
-                      title="Anexar"
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                      title="📸 Enviar imagem de referência"
                     >
-                      <Plus size={14} />
+                      <Camera size={18} />
                     </button>
-                    <input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendChat()}
-                      placeholder={previewHtml ? "Peça uma alteração..." : "Descreva o site que quer criar..."}
-                      disabled={chatLoading}
-                      className="flex-1 bg-transparent text-xs placeholder:text-muted-foreground/25 focus:outline-none disabled:opacity-40 py-1"
-                    />
+                    {/* Image gen placeholder */}
+                    <button
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300 shrink-0 mb-0.5 hidden sm:block"
+                      title="🎨 Criar imagem com IA"
+                      onClick={() => setChatInput("Adicione uma imagem hero gerada por IA ao site")}
+                    >
+                      <ImagePlus size={18} />
+                    </button>
+                    {/* Edit/rewrite */}
+                    <button
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10 transition-all duration-300 shrink-0 mb-0.5 hidden sm:block"
+                      title="✍️ Reescrever conteúdo"
+                      onClick={() => setChatInput("Reescreva todo o texto do site de forma mais profissional")}
+                    >
+                      <PenLine size={18} />
+                    </button>
+                    {/* File attach */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
+                      title="Anexar arquivo"
+                    >
+                      <Paperclip size={18} />
+                    </button>
+                    {/* Mic */}
                     <button
                       onClick={handleVoiceToggle}
-                      className={`p-1.5 rounded-md transition-all shrink-0 ${
+                      className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
                         isRecording
-                          ? "bg-destructive/15 text-destructive animate-pulse"
-                          : "hover:bg-muted/15 text-muted-foreground/40 hover:text-muted-foreground"
+                          ? "bg-destructive/10 text-destructive animate-pulse"
+                          : "text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10"
                       }`}
-                      title={isRecording ? "Parar" : "Falar"}
+                      title={isRecording ? "Parar gravação" : "Gravar áudio"}
                     >
-                      {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
+                      {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
                     </button>
+                    {/* Text input */}
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendChat();
+                        }
+                      }}
+                      placeholder={previewHtml ? "Peça uma alteração... 💬" : "Descreva o site que quer criar... 🚀"}
+                      rows={1}
+                      disabled={chatLoading}
+                      className="flex-1 min-w-0 bg-transparent py-1.5 text-[12px] sm:text-[13px] outline-none placeholder:text-muted-foreground/20 resize-none max-h-[120px] leading-relaxed disabled:opacity-40"
+                    />
+                    {/* Send */}
                     <button
                       onClick={handleSendChat}
                       disabled={chatLoading || !chatInput.trim()}
-                      className="p-1.5 rounded-md bg-primary/90 text-primary-foreground hover:bg-primary transition-all disabled:opacity-30 shrink-0"
+                      className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
+                        chatInput.trim()
+                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105'
+                          : 'bg-muted/10 text-muted-foreground/15'
+                      } disabled:opacity-40 disabled:hover:scale-100`}
                     >
-                      {chatLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                      {chatLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     </button>
                   </div>
                 </div>
