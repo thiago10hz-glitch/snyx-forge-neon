@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
@@ -1365,41 +1365,42 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                         </div>
                         {mode === "programmer" && (
                           <div className="mt-3 space-y-2">
-                            <div className="flex flex-wrap items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {/* Action buttons - always visible */}
+                            <div className="flex flex-wrap items-center gap-2">
                               <button
                                 onClick={() => handleDownloadZip(msg.content)}
-                                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground/70 hover:text-foreground hover:bg-muted/20 transition-all"
                               >
-                                <Download size={13} /> Baixar ZIP
+                                <Download size={12} /> ZIP
                               </button>
                               {deployedUrls[i] ? (
                                 <a
                                   href={deployedUrls[i]}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                                  className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 transition-all"
                                 >
-                                  <Globe size={13} /> {deployedUrls[i].replace("https://", "")}
+                                  <Globe size={12} /> {deployedUrls[i].replace("https://", "").slice(0, 25)}...
                                 </a>
                               ) : (
                                 <>
                                   <button
                                     onClick={() => handleDeploySite(msg.content, i)}
                                     disabled={deployingMsg === i}
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-emerald-400 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/15 text-emerald-400/80 hover:bg-emerald-500/20 hover:text-emerald-400 transition-all disabled:opacity-50"
                                   >
                                     {deployingMsg === i ? (
-                                      <><Loader2 size={13} className="animate-spin" /> Publicando...</>
+                                      <><Loader2 size={12} className="animate-spin" /> Publicando...</>
                                     ) : (
-                                      <><Globe size={13} /> Publicar Novo</>
+                                      <><Rocket size={12} /> Publicar</>
                                     )}
                                   </button>
                                   <button
                                     onClick={() => openUpdatePicker(i)}
                                     disabled={deployingMsg === i}
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg bg-primary/8 border border-primary/10 text-primary/70 hover:bg-primary/15 hover:text-primary transition-all disabled:opacity-50"
                                   >
-                                    <Settings size={13} /> Atualizar Existente
+                                    <Settings size={12} /> Atualizar Site
                                   </button>
                                 </>
                               )}
