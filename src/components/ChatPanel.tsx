@@ -869,6 +869,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           user_bio: profile?.bio || null,
           user_relationship_status: profile?.relationship_status || null,
           ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
+          ...(playerCharacter ? { player_character: { name: playerCharacter.name, class: playerCharacter.class, race: playerCharacter.race, backstory: playerCharacter.backstory, personality: playerCharacter.personality, level: playerCharacter.level } } : {}),
         };
       }
 
