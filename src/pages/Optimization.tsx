@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import {
-  ArrowLeft, Lock, Cpu, Wifi, Gauge, Shield, Rocket, Zap,
-  Monitor, HardDrive, MemoryStick, Settings, CheckCircle2,
-  XCircle, Activity, Power, Loader2, RefreshCw, Download,
-  RotateCcw, Gamepad2, Timer, Eye, EyeOff, MousePointer,
-  Network, Thermometer
+  ArrowLeft, Lock, Cpu, Shield, Zap,
+  Monitor, MemoryStick, Settings, CheckCircle2,
+  XCircle, Power, Loader2, RefreshCw, Download,
+  RotateCcw, Gamepad2, Eye, MousePointer, Network
 } from "lucide-react";
 
 interface KeyInfo {
@@ -27,7 +26,7 @@ const Optimization = () => {
   const [loading, setLoading] = useState(true);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
-  const [optimizing, setOptimizing] = useState<string | null>(null);
+  
 
   // Optimization states
   const [optimizations, setOptimizations] = useState({
