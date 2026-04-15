@@ -8,7 +8,7 @@ import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPre
 import { SupportChat } from "@/components/SupportChat";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { VipModal } from "@/components/VipModal";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users, Palette } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
