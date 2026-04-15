@@ -92,8 +92,44 @@ function VoiceOrb({
   );
 }
 
+// Generate ring tone using Web Audio API
+function createRingTone(audioContext: AudioContext): { start: () => void; stop: () => void } {
+  let oscillator: OscillatorNode | null = null;
+  let gainNode: GainNode | null = null;
+  let intervalId: NodeJS.Timeout | null = null;
+  let isRinging = false;
+
+  const ring = () => {
+    if (!audioContext || audioContext.state === "closed") return;
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(480, audioContext.currentTime + 0.5);
+    gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1);
+  };
+
+  return {
+    start: () => {
+      if (isRinging) return;
+      isRinging = true;
+      ring();
+      intervalId = setInterval(ring, 3000);
+    },
+    stop: () => {
+      isRinging = false;
+      if (intervalId) clearInterval(intervalId);
+      try { oscillator?.stop(); } catch {}
+    },
+  };
+}
+
 export function VoiceCall({ open, onClose }: VoiceCallProps) {
-  const [phase, setPhase] = useState<"pick" | "call">("pick");
+  const [phase, setPhase] = useState<"pick" | "ringing" | "call">("pick");
   const [gender, setGender] = useState<"female" | "male">("female");
   const [voice, setVoice] = useState(VOICES.female[0]);
   const [adultMode, setAdultMode] = useState(false);
@@ -115,6 +151,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const orbIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceRef = useRef(voice);
   const genderRef = useRef(gender);
+  const ringToneRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => { voiceRef.current = voice; }, [voice]);
   useEffect(() => { genderRef.current = gender; }, [gender]);
@@ -138,6 +176,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       abortRef.current.abort();
       abortRef.current = null;
     }
+
+    // Stop ring tone
+    ringToneRef.current?.stop();
 
     try {
       recognitionRef.current?.stop();
@@ -261,7 +302,12 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         await audio.play();
       } catch {
         setSpeaking(false);
-        browserSpeak(text, onEnd);
+        // Retry once with ElevenLabs before falling back
+        try {
+          browserSpeak(text, onEnd);
+        } catch {
+          onEnd?.();
+        }
       }
     },
     [browserSpeak, muted],
@@ -492,32 +538,47 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
 
     conversationRef.current = [];
     activeRef.current = true;
-    setPhase("call");
+    setPhase("ringing");
     setDuration(0);
 
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setDuration((previous) => previous + 1);
-    }, 1000);
+    // Start ring tone
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext();
+    }
+    ringToneRef.current = createRingTone(audioContextRef.current);
+    ringToneRef.current.start();
 
-    const firstName = profile?.display_name?.trim().split(/\s+/)[0];
-    const greetings =
-      gender === "female"
-        ? [
-            firstName ? `Oi, ${firstName}!` : "Oii!",
-            firstName ? `E aí, ${firstName}!` : "E aí!",
-            firstName ? `Oi ${firstName}, tudo bem?` : "Oi, tudo bem?",
-          ]
-        : [
-            firstName ? `Fala, ${firstName}!` : "Fala!",
-            firstName ? `E aí, ${firstName}!` : "E aí!",
-            firstName ? `Opa, ${firstName}!` : "Opa!",
-          ];
+    // Simulate ringing for 2-3 seconds then "answer"
+    const ringDuration = 2000 + Math.random() * 1500;
+    setTimeout(() => {
+      if (!activeRef.current) return;
+      ringToneRef.current?.stop();
+      setPhase("call");
 
-    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-    speak(greeting, () => {
-      if (activeRef.current) startListening();
-    });
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setDuration((previous) => previous + 1);
+      }, 1000);
+
+      const firstName = profile?.display_name?.trim().split(/\s+/)[0];
+      const greetings =
+        gender === "female"
+          ? [
+              firstName ? `Oi, ${firstName}!` : "Oii!",
+              firstName ? `E aí, ${firstName}!` : "E aí!",
+              firstName ? `Oi ${firstName}, tudo bem?` : "Oi, tudo bem?",
+            ]
+          : [
+              firstName ? `Fala, ${firstName}!` : "Fala!",
+              firstName ? `E aí, ${firstName}!` : "E aí!",
+              firstName ? `Opa, ${firstName}!` : "Opa!",
+            ];
+
+      const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+      speak(greeting, () => {
+        if (activeRef.current) startListening();
+      });
+    }, ringDuration);
   }, [gender, profile?.display_name, speak, startListening]);
 
   useEffect(() => {
@@ -561,10 +622,18 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
   }, [mounted, open]);
 
   useEffect(() => {
-    if (phase !== "call") {
+    if (phase === "pick") {
       setOrbLevels([0.2, 0.28, 0.24, 0.3, 0.22]);
       if (orbIntervalRef.current) clearInterval(orbIntervalRef.current);
       return;
+    }
+
+    if (phase === "ringing") {
+      orbIntervalRef.current = setInterval(() => {
+        const pulse = 0.2 + (Math.sin(Date.now() / 400) + 1) * 0.15;
+        setOrbLevels([pulse, pulse + 0.05, pulse + 0.03, pulse + 0.07, pulse + 0.02]);
+      }, 120);
+      return () => { if (orbIntervalRef.current) clearInterval(orbIntervalRef.current); };
     }
 
     orbIntervalRef.current = setInterval(() => {
@@ -596,13 +665,15 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
   const statusText =
     phase === "pick"
       ? "Escolha uma voz"
-      : speaking
-        ? "Falando..."
-        : listening
-          ? "Ouvindo você..."
-          : processing
-            ? "Pensando..."
-            : "Conectado";
+      : phase === "ringing"
+        ? "Chamando..."
+        : speaking
+          ? "Falando..."
+          : listening
+            ? "Ouvindo você..."
+            : processing
+              ? "Pensando..."
+              : "Conectado";
 
   const overlay = (
     <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-2xl">
@@ -633,11 +704,26 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
             accent={accent}
             label={voice.label}
             levels={orbLevels}
-            active={phase === "call" ? speaking || listening || processing : true}
+            active={phase === "call" ? speaking || listening || processing : phase === "ringing" ? true : true}
             compact={phase === "pick"}
           />
 
-          {phase === "pick" ? (
+          {phase === "ringing" ? (
+            <div className="flex flex-col items-center gap-6">
+              <p className="animate-pulse text-sm text-muted-foreground">Aguarde, chamando {voice.label}...</p>
+              <button
+                onClick={() => { endCall(); onClose(); }}
+                className="flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.82))",
+                  boxShadow: "0 0 32px hsl(var(--destructive) / 0.4)",
+                }}
+                aria-label="Cancelar ligação"
+              >
+                <PhoneOff size={28} />
+              </button>
+            </div>
+          ) : phase === "pick" ? (
             <div className="flex w-full flex-col items-center gap-4">
               <div className="flex items-center justify-center gap-2 rounded-full border border-border/15 bg-card/35 p-1 backdrop-blur-sm">
                 {(["female", "male"] as const).map((item) => {
