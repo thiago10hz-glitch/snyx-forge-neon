@@ -520,7 +520,7 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
                       : "bg-muted/20 text-muted-foreground/60 border border-border/10 hover:bg-muted/30"
                   }`}
                 >
-                  👩 Feminina
+                  👩 Feminino
                 </button>
                 <button
                   onClick={() => setSelectedGender("male")}
@@ -530,7 +530,7 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
                       : "bg-muted/20 text-muted-foreground/60 border border-border/10 hover:bg-muted/30"
                   }`}
                 >
-                  👨 Masculina
+                  👨 Masculino
                 </button>
               </div>
 
