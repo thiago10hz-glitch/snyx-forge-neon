@@ -10,6 +10,36 @@ const VPS_IP = Deno.env.get('WG_SERVER_IP') || '83.229.83.249'
 const VPS_PORT = 51820
 const WG_SERVER_PUBLIC_KEY = Deno.env.get('WG_SERVER_PUBLIC_KEY') || ''
 const WG_SERVER_PRIVATE_KEY = Deno.env.get('WG_SERVER_PRIVATE_KEY') || ''
+const VPN_API_URL = Deno.env.get('VPN_API_URL') || ''
+const VPN_API_TOKEN = Deno.env.get('VPN_API_TOKEN') || ''
+
+async function removePeerFromServer(publicKey: string) {
+  if (!VPN_API_URL || !VPN_API_TOKEN || !publicKey) {
+    return true
+  }
+
+  try {
+    const response = await fetch(`${VPN_API_URL}/remove-peer`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${VPN_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ public_key: publicKey }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Failed to remove peer from server:', response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to connect to VPN API:', error)
+    return false
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,7 +71,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { action, activation_key, user_id } = await req.json()
+    const body = await req.json()
+    const { action, activation_key, user_id, key_id } = body
 
     // Auth check from header
     const authHeader = req.headers.get('Authorization')
@@ -381,7 +412,6 @@ PersistentKeepalive = 25`
         return new Response(JSON.stringify({ valid: false, reason: 'no_peer' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
-      const body = await req.clone().json()
       const clientHashes = body.file_hashes || {}
 
       // Server stores expected hashes for critical files on first verify
@@ -447,6 +477,77 @@ PersistentKeepalive = 25`
       }
 
       return new Response(JSON.stringify({ success: true, message: 'VPN revogada' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    if (action === 'delete-key') {
+      if (!authenticatedUserId) {
+        return new Response(JSON.stringify({ error: 'Não autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: authenticatedUserId, _role: 'admin' })
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      if (!key_id) {
+        return new Response(JSON.stringify({ error: 'key_id necessário' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const { data: keyRow, error: keyError } = await supabase
+        .from('accelerator_keys')
+        .select('id, activation_key')
+        .eq('id', key_id)
+        .maybeSingle()
+
+      if (keyError) {
+        return new Response(JSON.stringify({ error: keyError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      if (!keyRow) {
+        return new Response(JSON.stringify({ error: 'Chave não encontrada' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const { data: linkedPeers, error: peersError } = await supabase
+        .from('vpn_peers')
+        .select('id, peer_public_key')
+        .eq('activated_with_key', key_id)
+
+      if (peersError) {
+        return new Response(JSON.stringify({ error: peersError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      for (const peer of linkedPeers || []) {
+        const removed = await removePeerFromServer(peer.peer_public_key)
+        if (!removed) {
+          return new Response(JSON.stringify({ error: 'Não foi possível remover o peer do servidor VPN. Tente novamente.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
+
+      if ((linkedPeers || []).length > 0) {
+        const { error: deletePeersError } = await supabase
+          .from('vpn_peers')
+          .delete()
+          .eq('activated_with_key', key_id)
+
+        if (deletePeersError) {
+          return new Response(JSON.stringify({ error: deletePeersError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
+
+      const { error: deleteKeyError } = await supabase
+        .from('accelerator_keys')
+        .delete()
+        .eq('id', key_id)
+
+      if (deleteKeyError) {
+        return new Response(JSON.stringify({ error: deleteKeyError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        peers_removed: linkedPeers?.length || 0,
+        message: `Chave ${keyRow.activation_key} excluída com sucesso`,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     return new Response(JSON.stringify({ error: 'Ação inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
