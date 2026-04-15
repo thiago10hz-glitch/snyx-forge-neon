@@ -177,6 +177,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       abortRef.current = null;
     }
 
+    // Stop ring tone
+    ringToneRef.current?.stop();
+
     try {
       recognitionRef.current?.stop();
     } catch {}
