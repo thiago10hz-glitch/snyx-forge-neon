@@ -70,38 +70,26 @@ Deno.serve(async (req) => {
     const publicClient = createClient(supabaseUrl, anonKey);
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: existingUserId, error: existingUserError } = await adminClient.rpc("find_user_by_email", {
-      p_email: email,
-    });
+    // Run both checks in parallel for speed
+    const [emailResult, trackingResult] = await Promise.all([
+      adminClient.rpc("find_user_by_email", { p_email: email }),
+      adminClient.from("user_tracking").select("user_id").eq("device_fingerprint", fingerprint).maybeSingle(),
+    ]);
 
-    if (existingUserError) {
-      console.error("Email lookup failed", existingUserError);
+    if (emailResult.error) {
+      console.error("Email lookup failed", emailResult.error);
       return jsonResponse({ error: "LOOKUP_FAILED", message: "Não foi possível validar o e-mail agora." }, 500);
     }
-
-    if (existingUserId) {
-      return jsonResponse({
-        error: "EMAIL_ALREADY_REGISTERED",
-        message: "Já existe uma conta com este e-mail.",
-      }, 409);
+    if (emailResult.data) {
+      return jsonResponse({ error: "EMAIL_ALREADY_REGISTERED", message: "Já existe uma conta com este e-mail." }, 409);
     }
 
-    const { data: existingTracking, error: trackingLookupError } = await adminClient
-      .from("user_tracking")
-      .select("user_id")
-      .eq("device_fingerprint", fingerprint)
-      .maybeSingle();
-
-    if (trackingLookupError) {
-      console.error("Tracking lookup failed", trackingLookupError);
+    if (trackingResult.error) {
+      console.error("Tracking lookup failed", trackingResult.error);
       return jsonResponse({ error: "TRACKING_LOOKUP_FAILED", message: "Não foi possível validar o dispositivo." }, 500);
     }
-
-    if (existingTracking?.user_id) {
-      return jsonResponse({
-        error: "DEVICE_ALREADY_REGISTERED",
-        message: "Este dispositivo já possui uma conta cadastrada.",
-      }, 409);
+    if (trackingResult.data?.user_id) {
+      return jsonResponse({ error: "DEVICE_ALREADY_REGISTERED", message: "Este dispositivo já possui uma conta cadastrada." }, 409);
     }
 
     const { data: signUpData, error: signUpError } = await publicClient.auth.signUp({
