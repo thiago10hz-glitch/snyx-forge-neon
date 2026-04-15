@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Zap } from "lucide-react";
 import { Navigate, Link } from "react-router-dom";
 import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
@@ -10,6 +11,7 @@ import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { AdminAcceleratorPanel } from "@/components/AdminAcceleratorPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
@@ -40,7 +42,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases" | "accelerator";
 
 interface ChatMessage {
   id: string;
@@ -505,6 +507,7 @@ export default function Admin() {
             
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
             { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
+            { key: "accelerator" as AdminTab, label: "Accelerator", icon: Zap, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
           ]).map(tab => (
             <button
               key={tab.key}
