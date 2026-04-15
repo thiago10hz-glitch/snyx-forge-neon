@@ -8,12 +8,24 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+type Platform = "android" | "ios" | "desktop-chromium" | "desktop-other";
+
+const detectPlatform = (): Platform => {
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) return "android";
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Chrome|Chromium|Edg|Brave|OPR/.test(ua)) return "desktop-chromium";
+  return "desktop-other";
+};
+
 const Accelerator = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [speed, setSpeed] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const platform = detectPlatform();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -29,7 +41,6 @@ const Accelerator = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Animated speed counter
   useEffect(() => {
     const interval = setInterval(() => {
       setSpeed(prev => {
@@ -50,6 +61,8 @@ const Accelerator = () => {
       }
       setDeferredPrompt(null);
       setInstalling(false);
+    } else {
+      setShowInstructions(true);
     }
   };
 
@@ -145,21 +158,46 @@ const Accelerator = () => {
               Accelerator Ativo — Velocidade Máxima!
             </div>
           ) : (
-            <Button
-              onClick={handleInstall}
-              disabled={!deferredPrompt || installing}
-              className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] transition-all duration-300 border-0"
-            >
-              <Download className="w-5 h-5 mr-3" />
-              {installing ? "Instalando..." : deferredPrompt ? "Instalar SnyX Accelerator" : "Instalar via Navegador"}
-            </Button>
-          )}
+            <>
+              <Button
+                onClick={handleInstall}
+                disabled={installing}
+                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] transition-all duration-300 border-0"
+              >
+                <Download className="w-5 h-5 mr-3" />
+                {installing ? "Instalando..." : "Instalar SnyX Accelerator"}
+              </Button>
 
-          {!deferredPrompt && !isInstalled && (
-            <p className="text-white/30 text-sm mt-4 max-w-md mx-auto">
-              No celular: toque em <strong>Compartilhar → Adicionar à Tela Inicial</strong>.
-              No PC: clique no ícone de instalação na barra de endereço do navegador.
-            </p>
+              {showInstructions && !deferredPrompt && (
+                <div className="mt-6 max-w-lg mx-auto p-6 rounded-2xl border border-white/10 bg-white/[0.03] text-left">
+                  <h3 className="font-bold text-lg mb-4 text-center">📲 Como instalar</h3>
+
+                  {platform === "ios" ? (
+                    <div className="space-y-3 text-white/70 text-sm">
+                      <p className="font-semibold text-white">iPhone / iPad (Safari):</p>
+                      <p>1. Toque no botão <strong className="text-white">Compartilhar</strong> (ícone ↑ na barra inferior)</p>
+                      <p>2. Role para baixo e toque em <strong className="text-white">"Adicionar à Tela de Início"</strong></p>
+                      <p>3. Toque em <strong className="text-white">"Adicionar"</strong></p>
+                      <p className="text-xs text-white/40 mt-2">⚠️ Deve ser no Safari. Chrome/Firefox no iOS não suportam instalação.</p>
+                    </div>
+                  ) : platform === "android" ? (
+                    <div className="space-y-3 text-white/70 text-sm">
+                      <p className="font-semibold text-white">Android (Chrome):</p>
+                      <p>1. Toque no menu <strong className="text-white">⋮</strong> (3 pontinhos no canto superior)</p>
+                      <p>2. Toque em <strong className="text-white">"Adicionar à tela inicial"</strong></p>
+                      <p>3. Confirme tocando em <strong className="text-white">"Adicionar"</strong></p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-white/70 text-sm">
+                      <p className="font-semibold text-white">PC / Notebook:</p>
+                      <p>1. No <strong className="text-white">Chrome/Edge/Brave</strong>: clique no ícone de instalação <strong className="text-white">⊕</strong> na barra de endereço</p>
+                      <p>2. Ou vá no menu <strong className="text-white">⋮ → "Instalar SnyX Accelerator"</strong></p>
+                      <p className="text-xs text-white/40 mt-2">⚠️ Firefox/Safari no PC não suportam instalação de apps. Use Chrome, Edge ou Brave.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
 
