@@ -39,6 +39,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [selectedVoice, setSelectedVoice] = useState(VOICE_OPTIONS.female[0]);
   const [showVoicePicker, setShowVoicePicker] = useState(true);
   const [adultMode, setAdultMode] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,7 +47,40 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isCallActiveRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
-  useAuth();
+  const { user } = useAuth();
+
+  // Load conversation history for this voice
+  useEffect(() => {
+    if (!user || !open) return;
+    const loadHistory = async () => {
+      const { data } = await supabase
+        .from("voice_call_history" as any)
+        .select("messages")
+        .eq("user_id", user.id)
+        .eq("voice_id", selectedVoice.id)
+        .maybeSingle();
+      if (data && Array.isArray((data as any).messages)) {
+        conversationRef.current = (data as any).messages;
+      }
+      setHistoryLoaded(true);
+    };
+    loadHistory();
+  }, [user, open, selectedVoice.id]);
+
+  // Save conversation history on end call or unmount
+  const saveHistory = useCallback(async () => {
+    if (!user || conversationRef.current.length === 0) return;
+    const messages = conversationRef.current.slice(-50); // keep last 50 messages
+    await (supabase as any)
+      .from("voice_call_history")
+      .upsert({
+        user_id: user.id,
+        voice_id: selectedVoice.id,
+        gender: selectedGender,
+        messages,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id,voice_id" });
+  }, [user, selectedVoice.id, selectedGender]);
 
   const filteredVoices = VOICE_OPTIONS[selectedGender];
 
@@ -190,14 +224,19 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     setIsCallActive(true);
     isCallActiveRef.current = true;
     setCallDuration(0);
-    conversationRef.current = [];
+    // Don't clear conversation — keep history from previous calls
 
     callTimerRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    const femaleGreetings = ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
-    const maleGreetings = ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
+    const hasHistory = conversationRef.current.length > 0;
+    const femaleGreetings = hasHistory
+      ? ["Oi, voltou! Fala!", "E aí, de volta!", "Opa, saudades!", "Oii, fala!"]
+      : ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
+    const maleGreetings = hasHistory
+      ? ["E aí, voltou!", "Opa, fala de novo!", "Salve, sumiu hein!", "Fala, mano!"]
+      : ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
     const greetings = selectedGender === "female" ? femaleGreetings : maleGreetings;
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
@@ -214,6 +253,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     setIsProcessing(false);
     setCallDuration(0);
 
+    // Save conversation history
+    saveHistory();
+
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
       callTimerRef.current = null;
@@ -227,7 +269,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     try { recognitionRef.current?.stop(); } catch {}
     try { audioRef.current?.pause(); audioRef.current = null; } catch {}
     try { window.speechSynthesis?.cancel(); } catch {}
-  }, []);
+  }, [saveHistory]);
 
   const startListening = useCallback(() => {
     if (!isCallActiveRef.current) return;

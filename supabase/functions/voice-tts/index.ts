@@ -52,11 +52,11 @@ serve(async (req) => {
           text,
           model_id: "eleven_turbo_v2_5",
           voice_settings: {
-            stability: 0.25,
-            similarity_boost: 0.85,
-            style: 0.7,
+            stability: 0.85,
+            similarity_boost: 0.9,
+            style: 0.15,
             use_speaker_boost: true,
-            speed: 1.1,
+            speed: 1.08,
           },
         }),
       }
