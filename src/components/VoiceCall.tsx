@@ -113,6 +113,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const abortRef = useRef<AbortController | null>(null);
   const processRef = useRef<((text: string) => void) | null>(null);
   const orbIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceRef = useRef(voice);
+  const genderRef = useRef(gender);
+
+  useEffect(() => { voiceRef.current = voice; }, [voice]);
+  useEffect(() => { genderRef.current = gender; }, [gender]);
 
   const { profile } = useAuth();
 
