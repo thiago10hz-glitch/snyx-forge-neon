@@ -48,15 +48,40 @@ echo [OK] Backup salvo em %USERPROFILE%\\SnyX-Backup
 echo.
 
 :: ============================================
-:: 1. POWER PLAN - ALTO DESEMPENHO
+:: 1. POWER PLAN - SNYX ULTIMATE PERFORMANCE
 :: ============================================
-echo [1/10] Ativando plano de energia: Alto Desempenho...
-powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c >nul 2>&1
+echo [1/10] Criando plano de energia SnyX Ultimate...
+:: Criar plano customizado SnyX baseado no Ultimate Performance
+set "SNYX_GUID=e9a42b02-d5df-448d-aa00-03f14749eb61"
+:: Deletar plano SnyX antigo se existir
+powercfg /delete %SNYX_GUID% >nul 2>&1
+:: Duplicar Ultimate Performance (se disponivel) ou Alto Desempenho
+powercfg /duplicatescheme e9a42b02-d5df-370a-aa00-03f14749eb61 %SNYX_GUID% >nul 2>&1
 if %errorlevel% neq 0 (
-    powercfg /duplicatescheme 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c >nul 2>&1
-    powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c >nul 2>&1
+    powercfg /duplicatescheme 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c %SNYX_GUID% >nul 2>&1
 )
-echo    [OK] Alto Desempenho ativado
+:: Renomear para SnyX
+powercfg /changename %SNYX_GUID% "SnyX Ultimate Gaming" "Plano de energia otimizado pela SnyX para maximo desempenho em jogos" >nul 2>&1
+:: Configurar para maximo desempenho
+:: Desabilitar sleep/hibernate
+powercfg /change standby-timeout-ac 0 >nul 2>&1
+powercfg /change hibernate-timeout-ac 0 >nul 2>&1
+powercfg /change monitor-timeout-ac 0 >nul 2>&1
+:: CPU minimo 100%%
+powercfg /setacvalueindex %SNYX_GUID% 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 100 >nul 2>&1
+:: CPU maximo 100%%
+powercfg /setacvalueindex %SNYX_GUID% 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100 >nul 2>&1
+:: Desabilitar core parking
+powercfg /setacvalueindex %SNYX_GUID% 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 100 >nul 2>&1
+:: Cooling policy: Active
+powercfg /setacvalueindex %SNYX_GUID% 54533251-82be-4824-96c1-47b60b740d00 94d3a615-a899-4ac5-ae2b-e4d8f634367f 1 >nul 2>&1
+:: PCI Express - desabilitar power saving
+powercfg /setacvalueindex %SNYX_GUID% 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0 >nul 2>&1
+:: USB suspend desabilitado
+powercfg /setacvalueindex %SNYX_GUID% 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 >nul 2>&1
+:: Ativar plano SnyX
+powercfg /setactive %SNYX_GUID% >nul 2>&1
+echo    [OK] Plano "SnyX Ultimate Gaming" criado e ativado
 
 :: ============================================
 :: 2. DESABILITAR EFEITOS VISUAIS
@@ -168,7 +193,7 @@ echo    GAME BOOST APLICADO COM SUCESSO!
 echo  ========================================
 echo.
 echo  Otimizacoes aplicadas:
-echo   [+] Plano de energia: Alto Desempenho
+echo   [+] Plano de energia: SnyX Ultimate Gaming
 echo   [+] Efeitos visuais desabilitados
 echo   [+] Rede TCP/Nagle otimizada  
 echo   [+] Prioridade CPU/GPU para jogos
@@ -213,9 +238,14 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [1/8] Restaurando plano de energia: Equilibrado...
+echo [1/8] Removendo plano SnyX e restaurando Equilibrado...
 powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e >nul 2>&1
-echo    [OK] Plano Equilibrado ativado
+powercfg /delete e9a42b02-d5df-448d-aa00-03f14749eb61 >nul 2>&1
+:: Restaurar timeouts padrao
+powercfg /change standby-timeout-ac 30 >nul 2>&1
+powercfg /change hibernate-timeout-ac 180 >nul 2>&1
+powercfg /change monitor-timeout-ac 15 >nul 2>&1
+echo    [OK] Plano SnyX removido, Equilibrado ativado
 
 echo [2/8] Restaurando efeitos visuais...
 reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 0 /f >nul 2>&1
