@@ -206,9 +206,7 @@ const Index = () => {
         <>
           <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
           <div className="absolute top-12 sm:top-14 right-2 sm:right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] sm:min-w-[200px] animate-reveal max-h-[70dvh] overflow-y-auto">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl">
-              <ThemeSelector />
-            </div>
+            <ThemeSelector />
             <button
               onClick={openCharactersPanel}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
