@@ -46,6 +46,11 @@ const BUBBLE_STYLES = [
   { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas" },
   { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism" },
   { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
+  { label: "Gatinho", value: "cat", emoji: "🐱", desc: "Orelhinhas de gato" },
+  { label: "Nuvem", value: "cloud", emoji: "☁️", desc: "Balão nuvenzinha" },
+  { label: "Bolhas", value: "transparent", emoji: "🔮", desc: "Bolhas transparentes" },
+  { label: "Estrelas", value: "stars", emoji: "⭐", desc: "Brilho de estrelas" },
+  { label: "Coração", value: "heart", emoji: "💖", desc: "Balão com coração" },
 ];
 
 export const getBubblePreviewClass = (style: string, themeColor?: string): string => {
@@ -66,6 +71,11 @@ export const getBubbleClass = (style: string, themeColor?: string): string => {
     case "neon": return `rounded-2xl rounded-bl-md shadow-[0_0_12px_${themeColor || '#8b5cf6'}30,0_0_4px_${themeColor || '#8b5cf6'}20] border border-[${themeColor || '#8b5cf6'}30]`;
     case "glass": return "rounded-2xl rounded-bl-md bg-white/5 backdrop-blur-md border border-white/10";
     case "retro": return "rounded-none border-2 border-border/30 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    case "cat": return "bubble-cat rounded-2xl rounded-bl-md";
+    case "cloud": return "bubble-cloud";
+    case "transparent": return "bubble-transparent rounded-2xl rounded-bl-md";
+    case "stars": return "bubble-stars rounded-2xl rounded-bl-md";
+    case "heart": return "bubble-heart rounded-2xl rounded-bl-md";
     default: return "rounded-2xl rounded-bl-md";
   }
 };
@@ -77,6 +87,11 @@ export const getUserBubbleClass = (style: string): string => {
     case "neon": return "rounded-2xl rounded-br-md shadow-[0_0_12px_rgba(239,68,68,0.3)]";
     case "glass": return "rounded-2xl rounded-br-md bg-white/10 backdrop-blur-md border border-white/15";
     case "retro": return "rounded-none border-2 border-primary/40 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
+    case "cat": return "bubble-cat-user rounded-2xl rounded-br-md";
+    case "cloud": return "bubble-cloud-user";
+    case "transparent": return "bubble-transparent-user rounded-2xl rounded-br-md";
+    case "stars": return "bubble-stars-user rounded-2xl rounded-br-md";
+    case "heart": return "bubble-heart-user rounded-2xl rounded-br-md";
     default: return "rounded-2xl rounded-br-md";
   }
 };
