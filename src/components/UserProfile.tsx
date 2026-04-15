@@ -169,6 +169,35 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             />
           </div>
 
+          {/* Gender */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block flex items-center gap-1">
+              <User size={10} className="text-cyan-400/50" />
+              Gênero
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { label: "Masculino", value: "masculino", emoji: "👨" },
+                { label: "Feminino", value: "feminino", emoji: "👩" },
+                { label: "Outro", value: "outro", emoji: "🌈" },
+                { label: "Prefiro não dizer", value: "", emoji: "🤐" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGender(opt.value)}
+                  className={`text-[11px] px-2 py-2 rounded-xl border transition-all duration-200 ${
+                    gender === opt.value
+                      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 font-medium"
+                      : "border-border/15 text-muted-foreground/50 hover:border-border/30 hover:text-foreground"
+                  }`}
+                >
+                  {opt.emoji} {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Relationship Status */}
           <div>
             <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block flex items-center gap-1">
