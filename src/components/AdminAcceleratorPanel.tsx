@@ -110,15 +110,24 @@ export function AdminAcceleratorPanel() {
   };
 
   const deleteKey = async (id: string) => {
-    const { error } = await (supabase as any)
-      .from("accelerator_keys")
-      .delete()
-      .eq("id", id);
-    if (error) {
-      toast.error("Erro ao excluir");
+    const { data, error } = await supabase.functions.invoke("vpn-manage", {
+      body: {
+        action: "delete-key",
+        key_id: id,
+      },
+    });
+
+    const errorMessage =
+      error?.message ||
+      data?.error ||
+      "Erro ao excluir";
+
+    if (error || !data?.success) {
+      toast.error(errorMessage);
       return;
     }
-    toast.success("Chave excluída");
+
+    toast.success(data.message || "Chave excluída");
     setKeys((prev) => prev.filter((k) => k.id !== id));
   };
 
