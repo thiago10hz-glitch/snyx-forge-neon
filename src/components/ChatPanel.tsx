@@ -1522,6 +1522,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                             )}
                           </div>
                         )}
+                        <button
+                          onClick={() => handleCopyMessage(msg.content, i)}
+                          className="opacity-0 group-hover:opacity-100 mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-all"
+                          title="Copiar"
+                        >
+                          {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
+                        </button>
                       </div>
                     </div>
                   )}
