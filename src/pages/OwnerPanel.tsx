@@ -72,7 +72,7 @@ function formatRelative(dateStr: string): string {
   return `${days}d`;
 }
 
-type OwnerTab = "overview" | "analytics" | "broadcast" | "actions" | "platform";
+type OwnerTab = "overview" | "analytics" | "broadcast" | "actions" | "platform" | "admins";
 
 export default function OwnerPanel() {
   const { user, profile, loading: authLoading } = useAuth();
