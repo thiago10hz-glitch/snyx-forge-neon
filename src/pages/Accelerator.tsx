@@ -420,7 +420,91 @@ const Accelerator = () => {
           </div>
         )}
 
-        {/* How it works */}
+        {/* Game Boost Section */}
+        {hasActiveKey && user && (
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-orange-500/20 bg-orange-500/[0.03]">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-400 text-sm mb-4">
+                <Gamepad2 className="w-4 h-4" /> Game Boost — Otimização Total
+              </div>
+              <h2 className="text-2xl font-bold mb-2">SnyX Game Boost — Otimizador de PC</h2>
+              <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto">
+                Otimização completa do seu Windows para gaming. Mexe em CPU, GPU, rede, 
+                serviços, memória RAM e muito mais. Quando o plano acabar, reverte tudo!
+              </p>
+
+              {/* What it does */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-3xl mx-auto mb-8">
+                {[
+                  { icon: Cpu, label: "CPU Priority", desc: "Prioridade alta p/ jogos" },
+                  { icon: Gauge, label: "GPU Boost", desc: "Hardware scheduling" },
+                  { icon: Wifi, label: "Rede TCP", desc: "Nagle OFF, latência -70%" },
+                  { icon: Rocket, label: "RAM Clean", desc: "Limpa memória ociosa" },
+                  { icon: Shield, label: "Services OFF", desc: "Para serviços inúteis" },
+                ].map((item, i) => (
+                  <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-orange-500/20 transition-colors">
+                    <item.icon className="w-5 h-5 text-orange-400 mx-auto mb-1" />
+                    <div className="text-xs text-white/60 font-bold">{item.label}</div>
+                    <div className="text-[10px] text-white/30">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Detailed list */}
+              <div className="max-w-md mx-auto mb-8 text-left p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                <h4 className="text-sm font-bold text-orange-400 mb-3">O que o Game Boost faz:</h4>
+                <ul className="space-y-1.5 text-xs text-white/50">
+                  {[
+                    "✅ Plano de energia → Alto Desempenho",
+                    "✅ Efeitos visuais do Windows desabilitados",
+                    "✅ Nagle Algorithm OFF (menor latência)",
+                    "✅ Network throttling removido",
+                    "✅ Prioridade CPU/GPU para jogos no máximo",
+                    "✅ Serviços de telemetria/busca/superfetch parados",
+                    "✅ Xbox Game Bar e Game DVR desabilitados",
+                    "✅ GPU Hardware Scheduling ativado",
+                    "✅ Fullscreen Optimizations desabilitado",
+                    "✅ Aceleração do mouse removida (raw input)",
+                    "✅ DNS flush automático",
+                  ].map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Download buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-4">
+                <Button
+                  onClick={() => {
+                    downloadScript(BOOST_SCRIPT, "SnyX-GameBoost-ATIVAR.bat");
+                    toast.success("🎮 Script de otimização baixado! Execute como administrador.");
+                  }}
+                  className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-orange-600 to-red-500 hover:from-orange-500 hover:to-red-400 text-white shadow-[0_0_30px_rgba(234,88,12,0.3)] border-0 transition-all"
+                >
+                  <Gamepad2 className="w-5 h-5 mr-2" />
+                  Baixar Game Boost (Ativar)
+                </Button>
+                <Button
+                  onClick={() => {
+                    downloadScript(REVERT_SCRIPT, "SnyX-GameBoost-REVERTER.bat");
+                    toast.success("↩️ Script de reversão baixado!");
+                  }}
+                  variant="outline"
+                  className="px-6 py-6 text-base font-bold rounded-xl border-white/10 hover:border-yellow-500/30 hover:bg-yellow-500/5"
+                >
+                  <RotateCcw className="w-5 h-5 mr-2 text-yellow-400" />
+                  Baixar Reverter (Desativar)
+                </Button>
+              </div>
+
+              <div className="space-y-2 text-xs text-white/30">
+                <p>⚠️ Execute os .bat como <strong className="text-yellow-400/70">Administrador</strong> (clique direito → Executar como administrador)</p>
+                <p>💾 Um backup automático é criado em <code className="text-orange-400/50">%USERPROFILE%\SnyX-Backup</code></p>
+                <p>🔄 Quando o plano expirar, rode o script <strong className="text-yellow-400/70">REVERTER</strong> para voltar tudo ao normal</p>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold mb-8">Como funciona?</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-6">
