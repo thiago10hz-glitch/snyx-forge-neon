@@ -18,6 +18,18 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    // Auto-sync server config from env secrets
+    if (WG_SERVER_PUBLIC_KEY && WG_SERVER_PRIVATE_KEY && VPS_IP) {
+      await supabase.from('vpn_server_config').upsert({
+        server_ip: VPS_IP,
+        server_public_key: WG_SERVER_PUBLIC_KEY,
+        server_private_key: WG_SERVER_PRIVATE_KEY,
+        listen_port: VPS_PORT,
+        is_setup: true,
+      }, { onConflict: 'server_ip' })
+    }
+
     const { action, activation_key, user_id } = await req.json()
 
     // Auth check from header
