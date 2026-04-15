@@ -213,12 +213,7 @@ const Accelerator = () => {
                 <CheckCircle2 className="w-6 h-6" /> Accelerator Ativado — Chave Válida!
               </div>
               <br />
-              <Button onClick={handleDownload} disabled={installing}
-                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] border-0">
-                <Download className="w-5 h-5 mr-3" />
-                {installing ? "Baixando..." : "Baixar SnyX Accelerator"}
-              </Button>
-              <p className="text-white/30 text-xs mt-2">Windows (.exe) — App Desktop Electron</p>
+              <p className="text-white/40 text-sm">Role para baixo para baixar o app VPN</p>
             </div>
           ) : (
             <div className="space-y-6">
