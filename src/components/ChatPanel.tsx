@@ -1326,8 +1326,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
-                    <div className="flex gap-3 justify-end">
-                      <div className="max-w-[85%] md:max-w-[80%]">
+                    <div className="flex gap-3 justify-end relative">
+                      <div className="max-w-[85%] md:max-w-[80%] relative">
                         {msg.attachment && (
                           <img
                             src={msg.attachment.dataUrl}
@@ -1339,17 +1339,17 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                         <div className={`bg-primary text-primary-foreground chat-bubble-user ${getUserBubbleClass(bubbleStyle)} px-3 sm:px-3.5 md:px-4 py-2 sm:py-2.5 md:py-3 text-[12px] sm:text-[13px] md:text-sm leading-relaxed`}>
                           {msg.content}
                         </div>
+                        <button
+                          onClick={() => handleCopyMessage(msg.content, i)}
+                          className="opacity-0 group-hover:opacity-100 mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-all ml-auto"
+                          title="Copiar"
+                        >
+                          {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
+                        </button>
                       </div>
                       <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl bg-primary/12 flex items-center justify-center shrink-0 mt-1 border border-primary/8">
                         <User size={12} className="text-primary md:hidden" />
                         <User size={14} className="text-primary hidden md:block" />
-                        <button
-                          onClick={() => handleCopyMessage(msg.content, i)}
-                          className="opacity-0 group-hover:opacity-100 absolute -bottom-5 right-1 flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-all"
-                          title="Copiar"
-                        >
-                          {copiedMsg === i ? <Check size={10} /> : <Copy size={10} />}
-                        </button>
                       </div>
                     </div>
                   ) : (
