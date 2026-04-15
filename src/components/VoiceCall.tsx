@@ -464,7 +464,8 @@ REGRAS ESSENCIAIS PARA LIGAÇÃO:
 
           {/* Voice Picker */}
           {showVoicePicker && !isCallActive && (
-            <div className="px-6 pb-4 space-y-3">
+            <div className="px-6 pb-4 space-y-3 max-h-[340px] overflow-y-auto">
+              {/* Gender toggle */}
               <div className="flex items-center justify-center gap-2">
                 <button
                   onClick={() => setSelectedGender("female")}
@@ -488,29 +489,45 @@ REGRAS ESSENCIAIS PARA LIGAÇÃO:
                 </button>
               </div>
 
+              {/* Voice grid */}
               <div className="space-y-1.5">
                 <p className="text-[10px] text-muted-foreground/40 text-center uppercase tracking-wider">Escolha a voz</p>
-                <div className="flex flex-wrap justify-center gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   {filteredVoices.map(v => (
                     <button
                       key={v.id}
                       onClick={() => setSelectedVoice(v)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`flex flex-col items-start px-3 py-2 rounded-xl text-left transition-all ${
                         selectedVoice.id === v.id
                           ? selectedGender === "female"
-                            ? "bg-pink-500/20 text-pink-400 border border-pink-500/30"
-                            : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                          : "bg-muted/15 text-muted-foreground/60 border border-border/10 hover:bg-muted/25"
+                            ? "bg-pink-500/20 text-pink-400 border border-pink-500/30 shadow-lg shadow-pink-500/5"
+                            : "bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/5"
+                          : "bg-muted/10 text-muted-foreground/60 border border-border/10 hover:bg-muted/20"
                       }`}
                     >
-                      {v.label}
+                      <span className="text-xs font-medium">{v.emoji} {v.label}</span>
+                      <span className="text-[9px] text-muted-foreground/40 mt-0.5">{v.desc}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* +18 toggle */}
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <button
+                  onClick={() => setAdultMode(!adultMode)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                    adultMode
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30 shadow-lg shadow-red-500/10"
+                      : "bg-muted/15 text-muted-foreground/40 border border-border/10 hover:bg-muted/25"
+                  }`}
+                >
+                  🔥 +18 {adultMode ? "Ativado" : "Desativado"}
+                </button>
+              </div>
+
               <p className="text-[10px] text-muted-foreground/30 text-center">
-                🎤 Voz realista com ElevenLabs • Conversa natural
+                🎤 Voz realista • Conversa natural {adultMode && "• Sem censura 🔞"}
               </p>
             </div>
           )}
