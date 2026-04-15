@@ -200,6 +200,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       }
 
       setSpeaking(true);
+      const currentVoice = voiceRef.current;
+      const currentGender = genderRef.current;
 
       try {
         const { data: sessionData } = await supabase.auth.getSession();
@@ -216,8 +218,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           },
           body: JSON.stringify({
             text,
-            voiceId: voice.id,
-            gender,
+            voiceId: currentVoice.id,
+            gender: currentGender,
           }),
           signal: controller.signal,
         });
@@ -262,7 +264,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         browserSpeak(text, onEnd);
       }
     },
-    [browserSpeak, gender, muted, voice.id],
+    [browserSpeak, muted],
   );
 
   const startListening = useCallback(() => {
