@@ -3,8 +3,15 @@ import { Palette, Lock, Check, Pipette, X } from "lucide-react";
 import { themes, useTheme, ThemeId } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 
-export function ThemeSelector() {
-  const [open, setOpen] = useState(false);
+interface ThemeSelectorProps {
+  externalOpen?: boolean;
+  onExternalClose?: () => void;
+  hideButton?: boolean;
+}
+
+export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: ThemeSelectorProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const [showCustom, setShowCustom] = useState(false);
   const { currentTheme, setTheme, customColors, setCustomColors } = useTheme();
   const { profile } = useAuth();
