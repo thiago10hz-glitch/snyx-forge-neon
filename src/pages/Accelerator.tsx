@@ -505,6 +505,63 @@ const Accelerator = () => {
             </div>
           </div>
         )}
+        {/* Guia: Link Aggregation */}
+        {hasActiveKey && (
+          <div className="mb-16 p-6 rounded-2xl bg-gradient-to-br from-cyan-500/5 to-blue-500/5 border border-cyan-500/10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                <Rocket className="w-6 h-6 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-cyan-300">Turbo Link — Combine suas Conexões</h3>
+                <p className="text-sm text-white/40">Junte sua internet + VPN SnyX para dobrar a velocidade</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                <h4 className="font-bold text-white/90 mb-2 flex items-center gap-2">
+                  <span className="text-cyan-400">Método 1:</span> Speedify (Fácil)
+                </h4>
+                <ol className="space-y-2 text-sm text-white/60 list-decimal list-inside">
+                  <li>Baixe o <a href="https://speedify.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300">Speedify</a> (tem versão gratuita)</li>
+                  <li>Conecte sua VPN SnyX (WireGuard) como interface separada</li>
+                  <li>O Speedify detecta automaticamente as duas conexões e combina</li>
+                  <li>Pronto! Velocidade somada: sua internet + VPS</li>
+                </ol>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                <h4 className="font-bold text-white/90 mb-2 flex items-center gap-2">
+                  <span className="text-cyan-400">Método 2:</span> OpenMPTCProuter (Avançado)
+                </h4>
+                <ol className="space-y-2 text-sm text-white/60 list-decimal list-inside">
+                  <li>Instale o <a href="https://www.openmptcprouter.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300">OpenMPTCProuter</a> em um roteador ou VM</li>
+                  <li>Configure MPTCP (MultiPath TCP) apontando para a VPS SnyX</li>
+                  <li>Adicione suas conexões de internet como WANs</li>
+                  <li>O tráfego é distribuído entre todas as conexões simultaneamente</li>
+                </ol>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                <h4 className="font-bold text-white/90 mb-2 flex items-center gap-2">
+                  <span className="text-cyan-400">Método 3:</span> Balanceamento Manual (Windows)
+                </h4>
+                <ol className="space-y-2 text-sm text-white/60 list-decimal list-inside">
+                  <li>Conecte a VPN SnyX normalmente via WireGuard</li>
+                  <li>Abra o Prompt como Admin e configure rotas com <code className="bg-white/5 px-1.5 py-0.5 rounded text-cyan-400/70">route add</code></li>
+                  <li>Direcione sites pesados pela VPN e o resto pela conexão local</li>
+                  <li>Resultado: load balancing entre as duas redes</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/10 text-xs text-white/40">
+              <p>💡 <strong className="text-cyan-400/70">Dica:</strong> O Speedify é a opção mais simples. Para máxima performance, use OpenMPTCProuter com a VPS SnyX como servidor central.</p>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold mb-8">Como funciona?</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-6">
