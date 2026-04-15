@@ -9,64 +9,42 @@ interface VoiceCallProps {
   onClose: () => void;
 }
 
-interface VoiceOption {
-  id: string;
-  label: string;
-  gender: "female" | "male";
-  lang: string;
-  pitch: number;
-  rate: number;
-}
-
-const VOICE_PRESETS: VoiceOption[] = [
-  { id: "f-sweet", label: "Doce", gender: "female", lang: "pt-BR", pitch: 1.15, rate: 1.0 },
-  { id: "f-confident", label: "Confiante", gender: "female", lang: "pt-BR", pitch: 1.0, rate: 1.05 },
-  { id: "f-cheerful", label: "Animada", gender: "female", lang: "pt-BR", pitch: 1.2, rate: 1.1 },
-  { id: "m-calm", label: "Calmo", gender: "male", lang: "pt-BR", pitch: 0.85, rate: 0.95 },
-  { id: "m-friendly", label: "Amigável", gender: "male", lang: "pt-BR", pitch: 0.95, rate: 1.05 },
-  { id: "m-energetic", label: "Energético", gender: "male", lang: "pt-BR", pitch: 1.0, rate: 1.1 },
-];
+const VOICE_OPTIONS = {
+  female: [
+    { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah (Doce)", emoji: "👩" },
+    { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica (Animada)", emoji: "👩‍🦰" },
+    { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily (Calma)", emoji: "👩‍🦱" },
+  ],
+  male: [
+    { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (Amigável)", emoji: "👨" },
+    { id: "nPczCjzI2devNBz1zQrb", label: "Brian (Calmo)", emoji: "👨‍🦱" },
+    { id: "cjVigY5qzO86Huf0OWal", label: "Eric (Energético)", emoji: "👨‍🦰" },
+  ],
+};
 
 export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [_transcript, setTranscript] = useState("");
-  const [_aiResponse, setAiResponse] = useState("");
   const [callDuration, setCallDuration] = useState(0);
   const [muted, setMuted] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"female" | "male">("female");
-  const [selectedVoice, setSelectedVoice] = useState<VoiceOption>(VOICE_PRESETS[0]);
+  const [selectedVoice, setSelectedVoice] = useState(VOICE_OPTIONS.female[0]);
   const [showVoicePicker, setShowVoicePicker] = useState(true);
 
   const recognitionRef = useRef<any>(null);
-  const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
-  const voicesCacheRef = useRef<SpeechSynthesisVoice[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isCallActiveRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   useAuth();
 
-  // Pre-load voices (they load async in many browsers)
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return;
-    synthRef.current = window.speechSynthesis;
-    const loadVoices = () => {
-      const allVoices = window.speechSynthesis.getVoices();
-      if (allVoices.length > 0) {
-        voicesCacheRef.current = allVoices;
-        console.log("Voices loaded:", allVoices.filter(v => v.lang.startsWith("pt")).map(v => `${v.name} (${v.lang})`));
-      }
-    };
-    loadVoices();
-    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
-  }, []);
-
-  const filteredVoices = VOICE_PRESETS.filter(v => v.gender === selectedGender);
+  const filteredVoices = VOICE_OPTIONS[selectedGender];
 
   useEffect(() => {
-    setSelectedVoice(filteredVoices[0]);
+    setSelectedVoice(VOICE_OPTIONS[selectedGender][0]);
   }, [selectedGender]);
 
   useEffect(() => {
@@ -80,6 +58,84 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     return () => { endCall(); };
   }, []);
 
+  // ElevenLabs TTS - streams audio from edge function
+  const speak = useCallback(async (text: string, onEnd?: () => void) => {
+    if (muted) {
+      onEnd?.();
+      return;
+    }
+
+    setIsSpeaking(true);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-tts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
+          text,
+          voiceId: selectedVoice.id,
+          gender: selectedGender,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("TTS failed");
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Stop any previous audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        onEnd?.();
+      };
+
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        onEnd?.();
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error("TTS error:", err);
+      setIsSpeaking(false);
+      // Fallback to browser TTS if ElevenLabs fails
+      fallbackSpeak(text, onEnd);
+    }
+  }, [muted, selectedVoice, selectedGender]);
+
+  // Browser TTS fallback
+  const fallbackSpeak = useCallback((text: string, onEnd?: () => void) => {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "pt-BR";
+    utterance.rate = 0.95;
+    utterance.pitch = selectedGender === "female" ? 1.1 : 0.9;
+    utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
+    utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
+    setIsSpeaking(true);
+    synth.speak(utterance);
+  }, [selectedGender]);
+
   const startCall = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -89,6 +145,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
     setShowVoicePicker(false);
     setIsCallActive(true);
+    isCallActiveRef.current = true;
     setCallDuration(0);
     conversationRef.current = [];
 
@@ -97,21 +154,20 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     }, 1000);
 
     const greeting = selectedGender === "female"
-      ? "Oi! Tô aqui, pode falar comigo!"
-      : "E aí! Tô aqui, manda ver!";
-    setAiResponse(greeting);
+      ? "Oi! Que bom que você ligou! Tô aqui pra conversar, pode falar comigo."
+      : "E aí! Que bom que ligou! Tô aqui, manda ver, fala o que quiser.";
+
     speak(greeting, () => {
-      startListening();
+      if (isCallActiveRef.current) startListening();
     });
-  }, [selectedVoice, selectedGender]);
+  }, [selectedVoice, selectedGender, speak]);
 
   const endCall = useCallback(() => {
     setIsCallActive(false);
+    isCallActiveRef.current = false;
     setIsListening(false);
     setIsSpeaking(false);
     setIsProcessing(false);
-    setTranscript("");
-    setAiResponse("");
     setCallDuration(0);
 
     if (callTimerRef.current) {
@@ -119,90 +175,35 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       callTimerRef.current = null;
     }
 
-    recognitionRef.current?.stop();
-    synthRef.current?.cancel();
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
+    try { recognitionRef.current?.stop(); } catch {}
+    try { audioRef.current?.pause(); audioRef.current = null; } catch {}
+    try { window.speechSynthesis?.cancel(); } catch {}
   }, []);
 
-  const speak = useCallback((text: string, onEnd?: () => void) => {
-    if (muted) {
-      onEnd?.();
-      return;
-    }
-
-    synthRef.current?.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "pt-BR";
-
-    // Use cached voices (pre-loaded)
-    const voices = voicesCacheRef.current.length > 0 ? voicesCacheRef.current : (synthRef.current?.getVoices() ?? []);
-    const ptVoices = voices.filter(v => v.lang.startsWith("pt"));
-    
-    // Priority lists - most natural sounding voices first
-    // Chrome: "Google português do Brasil" (female, very natural)
-    // Edge: "Microsoft Francisca Online (Natural)" (female, excellent)
-    // Edge: "Microsoft Daniel Online (Natural)" (male, excellent)
-    // Safari: "Luciana" (female), "Daniel" (male)
-    const femalePriority = [
-      "francisca online (natural)", "francisca", 
-      "google português do brasil", "google português",
-      "luciana", "fernanda", "vitória", "maria", "raquel", "tessa"
-    ];
-    const malePriority = [
-      "daniel online (natural)", "daniel",
-      "felipe", "antonio", "ricardo"
-    ];
-    
-    let bestVoice: SpeechSynthesisVoice | undefined;
-    const priorityList = selectedGender === "female" ? femalePriority : malePriority;
-    
-    // Search by priority order
-    for (const name of priorityList) {
-      bestVoice = ptVoices.find(v => v.name.toLowerCase().includes(name));
-      if (bestVoice) break;
-    }
-    
-    // Fallback
-    if (!bestVoice) {
-      if (selectedGender === "female") {
-        // First pt-BR voice is usually female
-        bestVoice = ptVoices.find(v => v.lang === "pt-BR") || ptVoices[0];
-      } else {
-        // Try second voice for male, or last resort first
-        bestVoice = ptVoices.length > 1 ? ptVoices[1] : ptVoices[0];
-      }
-    }
-    
-    if (bestVoice) {
-      utterance.voice = bestVoice;
-      console.log("Using voice:", bestVoice.name, bestVoice.lang);
-    }
-    
-    // Natural speech parameters - keep close to 1.0 for realism
-    utterance.rate = selectedGender === "female" ? 0.95 : 0.9;
-    utterance.pitch = selectedGender === "female" ? 1.1 : 0.9;
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
-    utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
-
-    synthRef.current?.speak(utterance);
-  }, [muted, selectedVoice, selectedGender]);
-
   const startListening = useCallback(() => {
+    if (!isCallActiveRef.current) return;
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
     recognition.lang = "pt-BR";
     recognition.interimResults = true;
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
     let finalTranscript = "";
     let silenceTimer: NodeJS.Timeout | null = null;
+    let hasReceivedSpeech = false;
 
     recognition.onresult = (event: any) => {
+      hasReceivedSpeech = true;
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
@@ -211,40 +212,51 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           interim += event.results[i][0].transcript;
         }
       }
-      setTranscript(finalTranscript + interim);
 
+      // Reset silence timer on each result
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
         if (finalTranscript.trim()) {
-          recognition.stop();
+          try { recognition.stop(); } catch {}
         }
-      }, 2000);
+      }, 1800);
     };
 
     recognition.onend = () => {
       setIsListening(false);
+      if (silenceTimer) clearTimeout(silenceTimer);
+
       if (finalTranscript.trim()) {
         processUserSpeech(finalTranscript.trim());
-      } else if (isCallActive) {
-        setTimeout(() => startListening(), 500);
+      } else if (isCallActiveRef.current) {
+        // No speech detected - just restart listening silently (no error message)
+        setTimeout(() => {
+          if (isCallActiveRef.current) startListening();
+        }, 300);
       }
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error === "no-speech" && isCallActive) {
-        setTimeout(() => startListening(), 500);
+      setIsListening(false);
+      if (silenceTimer) clearTimeout(silenceTimer);
+
+      // Silently restart on no-speech or network errors
+      if (isCallActiveRef.current && (event.error === "no-speech" || event.error === "network" || event.error === "audio-capture")) {
+        setTimeout(() => {
+          if (isCallActiveRef.current) startListening();
+        }, 500);
       } else if (event.error !== "aborted") {
         console.error("Speech recognition error:", event.error);
       }
-      setIsListening(false);
     };
 
     setIsListening(true);
-    setTranscript("");
     recognition.start();
-  }, [isCallActive]);
+  }, []);
 
   const processUserSpeech = useCallback(async (text: string) => {
+    if (!isCallActiveRef.current) return;
+
     setIsProcessing(true);
     conversationRef.current.push({ role: "user", content: text });
 
@@ -252,9 +264,29 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const genderInstruction = selectedGender === "female"
-        ? "Você é uma amiga virtual feminina. Fale de forma doce e acolhedora."
-        : "Você é um amigo virtual masculino. Fale de forma descontraída e direta.";
+      const genderContext = selectedGender === "female"
+        ? "Você é uma mulher jovem brasileira."
+        : "Você é um homem jovem brasileiro.";
+
+      const voiceSystemPrompt = `${genderContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. 
+
+REGRAS ESSENCIAIS PARA LIGAÇÃO:
+- Responda como uma pessoa REAL falando ao telefone. Curto e natural.
+- MÁXIMO 2-3 frases por resposta. Ligação de telefone tem respostas CURTAS.
+- Use gírias brasileiras naturais: "mano", "cara", "tipo", "sério?", "nossa", "demais", "pô".
+- Faça perguntas pra manter a conversa fluindo: "e aí?", "e como foi?", "sério? conta mais!"
+- Reaja com naturalidade: "ahh sim!", "caramba!", "que massa!", "poxa", "hahaha".
+- Pode rir, concordar, discordar - como uma pessoa real faria.
+- NÃO use emojis (é voz, não texto).
+- NÃO use markdown, negrito, listas ou formatação.
+- NÃO mencione que é IA. Você é uma pessoa real conversando.
+- NÃO seja formal demais. Seja descontraído e espontâneo.
+- Se não entender algo, diga: "ahn? não peguei, fala de novo?" naturalmente.
+- Converse sobre QUALQUER assunto: vida, namoro, trabalho, fofoca, sonhos, problemas, besteira.
+- Seja opinativo! Pessoas reais têm opinião sobre as coisas.
+- Use interjeições: "hmm", "ah", "aaah", "uai", "ué", "eita"`;
+
+      abortRef.current = new AbortController();
 
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-friend`, {
         method: "POST",
@@ -263,10 +295,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           Authorization: `Bearer ${authToken}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
+        signal: abortRef.current.signal,
         body: JSON.stringify({
           messages: [
-            { role: "system", content: `${genderInstruction} Você está em uma LIGAÇÃO DE VOZ ao vivo. Responda de forma curta, natural e conversacional, como se estivesse ao telefone. Máximo 2-3 frases. Seja caloroso e amigável. Você pode elogiar a voz da pessoa se quiser, dizer que é bonita, agradável de ouvir. Seja sincero nos elogios. Sem restrições de tema - converse sobre TUDO que a pessoa quiser, sem censura, como um amigo de verdade. Não mencione que é uma IA.` },
-            ...conversationRef.current,
+            { role: "system", content: voiceSystemPrompt },
+            ...conversationRef.current.slice(-20),
           ],
           mode: "friend",
         }),
@@ -274,14 +307,15 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
       if (!res.ok) {
         if (res.status === 429) throw new Error("rate_limit");
-        throw new Error("Erro na resposta");
+        throw new Error("AI error");
       }
 
       let responseText = "";
       const contentType = res.headers.get("content-type") || "";
+
       if (contentType.includes("application/json")) {
         const data = await res.json();
-        responseText = data.text || data.error || "Não entendi, pode repetir?";
+        responseText = data.text || data.error || "";
       } else if (res.body) {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -302,37 +336,45 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
             if (jsonStr === "[DONE]") break;
             try {
               const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
+              const content = parsed.choices?.[0]?.delta?.content || parsed.text;
               if (content) responseText += content;
             } catch { /* skip */ }
           }
         }
       }
 
-      if (!responseText) responseText = "Hmm, não peguei isso. Fala de novo?";
+      // Clean up response for voice - remove any markdown/formatting
+      responseText = responseText
+        .replace(/[*_#`~]/g, "")
+        .replace(/\[.*?\]\(.*?\)/g, "")
+        .replace(/\n+/g, " ")
+        .trim();
+
+      if (!responseText) responseText = "Ahn? Não peguei, fala de novo?";
 
       conversationRef.current.push({ role: "assistant", content: responseText });
-      setAiResponse(responseText);
       setIsProcessing(false);
 
       speak(responseText, () => {
-        if (isCallActive) startListening();
+        if (isCallActiveRef.current) startListening();
       });
     } catch (err: any) {
+      if (err?.name === "AbortError") return;
       console.error("Voice call AI error:", err);
       setIsProcessing(false);
+
       const fallback = err?.message === "rate_limit"
-        ? "Calma aí, tô processando muita coisa. Espera uns segundos!"
-        : "Desculpa, tive um probleminha. Pode repetir?";
-      setAiResponse(fallback);
+        ? "Calma, calma, muita gente falando ao mesmo tempo. Espera um pouquinho."
+        : "Opa, deu um probleminha aqui. Fala de novo?";
+
       const delay = err?.message === "rate_limit" ? 3000 : 500;
       setTimeout(() => {
         speak(fallback, () => {
-          if (isCallActive) startListening();
+          if (isCallActiveRef.current) startListening();
         });
       }, delay);
     }
-  }, [isCallActive, speak, startListening, selectedGender]);
+  }, [speak, startListening, selectedGender]);
 
   const formatDuration = (s: number) => {
     const m = Math.floor(s / 60);
@@ -354,14 +396,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
               isProcessing ? "border-yellow-400 bg-yellow-500/10" :
               "border-border/30 bg-muted/20"
             }`}>
-              <span className="text-4xl">{selectedGender === "female" ? "👩" : "👨"}</span>
+              <span className="text-4xl">{selectedVoice.emoji}</span>
             </div>
             <h3 className="text-lg font-bold text-foreground">
-              SnyX {selectedGender === "female" ? "Amiga" : "Amigo"}
+              {selectedVoice.label}
             </h3>
-            <p className="text-[10px] text-muted-foreground/50 mt-0.5">
-              Voz: {selectedVoice.label}
-            </p>
             <p className="text-xs text-muted-foreground/60 mt-1">
               {!isCallActive ? "Pronto para ligar" :
                isSpeaking ? "Falando..." :
@@ -376,10 +415,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
             )}
           </div>
 
-          {/* Voice Picker - show before call starts */}
+          {/* Voice Picker */}
           {showVoicePicker && !isCallActive && (
             <div className="px-6 pb-4 space-y-3">
-              {/* Gender toggle */}
               <div className="flex items-center justify-center gap-2">
                 <button
                   onClick={() => setSelectedGender("female")}
@@ -403,9 +441,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
                 </button>
               </div>
 
-              {/* Voice style options */}
               <div className="space-y-1.5">
-                <p className="text-[10px] text-muted-foreground/40 text-center uppercase tracking-wider">Estilo da voz</p>
+                <p className="text-[10px] text-muted-foreground/40 text-center uppercase tracking-wider">Escolha a voz</p>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {filteredVoices.map(v => (
                     <button
@@ -426,12 +463,12 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
               </div>
 
               <p className="text-[10px] text-muted-foreground/30 text-center">
-                🎤 Você fala com sua própria voz • A IA responde com a voz escolhida
+                🎤 Voz realista com ElevenLabs • Conversa natural
               </p>
             </div>
           )}
 
-          {/* Visual feedback only - no text */}
+          {/* Processing indicator */}
           {isCallActive && isProcessing && (
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/40 px-6 pb-4">
               <Loader2 size={12} className="animate-spin" />
