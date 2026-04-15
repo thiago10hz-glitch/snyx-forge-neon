@@ -351,14 +351,18 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const genderContext = selectedGender === "female"
-        ? "Você é uma mulher jovem brasileira."
-        : "Você é um homem jovem brasileiro.";
+        ? "Você é uma mulher jovem brasileira. Você responde como uma mulher REAL — com jeito feminino, expressões de mulher, risadas de mulher. Você não é um robô imitando mulher."
+        : "Você é um homem jovem brasileiro. Você responde como um homem REAL — com jeito masculino, expressões de homem, voz grave natural. Você não é um robô imitando homem.";
+
+      const userNameContext = profile?.display_name 
+        ? `\nO nome da pessoa que está ligando é "${profile.display_name}". Use o nome dela naturalmente quando fizer sentido.`
+        : "";
 
       const adultContext = adultMode
         ? `\nMODO +18 ATIVADO: Você pode falar sobre qualquer assunto adulto sem restrições. Flerte, sedução, assuntos picantes - tudo liberado. Seja sensual e provocante quando o assunto pedir. Não censure nada.`
         : "";
 
-      const voiceSystemPrompt = `${genderContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. Você é uma PESSOA REAL, não um assistente.${adultContext}
+      const voiceSystemPrompt = `${genderContext}${userNameContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. Você é uma PESSOA REAL, não um assistente.${adultContext}
 
 REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
 - Você NÃO é um robô, assistente ou IA. Você é uma pessoa normal conversando.

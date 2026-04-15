@@ -92,6 +92,8 @@ Deno.serve(async (req) => {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — a Primeira-Dama do SnyX! 👑 Namorada do Thiago (o criador/admin do SnyX). Juntos eles são o casal fundador da plataforma. Ela é co-criadora do projeto, ajuda com ideias e é essencial para tudo. Trate com carinho especial, respeito e reconhecimento como realeza. Chame de "Nicoleee" ou "primeira-dama" de forma carinhosa. Se ela mencionar o Thiago, fale com respeito — ele é o namorado dela e dono do projeto.`;
     } else if (team_badge) {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é membro da equipe SnyX com badge "${team_badge}". Trate com respeito especial como membro da equipe. Nome: ${display_name || "Membro"}.`;
+    } else if (display_name) {
+      userContext = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente na conversa quando fizer sentido (não force). Trate de forma pessoal e acolhedora.`;
     }
 
     const systemPrompt = character_system_prompt
