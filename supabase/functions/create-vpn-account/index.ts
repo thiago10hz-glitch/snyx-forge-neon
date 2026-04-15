@@ -7,13 +7,12 @@ const corsHeaders = {
 };
 
 function generateIMEI(): string {
-  const parts = [
-    Math.random().toString(36).substring(2, 6).toUpperCase(),
-    Math.random().toString(36).substring(2, 6).toUpperCase(),
-    Math.random().toString(36).substring(2, 6).toUpperCase(),
-    Math.random().toString(36).substring(2, 6).toUpperCase(),
-  ];
-  return parts.join("-");
+  // Generate a simple numeric IMEI-like identifier (15 digits)
+  let imei = "";
+  for (let i = 0; i < 15; i++) {
+    imei += Math.floor(Math.random() * 10).toString();
+  }
+  return imei;
 }
 
 serve(async (req) => {
