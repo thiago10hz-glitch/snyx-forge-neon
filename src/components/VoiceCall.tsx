@@ -133,14 +133,39 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     }
   }, [muted, selectedVoice, selectedGender]);
 
-  // Browser TTS fallback
+  // Browser TTS fallback - select real voice by gender
   const fallbackSpeak = useCallback((text: string, onEnd?: () => void) => {
     const synth = window.speechSynthesis;
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "pt-BR";
     utterance.rate = 0.95;
-    utterance.pitch = selectedGender === "female" ? 1.1 : 0.9;
+
+    // Try to find a matching voice by gender
+    const voices = synth.getVoices();
+    const ptVoices = voices.filter(v => v.lang.startsWith("pt"));
+    
+    if (ptVoices.length > 0) {
+      let chosen: SpeechSynthesisVoice | undefined;
+      if (selectedGender === "female") {
+        chosen = ptVoices.find(v => 
+          /female|femin|mulher|maria|lucia|francisca|raquel|vitoria|thalita|leila|andrea|camila/i.test(v.name)
+        );
+        if (!chosen) chosen = ptVoices[0];
+        utterance.pitch = 1.15;
+      } else {
+        chosen = ptVoices.find(v => 
+          /\bmale\b|mascu|homem|daniel|felipe|ricardo|marcos|luciano|antonio/i.test(v.name)
+        );
+        if (!chosen && ptVoices.length > 1) chosen = ptVoices[1];
+        else if (!chosen) chosen = ptVoices[0];
+        utterance.pitch = 0.75;
+      }
+      if (chosen) utterance.voice = chosen;
+    } else {
+      utterance.pitch = selectedGender === "female" ? 1.15 : 0.75;
+    }
+
     utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
     utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
     setIsSpeaking(true);
