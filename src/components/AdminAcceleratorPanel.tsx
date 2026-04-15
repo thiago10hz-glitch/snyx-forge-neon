@@ -132,8 +132,8 @@ export function AdminAcceleratorPanel() {
   };
 
   const createAccount = async () => {
-    if (!accEmail || !accPassword) {
-      toast.error("Preencha email e senha");
+    if (!accPassword) {
+      toast.error("Gere ou preencha uma senha");
       return;
     }
     if (accPassword.length < 6) {
@@ -145,7 +145,6 @@ export function AdminAcceleratorPanel() {
     try {
       const { data, error } = await supabase.functions.invoke("create-vpn-account", {
         body: {
-          email: accEmail,
           password: accPassword,
           display_name: accName || undefined,
           expires_months: accExpires,
@@ -178,7 +177,7 @@ export function AdminAcceleratorPanel() {
 
   const copyAllCredentials = () => {
     if (!generatedAccount) return;
-    const text = `📧 Email: ${generatedAccount.email}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
+    const text = `📱 IMEI: ${generatedAccount.imei}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
     navigator.clipboard.writeText(text);
     setCopiedField("all");
     setTimeout(() => setCopiedField(null), 2000);
@@ -187,7 +186,6 @@ export function AdminAcceleratorPanel() {
 
   const resetAccountForm = () => {
     setGeneratedAccount(null);
-    setAccEmail("");
     setAccPassword("");
     setAccName("");
     setShowPassword(false);
@@ -230,16 +228,6 @@ export function AdminAcceleratorPanel() {
           <div className="space-y-3 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Email *</label>
-                <input
-                  type="email"
-                  value={accEmail}
-                  onChange={e => setAccEmail(e.target.value)}
-                  placeholder="usuario@email.com"
-                  className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
-                />
-              </div>
-              <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Nome (opcional)</label>
                 <input
                   type="text"
@@ -248,6 +236,20 @@ export function AdminAcceleratorPanel() {
                   placeholder="Nome do usuário"
                   className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
                 />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Validade</label>
+                <select
+                  value={accExpires ?? ""}
+                  onChange={e => setAccExpires(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
+                >
+                  <option value="">Sem expiração</option>
+                  <option value="1">1 mês</option>
+                  <option value="3">3 meses</option>
+                  <option value="6">6 meses</option>
+                  <option value="12">12 meses</option>
+                </select>
               </div>
             </div>
 
@@ -309,7 +311,7 @@ export function AdminAcceleratorPanel() {
               </div>
 
               {[
-                { label: "📧 Email", value: generatedAccount.email, field: "email" },
+                { label: "📱 IMEI", value: generatedAccount.imei, field: "imei" },
                 { label: "🔑 Senha", value: generatedAccount.password, field: "password" },
                 { label: "🎫 Chave", value: generatedAccount.activation_key, field: "key" },
                 ...(generatedAccount.expires_at ? [{ label: "⏰ Expira", value: new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR"), field: "expires" }] : []),
