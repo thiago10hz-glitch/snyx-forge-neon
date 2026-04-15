@@ -50,13 +50,13 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           text,
-          model_id: "eleven_multilingual_v2",
+          model_id: "eleven_turbo_v2_5",
           voice_settings: {
-            stability: 0.4,
-            similarity_boost: 0.8,
-            style: 0.6,
+            stability: 0.25,
+            similarity_boost: 0.85,
+            style: 0.7,
             use_speaker_boost: true,
-            speed: 1.05,
+            speed: 1.1,
           },
         }),
       }
