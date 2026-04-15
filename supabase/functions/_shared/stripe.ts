@@ -12,54 +12,30 @@ function getKeys(env: StripeEnv) {
   return { connectionKey, lovableKey };
 }
 
-export async function stripeRequest(env: StripeEnv, method: string, path: string, body?: Record<string, any>): Promise<any> {
+export async function stripeRequest(env: StripeEnv, method: string, path: string, body?: string): Promise<any> {
   const { connectionKey, lovableKey } = getKeys(env);
 
   const headers: Record<string, string> = {
-    'Authorization': `Bearer ${lovableKey}`,
+    'Authorization': `Bearer ${connectionKey}`,
     'X-Connection-Api-Key': connectionKey,
     'Lovable-API-Key': lovableKey,
   };
 
-  let url = `${GATEWAY_BASE}${path}`;
-  let fetchInit: RequestInit = { method, headers };
-
-  if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+  if (body) {
     headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    fetchInit.body = encodeFormData(body);
   }
 
-  const resp = await fetch(url, fetchInit);
+  const resp = await fetch(`${GATEWAY_BASE}${path}`, {
+    method,
+    headers,
+    ...(body ? { body } : {}),
+  });
+
   const data = await resp.json();
-
   if (!resp.ok) {
-    const errMsg = data?.error?.message || data?.message || JSON.stringify(data);
-    throw new Error(errMsg);
+    throw new Error(data?.error?.message || data?.message || JSON.stringify(data));
   }
-
   return data;
-}
-
-function encodeFormData(obj: Record<string, any>, prefix = ''): string {
-  const parts: string[] = [];
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}[${key}]` : key;
-    if (value === null || value === undefined) continue;
-    if (typeof value === 'object' && !Array.isArray(value)) {
-      parts.push(encodeFormData(value, fullKey));
-    } else if (Array.isArray(value)) {
-      value.forEach((item, i) => {
-        if (typeof item === 'object') {
-          parts.push(encodeFormData(item, `${fullKey}[${i}]`));
-        } else {
-          parts.push(`${encodeURIComponent(`${fullKey}[${i}]`)}=${encodeURIComponent(item)}`);
-        }
-      });
-    } else {
-      parts.push(`${encodeURIComponent(fullKey)}=${encodeURIComponent(value)}`);
-    }
-  }
-  return parts.filter(Boolean).join('&');
 }
 
 export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ type: string; data: { object: any } }> {
@@ -70,7 +46,7 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     ? Deno.env.get('PAYMENTS_SANDBOX_WEBHOOK_SECRET')
     : Deno.env.get('PAYMENTS_LIVE_WEBHOOK_SECRET');
 
-  if (!secret) throw new Error('Webhook secret environment variable is not configured');
+  if (!secret) throw new Error('Webhook secret not configured');
   if (!signature || !body) throw new Error("Missing signature or body");
 
   let timestamp: string | undefined;
@@ -80,27 +56,15 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     if (key === "t") timestamp = value;
     if (key === "v1") v1Signatures.push(value);
   }
-
   if (!timestamp || v1Signatures.length === 0) throw new Error("Invalid signature format");
 
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (age > 300) throw new Error("Webhook timestamp too old");
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const signed = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(`${timestamp}.${body}`)
-  );
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signed = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${timestamp}.${body}`));
   const expected = new TextDecoder().decode(encode(new Uint8Array(signed)));
 
   if (!v1Signatures.includes(expected)) throw new Error("Invalid webhook signature");
-
   return JSON.parse(body);
 }

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { type StripeEnv, stripeRequest } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,57 +12,52 @@ serve(async (req) => {
   }
 
   try {
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY')!;
-    const stripeKey = Deno.env.get('STRIPE_SANDBOX_API_KEY')!;
+    const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
 
-    // Try combination 1: Auth=stripe, X-Connection=lovable
-    const r1 = await fetch("https://connector-gateway.lovable.dev/stripe/v1/prices?limit=1", {
-      headers: {
-        'Authorization': `Bearer ${stripeKey}`,
-        'X-Connection-Api-Key': lovableKey,
-        'Lovable-API-Key': lovableKey,
-      },
-    });
-    const t1 = await r1.text();
-    console.log("Combo1 (Auth=stripe, XConn=lovable):", r1.status, t1.substring(0, 200));
+    if (!priceId || typeof priceId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
+      return new Response(JSON.stringify({ error: "Invalid priceId" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // Try combination 2: Auth=lovable, X-Connection=stripe
-    const r2 = await fetch("https://connector-gateway.lovable.dev/stripe/v1/prices?limit=1", {
-      headers: {
-        'Authorization': `Bearer ${lovableKey}`,
-        'X-Connection-Api-Key': stripeKey,
-        'Lovable-API-Key': lovableKey,
-      },
-    });
-    const t2 = await r2.text();
-    console.log("Combo2 (Auth=lovable, XConn=stripe):", r2.status, t2.substring(0, 200));
+    const env = (environment || 'sandbox') as StripeEnv;
 
-    // Try combination 3: Auth=stripe, X-Connection=stripe, Lovable-API-Key=lovable
-    const r3 = await fetch("https://connector-gateway.lovable.dev/stripe/v1/prices?limit=1", {
-      headers: {
-        'Authorization': `Bearer ${stripeKey}`,
-        'X-Connection-Api-Key': stripeKey,
-        'Lovable-API-Key': lovableKey,
-      },
-    });
-    const t3 = await r3.text();
-    console.log("Combo3 (Auth=stripe, XConn=stripe, Lovable=lovable):", r3.status, t3.substring(0, 200));
+    // Resolve human-readable price ID to Stripe price ID
+    const prices = await stripeRequest(env, 'GET', `/v1/prices?lookup_keys[]=${encodeURIComponent(priceId)}`);
 
-    // Try combination 4: Only Lovable-API-Key header
-    const r4 = await fetch("https://connector-gateway.lovable.dev/stripe/v1/prices?limit=1", {
-      headers: {
-        'Lovable-API-Key': lovableKey,
-        'X-Connection-Api-Key': stripeKey,
-      },
-    });
-    const t4 = await r4.text();
-    console.log("Combo4 (no Auth, Lovable+XConn):", r4.status, t4.substring(0, 200));
+    if (!prices.data || !prices.data.length) {
+      return new Response(JSON.stringify({ error: "Price not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    return new Response(JSON.stringify({ combo1: t1.substring(0, 100), combo2: t2.substring(0, 100), combo3: t3.substring(0, 100), combo4: t4.substring(0, 100) }), {
+    const stripePrice = prices.data[0];
+    const isRecurring = stripePrice.type === "recurring";
+
+    // Build form-encoded body for checkout session
+    const params = new URLSearchParams();
+    params.set('line_items[0][price]', stripePrice.id);
+    params.set('line_items[0][quantity]', String(quantity || 1));
+    params.set('mode', isRecurring ? 'subscription' : 'payment');
+    params.set('ui_mode', 'embedded');
+    params.set('return_url', returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`);
+
+    if (customerEmail) params.set('customer_email', customerEmail);
+    if (userId) {
+      params.set('metadata[userId]', userId);
+      if (isRecurring) params.set('subscription_data[metadata][userId]', userId);
+      else params.set('payment_intent_data[metadata][userId]', userId);
+    }
+
+    const session = await stripeRequest(env, 'POST', '/v1/checkout/sessions', params.toString());
+
+    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("create-checkout error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
