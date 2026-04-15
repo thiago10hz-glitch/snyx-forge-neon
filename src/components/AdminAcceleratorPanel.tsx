@@ -187,11 +187,19 @@ export function AdminAcceleratorPanel() {
 
   const copyAllCredentials = () => {
     if (!generatedAccount) return;
-    const text = `📧 Email/Login: ${generatedAccount.login_email}\n📱 IMEI: ${generatedAccount.imei}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
+    const text = `📧 Email/Login: ${generatedAccount.login_email}\n📱 IMEI: ${generatedAccount.imei}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}\n🌐 IP VPN: ${generatedAccount.assigned_ip || "N/A"}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
     navigator.clipboard.writeText(text);
     setCopiedField("all");
     setTimeout(() => setCopiedField(null), 2000);
     toast.success("Credenciais copiadas!");
+  };
+
+  const copyWgConfig = () => {
+    if (!generatedAccount?.wg_config) return;
+    navigator.clipboard.writeText(generatedAccount.wg_config);
+    setCopiedField("wgconfig");
+    setTimeout(() => setCopiedField(null), 2000);
+    toast.success("Config WireGuard copiada!");
   };
 
   const resetAccountForm = () => {
