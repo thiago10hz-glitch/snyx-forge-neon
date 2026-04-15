@@ -40,17 +40,17 @@ const PERSONALITIES = [
 ];
 
 const BUBBLE_STYLES = [
-  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico" },
-  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos" },
-  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado" },
-  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas" },
-  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism" },
-  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
-  { label: "Gatinho", value: "cat", emoji: "🐱", desc: "Orelhinhas de gato" },
-  { label: "Nuvem", value: "cloud", emoji: "☁️", desc: "Balão nuvenzinha" },
-  { label: "Bolhas", value: "transparent", emoji: "🔮", desc: "Bolhas transparentes" },
-  { label: "Estrelas", value: "stars", emoji: "⭐", desc: "Brilho de estrelas" },
-  { label: "Coração", value: "heart", emoji: "💖", desc: "Balão com coração" },
+  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico", vip: false },
+  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos", vip: false },
+  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado", vip: false },
+  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas", vip: true },
+  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism", vip: true },
+  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit", vip: true },
+  { label: "Gatinho", value: "cat", emoji: "🐱", desc: "Orelhinhas de gato", vip: true },
+  { label: "Nuvem", value: "cloud", emoji: "☁️", desc: "Balão nuvenzinha", vip: true },
+  { label: "Bolhas", value: "transparent", emoji: "🔮", desc: "Bolhas transparentes", vip: true },
+  { label: "Estrelas", value: "stars", emoji: "⭐", desc: "Brilho de estrelas", vip: true },
+  { label: "Coração", value: "heart", emoji: "💖", desc: "Balão com coração", vip: true },
 ];
 
 export const getBubblePreviewClass = (style: string, themeColor?: string): string => {
@@ -102,7 +102,8 @@ export const getUserBubbleClass = (style: string): string => {
 };
 
 export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isVip = !!(profile?.is_vip || profile?.is_dev);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -319,21 +320,30 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
                 <MessageSquare size={10} className="text-primary/50" /> Estilo do balão de fala
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {BUBBLE_STYLES.map(b => (
-                  <button
-                    key={b.value}
-                    onClick={() => setSettings(prev => ({ ...prev, bubble_style: b.value }))}
-                    className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
-                      settings.bubble_style === b.value
-                        ? "border-primary/40 bg-primary/10 text-primary font-medium"
-                        : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
-                    }`}
-                  >
-                    <span className="text-sm">{b.emoji}</span>
-                    <span className="ml-1">{b.label}</span>
-                    <p className="text-[9px] text-muted-foreground/40 mt-0.5">{b.desc}</p>
-                  </button>
-                ))}
+                {BUBBLE_STYLES.map(b => {
+                  const locked = b.vip && !isVip;
+                  return (
+                    <button
+                      key={b.value}
+                      onClick={() => {
+                        if (locked) { toast.error("Estilo exclusivo para VIP/DEV!"); return; }
+                        setSettings(prev => ({ ...prev, bubble_style: b.value }));
+                      }}
+                      className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left relative ${
+                        locked
+                          ? "border-border/10 text-muted-foreground/30 opacity-60 cursor-not-allowed"
+                          : settings.bubble_style === b.value
+                            ? "border-primary/40 bg-primary/10 text-primary font-medium"
+                            : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
+                      }`}
+                    >
+                      <span className="text-sm">{b.emoji}</span>
+                      <span className="ml-1">{b.label}</span>
+                      {locked && <span className="ml-1 text-[9px]">🔒</span>}
+                      <p className="text-[9px] text-muted-foreground/40 mt-0.5">{locked ? "VIP" : b.desc}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
