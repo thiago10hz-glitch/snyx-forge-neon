@@ -23,6 +23,8 @@ interface GeneratedAccount {
   activation_key: string;
   expires_at: string | null;
   display_name: string;
+  assigned_ip?: string;
+  wg_config?: string;
 }
 
 export function AdminAcceleratorPanel() {
