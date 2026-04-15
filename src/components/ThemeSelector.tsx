@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Palette, Lock, Check, Pipette, X } from "lucide-react";
 import { themes, useTheme, ThemeId } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,13 +70,13 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
 
           {/* Panel */}
-          <div className="relative w-full sm:max-w-sm max-h-[85dvh] sm:max-h-[80vh] bg-background border border-border/15 rounded-t-3xl sm:rounded-2xl overflow-hidden animate-reveal flex flex-col shadow-2xl">
+          <div className="relative w-full sm:max-w-md max-h-[85dvh] sm:max-h-[80vh] bg-background border border-border/15 rounded-t-3xl sm:rounded-2xl overflow-hidden animate-reveal flex flex-col shadow-2xl">
             {/* Handle bar (mobile) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
@@ -228,7 +229,8 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
 
             <div className="safe-bottom" />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
