@@ -683,11 +683,19 @@ export default function Admin() {
                                 RPG Expirado
                               </span>
                             )}
-                            {u.team_badge && (
+                            {u.team_badge && (u.team_badge === "Dono" || u.team_badge === "Dona") ? (
+                              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-amber-500/15 via-yellow-400/20 to-amber-500/15 text-amber-300 border border-amber-400/30 shadow-lg shadow-amber-500/10 flex items-center gap-1">
+                                👑 {u.team_badge}
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="rgba(251,191,36,0.15)"/>
+                                </svg>
+                              </span>
+                            ) : u.team_badge ? (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
                                 🛡️ {u.team_badge}
                               </span>
-                            )}
+                            ) : null}
                             {!u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">
                                 Free
