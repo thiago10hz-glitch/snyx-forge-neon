@@ -101,8 +101,20 @@ FORMATAÇÃO DE TEXTO:
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI Gateway error:", errText);
-      return new Response(JSON.stringify({ error: `Erro: ${response.status}` }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Return a streaming fallback message instead of 502
+      const fallbackMsg = response.status === 400 
+        ? "Eita, a conversa ficou longa demais! Tenta criar uma nova conversa pra gente continuar de boa. 😅"
+        : "Ops, deu um problema aqui. Tenta de novo em alguns segundos! 🔄";
+      const fallbackStream = new ReadableStream({
+        start(controller) {
+          const enc = new TextEncoder();
+          controller.enqueue(enc.encode(`data: ${JSON.stringify({ text: fallbackMsg })}\n\n`));
+          controller.enqueue(enc.encode("data: [DONE]\n\n"));
+          controller.close();
+        },
+      });
+      return new Response(fallbackStream, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
       });
     }
 
