@@ -1250,6 +1250,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
               <span className="text-xs font-bold text-foreground">{activeCharacter.name}</span>
               <span className="text-[10px] text-muted-foreground/50 ml-2">Personagem RPG</span>
             </div>
+            <button onClick={() => setShowPlayerCharPanel(true)} className="text-[10px] px-2 py-1 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-all flex items-center gap-1">
+              <Swords size={10} />
+              {playerCharacter ? playerCharacter.name : "Criar Ficha"}
+            </button>
             <button onClick={onClearCharacter} className="text-[10px] px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
               ✕ Sair
             </button>
