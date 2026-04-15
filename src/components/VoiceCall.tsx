@@ -51,6 +51,10 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
   // Load conversation history for this voice
   useEffect(() => {
+    // Reset conversation immediately when voice changes to prevent cross-contamination
+    conversationRef.current = [];
+    setHistoryLoaded(false);
+    
     if (!user || !open) return;
     const loadHistory = async () => {
       const { data } = await supabase
