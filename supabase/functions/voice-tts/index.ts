@@ -5,6 +5,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Voice-specific TTS settings for more natural, human-like speech
+const VOICE_SETTINGS: Record<string, { stability: number; similarity_boost: number; style: number; speed: number }> = {
+  // Female voices - more expressive and warm
+  "EXAVITQu4vr4xnSDxMaL": { stability: 0.40, similarity_boost: 0.80, style: 0.45, speed: 1.05 }, // Sarah
+  "cgSgspJ2msm6clMCkdW9": { stability: 0.35, similarity_boost: 0.75, style: 0.55, speed: 1.10 }, // Jessica
+  "pFZP5JQG7iQjIQuC4Bku": { stability: 0.50, similarity_boost: 0.80, style: 0.35, speed: 0.98 }, // Lily
+  "XrExE9yKIg1WjnnlVkGX": { stability: 0.38, similarity_boost: 0.85, style: 0.60, speed: 1.02 }, // Matilda
+  "FGY2WhTYpPnrIDTdsKH5": { stability: 0.45, similarity_boost: 0.80, style: 0.40, speed: 1.00 }, // Laura
+  "Xb7hH8MSUJpSbSDYk0k2": { stability: 0.42, similarity_boost: 0.78, style: 0.50, speed: 1.05 }, // Alice
+  // Male voices - natural and grounded
+  "onwK4e9ZLuTAKqWW03F9": { stability: 0.42, similarity_boost: 0.80, style: 0.40, speed: 1.05 }, // Daniel
+  "nPczCjzI2devNBz1zQrb": { stability: 0.48, similarity_boost: 0.82, style: 0.35, speed: 0.98 }, // Brian
+  "cjVigY5qzO86Huf0OWal": { stability: 0.35, similarity_boost: 0.75, style: 0.55, speed: 1.10 }, // Eric
+  "TX3LPaxmHKxFdv7VOQHJ": { stability: 0.40, similarity_boost: 0.85, style: 0.50, speed: 1.02 }, // Liam
+  "iP95p4xoKVk53GoZ742B": { stability: 0.38, similarity_boost: 0.88, style: 0.55, speed: 0.95 }, // Chris
+  "JBFqnCBsd6RMkjVDRZzb": { stability: 0.45, similarity_boost: 0.80, style: 0.38, speed: 1.00 }, // George
+};
+
+const DEFAULT_SETTINGS = { stability: 0.42, similarity_boost: 0.80, style: 0.45, speed: 1.05 };
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,20 +48,17 @@ serve(async (req) => {
       });
     }
 
-    // Voice selection - natural sounding voices
-    // Female: Jessica (cgSgspJ2msm6clMCkdW9) - warm, friendly
-    // Male: Brian (nPczCjzI2devNBz1zQrb) - calm, natural  
-    // Alternative female: Sarah (EXAVITQu4vr4xnSDxMaL)
-    // Alternative male: Daniel (onwK4e9ZLuTAKqWW03F9)
     let selectedVoiceId = voiceId;
     if (!selectedVoiceId) {
-      selectedVoiceId = gender === "male" 
-        ? "onwK4e9ZLuTAKqWW03F9"  // Daniel - natural male
-        : "EXAVITQu4vr4xnSDxMaL"; // Sarah - natural female
+      selectedVoiceId = gender === "male"
+        ? "onwK4e9ZLuTAKqWW03F9"
+        : "EXAVITQu4vr4xnSDxMaL";
     }
 
+    const settings = VOICE_SETTINGS[selectedVoiceId] || DEFAULT_SETTINGS;
+
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}/stream?output_format=mp3_22050_32`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}/stream?output_format=mp3_44100_128`,
       {
         method: "POST",
         headers: {
@@ -50,13 +67,13 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           text,
-          model_id: "eleven_turbo_v2_5",
+          model_id: "eleven_multilingual_v2",
           voice_settings: {
-            stability: 0.85,
-            similarity_boost: 0.9,
-            style: 0.15,
+            stability: settings.stability,
+            similarity_boost: settings.similarity_boost,
+            style: settings.style,
             use_speaker_boost: true,
-            speed: 1.08,
+            speed: settings.speed,
           },
         }),
       }
@@ -71,7 +88,6 @@ serve(async (req) => {
       });
     }
 
-    // Stream audio directly back to client
     return new Response(response.body, {
       headers: {
         ...corsHeaders,
