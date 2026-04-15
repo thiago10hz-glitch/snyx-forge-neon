@@ -1049,7 +1049,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
     : isRecording ? "🎤 Gravando... fale agora" : config.placeholder;
 
   return (
-    <div className="flex h-full bg-background/50 text-foreground relative">
+    <div className="flex h-full bg-background/50 text-foreground relative overflow-hidden">
       {/* Sidebar overlay for mobile */}
       {showSidebar && (
         <div 
