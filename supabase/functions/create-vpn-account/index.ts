@@ -149,6 +149,7 @@ async function buildResponse(
     created_by: callerId,
     status: "available",
     expires_at: expiresAt,
+    linked_imei: imei,
   });
 
   const name = displayName || `VPN-${imei.slice(0, 9)}`;
