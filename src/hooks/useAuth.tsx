@@ -49,22 +49,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Deduplicate concurrent calls
     if (profileFetchPromise) return profileFetchPromise;
     
-    profileFetchPromise = supabase
-      .from("profiles")
-      .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge")
-      .eq("user_id", userId)
-      .single()
-      .then(({ data }) => {
+    const doFetch = async (): Promise<Profile | null> => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge")
+          .eq("user_id", userId)
+          .single();
         const p = data as Profile | null;
         if (p) setProfile(p);
-        profileFetchPromise = null;
         return p;
-      })
-      .catch(() => {
-        profileFetchPromise = null;
+      } catch {
         return null;
-      });
+      } finally {
+        profileFetchPromise = null;
+      }
+    };
 
+    profileFetchPromise = doFetch();
     return profileFetchPromise;
   }, []);
 
