@@ -204,6 +204,12 @@ const Accelerator = () => {
                 <CheckCircle2 className="w-6 h-6" /> Accelerator Ativado — Chave Válida!
               </div>
               <br />
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => navigate("/optimization")}
+                  className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-[0_0_30px_rgba(0,200,255,0.3)] border-0">
+                  <Cpu className="w-5 h-5 mr-2" /> Abrir SnyX Optimizer
+                </Button>
+              </div>
               <p className="text-white/40 text-sm">Role para baixo para baixar o app VPN</p>
             </div>
           ) : (
