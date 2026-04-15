@@ -249,6 +249,7 @@ export default function OwnerPanel() {
           <>
             {activeTab === "overview" && stats && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
             {activeTab === "analytics" && stats && <AnalyticsTab stats={stats} />}
+            {activeTab === "admins" && <AdminsTab />}
             {activeTab === "broadcast" && <BroadcastTab broadcastMsg={broadcastMsg} setBroadcastMsg={setBroadcastMsg} />}
             {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
             {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
