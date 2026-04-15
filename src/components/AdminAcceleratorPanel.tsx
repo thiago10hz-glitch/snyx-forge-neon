@@ -177,7 +177,11 @@ export function AdminAcceleratorPanel() {
       }
 
       setGeneratedAccount(data.account);
-      toast.success("Conta criada com sucesso!");
+      if (data.server_registered) {
+        toast.success("Conta criada e peer registrado no servidor VPN! ✅");
+      } else {
+        toast.success("Conta criada! (peer não registrado automaticamente no servidor)");
+      }
       fetchKeys();
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar conta");
