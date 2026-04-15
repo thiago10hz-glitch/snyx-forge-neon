@@ -660,13 +660,15 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
   const statusText =
     phase === "pick"
       ? "Escolha uma voz"
-      : speaking
-        ? "Falando..."
-        : listening
-          ? "Ouvindo você..."
-          : processing
-            ? "Pensando..."
-            : "Conectado";
+      : phase === "ringing"
+        ? "Chamando..."
+        : speaking
+          ? "Falando..."
+          : listening
+            ? "Ouvindo você..."
+            : processing
+              ? "Pensando..."
+              : "Conectado";
 
   const overlay = (
     <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-2xl">
