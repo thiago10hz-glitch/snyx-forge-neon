@@ -110,25 +110,35 @@ export function AdminAcceleratorPanel() {
   };
 
   const deleteKey = async (id: string) => {
-    const { data, error } = await supabase.functions.invoke("vpn-manage", {
-      body: {
-        action: "delete-key",
-        key_id: id,
-      },
-    });
+    try {
+      // Try edge function first (handles VPN peer cleanup)
+      const { data, error } = await supabase.functions.invoke("vpn-manage", {
+        body: { action: "delete-key", key_id: id },
+      });
 
-    const errorMessage =
-      error?.message ||
-      data?.error ||
-      "Erro ao excluir";
+      if (!error && data?.success) {
+        toast.success(data.message || "Chave excluída");
+        setKeys((prev) => prev.filter((k) => k.id !== id));
+        return;
+      }
 
-    if (error || !data?.success) {
-      toast.error(errorMessage);
-      return;
+      // Fallback: delete directly via RLS if edge function fails
+      console.warn("Edge function failed, trying direct delete:", error?.message || data?.error);
+      const { error: directError } = await (supabase as any)
+        .from("accelerator_keys")
+        .delete()
+        .eq("id", id);
+
+      if (directError) {
+        toast.error("Erro ao excluir: " + directError.message);
+        return;
+      }
+
+      toast.success("Chave excluída com sucesso");
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao excluir chave");
     }
-
-    toast.success(data.message || "Chave excluída");
-    setKeys((prev) => prev.filter((k) => k.id !== id));
   };
 
   const copyKey = (key: string, id: string) => {
