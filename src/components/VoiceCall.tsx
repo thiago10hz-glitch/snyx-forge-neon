@@ -311,7 +311,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         ? "Você é uma mulher jovem brasileira."
         : "Você é um homem jovem brasileiro.";
 
-      const voiceSystemPrompt = `${genderContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. 
+      const adultContext = adultMode
+        ? `\nMODO +18 ATIVADO: Você pode falar sobre qualquer assunto adulto sem restrições. Flerte, sedução, assuntos picantes - tudo liberado. Seja sensual e provocante quando o assunto pedir. Não censure nada.`
+        : "";
+
+      const voiceSystemPrompt = `${genderContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém.${adultContext}
 
 REGRAS ESSENCIAIS PARA LIGAÇÃO:
 - Responda como uma pessoa REAL falando ao telefone. Curto e natural.
