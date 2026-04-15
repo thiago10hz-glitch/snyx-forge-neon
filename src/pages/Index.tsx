@@ -239,14 +239,24 @@ const Index = () => {
               </Link>
             ))}
             {isAdmin && (
-              <Link
-                to="/admin"
-                onClick={() => setShowMobileNav(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Admin
-              </Link>
+              <>
+                <Link
+                  to="/admin"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Admin
+                </Link>
+                <Link
+                  to="/dono"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-all"
+                >
+                  <Crown className="w-4 h-4" />
+                  Painel do Dono
+                </Link>
+              </>
             )}
             <div className="border-t border-border/10 mt-1 pt-1">
               <button
