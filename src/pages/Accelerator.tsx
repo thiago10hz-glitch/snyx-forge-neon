@@ -9,7 +9,7 @@ import { toast } from "sonner";
 const Accelerator = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [installing, setInstalling] = useState(false);
+  
   const [speed, setSpeed] = useState(0);
   const [activationKey, setActivationKey] = useState("");
   const [activating, setActivating] = useState(false);
@@ -114,16 +114,6 @@ const Accelerator = () => {
     setActivating(false);
   };
 
-  const handleDownload = () => {
-    setInstalling(true);
-    // Download the Electron app source zip directly
-    const a = document.createElement("a");
-    a.href = "/SnyX-Accelerator-v1.0-Source.zip";
-    a.download = "SnyX-Accelerator-v1.0.zip";
-    a.click();
-    toast.success("Download iniciado! Extraia o .zip e execute CONSTRUIR.bat para gerar o .exe");
-    setInstalling(false);
-  };
 
   const features = [
     { icon: Zap, title: "Cache Neural", desc: "Todo o site fica salvo no seu dispositivo. Carrega instantaneamente." },
