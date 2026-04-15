@@ -67,7 +67,19 @@ FORMATAÇÃO DE TEXTO:
           aiMessages.push({ role: "user", content: msg.content });
         }
       } else {
-        aiMessages.push({ role: "assistant", content: msg.content });
+        // Strip base64 image data from assistant messages to avoid token limit
+        let content = msg.content || "";
+        if (content.includes("<generated_image:data:")) {
+          content = content.replace(/<generated_image:data:[^>]+>/g, "[imagem gerada]");
+        }
+        if (content.includes("data:image/")) {
+          content = content.replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+/g, "[imagem]");
+        }
+        // Truncate very long messages
+        if (content.length > 2000) {
+          content = content.substring(0, 2000) + "...";
+        }
+        aiMessages.push({ role: "assistant", content });
       }
     }
 
