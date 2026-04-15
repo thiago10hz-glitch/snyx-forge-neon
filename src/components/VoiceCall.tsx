@@ -302,7 +302,12 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         await audio.play();
       } catch {
         setSpeaking(false);
-        browserSpeak(text, onEnd);
+        // Retry once with ElevenLabs before falling back
+        try {
+          browserSpeak(text, onEnd);
+        } catch {
+          onEnd?.();
+        }
       }
     },
     [browserSpeak, muted],
