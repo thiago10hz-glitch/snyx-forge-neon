@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
@@ -307,6 +307,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [deployingMsg, setDeployingMsg] = useState<number | null>(null);
   const [deployedUrls, setDeployedUrls] = useState<Record<number, string>>({});
   const [showUpdatePicker, setShowUpdatePicker] = useState<number | null>(null);
+  const [copiedMsg, setCopiedMsg] = useState<number | null>(null);
+
+  const handleCopyMessage = useCallback((content: string, index: number) => {
+    const clean = content.replace(/<audio:[^>]+>/g, "").trim();
+    navigator.clipboard.writeText(clean).then(() => {
+      setCopiedMsg(index);
+      setTimeout(() => setCopiedMsg(null), 2000);
+    });
+  }, []);
   const [updatePickerSites, setUpdatePickerSites] = useState<Array<{ id: string; name: string; url: string }>>([]);
   const [loadingUpdatePicker, setLoadingUpdatePicker] = useState(false);
 
@@ -1317,8 +1326,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
               {messages.map((msg, i) => (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
-                    <div className="flex gap-3 justify-end">
-                      <div className="max-w-[85%] md:max-w-[80%]">
+                    <div className="flex gap-3 justify-end relative">
+                      <div className="max-w-[85%] md:max-w-[80%] relative">
                         {msg.attachment && (
                           <img
                             src={msg.attachment.dataUrl}
@@ -1330,6 +1339,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                         <div className={`bg-primary text-primary-foreground chat-bubble-user ${getUserBubbleClass(bubbleStyle)} px-3 sm:px-3.5 md:px-4 py-2 sm:py-2.5 md:py-3 text-[12px] sm:text-[13px] md:text-sm leading-relaxed`}>
                           {msg.content}
                         </div>
+                        <button
+                          onClick={() => handleCopyMessage(msg.content, i)}
+                          className="opacity-0 group-hover:opacity-100 mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-all ml-auto"
+                          title="Copiar"
+                        >
+                          {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
+                        </button>
                       </div>
                       <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl bg-primary/12 flex items-center justify-center shrink-0 mt-1 border border-primary/8">
                         <User size={12} className="text-primary md:hidden" />
@@ -1506,6 +1522,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                             )}
                           </div>
                         )}
+                        <button
+                          onClick={() => handleCopyMessage(msg.content, i)}
+                          className="opacity-0 group-hover:opacity-100 mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-all"
+                          title="Copiar"
+                        >
+                          {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
+                        </button>
                       </div>
                     </div>
                   )}
