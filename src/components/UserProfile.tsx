@@ -137,11 +137,19 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                 ) : (
                   <span className="badge-free !text-[9px] !px-1.5 !py-0.5">Free</span>
                 )}
-                {profile?.team_badge && (
+                {profile?.team_badge && (profile.team_badge === "Dono" || profile.team_badge === "Dona") ? (
+                  <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
+                    <span className="text-[10px]">👑</span> {profile.team_badge}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="ml-0.5">
+                      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="rgba(251,191,36,0.15)"/>
+                    </svg>
+                  </span>
+                ) : profile?.team_badge ? (
                   <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
                     🛡️ {profile.team_badge}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
           </div>

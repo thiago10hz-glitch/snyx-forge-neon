@@ -157,6 +157,17 @@ const Index = () => {
             <span className="badge-free text-[9px] md:text-[10px]">Free</span>
           )}
 
+          {/* Owner badge */}
+          {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
+            <span className="flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
+              <span>👑</span> {profile.team_badge}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="ml-0.5">
+                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="rgba(251,191,36,0.15)"/>
+              </svg>
+            </span>
+          )}
+
           {/* Avatar */}
           <button
             onClick={() => setShowProfile(true)}
