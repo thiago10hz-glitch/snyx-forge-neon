@@ -26,7 +26,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
       setRelationshipStatus(profile.relationship_status || "");
-      setGender((profile as any).gender || "");
+      setGender(profile.gender || "");
     }
   }, [open, profile]);
 
@@ -81,9 +81,9 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-2 sm:p-4" onClick={onClose}>
       <div
-        className="glass-elevated rounded-2xl max-w-md w-full overflow-hidden animate-enter border border-border/20"
+        className="glass-elevated rounded-2xl max-w-md w-full max-h-[95vh] overflow-y-auto animate-enter border border-border/20"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -175,7 +175,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               <User size={10} className="text-cyan-400/50" />
               Gênero
             </label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {[
                 { label: "Masculino", value: "masculino", emoji: "👨" },
                 { label: "Feminino", value: "feminino", emoji: "👩" },
@@ -204,7 +204,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               <Heart size={10} className="text-pink-400/50" />
               Status de relacionamento
             </label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {[
                 { label: "Solteiro(a)", value: "solteiro", emoji: "💔" },
                 { label: "Namorando", value: "namorando", emoji: "💕" },
