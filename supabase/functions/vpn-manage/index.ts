@@ -49,8 +49,22 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-    // Auto-sync server config from env secrets
-    if (WG_SERVER_PUBLIC_KEY && WG_SERVER_PRIVATE_KEY && VPS_IP) {
+    const body = await req.json()
+    const { action, activation_key, user_id, key_id } = body
+
+    console.log('vpn-manage action:', action)
+
+    // Auth check from header
+    const authHeader = req.headers.get('Authorization')
+    let authenticatedUserId: string | null = null
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user } } = await supabase.auth.getUser(token)
+      authenticatedUserId = user?.id || null
+    }
+
+    // Auto-sync server config from env secrets (only on setup-related actions)
+    if (['setup-script', 'mark-setup', 'activate'].includes(action) && WG_SERVER_PUBLIC_KEY && WG_SERVER_PRIVATE_KEY && VPS_IP) {
       const { data: existingConfig } = await supabase.from('vpn_server_config').select('id').limit(1).single()
       if (existingConfig) {
         await supabase.from('vpn_server_config').update({
@@ -69,18 +83,6 @@ Deno.serve(async (req) => {
           is_setup: true,
         })
       }
-    }
-
-    const body = await req.json()
-    const { action, activation_key, user_id, key_id } = body
-
-    // Auth check from header
-    const authHeader = req.headers.get('Authorization')
-    let authenticatedUserId: string | null = null
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '')
-      const { data: { user } } = await supabase.auth.getUser(token)
-      authenticatedUserId = user?.id || null
     }
 
     if (action === 'setup-script') {
