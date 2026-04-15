@@ -22,6 +22,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SiteManage = lazy(() => import("./pages/SiteManage"));
 const Characters = lazy(() => import("./pages/Characters"));
 const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
+const Accelerator = lazy(() => import("./pages/Accelerator"));
 const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 const queryClient = new QueryClient({
