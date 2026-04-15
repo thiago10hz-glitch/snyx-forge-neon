@@ -154,6 +154,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
+  const [showPlayerCharPanel, setShowPlayerCharPanel] = useState(false);
+  const playerCharacter = useActivePlayerCharacter();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
