@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { type StripeEnv, stripeRequest } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,31 +22,43 @@ serve(async (req) => {
     }
 
     const env = (environment || 'sandbox') as StripeEnv;
-    const stripe = createStripeClient(env);
 
-    // Resolve human-readable price ID to Stripe price ID
-    const prices = await stripe.prices.list({ lookup_keys: [priceId] });
-    if (!prices.data.length) {
+    // Resolve human-readable price ID to Stripe price ID via lookup_keys
+    const prices = await stripeRequest(env, 'GET', `/v1/prices?lookup_keys[]=${encodeURIComponent(priceId)}`);
+    
+    if (!prices.data || !prices.data.length) {
       return new Response(JSON.stringify({ error: "Price not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    const session = await stripe.checkout.sessions.create({
-      line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
+    // Build checkout session params
+    const sessionParams: Record<string, any> = {
+      'line_items[0][price]': stripePrice.id,
+      'line_items[0][quantity]': quantity || 1,
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
       return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
-      ...(customerEmail && { customer_email: customerEmail }),
-      ...(userId && {
-        metadata: { userId },
-        ...(isRecurring && { subscription_data: { metadata: { userId } } }),
-        ...(!isRecurring && { payment_intent_data: { metadata: { userId } } }),
-      }),
-    });
+    };
+
+    if (customerEmail) {
+      sessionParams.customer_email = customerEmail;
+    }
+
+    if (userId) {
+      sessionParams['metadata[userId]'] = userId;
+      if (isRecurring) {
+        sessionParams['subscription_data[metadata][userId]'] = userId;
+      } else {
+        sessionParams['payment_intent_data[metadata][userId]'] = userId;
+      }
+    }
+
+    const session = await stripeRequest(env, 'POST', '/v1/checkout/sessions', sessionParams);
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

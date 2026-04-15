@@ -1,40 +1,65 @@
 export type StripeEnv = 'sandbox' | 'live';
 
-export function getConnectionApiKey(env: StripeEnv): string {
-  const key = env === 'sandbox'
+const GATEWAY_BASE = 'https://connector-gateway.lovable.dev/stripe';
+
+function getKeys(env: StripeEnv) {
+  const connectionKey = env === 'sandbox'
     ? Deno.env.get('STRIPE_SANDBOX_API_KEY')
     : Deno.env.get('STRIPE_LIVE_API_KEY');
-  if (!key) throw new Error(`STRIPE_${env.toUpperCase()}_API_KEY is not configured`);
-  return key;
+  const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!connectionKey) throw new Error(`STRIPE_${env.toUpperCase()}_API_KEY is not configured`);
+  if (!lovableKey) throw new Error('LOVABLE_API_KEY is not configured');
+  return { connectionKey, lovableKey };
 }
 
-import Stripe from "https://esm.sh/stripe@18.5.0";
+export async function stripeRequest(env: StripeEnv, method: string, path: string, body?: Record<string, any>): Promise<any> {
+  const { connectionKey, lovableKey } = getKeys(env);
 
-const GATEWAY_STRIPE_BASE = 'https://connector-gateway.lovable.dev/stripe';
-
-export function createStripeClient(env: StripeEnv): Stripe {
-  const connectionApiKey = getConnectionApiKey(env);
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!lovableApiKey) throw new Error('LOVABLE_API_KEY is not configured');
-
-  const customFetch = (url: string | URL | Request, init?: RequestInit): Promise<Response> => {
-    const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : (url as Request).url;
-    const gatewayUrl = urlStr.replace('https://api.stripe.com', GATEWAY_STRIPE_BASE);
-    const existingHeaders = init?.headers ? Object.fromEntries(new Headers(init.headers).entries()) : {};
-    return fetch(gatewayUrl, {
-      ...init,
-      headers: {
-        ...existingHeaders,
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'X-Connection-Api-Key': connectionApiKey,
-        'Lovable-API-Key': lovableApiKey,
-      },
-    });
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${lovableKey}`,
+    'X-Connection-Api-Key': connectionKey,
+    'Lovable-API-Key': lovableKey,
   };
 
-  return new Stripe(connectionApiKey, {
-    httpClient: Stripe.createFetchHttpClient(customFetch),
-  });
+  let url = `${GATEWAY_BASE}${path}`;
+  let fetchInit: RequestInit = { method, headers };
+
+  if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    fetchInit.body = encodeFormData(body);
+  }
+
+  const resp = await fetch(url, fetchInit);
+  const data = await resp.json();
+
+  if (!resp.ok) {
+    const errMsg = data?.error?.message || data?.message || JSON.stringify(data);
+    throw new Error(errMsg);
+  }
+
+  return data;
+}
+
+function encodeFormData(obj: Record<string, any>, prefix = ''): string {
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}[${key}]` : key;
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      parts.push(encodeFormData(value, fullKey));
+    } else if (Array.isArray(value)) {
+      value.forEach((item, i) => {
+        if (typeof item === 'object') {
+          parts.push(encodeFormData(item, `${fullKey}[${i}]`));
+        } else {
+          parts.push(`${encodeURIComponent(`${fullKey}[${i}]`)}=${encodeURIComponent(item)}`);
+        }
+      });
+    } else {
+      parts.push(`${encodeURIComponent(fullKey)}=${encodeURIComponent(value)}`);
+    }
+  }
+  return parts.filter(Boolean).join('&');
 }
 
 export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ type: string; data: { object: any } }> {

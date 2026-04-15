@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { type StripeEnv, stripeRequest } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,10 +21,9 @@ serve(async (req) => {
     }
 
     const env = (environment || 'sandbox') as StripeEnv;
-    const stripe = createStripeClient(env);
+    const prices = await stripeRequest(env, 'GET', `/v1/prices?lookup_keys[]=${encodeURIComponent(priceId)}`);
 
-    const prices = await stripe.prices.list({ lookup_keys: [priceId] });
-    if (!prices.data.length) {
+    if (!prices.data || !prices.data.length) {
       return new Response(JSON.stringify({ error: "Price not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
