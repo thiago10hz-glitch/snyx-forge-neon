@@ -12,6 +12,7 @@ interface AcceleratorKey {
   activated_by: string | null;
   activated_at: string | null;
   expires_at: string | null;
+  linked_imei: string | null;
   activated_user_name?: string;
 }
 
@@ -388,6 +389,7 @@ export function AdminAcceleratorPanel() {
                       k.status === "active" ? "bg-cyan-500/20 text-cyan-400" :
                       "bg-red-500/20 text-red-400"
                     }`}>{k.status}</span>
+                    {k.linked_imei && <span>• 📱 IMEI: {k.linked_imei}</span>}
                     {k.activated_user_name && <span>• Ativada por: {k.activated_user_name}</span>}
                     {k.expires_at && <span>• Expira: {new Date(k.expires_at).toLocaleDateString("pt-BR")}</span>}
                     <span>• {new Date(k.created_at).toLocaleDateString("pt-BR")}</span>
