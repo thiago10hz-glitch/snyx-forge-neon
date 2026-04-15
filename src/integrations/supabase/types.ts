@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      accelerator_keys: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          activation_key: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_key: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_key?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_live_chats: {
         Row: {
           admin_id: string | null
@@ -774,6 +810,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_accelerator_key: { Args: { p_key: string }; Returns: Json }
       admin_force_set_dev: {
         Args: { p_expires_at?: string; p_is_dev: boolean; p_user_id: string }
         Returns: undefined
@@ -812,6 +849,10 @@ export type Database = {
         Returns: Json
       }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
+      generate_accelerator_key: {
+        Args: { p_expires_months?: number }
+        Returns: Json
+      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
