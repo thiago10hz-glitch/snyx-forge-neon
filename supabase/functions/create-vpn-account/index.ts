@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 function generateIMEI(): string {
-  // Generate a simple numeric IMEI-like identifier (15 digits)
   let imei = "";
   for (let i = 0; i < 15; i++) {
     imei += Math.floor(Math.random() * 10).toString();
@@ -68,45 +67,43 @@ serve(async (req) => {
       });
     }
 
-    // Generate unique IMEI
     const imei = generateIMEI();
-    // Use IMEI as fake email for auth
-    const fakeEmail = `${imei.replace(/-/g, "").toLowerCase()}@vpn.snyx`;
+    const loginEmail = `${imei}@vpn.snyx`;
 
-    // Create auth user
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email: fakeEmail,
+      email: loginEmail,
       password,
       email_confirm: true,
-      user_metadata: { 
+      user_metadata: {
         full_name: display_name || `VPN-${imei.slice(0, 9)}`,
         vpn_imei: imei,
       },
     });
 
     if (createError) {
-      // If collision (extremely unlikely), retry once
       if (createError.message.includes("already been registered")) {
         const imei2 = generateIMEI();
-        const fakeEmail2 = `${imei2.replace(/-/g, "").toLowerCase()}@vpn.snyx`;
+        const loginEmail2 = `${imei2}@vpn.snyx`;
         const { data: retryUser, error: retryError } = await adminClient.auth.admin.createUser({
-          email: fakeEmail2,
+          email: loginEmail2,
           password,
           email_confirm: true,
-          user_metadata: { 
+          user_metadata: {
             full_name: display_name || `VPN-${imei2.slice(0, 9)}`,
             vpn_imei: imei2,
           },
         });
+
         if (retryError) {
           return new Response(JSON.stringify({ error: retryError.message }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        // Use retried values
+
         return buildResponse(adminClient, caller.id, imei2, password, display_name, expires_months, retryUser!.user.id);
       }
+
       return new Response(JSON.stringify({ error: createError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -132,7 +129,6 @@ async function buildResponse(
   expiresMonths: number | null,
   userId: string,
 ) {
-  // Generate activation key
   const keyPart1 = Math.random().toString(36).substring(2, 6).toUpperCase();
   const keyPart2 = Math.random().toString(36).substring(2, 6).toUpperCase();
   const keyPart3 = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -142,7 +138,6 @@ async function buildResponse(
     ? new Date(Date.now() + expiresMonths * 30 * 24 * 60 * 60 * 1000).toISOString()
     : null;
 
-  // Insert key as available - user will activate it themselves
   await adminClient.from("accelerator_keys").insert({
     activation_key: activationKey,
     created_by: callerId,
@@ -152,12 +147,14 @@ async function buildResponse(
   });
 
   const name = displayName || `VPN-${imei.slice(0, 9)}`;
+  const loginEmail = `${imei}@vpn.snyx`;
 
   return new Response(
     JSON.stringify({
       success: true,
       account: {
         imei,
+        login_email: loginEmail,
         password,
         user_id: userId,
         activation_key: activationKey,

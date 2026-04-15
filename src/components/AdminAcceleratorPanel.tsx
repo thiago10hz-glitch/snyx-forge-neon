@@ -18,6 +18,7 @@ interface AcceleratorKey {
 
 interface GeneratedAccount {
   imei: string;
+  login_email: string;
   password: string;
   activation_key: string;
   expires_at: string | null;
@@ -31,9 +32,7 @@ export function AdminAcceleratorPanel() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expiresMonths, setExpiresMonths] = useState<number | null>(null);
 
-  // Account generator state
   const [showAccountGen, setShowAccountGen] = useState(false);
-  
   const [accPassword, setAccPassword] = useState("");
   const [accName, setAccName] = useState("");
   const [accExpires, setAccExpires] = useState<number | null>(1);
@@ -62,7 +61,7 @@ export function AdminAcceleratorPanel() {
         .from("profiles")
         .select("user_id, display_name")
         .in("user_id", activatedIds);
-      (profiles || []).forEach(p => {
+      (profiles || []).forEach((p) => {
         namesMap[p.user_id] = p.display_name || "Sem nome";
       });
     }
@@ -74,7 +73,9 @@ export function AdminAcceleratorPanel() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchKeys(); }, []);
+  useEffect(() => {
+    fetchKeys();
+  }, []);
 
   const generateKey = async () => {
     setGenerating(true);
@@ -98,7 +99,10 @@ export function AdminAcceleratorPanel() {
       .from("accelerator_keys")
       .update({ status: "revoked", updated_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) { toast.error("Erro ao revogar"); return; }
+    if (error) {
+      toast.error("Erro ao revogar");
+      return;
+    }
     toast.success("Chave revogada");
     fetchKeys();
   };
@@ -108,9 +112,12 @@ export function AdminAcceleratorPanel() {
       .from("accelerator_keys")
       .delete()
       .eq("id", id);
-    if (error) { toast.error("Erro ao excluir"); return; }
+    if (error) {
+      toast.error("Erro ao excluir");
+      return;
+    }
     toast.success("Chave excluída");
-    setKeys(prev => prev.filter(k => k.id !== id));
+    setKeys((prev) => prev.filter((k) => k.id !== id));
   };
 
   const copyKey = (key: string, id: string) => {
@@ -153,16 +160,16 @@ export function AdminAcceleratorPanel() {
       });
 
       if (error) {
-        const msg = typeof error === 'object' && 'message' in error ? error.message : String(error);
+        const msg = typeof error === "object" && "message" in error ? error.message : String(error);
         if (msg.includes("already been registered") || msg.includes("já")) {
-          throw new Error("Esse email já está cadastrado. Use outro email.");
+          throw new Error("Esse login já foi gerado. Tente criar novamente.");
         }
         throw new Error(msg);
       }
       if (!data?.success) {
         const errMsg = data?.error || "Erro ao criar conta";
         if (errMsg.includes("already been registered")) {
-          throw new Error("Esse email já está cadastrado. Use outro email.");
+          throw new Error("Esse login já foi gerado. Tente criar novamente.");
         }
         throw new Error(errMsg);
       }
@@ -178,7 +185,7 @@ export function AdminAcceleratorPanel() {
 
   const copyAllCredentials = () => {
     if (!generatedAccount) return;
-    const text = `📱 IMEI: ${generatedAccount.imei}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
+    const text = `📧 Email/Login: ${generatedAccount.login_email}\n📱 IMEI: ${generatedAccount.imei}\n🔑 Senha: ${generatedAccount.password}\n🎫 Chave: ${generatedAccount.activation_key}${generatedAccount.expires_at ? `\n⏰ Expira: ${new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR")}` : ""}`;
     navigator.clipboard.writeText(text);
     setCopiedField("all");
     setTimeout(() => setCopiedField(null), 2000);
@@ -192,19 +199,18 @@ export function AdminAcceleratorPanel() {
     setShowPassword(false);
   };
 
-  const availableCount = keys.filter(k => k.status === "available").length;
-  const activeCount = keys.filter(k => k.status === "active").length;
-  const revokedCount = keys.filter(k => k.status === "revoked").length;
+  const availableCount = keys.filter((k) => k.status === "available").length;
+  const activeCount = keys.filter((k) => k.status === "active").length;
+  const revokedCount = keys.filter((k) => k.status === "revoked").length;
 
   return (
     <div className="space-y-6">
-      {/* Header stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Disponíveis", value: availableCount, color: "text-green-400" },
           { label: "Ativas", value: activeCount, color: "text-cyan-400" },
           { label: "Revogadas", value: revokedCount, color: "text-red-400" },
-        ].map(s => (
+        ].map((s) => (
           <div key={s.label} className="p-4 rounded-xl border border-border/20 bg-card/50">
             <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
             <div className="text-xs text-muted-foreground">{s.label}</div>
@@ -212,10 +218,12 @@ export function AdminAcceleratorPanel() {
         ))}
       </div>
 
-      {/* Account Generator */}
       <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-500/5 space-y-3">
         <button
-          onClick={() => { setShowAccountGen(!showAccountGen); if (!showAccountGen) resetAccountForm(); }}
+          onClick={() => {
+            setShowAccountGen(!showAccountGen);
+            if (!showAccountGen) resetAccountForm();
+          }}
           className="w-full flex items-center justify-between"
         >
           <h3 className="font-bold flex items-center gap-2 text-purple-400">
@@ -233,7 +241,7 @@ export function AdminAcceleratorPanel() {
                 <input
                   type="text"
                   value={accName}
-                  onChange={e => setAccName(e.target.value)}
+                  onChange={(e) => setAccName(e.target.value)}
                   placeholder="Nome do usuário"
                   className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
                 />
@@ -242,7 +250,7 @@ export function AdminAcceleratorPanel() {
                 <label className="text-xs text-muted-foreground mb-1 block">Validade</label>
                 <select
                   value={accExpires ?? ""}
-                  onChange={e => setAccExpires(e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) => setAccExpires(e.target.value ? Number(e.target.value) : null)}
                   className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
                 >
                   <option value="">Sem expiração</option>
@@ -261,7 +269,7 @@ export function AdminAcceleratorPanel() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={accPassword}
-                    onChange={e => setAccPassword(e.target.value)}
+                    onChange={(e) => setAccPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
                     className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm pr-8"
                   />
@@ -295,21 +303,25 @@ export function AdminAcceleratorPanel() {
                 <Check className="w-4 h-4" /> Conta Criada com Sucesso!
               </div>
 
+              <p className="text-xs text-muted-foreground">
+                No app SnyX VPN, use o campo <span className="font-semibold text-foreground">Email/Login</span> abaixo. O IMEI é só o identificador da conta.
+              </p>
+
               {[
+                { label: "📧 Email/Login", value: generatedAccount.login_email, field: "email" },
                 { label: "📱 IMEI", value: generatedAccount.imei, field: "imei" },
                 { label: "🔑 Senha", value: generatedAccount.password, field: "password" },
                 { label: "🎫 Chave", value: generatedAccount.activation_key, field: "key" },
-                ...(generatedAccount.expires_at ? [{ label: "⏰ Expira", value: new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR"), field: "expires" }] : []),
-              ].map(item => (
+                ...(generatedAccount.expires_at
+                  ? [{ label: "⏰ Expira", value: new Date(generatedAccount.expires_at).toLocaleDateString("pt-BR"), field: "expires" }]
+                  : []),
+              ].map((item) => (
                 <div key={item.field} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-black/20">
                   <div>
                     <span className="text-xs text-muted-foreground">{item.label}</span>
-                    <div className="font-mono text-sm font-bold">{item.value}</div>
+                    <div className="font-mono text-sm font-bold break-all">{item.value}</div>
                   </div>
-                  <button
-                    onClick={() => copyField(item.value, item.field)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 transition"
-                  >
+                  <button onClick={() => copyField(item.value, item.field)} className="p-1.5 rounded-lg hover:bg-white/10 transition">
                     {copiedField === item.field ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                   </button>
                 </div>
@@ -330,7 +342,6 @@ export function AdminAcceleratorPanel() {
         )}
       </div>
 
-      {/* Generate key only */}
       <div className="p-4 rounded-xl border border-border/20 bg-card/50 space-y-3">
         <h3 className="font-bold flex items-center gap-2">
           <Key className="w-4 h-4 text-primary" />
@@ -339,7 +350,7 @@ export function AdminAcceleratorPanel() {
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={expiresMonths ?? ""}
-            onChange={e => setExpiresMonths(e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) => setExpiresMonths(e.target.value ? Number(e.target.value) : null)}
             className="px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
           >
             <option value="">Sem expiração</option>
@@ -355,7 +366,6 @@ export function AdminAcceleratorPanel() {
         </div>
       </div>
 
-      {/* Keys list */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm">Chaves ({keys.length})</h3>
@@ -369,12 +379,10 @@ export function AdminAcceleratorPanel() {
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
         ) : keys.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            Nenhuma chave gerada ainda
-          </div>
+          <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma chave gerada ainda</div>
         ) : (
           <div className="space-y-2 max-h-[500px] overflow-y-auto">
-            {keys.map(k => (
+            {keys.map((k) => (
               <div key={k.id} className="p-3 rounded-xl border border-border/20 bg-card/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -383,13 +391,20 @@ export function AdminAcceleratorPanel() {
                       {copiedId === k.id ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                      k.status === "available" ? "bg-green-500/20 text-green-400" :
-                      k.status === "active" ? "bg-cyan-500/20 text-cyan-400" :
-                      "bg-red-500/20 text-red-400"
-                    }`}>{k.status}</span>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        k.status === "available"
+                          ? "bg-green-500/20 text-green-400"
+                          : k.status === "active"
+                            ? "bg-cyan-500/20 text-cyan-400"
+                            : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {k.status}
+                    </span>
                     {k.linked_imei && <span>• 📱 IMEI: {k.linked_imei}</span>}
+                    {k.linked_imei && <span>• 📧 Login: {k.linked_imei}@vpn.snyx</span>}
                     {k.activated_user_name && <span>• Ativada por: {k.activated_user_name}</span>}
                     {k.expires_at && <span>• Expira: {new Date(k.expires_at).toLocaleDateString("pt-BR")}</span>}
                     <span>• {new Date(k.created_at).toLocaleDateString("pt-BR")}</span>
