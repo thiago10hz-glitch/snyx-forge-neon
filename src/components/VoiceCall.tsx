@@ -39,7 +39,6 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [selectedVoice, setSelectedVoice] = useState(VOICE_OPTIONS.female[0]);
   const [showVoicePicker, setShowVoicePicker] = useState(true);
   const [adultMode, setAdultMode] = useState(false);
-  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,68 +46,25 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isCallActiveRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+  const processUserSpeechRef = useRef<((text: string) => void) | null>(null);
   const { user, profile } = useAuth();
-  const prevVoiceIdRef = useRef<string>(selectedVoice.id);
 
-  // Save history for a specific voice
-  const saveHistoryForVoice = useCallback(async (voiceId: string, gender: string, msgs: Array<{ role: string; content: string }>) => {
-    if (!user || msgs.length === 0) return;
+  const resetPersistedHistory = useCallback(async () => {
+    if (!user) return;
     await (supabase as any)
       .from("voice_call_history")
-      .upsert({
-        user_id: user.id,
-        voice_id: voiceId,
-        gender,
-        messages: msgs.slice(-50),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,voice_id" });
-  }, [user]);
+      .delete()
+      .eq("user_id", user.id)
+      .eq("voice_id", selectedVoice.id);
+  }, [user, selectedVoice.id]);
 
-  // Load conversation history for this voice - save previous voice first
   useEffect(() => {
-    // Save previous voice's conversation before switching
-    const prevId = prevVoiceIdRef.current;
-    if (prevId !== selectedVoice.id && conversationRef.current.length > 0) {
-      const prevGender = Object.values(VOICE_OPTIONS).flat().find(v => v.id === prevId) ? 
-        (VOICE_OPTIONS.female.find(v => v.id === prevId) ? "female" : "male") : selectedGender;
-      saveHistoryForVoice(prevId, prevGender, [...conversationRef.current]);
-    }
-    prevVoiceIdRef.current = selectedVoice.id;
-
-    // Reset conversation immediately when voice changes
     conversationRef.current = [];
-    setHistoryLoaded(false);
-    
-    if (!user || !open) return;
-    const loadHistory = async () => {
-      const { data } = await supabase
-        .from("voice_call_history" as any)
-        .select("messages")
-        .eq("user_id", user.id)
-        .eq("voice_id", selectedVoice.id)
-        .maybeSingle();
-      if (data && Array.isArray((data as any).messages)) {
-        conversationRef.current = (data as any).messages;
-      }
-      setHistoryLoaded(true);
-    };
-    loadHistory();
-  }, [user, open, selectedVoice.id, saveHistoryForVoice]);
 
-  // Save conversation history on end call or unmount
-  const saveHistory = useCallback(async () => {
-    if (!user || conversationRef.current.length === 0) return;
-    const messages = conversationRef.current.slice(-50); // keep last 50 messages
-    await (supabase as any)
-      .from("voice_call_history")
-      .upsert({
-        user_id: user.id,
-        voice_id: selectedVoice.id,
-        gender: selectedGender,
-        messages,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,voice_id" });
-  }, [user, selectedVoice.id, selectedGender]);
+    if (!open) {
+      setShowVoicePicker(true);
+    }
+  }, [open, selectedVoice.id, selectedGender]);
 
   const filteredVoices = VOICE_OPTIONS[selectedGender];
 
@@ -119,7 +75,6 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   useEffect(() => {
     if (!open) {
       endCall();
-      setShowVoicePicker(true);
     }
   }, [open]);
 
