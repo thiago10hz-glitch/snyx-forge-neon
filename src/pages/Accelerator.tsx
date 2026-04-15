@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, MessageSquare, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -20,12 +23,19 @@ const detectPlatform = (): Platform => {
 
 const Accelerator = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [speed, setSpeed] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const [sendingRequest, setSendingRequest] = useState(false);
   const platform = detectPlatform();
+
+  const isDev = profile?.is_dev === true;
+  const isVip = profile?.is_vip === true;
+  const hasAccess = isDev || isVip;
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -66,6 +76,36 @@ const Accelerator = () => {
     }
   };
 
+  const handleRequestActivation = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setSendingRequest(true);
+    try {
+      const { error } = await supabase.from("support_tickets").insert({
+        user_id: user.id,
+        subject: "🚀 Solicitar Ativação — SnyX Accelerator (Plano DEV)",
+        status: "open",
+      });
+      if (error) throw error;
+
+      await supabase.from("support_messages").insert({
+        ticket_id: (await supabase.from("support_tickets").select("id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).single()).data?.id || "",
+        sender_id: user.id,
+        content: `Olá! Gostaria de ativar o SnyX Accelerator. Meu plano atual: ${isDev ? "DEV" : isVip ? "VIP" : "Free"}. Por favor, ativar o acesso ao Accelerator.`,
+        sender_role: "user",
+      });
+
+      setRequestSent(true);
+      toast.success("Solicitação enviada! O admin vai analisar e ativar seu acesso.");
+    } catch (err) {
+      toast.error("Erro ao enviar solicitação. Tente novamente.");
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
   const features = [
     { icon: Zap, title: "Cache Neural", desc: "Todo o site fica salvo no seu dispositivo. Carrega instantaneamente, sem esperar download." },
     { icon: Wifi, title: "Rede Dedicada", desc: "Conexão otimizada exclusiva com os servidores SnyX. Menos latência, mais velocidade." },
@@ -101,7 +141,7 @@ const Accelerator = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm mb-6">
             <Zap className="w-4 h-4" />
-            Tecnologia Exclusiva SnyX
+            Exclusivo — Plano DEV / VIP
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight">
@@ -113,7 +153,7 @@ const Accelerator = () => {
 
           <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
             Instale o acelerador de rede exclusivo e transforme sua conexão com o SnyX.
-            Velocidade que nenhum outro site oferece.
+            Disponível para assinantes <strong className="text-red-400">DEV</strong> e <strong className="text-yellow-400">VIP</strong>.
           </p>
 
           {/* Speed meter */}
@@ -151,21 +191,79 @@ const Accelerator = () => {
             </div>
           </div>
 
-          {/* Install button */}
-          {isInstalled ? (
+          {/* Action area - based on access */}
+          {!user ? (
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm mb-4">
+                <Lock className="w-4 h-4" />
+                Faça login para acessar o Accelerator
+              </div>
+              <br />
+              <Button
+                onClick={() => navigate("/auth")}
+                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] transition-all duration-300 border-0"
+              >
+                Fazer Login / Criar Conta
+              </Button>
+            </div>
+          ) : !hasAccess ? (
+            <div className="space-y-6">
+              {/* Locked state - no DEV/VIP */}
+              <div className="max-w-lg mx-auto p-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/5">
+                <Lock className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Acesso Exclusivo</h3>
+                <p className="text-white/50 text-sm mb-6">
+                  O SnyX Accelerator faz parte do <strong className="text-red-400">Plano DEV</strong>. 
+                  Solicite ativação ao admin ou adquira o plano para desbloquear.
+                </p>
+
+                {requestSent ? (
+                  <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 font-semibold">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Solicitação enviada! Aguarde aprovação do admin.
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={handleRequestActivation}
+                      disabled={sendingRequest}
+                      className="px-6 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-orange-500 border-0"
+                    >
+                      <MessageSquare className="w-5 h-5 mr-2" />
+                      {sendingRequest ? "Enviando..." : "Solicitar Ativação ao Admin"}
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/")}
+                      variant="outline"
+                      className="px-6 py-6 text-base rounded-xl border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+                    >
+                      <Crown className="w-5 h-5 mr-2" />
+                      Ver Plano DEV
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : isInstalled ? (
             <div className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-green-500/20 border border-green-500/30 text-green-400 font-bold text-lg">
               <CheckCircle2 className="w-6 h-6" />
               Accelerator Ativo — Velocidade Máxima!
             </div>
           ) : (
             <>
+              {/* Has access - show download */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm mb-6">
+                <CheckCircle2 className="w-4 h-4" />
+                Plano {isDev ? "DEV" : "VIP"} ativo — Acesso liberado!
+              </div>
+              <br />
               <Button
                 onClick={handleInstall}
                 disabled={installing}
                 className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] transition-all duration-300 border-0"
               >
                 <Download className="w-5 h-5 mr-3" />
-                {installing ? "Instalando..." : "Instalar SnyX Accelerator"}
+                {installing ? "Instalando..." : "Baixar e Instalar SnyX Accelerator"}
               </Button>
 
               {showInstructions && !deferredPrompt && (
@@ -192,7 +290,7 @@ const Accelerator = () => {
                       <p className="font-semibold text-white">PC / Notebook:</p>
                       <p>1. No <strong className="text-white">Chrome/Edge/Brave</strong>: clique no ícone de instalação <strong className="text-white">⊕</strong> na barra de endereço</p>
                       <p>2. Ou vá no menu <strong className="text-white">⋮ → "Instalar SnyX Accelerator"</strong></p>
-                      <p className="text-xs text-white/40 mt-2">⚠️ Firefox/Safari no PC não suportam instalação de apps. Use Chrome, Edge ou Brave.</p>
+                      <p className="text-xs text-white/40 mt-2">⚠️ Firefox/Safari no PC não suportam instalação. Use Chrome, Edge ou Brave.</p>
                     </div>
                   )}
                 </div>
@@ -220,8 +318,8 @@ const Accelerator = () => {
           <h2 className="text-2xl font-bold mb-8">Como funciona?</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-6">
             {[
-              { step: "1", text: "Clique em Instalar" },
-              { step: "2", text: "O app salva tudo localmente" },
+              { step: "1", text: "Adquira o Plano DEV" },
+              { step: "2", text: "Baixe e instale o Accelerator" },
               { step: "3", text: "Navegue em velocidade máxima" },
             ].map((s, i) => (
               <React.Fragment key={i}>
