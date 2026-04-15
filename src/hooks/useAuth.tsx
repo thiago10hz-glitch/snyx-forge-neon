@@ -15,6 +15,7 @@ interface Profile {
   relationship_status: string | null;
   hosting_tier: string;
   team_badge: string | null;
+  gender: string | null;
 }
 
 interface AuthContextType {
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const { data } = await supabase
           .from("profiles")
-          .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge")
+          .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge, gender")
           .eq("user_id", userId)
           .single();
         const p = data as Profile | null;
