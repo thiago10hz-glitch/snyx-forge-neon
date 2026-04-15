@@ -196,9 +196,10 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    const greeting = selectedGender === "female"
-      ? "Oi! Que bom que você ligou! Tô aqui pra conversar, pode falar comigo."
-      : "E aí! Que bom que ligou! Tô aqui, manda ver, fala o que quiser.";
+    const femaleGreetings = ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
+    const maleGreetings = ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
+    const greetings = selectedGender === "female" ? femaleGreetings : maleGreetings;
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
     speak(greeting, () => {
       if (isCallActiveRef.current) startListening();
