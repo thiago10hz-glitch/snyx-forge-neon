@@ -224,7 +224,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     setIsCallActive(true);
     isCallActiveRef.current = true;
     setCallDuration(0);
-    conversationRef.current = [];
+    // Don't clear conversation — keep history from previous calls
 
     callTimerRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
