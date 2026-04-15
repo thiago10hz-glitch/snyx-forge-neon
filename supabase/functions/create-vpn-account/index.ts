@@ -106,26 +106,27 @@ Deno.serve(async (req) => {
     let finalImei = imei;
     let finalEmail = loginEmail;
 
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email: loginEmail,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: name, vpn_imei: imei },
-    });
+    const createVpnUser = async (email: string, imeiValue: string, label: string) => {
+      const { data, error } = await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: label, vpn_imei: imeiValue },
+      });
+      return { data, error };
+    };
+
+    const { data: newUser, error: createError } = await createVpnUser(loginEmail, imei, name);
 
     if (createError) {
       if (!createError.message.includes("already been registered")) {
         return json({ error: createError.message }, 400);
       }
-      // Retry with new IMEI
+
       finalImei = generateIMEI();
       finalEmail = `${finalImei}@vpn.snyx`;
-      const { data: retryUser, error: retryError } = await adminClient.auth.admin.createUser({
-        email: finalEmail,
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: display_name || `VPN-${finalImei.slice(0, 9)}`, vpn_imei: finalImei },
-      });
+      const retryName = display_name || `VPN-${finalImei.slice(0, 9)}`;
+      const { data: retryUser, error: retryError } = await createVpnUser(finalEmail, finalImei, retryName);
       if (retryError) return json({ error: retryError.message }, 400);
       userId = retryUser!.user.id;
     } else {
@@ -167,17 +168,22 @@ Deno.serve(async (req) => {
     if (wgKeys) {
       peerPrivateKey = wgKeys.private_key;
       peerPublicKey = wgKeys.public_key;
-      // Register peer on server and save to DB in parallel
-      const [registered] = await Promise.all([
-        addPeerToServer(VPN_API_URL, VPN_API_TOKEN, peerPublicKey, assignedIp),
-        adminClient.from("vpn_peers").insert({
-          user_id: userId,
-          peer_private_key: peerPrivateKey,
-          peer_public_key: peerPublicKey,
-          assigned_ip: assignedIp,
-          activated_with_key: keyId,
-        }),
-      ]);
+
+      const peerInsertPromise = adminClient.from("vpn_peers").insert({
+        user_id: userId,
+        peer_private_key: peerPrivateKey,
+        peer_public_key: peerPublicKey,
+        assigned_ip: assignedIp,
+        activated_with_key: keyId,
+      });
+
+      const peerRegisterPromise = addPeerToServer(VPN_API_URL, VPN_API_TOKEN, peerPublicKey, assignedIp)
+        .catch((error) => {
+          console.error("Peer registration failed:", error);
+          return false;
+        });
+
+      const [, registered] = await Promise.all([peerInsertPromise, peerRegisterPromise]);
       serverRegistered = registered;
     } else {
       // Fallback: random keys
