@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender } = await req.json();
+    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -96,12 +96,16 @@ Deno.serve(async (req) => {
       const genderHint = user_gender === "masculino" ? " Essa pessoa é homem — use linguagem masculina (amigo, mano, irmão, parceiro)." 
         : user_gender === "feminino" ? " Essa pessoa é mulher — use linguagem feminina (amiga, mana, irmã, parceira)." 
         : "";
-      userContext = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente na conversa quando fizer sentido (não force). Trate de forma pessoal e acolhedora.${genderHint}`;
+      const bioHint = user_bio ? ` Sobre ela: "${user_bio}".` : "";
+      const relationHint = user_relationship_status ? ` Status de relacionamento: ${user_relationship_status}.` : "";
+      userContext = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente na conversa quando fizer sentido (não force). Trate de forma pessoal e acolhedora.${genderHint}${bioHint}${relationHint} Use essas informações de forma natural — não repita tudo de uma vez, mas demonstre que conhece a pessoa quando for relevante.`;
     } else if (user_gender) {
       const genderHint = user_gender === "masculino" ? " Use linguagem masculina (amigo, mano, irmão, parceiro)." 
         : user_gender === "feminino" ? " Use linguagem feminina (amiga, mana, irmã, parceira)." 
         : "";
-      userContext = `\n\nCONTEXTO DO USUÁRIO:${genderHint}`;
+      const bioHint = user_bio ? ` Sobre a pessoa: "${user_bio}".` : "";
+      const relationHint = user_relationship_status ? ` Status de relacionamento: ${user_relationship_status}.` : "";
+      userContext = `\n\nCONTEXTO DO USUÁRIO:${genderHint}${bioHint}${relationHint}`;
     }
 
     const systemPrompt = character_system_prompt

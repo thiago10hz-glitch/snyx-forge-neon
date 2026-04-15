@@ -854,6 +854,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           display_name: profile?.display_name || "",
           team_badge: profile?.team_badge || null,
           user_gender: profile?.gender || null,
+          user_bio: profile?.bio || null,
+          user_relationship_status: profile?.relationship_status || null,
           ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
         };
       }
