@@ -1013,6 +1013,18 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   };
 
   const switchMode = (newMode: ChatMode) => {
+    // Block access to locked modes — show payment modal instead
+    if (newMode === "programmer" && !profile?.is_dev) {
+      setVipModalPlan("programmer");
+      setShowVipModal(true);
+      return;
+    }
+    if (newMode === "music" && !profile?.is_vip && !profile?.is_dev) {
+      setVipModalPlan("vip");
+      setShowVipModal(true);
+      return;
+    }
+
     setMode(newMode);
     onModeChange?.(newMode);
     setUsePremium(false);
