@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity, TrendingUp, Clock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
