@@ -32,7 +32,7 @@ export function AdminAcceleratorPanel() {
 
   // Account generator state
   const [showAccountGen, setShowAccountGen] = useState(false);
-  const [accEmail, setAccEmail] = useState("");
+  
   const [accPassword, setAccPassword] = useState("");
   const [accName, setAccName] = useState("");
   const [accExpires, setAccExpires] = useState<number | null>(1);
