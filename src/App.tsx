@@ -92,6 +92,7 @@ const App = () => {
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
               <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
               <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
               <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
