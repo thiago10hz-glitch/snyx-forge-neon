@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2 } from "lucide-react";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
-import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
+
 
 interface VipModalProps {
   open: boolean;
