@@ -70,7 +70,7 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
@@ -229,7 +229,8 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
 
             <div className="safe-bottom" />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
