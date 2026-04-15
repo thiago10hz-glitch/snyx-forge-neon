@@ -202,30 +202,42 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       return;
     }
 
+    clearAllCallHistory().catch(() => null);
+    conversationRef.current = [];
+
     setShowVoicePicker(false);
     setIsCallActive(true);
     isCallActiveRef.current = true;
     setCallDuration(0);
-    // Don't clear conversation — keep history from previous calls
 
     callTimerRef.current = setInterval(() => {
-      setCallDuration(prev => prev + 1);
+      setCallDuration((prev) => prev + 1);
     }, 1000);
 
-    const hasHistory = conversationRef.current.length > 0;
-    const femaleGreetings = hasHistory
-      ? ["Oi, voltou! Fala!", "E aí, de volta!", "Opa, saudades!", "Oii, fala!"]
-      : ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
-    const maleGreetings = hasHistory
-      ? ["E aí, voltou!", "Opa, fala de novo!", "Salve, sumiu hein!", "Fala, mano!"]
-      : ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
+    const firstName = profile?.display_name?.trim().split(/\s+/)[0];
+    const femaleGreetings = firstName
+      ? [
+          `Oi, ${firstName}! Tudo bem?`,
+          `Oii, ${firstName}! Fala comigo.`,
+          `E aí, ${firstName}! Como você tá?`,
+          `Oi, ${firstName}! Tô te ouvindo.`,
+        ]
+      : ["Oi! Tudo bem?", "Oii! Fala comigo.", "E aí! Como você tá?", "Oi! Tô te ouvindo."];
+    const maleGreetings = firstName
+      ? [
+          `E aí, ${firstName}! Tudo certo?`,
+          `Fala, ${firstName}! Tô te ouvindo.`,
+          `Oi, ${firstName}! Como cê tá?`,
+          `Opa, ${firstName}! Manda aí.`,
+        ]
+      : ["E aí! Tudo certo?", "Fala! Tô te ouvindo.", "Oi! Como cê tá?", "Opa! Manda aí."];
     const greetings = selectedGender === "female" ? femaleGreetings : maleGreetings;
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
     speak(greeting, () => {
       if (isCallActiveRef.current) startListening();
     });
-  }, [selectedVoice, selectedGender, speak]);
+  }, [clearAllCallHistory, profile?.display_name, selectedGender, speak]);
 
   const endCall = useCallback(() => {
     setIsCallActive(false);
@@ -234,9 +246,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     setIsSpeaking(false);
     setIsProcessing(false);
     setCallDuration(0);
-
-    // Save conversation history
-    saveHistory();
+    conversationRef.current = [];
 
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
@@ -251,7 +261,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     try { recognitionRef.current?.stop(); } catch {}
     try { audioRef.current?.pause(); audioRef.current = null; } catch {}
     try { window.speechSynthesis?.cancel(); } catch {}
-  }, [saveHistory]);
+  }, []);
 
   const startListening = useCallback(() => {
     if (!isCallActiveRef.current) return;
@@ -268,20 +278,14 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
     let finalTranscript = "";
     let silenceTimer: NodeJS.Timeout | null = null;
-    let hasReceivedSpeech = false;
 
     recognition.onresult = (event: any) => {
-      hasReceivedSpeech = true;
-      let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           finalTranscript += event.results[i][0].transcript + " ";
-        } else {
-          interim += event.results[i][0].transcript;
         }
       }
 
-      // Reset silence timer on each result
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
         if (finalTranscript.trim()) {
@@ -295,9 +299,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       if (silenceTimer) clearTimeout(silenceTimer);
 
       if (finalTranscript.trim()) {
-        processUserSpeech(finalTranscript.trim());
+        processUserSpeechRef.current?.(finalTranscript.trim());
       } else if (isCallActiveRef.current) {
-        // No speech detected - just restart listening silently (no error message)
         setTimeout(() => {
           if (isCallActiveRef.current) startListening();
         }, 300);
@@ -308,7 +311,6 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setIsListening(false);
       if (silenceTimer) clearTimeout(silenceTimer);
 
-      // Silently restart on no-speech or network errors
       if (isCallActiveRef.current && (event.error === "no-speech" || event.error === "network" || event.error === "audio-capture")) {
         setTimeout(() => {
           if (isCallActiveRef.current) startListening();
@@ -331,43 +333,41 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      const personaContext = selectedVoice.persona;
+      const voiceName = selectedVoice.label.split(" (")[0];
 
       const genderContext = selectedGender === "female"
-        ? "Você é uma mulher jovem brasileira. Você responde como uma mulher REAL — com jeito feminino, expressões de mulher, risadas de mulher."
-        : "Você é um homem jovem brasileiro. Você responde como um homem REAL — com jeito masculino, expressões de homem, voz grave natural.";
+        ? "Você é uma mulher jovem brasileira. Você responde como uma mulher real, com jeito feminino natural."
+        : "Você é um homem jovem brasileiro. Você responde como um homem real, com jeito masculino natural.";
 
-      const userNameContext = profile?.display_name 
-        ? `\nO nome da pessoa que está ligando é "${profile.display_name}". Use o nome dela naturalmente quando fizer sentido.`
+      const userNameContext = profile?.display_name
+        ? `\nO nome da pessoa que está ligando é \"${profile.display_name}\". Cumprimente e trate essa pessoa pelo nome quando fizer sentido.`
+        : "";
+
+      const userRelationshipContext = profile?.relationship_status
+        ? `\nStatus de relacionamento da pessoa: ${profile.relationship_status}. Reconheça isso naturalmente quando fizer sentido.`
+        : "";
+
+      const userBioContext = profile?.bio
+        ? `\nSobre a pessoa: ${profile.bio}.`
         : "";
 
       const adultContext = adultMode
-        ? `\nMODO +18 ATIVADO: Você pode falar sobre qualquer assunto adulto sem restrições. Flerte, sedução, assuntos picantes - tudo liberado. Seja sensual e provocante quando o assunto pedir. Não censure nada.`
+        ? `\nMODO +18 ATIVADO: Você pode falar sobre assuntos adultos sem censura quando a conversa pedir.`
         : "";
 
-      const voiceSystemPrompt = `${personaContext}
+      const voiceSystemPrompt = `${selectedVoice.persona}
 
-${genderContext}${userNameContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. Você é uma PESSOA REAL chamada ${selectedVoice.label.split(" (")[0]}, não um assistente.${adultContext}
+${genderContext}${userNameContext}${userRelationshipContext}${userBioContext}
+Você está numa ligação de telefone ao vivo. Você é ${voiceName}, uma pessoa real, e deve manter essa identidade o tempo todo.${adultContext}
 
-REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
-- Você NÃO é um robô, assistente ou IA. Você é ${selectedVoice.label.split(" (")[0]}, uma pessoa de verdade.
-- NUNCA comece com "Oi, que bom que você ligou" ou frases de atendimento. Isso é coisa de robô.
-- Comece natural tipo: "Oi!", "E aí!", "Fala!", "Opa!" - como uma pessoa real atenderia.
-- MÁXIMO 1-2 frases curtas por resposta. Ligação é rápida.
-- Use contrações e fala informal: "tô", "tá", "né", "pô", "mano", "cara", "tipo".
-- Reaja ANTES de responder: "ahh", "hmm", "aaah entendi", "nossa", "eita", "caramba".
-- Faça pausas naturais com "..." entre pensamentos.
-- Ria quando for engraçado: "kkk", "hahaha", "aff".
-- Interrompa às vezes: "não, peraí", "espera, deixa eu falar".
-- Tenha OPINIÃO FORTE sobre as coisas. Pessoas reais discordam, concordam com emoção.
-- Fale de forma COLOQUIAL, nunca formal. Erros gramaticais naturais são OK.
-- NÃO use emojis, markdown, negrito, listas ou formatação.
-- NÃO mencione que é IA. Você É ${selectedVoice.label.split(" (")[0]}.
-- Se não entender: "hã?", "quê?", "como assim?" - natural.
-- Mude de assunto às vezes, como pessoas reais fazem.
-- Demonstre emoção: empolgação, surpresa, indignação, carinho.
-- MANTENHA SUA PERSONALIDADE: ${selectedVoice.desc}. Cada resposta deve refletir quem você é.`;
+REGRAS DE NATURALIDADE:
+- Nunca fale como robô, suporte ou assistente.
+- Fale de forma coloquial, curta e natural, como em ligação.
+- Use no máximo 1-2 frases por resposta.
+- Reaja como pessoa real: "ah", "hmm", "eita", "caramba", "pô".
+- Não use emojis, markdown, listas ou texto formal.
+- Use o nome da pessoa naturalmente quando combinar.
+- Mantenha a personalidade desta voz: ${selectedVoice.desc}.`;
 
       abortRef.current = new AbortController();
 
@@ -380,11 +380,16 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
         },
         signal: abortRef.current.signal,
         body: JSON.stringify({
-          messages: [
-            { role: "system", content: voiceSystemPrompt },
-            ...conversationRef.current.slice(-20),
-          ],
+          messages: conversationRef.current.slice(-20),
           mode: "friend",
+          is_vip: !!profile?.is_vip,
+          is_admin: !!profile?.is_dev,
+          display_name: profile?.display_name || "",
+          team_badge: profile?.team_badge || null,
+          user_gender: profile?.gender || null,
+          user_bio: profile?.bio || null,
+          user_relationship_status: profile?.relationship_status || null,
+          character_system_prompt: voiceSystemPrompt,
         }),
       });
 
@@ -421,12 +426,11 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
               const parsed = JSON.parse(jsonStr);
               const content = parsed.choices?.[0]?.delta?.content || parsed.text;
               if (content) responseText += content;
-            } catch { /* skip */ }
+            } catch {}
           }
         }
       }
 
-      // Clean up response for voice - remove any markdown/formatting
       responseText = responseText
         .replace(/[*_#`~]/g, "")
         .replace(/\[.*?\]\(.*?\)/g, "")
@@ -447,7 +451,7 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
       setIsProcessing(false);
 
       const fallback = err?.message === "rate_limit"
-        ? "Calma, calma, muita gente falando ao mesmo tempo. Espera um pouquinho."
+        ? "Calma, muita gente falando ao mesmo tempo. Espera um pouquinho."
         : "Opa, deu um probleminha aqui. Fala de novo?";
 
       const delay = err?.message === "rate_limit" ? 3000 : 500;
@@ -457,7 +461,11 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
         });
       }, delay);
     }
-  }, [speak, startListening, selectedGender]);
+  }, [adultMode, profile?.bio, profile?.display_name, profile?.gender, profile?.is_dev, profile?.is_vip, profile?.relationship_status, profile?.team_badge, selectedGender, selectedVoice, speak]);
+
+  useEffect(() => {
+    processUserSpeechRef.current = processUserSpeech;
+  }, [processUserSpeech]);
 
   const formatDuration = (s: number) => {
     const m = Math.floor(s / 60);
