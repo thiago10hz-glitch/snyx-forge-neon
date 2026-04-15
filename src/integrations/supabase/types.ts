@@ -805,6 +805,89 @@ export type Database = {
         }
         Relationships: []
       }
+      vpn_peers: {
+        Row: {
+          activated_with_key: string | null
+          assigned_ip: string
+          created_at: string
+          dns_servers: string
+          id: string
+          is_active: boolean
+          peer_private_key: string
+          peer_public_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated_with_key?: string | null
+          assigned_ip: string
+          created_at?: string
+          dns_servers?: string
+          id?: string
+          is_active?: boolean
+          peer_private_key: string
+          peer_public_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated_with_key?: string | null
+          assigned_ip?: string
+          created_at?: string
+          dns_servers?: string
+          id?: string
+          is_active?: boolean
+          peer_private_key?: string
+          peer_public_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpn_peers_activated_with_key_fkey"
+            columns: ["activated_with_key"]
+            isOneToOne: false
+            referencedRelation: "accelerator_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vpn_server_config: {
+        Row: {
+          created_at: string
+          id: string
+          is_setup: boolean
+          listen_port: number
+          server_ip: string
+          server_private_key: string
+          server_public_key: string
+          server_subnet: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_setup?: boolean
+          listen_port?: number
+          server_ip: string
+          server_private_key: string
+          server_public_key: string
+          server_subnet?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_setup?: boolean
+          listen_port?: number
+          server_ip?: string
+          server_private_key?: string
+          server_public_key?: string
+          server_subnet?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
