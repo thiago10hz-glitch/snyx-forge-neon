@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,35 +6,45 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import OwnerPanel from "./pages/OwnerPanel";
-import IPTV from "./pages/IPTV";
-import Hosting from "./pages/Hosting";
-import ResetPassword from "./pages/ResetPassword";
-import Downloads from "./pages/Downloads";
-import PackSteam from "./pages/PackSteam";
-import NotFound from "./pages/NotFound";
-import SiteManage from "./pages/SiteManage";
-import Characters from "./pages/Characters";
-import CheckoutReturn from "./pages/CheckoutReturn";
-import { CommandPalette } from "./components/CommandPalette";
 import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+// Lazy load all pages for code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Admin = lazy(() => import("./pages/Admin"));
+const OwnerPanel = lazy(() => import("./pages/OwnerPanel"));
+const IPTV = lazy(() => import("./pages/IPTV"));
+const Hosting = lazy(() => import("./pages/Hosting"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Downloads = lazy(() => import("./pages/Downloads"));
+const PackSteam = lazy(() => import("./pages/PackSteam"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SiteManage = lazy(() => import("./pages/SiteManage"));
+const Characters = lazy(() => import("./pages/Characters"));
+const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
+const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 min cache
+      gcTime: 10 * 60 * 1000, // 10 min garbage collection
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 }
@@ -42,14 +52,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  if (loading) return <PageLoader />;
   if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -86,23 +89,27 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <CommandPalette />
+            <Suspense fallback={null}>
+              <CommandPalette />
+            </Suspense>
             <ThemeProvider>
-            <Routes>
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
-              <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
-              <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
-              <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
-              <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
-              <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
-              <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                  <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
+                  <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
+                  <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
+                  <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
+                  <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
+                  <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
+                  <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </ThemeProvider>
           </AuthProvider>
         </BrowserRouter>
