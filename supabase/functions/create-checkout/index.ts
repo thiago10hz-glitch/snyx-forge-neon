@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { type StripeEnv, stripeRequest } from "../_shared/stripe.ts";
+import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +13,6 @@ serve(async (req) => {
 
   try {
     const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
-
     if (!priceId || typeof priceId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
       return new Response(JSON.stringify({ error: "Invalid priceId" }), {
         status: 400,
@@ -22,43 +21,49 @@ serve(async (req) => {
     }
 
     const env = (environment || 'sandbox') as StripeEnv;
+    const stripe = createStripeClient(env);
+    const prices = await stripe.prices.list({ lookup_keys: [priceId] });
+    const priceData = Array.isArray((prices as { data?: unknown }).data)
+      ? (prices as { data: Array<{ id: string; type?: string }> }).data
+      : null;
 
-    // Resolve human-readable price ID to Stripe price ID
-    const prices = await stripeRequest(env, 'GET', `/v1/prices?lookup_keys[]=${encodeURIComponent(priceId)}`);
+    if (!priceData) {
+      const gatewayMessage = typeof (prices as { message?: unknown }).message === "string"
+        ? (prices as { message: string }).message
+        : "Stripe gateway returned an invalid response";
+      throw new Error(gatewayMessage);
+    }
 
-    if (!prices.data || !prices.data.length) {
+    if (!priceData.length) {
       return new Response(JSON.stringify({ error: "Price not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const stripePrice = prices.data[0];
+    const stripePrice = priceData[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    // Build form-encoded body for checkout session
-    const params = new URLSearchParams();
-    params.set('line_items[0][price]', stripePrice.id);
-    params.set('line_items[0][quantity]', String(quantity || 1));
-    params.set('mode', isRecurring ? 'subscription' : 'payment');
-    params.set('ui_mode', 'embedded');
-    params.set('return_url', returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`);
-
-    if (customerEmail) params.set('customer_email', customerEmail);
-    if (userId) {
-      params.set('metadata[userId]', userId);
-      if (isRecurring) params.set('subscription_data[metadata][userId]', userId);
-      else params.set('payment_intent_data[metadata][userId]', userId);
-    }
-
-    const session = await stripeRequest(env, 'POST', '/v1/checkout/sessions', params.toString());
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
+      mode: isRecurring ? "subscription" : "payment",
+      ui_mode: "embedded",
+      return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+      ...(customerEmail && { customer_email: customerEmail }),
+      ...(userId && {
+        metadata: { userId, priceId },
+        ...(isRecurring && { subscription_data: { metadata: { userId, priceId } } }),
+        ...(!isRecurring && { payment_intent_data: { metadata: { userId, priceId } } }),
+      }),
+    });
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("create-checkout error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("create-checkout error:", message);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
