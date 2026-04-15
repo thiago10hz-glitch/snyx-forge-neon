@@ -6,8 +6,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const VPS_IP = '83.229.83.249'
+const VPS_IP = Deno.env.get('WG_SERVER_IP') || '83.229.83.249'
 const VPS_PORT = 51820
+const WG_SERVER_PUBLIC_KEY = Deno.env.get('WG_SERVER_PUBLIC_KEY') || ''
+const WG_SERVER_PRIVATE_KEY = Deno.env.get('WG_SERVER_PRIVATE_KEY') || ''
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
