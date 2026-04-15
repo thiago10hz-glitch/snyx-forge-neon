@@ -620,6 +620,51 @@ export type Database = {
         }
         Relationships: []
       }
+      rpg_player_characters: {
+        Row: {
+          avatar_url: string | null
+          backstory: string | null
+          class: string
+          created_at: string
+          id: string
+          is_active: boolean
+          level: number
+          name: string
+          personality: string | null
+          race: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          backstory?: string | null
+          class?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: number
+          name: string
+          personality?: string | null
+          race?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          backstory?: string | null
+          class?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: number
+          name?: string
+          personality?: string | null
+          race?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
