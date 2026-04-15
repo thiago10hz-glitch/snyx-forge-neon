@@ -739,6 +739,36 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_call_history: {
+        Row: {
+          created_at: string
+          gender: string
+          id: string
+          messages: Json
+          updated_at: string
+          user_id: string
+          voice_id: string
+        }
+        Insert: {
+          created_at?: string
+          gender?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id: string
+          voice_id: string
+        }
+        Update: {
+          created_at?: string
+          gender?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id?: string
+          voice_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
