@@ -1402,6 +1402,36 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                                 );
                               })()}
                             </>
+                          ) : msg.content.includes("<generated_image:") ? (
+                            <>
+                              <ReactMarkdown>
+                                {msg.content.replace(/<generated_image:[^>]+>/g, "")}
+                              </ReactMarkdown>
+                              {(() => {
+                                const imgMatch = msg.content.match(/<generated_image:([^>]+)>/);
+                                if (!imgMatch) return null;
+                                const imgSrc = imgMatch[1];
+                                return (
+                                  <div className="mt-3">
+                                    <img
+                                      src={imgSrc}
+                                      alt="Imagem gerada"
+                                      className="rounded-2xl max-w-full border border-border/20 shadow-lg"
+                                      style={{ maxHeight: 400 }}
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                      <a
+                                        href={imgSrc}
+                                        download="snyx-image.png"
+                                        className="flex items-center gap-1.5 text-xs text-purple-400/70 hover:text-purple-400 transition-colors"
+                                      >
+                                        <Download size={12} /> Baixar Imagem
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </>
                           ) : (
                             <ReactMarkdown
                               components={{
