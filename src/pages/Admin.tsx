@@ -1089,6 +1089,12 @@ export default function Admin() {
         <AdminReleasesPanel />
       )}
 
+      {adminTab === "accelerator" && (
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <AdminAcceleratorPanel />
+        </div>
+      )}
+
       {vipModalUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
