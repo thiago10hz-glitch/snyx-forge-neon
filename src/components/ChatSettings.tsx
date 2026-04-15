@@ -40,17 +40,17 @@ const PERSONALITIES = [
 ];
 
 const BUBBLE_STYLES = [
-  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico" },
-  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos" },
-  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado" },
-  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas" },
-  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism" },
-  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit" },
-  { label: "Gatinho", value: "cat", emoji: "🐱", desc: "Orelhinhas de gato" },
-  { label: "Nuvem", value: "cloud", emoji: "☁️", desc: "Balão nuvenzinha" },
-  { label: "Bolhas", value: "transparent", emoji: "🔮", desc: "Bolhas transparentes" },
-  { label: "Estrelas", value: "stars", emoji: "⭐", desc: "Brilho de estrelas" },
-  { label: "Coração", value: "heart", emoji: "💖", desc: "Balão com coração" },
+  { label: "Padrão", value: "default", emoji: "💬", desc: "Arredondado clássico", vip: false },
+  { label: "Quadrado", value: "sharp", emoji: "🟦", desc: "Cantos retos e limpos", vip: false },
+  { label: "Bolha", value: "bubble", emoji: "🫧", desc: "Super arredondado", vip: false },
+  { label: "Neon", value: "neon", emoji: "✨", desc: "Brilho neon nas bordas", vip: true },
+  { label: "Glass", value: "glass", emoji: "🪟", desc: "Efeito glassmorphism", vip: true },
+  { label: "Retro", value: "retro", emoji: "👾", desc: "Estilo pixel/8-bit", vip: true },
+  { label: "Gatinho", value: "cat", emoji: "🐱", desc: "Orelhinhas de gato", vip: true },
+  { label: "Nuvem", value: "cloud", emoji: "☁️", desc: "Balão nuvenzinha", vip: true },
+  { label: "Bolhas", value: "transparent", emoji: "🔮", desc: "Bolhas transparentes", vip: true },
+  { label: "Estrelas", value: "stars", emoji: "⭐", desc: "Brilho de estrelas", vip: true },
+  { label: "Coração", value: "heart", emoji: "💖", desc: "Balão com coração", vip: true },
 ];
 
 export const getBubblePreviewClass = (style: string, themeColor?: string): string => {
