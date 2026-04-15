@@ -946,9 +946,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           setMessages((prev) => [...prev, { role: "assistant", content: musicContent }]);
           await saveMessage(convId, "assistant", `🎵 Música gerada: "${data.prompt || trimmedInput}"`);
         } else if (data.type === "image" && data.image_url) {
-          const imageContent = `🎨 Imagem gerada!\n\n![Imagem gerada](${data.image_url})`;
+          const imageContent = `🎨 **Imagem gerada!** ✨\n\n<generated_image:${data.image_url}>`;
           setMessages((prev) => [...prev, { role: "assistant", content: imageContent }]);
-          await saveMessage(convId, "assistant", imageContent);
+          await saveMessage(convId, "assistant", "🎨 Imagem gerada!");
         } else {
           const textContent = data.text || data.error || "Resposta recebida.";
           setMessages((prev) => [...prev, { role: "assistant", content: textContent }]);
@@ -1396,6 +1396,36 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                                         className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-400 transition-colors"
                                       >
                                         <Download size={12} /> Baixar MP3
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </>
+                          ) : msg.content.includes("<generated_image:") ? (
+                            <>
+                              <ReactMarkdown>
+                                {msg.content.replace(/<generated_image:[^>]+>/g, "")}
+                              </ReactMarkdown>
+                              {(() => {
+                                const imgMatch = msg.content.match(/<generated_image:([^>]+)>/);
+                                if (!imgMatch) return null;
+                                const imgSrc = imgMatch[1];
+                                return (
+                                  <div className="mt-3">
+                                    <img
+                                      src={imgSrc}
+                                      alt="Imagem gerada"
+                                      className="rounded-2xl max-w-full border border-border/20 shadow-lg"
+                                      style={{ maxHeight: 400 }}
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                      <a
+                                        href={imgSrc}
+                                        download="snyx-image.png"
+                                        className="flex items-center gap-1.5 text-xs text-purple-400/70 hover:text-purple-400 transition-colors"
+                                      >
+                                        <Download size={12} /> Baixar Imagem
                                       </a>
                                     </div>
                                   </div>
