@@ -617,10 +617,18 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
   }, [mounted, open]);
 
   useEffect(() => {
-    if (phase !== "call") {
+    if (phase === "pick") {
       setOrbLevels([0.2, 0.28, 0.24, 0.3, 0.22]);
       if (orbIntervalRef.current) clearInterval(orbIntervalRef.current);
       return;
+    }
+
+    if (phase === "ringing") {
+      orbIntervalRef.current = setInterval(() => {
+        const pulse = 0.2 + (Math.sin(Date.now() / 400) + 1) * 0.15;
+        setOrbLevels([pulse, pulse + 0.05, pulse + 0.03, pulse + 0.07, pulse + 0.02]);
+      }, 120);
+      return () => { if (orbIntervalRef.current) clearInterval(orbIntervalRef.current); };
     }
 
     orbIntervalRef.current = setInterval(() => {
