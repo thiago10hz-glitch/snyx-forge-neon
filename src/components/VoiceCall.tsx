@@ -533,31 +533,48 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
 
     conversationRef.current = [];
     activeRef.current = true;
-    setPhase("call");
+    setPhase("ringing");
     setDuration(0);
 
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setDuration((previous) => previous + 1);
-    }, 1000);
+    // Start ring tone
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext();
+    }
+    ringToneRef.current = createRingTone(audioContextRef.current);
+    ringToneRef.current.start();
 
-    const firstName = profile?.display_name?.trim().split(/\s+/)[0];
-    const greetings =
-      gender === "female"
-        ? [
-            firstName ? `Oi, ${firstName}!` : "Oii!",
-            firstName ? `E aí, ${firstName}!` : "E aí!",
-            firstName ? `Oi ${firstName}, tudo bem?` : "Oi, tudo bem?",
-          ]
-        : [
-            firstName ? `Fala, ${firstName}!` : "Fala!",
-            firstName ? `E aí, ${firstName}!` : "E aí!",
-            firstName ? `Opa, ${firstName}!` : "Opa!",
-          ];
+    // Simulate ringing for 2-3 seconds then "answer"
+    const ringDuration = 2000 + Math.random() * 1500;
+    setTimeout(() => {
+      if (!activeRef.current) return;
+      ringToneRef.current?.stop();
+      setPhase("call");
 
-    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-    speak(greeting, () => {
-      if (activeRef.current) startListening();
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setDuration((previous) => previous + 1);
+      }, 1000);
+
+      const firstName = profile?.display_name?.trim().split(/\s+/)[0];
+      const greetings =
+        gender === "female"
+          ? [
+              firstName ? `Oi, ${firstName}!` : "Oii!",
+              firstName ? `E aí, ${firstName}!` : "E aí!",
+              firstName ? `Oi ${firstName}, tudo bem?` : "Oi, tudo bem?",
+            ]
+          : [
+              firstName ? `Fala, ${firstName}!` : "Fala!",
+              firstName ? `E aí, ${firstName}!` : "E aí!",
+              firstName ? `Opa, ${firstName}!` : "Opa!",
+            ];
+
+      const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+      speak(greeting, () => {
+        if (activeRef.current) startListening();
+      });
+    }, ringDuration);
+  }, [gender, profile?.display_name, speak, startListening]);
     });
   }, [gender, profile?.display_name, speak, startListening]);
 
