@@ -6,8 +6,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const VPS_IP = '83.229.83.249'
+const VPS_IP = Deno.env.get('WG_SERVER_IP') || '83.229.83.249'
 const VPS_PORT = 51820
+const WG_SERVER_PUBLIC_KEY = Deno.env.get('WG_SERVER_PUBLIC_KEY') || ''
+const WG_SERVER_PRIVATE_KEY = Deno.env.get('WG_SERVER_PRIVATE_KEY') || ''
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,6 +18,29 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    // Auto-sync server config from env secrets
+    if (WG_SERVER_PUBLIC_KEY && WG_SERVER_PRIVATE_KEY && VPS_IP) {
+      const { data: existingConfig } = await supabase.from('vpn_server_config').select('id').limit(1).single()
+      if (existingConfig) {
+        await supabase.from('vpn_server_config').update({
+          server_ip: VPS_IP,
+          server_public_key: WG_SERVER_PUBLIC_KEY,
+          server_private_key: WG_SERVER_PRIVATE_KEY,
+          listen_port: VPS_PORT,
+          is_setup: true,
+        }).eq('id', existingConfig.id)
+      } else {
+        await supabase.from('vpn_server_config').insert({
+          server_ip: VPS_IP,
+          server_public_key: WG_SERVER_PUBLIC_KEY,
+          server_private_key: WG_SERVER_PRIVATE_KEY,
+          listen_port: VPS_PORT,
+          is_setup: true,
+        })
+      }
+    }
+
     const { action, activation_key, user_id } = await req.json()
 
     // Auth check from header
