@@ -60,6 +60,11 @@ export const getBubblePreviewClass = (style: string, themeColor?: string): strin
     case "neon": return `rounded-2xl px-2 py-1 bg-muted/10 border border-border/20 shadow-[0_0_8px_${themeColor || '#8b5cf6'}40]`;
     case "glass": return "rounded-2xl px-2 py-1 bg-white/5 backdrop-blur-md border border-white/10";
     case "retro": return "rounded-none px-2 py-1 bg-muted/30 border-2 border-border/30 font-mono shadow-[3px_3px_0px_rgba(255,255,255,0.1)]";
+    case "cat": return "bubble-cat rounded-2xl px-2 py-1 bg-muted/20 border border-border/15";
+    case "cloud": return "bubble-cloud px-2 py-1";
+    case "transparent": return "bubble-transparent rounded-2xl px-2 py-1";
+    case "stars": return "bubble-stars rounded-2xl px-2 py-1 bg-muted/20 border border-border/15";
+    case "heart": return "bubble-heart rounded-2xl px-2 py-1 bg-muted/20 border border-border/15";
     default: return "";
   }
 };
