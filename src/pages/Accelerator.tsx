@@ -9,7 +9,7 @@ import { toast } from "sonner";
 const Accelerator = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [installing, setInstalling] = useState(false);
+  
   const [speed, setSpeed] = useState(0);
   const [activationKey, setActivationKey] = useState("");
   const [activating, setActivating] = useState(false);
@@ -114,16 +114,6 @@ const Accelerator = () => {
     setActivating(false);
   };
 
-  const handleDownload = () => {
-    setInstalling(true);
-    // Download the Electron app source zip directly
-    const a = document.createElement("a");
-    a.href = "/SnyX-Accelerator-v1.0-Source.zip";
-    a.download = "SnyX-Accelerator-v1.0.zip";
-    a.click();
-    toast.success("Download iniciado! Extraia o .zip e execute CONSTRUIR.bat para gerar o .exe");
-    setInstalling(false);
-  };
 
   const features = [
     { icon: Zap, title: "Cache Neural", desc: "Todo o site fica salvo no seu dispositivo. Carrega instantaneamente." },
@@ -213,12 +203,7 @@ const Accelerator = () => {
                 <CheckCircle2 className="w-6 h-6" /> Accelerator Ativado — Chave Válida!
               </div>
               <br />
-              <Button onClick={handleDownload} disabled={installing}
-                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] border-0">
-                <Download className="w-5 h-5 mr-3" />
-                {installing ? "Baixando..." : "Baixar SnyX Accelerator"}
-              </Button>
-              <p className="text-white/30 text-xs mt-2">Windows (.exe) — App Desktop Electron</p>
+              <p className="text-white/40 text-sm">Role para baixo para baixar o app VPN</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -386,33 +371,7 @@ const Accelerator = () => {
           </div>
         )}
 
-        {/* Download Desktop App Section */}
-        {hasActiveKey && user && (
-          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-sm mb-4">
-                <Download className="w-4 h-4" /> Download Desktop App
-              </div>
-              <h2 className="text-2xl font-bold mb-2">SnyX Accelerator Desktop v1.0</h2>
-              <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto">
-                App completo estilo Steam/Roblox. Instale no Windows, abra com um clique e tenha otimização de rede real + proxy integrado.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                <a
-                  href="/SnyX-Accelerator-v1.0-Source.zip"
-                  download
-                  className="inline-flex items-center gap-2 px-8 py-4 text-base font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white shadow-[0_0_30px_rgba(34,197,94,0.3)] transition-all"
-                >
-                  <Download className="w-5 h-5" />
-                  Baixar SnyX Accelerator (.zip)
-                </a>
-              </div>
-              <p className="text-white/30 text-xs mt-4">
-                Extraia o .zip → Execute <code className="text-green-400/70">CONSTRUIR.bat</code> → App pronto!
-              </p>
-            </div>
-          </div>
-        )}
+
 
         {/* Download VPN App Section */}
         {hasActiveKey && user && (
