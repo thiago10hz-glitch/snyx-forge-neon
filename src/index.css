@@ -44,12 +44,31 @@
   * {
     @apply border-border;
   }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    height: auto;
+  }
+
+  html,
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root {
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     text-rendering: optimizeSpeed;
-    overflow-x: hidden;
-    overflow-y: auto;
+    position: static;
     min-height: 100vh;
     width: 100%;
   }
