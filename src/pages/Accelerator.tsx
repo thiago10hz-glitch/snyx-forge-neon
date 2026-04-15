@@ -62,18 +62,76 @@ const Accelerator = () => {
   }, []);
 
   const handleInstall = async () => {
+    setInstalling(true);
+
     if (deferredPrompt) {
-      setInstalling(true);
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
         setIsInstalled(true);
+        setInstalling(false);
+        return;
       }
       setDeferredPrompt(null);
-      setInstalling(false);
+    }
+
+    // Fallback: download a launcher file
+    const siteUrl = window.location.origin;
+    const isWindows = navigator.userAgent.includes("Windows");
+    const isMac = navigator.userAgent.includes("Mac");
+
+    if (isWindows) {
+      const bat = `@echo off
+title SnyX Accelerator - Instalador
+echo ============================================
+echo    SnyX Accelerator - Instalando...
+echo ============================================
+echo.
+echo Abrindo SnyX Accelerator no navegador...
+echo Quando abrir, clique em "Instalar" na barra do navegador.
+echo.
+start "" "chrome" "--app=${siteUrl}/accelerator"
+if errorlevel 1 (
+  start "" "msedge" "--app=${siteUrl}/accelerator"
+  if errorlevel 1 (
+    start "" "${siteUrl}/accelerator"
+  )
+)
+echo.
+echo Instalacao iniciada! Pode fechar esta janela.
+timeout /t 5
+`;
+      const blob = new Blob([bat], { type: "application/bat" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SnyX-Accelerator-Setup.bat";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Download iniciado! Execute o arquivo para instalar.");
+    } else if (isMac) {
+      const sh = `#!/bin/bash
+echo "============================================"
+echo "   SnyX Accelerator - Instalando..."
+echo "============================================"
+echo ""
+open -a "Google Chrome" --args --app="${siteUrl}/accelerator" 2>/dev/null || open "${siteUrl}/accelerator"
+echo "Instalacao iniciada!"
+`;
+      const blob = new Blob([sh], { type: "application/x-sh" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SnyX-Accelerator-Setup.sh";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Download iniciado! Execute o arquivo para instalar.");
     } else {
+      // Mobile or other - show instructions
       setShowInstructions(true);
     }
+
+    setInstalling(false);
   };
 
   const handleRequestActivation = async () => {
