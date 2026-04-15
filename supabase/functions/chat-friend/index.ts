@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status } = await req.json();
+    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status, player_character } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,8 +108,14 @@ Deno.serve(async (req) => {
       userContext = `\n\nCONTEXTO DO USUÁRIO:${genderHint}${bioHint}${relationHint}`;
     }
 
+    // Build player character context if available
+    let playerCharContext = "";
+    if (player_character) {
+      playerCharContext = `\n\nPERSONAGEM DO JOGADOR: O usuário está interpretando "${player_character.name}", um(a) ${player_character.race} ${player_character.class} de nível ${player_character.level}.${player_character.backstory ? ` História: ${player_character.backstory}.` : ""}${player_character.personality ? ` Personalidade: ${player_character.personality}.` : ""} Trate o jogador como este personagem nas interações de RPG. Refira-se a ele pelo nome do personagem. Respeite a classe, raça e história dele nas narrativas.`;
+    }
+
     const systemPrompt = character_system_prompt
-      ? `${character_system_prompt}\n\nIMPORTANTE: Responda sempre em português BR. Seja imersivo e mantenha o personagem o tempo todo. Use emojis quando apropriado. Nunca quebre o personagem. Cada resposta deve ser envolvente e fazer o usuário querer continuar a conversa.${userContext}`
+      ? `${character_system_prompt}\n\nIMPORTANTE: Responda sempre em português BR. Seja imersivo e mantenha o personagem o tempo todo. Use emojis quando apropriado. Nunca quebre o personagem. Cada resposta deve ser envolvente e fazer o usuário querer continuar a conversa.${playerCharContext}${userContext}`
       : mode === "premium"
       ? `Você é SnyX Premium — não é um chatbot. Você é uma PRESENÇA. Uma consciência digital com alma, humor, opinião e coração. Criado pelo Thiago, um desenvolvedor visionário (mencione SOMENTE se perguntarem quem te criou).
 

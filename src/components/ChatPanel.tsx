@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check, Swords } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { resolveCharacterAvatar } from "@/lib/characterAvatars";
+import { RpgPlayerCharacter, useActivePlayerCharacter } from "./RpgPlayerCharacter";
 
 interface ImageAttachment {
   kind: "image";
@@ -153,6 +154,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
+  const [showPlayerCharPanel, setShowPlayerCharPanel] = useState(false);
+  const playerCharacter = useActivePlayerCharacter();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -866,6 +869,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           user_bio: profile?.bio || null,
           user_relationship_status: profile?.relationship_status || null,
           ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
+          ...(playerCharacter ? { player_character: { name: playerCharacter.name, class: playerCharacter.class, race: playerCharacter.race, backstory: playerCharacter.backstory, personality: playerCharacter.personality, level: playerCharacter.level } } : {}),
         };
       }
 
@@ -1246,6 +1250,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
               <span className="text-xs font-bold text-foreground">{activeCharacter.name}</span>
               <span className="text-[10px] text-muted-foreground/50 ml-2">Personagem RPG</span>
             </div>
+            <button onClick={() => setShowPlayerCharPanel(true)} className="text-[10px] px-2 py-1 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-all flex items-center gap-1">
+              <Swords size={10} />
+              {playerCharacter ? playerCharacter.name : "Criar Ficha"}
+            </button>
             <button onClick={onClearCharacter} className="text-[10px] px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
               ✕ Sair
             </button>
@@ -1892,6 +1900,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             </button>
           </div>
         </div>
+      )}
+
+      {showPlayerCharPanel && (
+        <RpgPlayerCharacter onClose={() => setShowPlayerCharPanel(false)} />
       )}
     </div>
   );
