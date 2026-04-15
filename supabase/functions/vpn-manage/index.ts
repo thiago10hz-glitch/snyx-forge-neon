@@ -21,13 +21,24 @@ Deno.serve(async (req) => {
 
     // Auto-sync server config from env secrets
     if (WG_SERVER_PUBLIC_KEY && WG_SERVER_PRIVATE_KEY && VPS_IP) {
-      await supabase.from('vpn_server_config').upsert({
-        server_ip: VPS_IP,
-        server_public_key: WG_SERVER_PUBLIC_KEY,
-        server_private_key: WG_SERVER_PRIVATE_KEY,
-        listen_port: VPS_PORT,
-        is_setup: true,
-      }, { onConflict: 'server_ip' })
+      const { data: existingConfig } = await supabase.from('vpn_server_config').select('id').limit(1).single()
+      if (existingConfig) {
+        await supabase.from('vpn_server_config').update({
+          server_ip: VPS_IP,
+          server_public_key: WG_SERVER_PUBLIC_KEY,
+          server_private_key: WG_SERVER_PRIVATE_KEY,
+          listen_port: VPS_PORT,
+          is_setup: true,
+        }).eq('id', existingConfig.id)
+      } else {
+        await supabase.from('vpn_server_config').insert({
+          server_ip: VPS_IP,
+          server_public_key: WG_SERVER_PUBLIC_KEY,
+          server_private_key: WG_SERVER_PRIVATE_KEY,
+          listen_port: VPS_PORT,
+          is_setup: true,
+        })
+      }
     }
 
     const { action, activation_key, user_id } = await req.json()
