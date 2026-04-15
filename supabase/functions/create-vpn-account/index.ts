@@ -14,6 +14,48 @@ function generateIMEI(): string {
   return imei;
 }
 
+async function generateWgKeys(vpnApiUrl: string, vpnApiToken: string): Promise<{ private_key: string; public_key: string } | null> {
+  try {
+    const res = await fetch(`${vpnApiUrl}/generate-keys`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${vpnApiToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error("Failed to generate keys via VPS API:", e);
+  }
+  return null;
+}
+
+async function addPeerToServer(vpnApiUrl: string, vpnApiToken: string, publicKey: string, allowedIp: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${vpnApiUrl}/add-peer`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${vpnApiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ public_key: publicKey, allowed_ip: allowedIp }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Peer added to server:", data);
+      return true;
+    } else {
+      const err = await res.text();
+      console.error("Failed to add peer:", err);
+    }
+  } catch (e) {
+    console.error("Failed to connect to VPS API:", e);
+  }
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,6 +69,8 @@ serve(async (req) => {
     const WG_SERVER_PUBLIC_KEY = Deno.env.get("WG_SERVER_PUBLIC_KEY") || "";
     const WG_SERVER_PRIVATE_KEY = Deno.env.get("WG_SERVER_PRIVATE_KEY") || "";
     const WG_SERVER_IP = Deno.env.get("WG_SERVER_IP") || "";
+    const VPN_API_URL = Deno.env.get("VPN_API_URL") || "";
+    const VPN_API_TOKEN = Deno.env.get("VPN_API_TOKEN") || "";
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -71,7 +115,6 @@ serve(async (req) => {
       });
     }
 
-    // Ensure server config exists
     if (!WG_SERVER_PUBLIC_KEY || !WG_SERVER_IP) {
       return new Response(JSON.stringify({ error: "Servidor VPN não configurado. Configure WG_SERVER_PUBLIC_KEY e WG_SERVER_IP nos secrets." }), {
         status: 500,
@@ -133,7 +176,7 @@ serve(async (req) => {
           });
         }
 
-        return buildResponse(adminClient, caller.id, imei2, password, display_name, expires_months, retryUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP);
+        return buildResponse(adminClient, caller.id, imei2, password, display_name, expires_months, retryUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP, VPN_API_URL, VPN_API_TOKEN);
       }
 
       return new Response(JSON.stringify({ error: createError.message }), {
@@ -142,7 +185,7 @@ serve(async (req) => {
       });
     }
 
-    return buildResponse(adminClient, caller.id, imei, password, display_name, expires_months, newUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP);
+    return buildResponse(adminClient, caller.id, imei, password, display_name, expires_months, newUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP, VPN_API_URL, VPN_API_TOKEN);
   } catch (error) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
@@ -162,6 +205,8 @@ async function buildResponse(
   userId: string,
   serverPublicKey: string,
   serverIp: string,
+  vpnApiUrl: string,
+  vpnApiToken: string,
 ) {
   const keyPart1 = Math.random().toString(36).substring(2, 6).toUpperCase();
   const keyPart2 = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -183,24 +228,86 @@ async function buildResponse(
     linked_imei: imei,
   }).select("id").single();
 
-  // Generate WireGuard peer keys
+  // Generate WireGuard peer keys - try via VPS API first (real keys), fallback to random
+  let peerPrivateKey: string;
+  let peerPublicKey: string;
+  let serverRegistered = false;
+
+  if (vpnApiUrl && vpnApiToken) {
+    const keys = await generateWgKeys(vpnApiUrl, vpnApiToken);
+    if (keys) {
+      peerPrivateKey = keys.private_key;
+      peerPublicKey = keys.public_key;
+
+      // Count existing peers to assign next IP
+      const { count } = await adminClient
+        .from("vpn_peers")
+        .select("*", { count: "exact", head: true });
+      const peerNumber = (count || 0) + 2;
+      const assignedIp = `10.0.0.${peerNumber}`;
+
+      // Register peer on the VPS server automatically
+      serverRegistered = await addPeerToServer(vpnApiUrl, vpnApiToken, peerPublicKey, assignedIp);
+
+      // Create VPN peer in DB
+      await adminClient.from("vpn_peers").insert({
+        user_id: userId,
+        peer_private_key: peerPrivateKey,
+        peer_public_key: peerPublicKey,
+        assigned_ip: assignedIp,
+        activated_with_key: keyRow?.id || null,
+      });
+
+      const wgConfig = `[Interface]
+PrivateKey = ${peerPrivateKey}
+Address = ${assignedIp}/24
+DNS = 1.1.1.1, 8.8.8.8
+
+[Peer]
+PublicKey = ${serverPublicKey}
+Endpoint = ${serverIp}:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25`;
+
+      const name = displayName || `VPN-${imei.slice(0, 9)}`;
+      const loginEmail = `${imei}@vpn.snyx`;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          server_registered: serverRegistered,
+          account: {
+            imei,
+            login_email: loginEmail,
+            password,
+            user_id: userId,
+            activation_key: activationKey,
+            expires_at: expiresAt,
+            display_name: name,
+            assigned_ip: assignedIp,
+            wg_config: wgConfig,
+          },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+  }
+
+  // Fallback: generate random keys (won't work with real WireGuard but saves in DB)
   const peerKeyBytes = new Uint8Array(32);
   crypto.getRandomValues(peerKeyBytes);
-  const peerPrivateKey = btoa(String.fromCharCode(...peerKeyBytes));
+  peerPrivateKey = btoa(String.fromCharCode(...peerKeyBytes));
 
   const peerPubBytes = new Uint8Array(32);
   crypto.getRandomValues(peerPubBytes);
-  const peerPublicKey = btoa(String.fromCharCode(...peerPubBytes));
+  peerPublicKey = btoa(String.fromCharCode(...peerPubBytes));
 
-  // Count existing peers to assign next IP
   const { count } = await adminClient
     .from("vpn_peers")
     .select("*", { count: "exact", head: true });
-
-  const peerNumber = (count || 0) + 2; // Start from 10.0.0.2
+  const peerNumber = (count || 0) + 2;
   const assignedIp = `10.0.0.${peerNumber}`;
 
-  // Create VPN peer
   await adminClient.from("vpn_peers").insert({
     user_id: userId,
     peer_private_key: peerPrivateKey,
@@ -209,7 +316,6 @@ async function buildResponse(
     activated_with_key: keyRow?.id || null,
   });
 
-  // Generate WireGuard config for the client
   const wgConfig = `[Interface]
 PrivateKey = ${peerPrivateKey}
 Address = ${assignedIp}/24
@@ -227,6 +333,7 @@ PersistentKeepalive = 25`;
   return new Response(
     JSON.stringify({
       success: true,
+      server_registered: false,
       account: {
         imei,
         login_email: loginEmail,
