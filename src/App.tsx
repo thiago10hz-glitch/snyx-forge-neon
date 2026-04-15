@@ -134,6 +134,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <CopyProtection />
             <Suspense fallback={null}>
               <CommandPalette />
             </Suspense>
