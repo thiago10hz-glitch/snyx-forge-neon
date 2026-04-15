@@ -19,6 +19,9 @@ async function removePeerFromServer(publicKey: string) {
   }
 
   try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000) // 5s timeout
+    
     const response = await fetch(`${VPN_API_URL}/remove-peer`, {
       method: 'POST',
       headers: {
@@ -26,11 +29,13 @@ async function removePeerFromServer(publicKey: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ public_key: publicKey }),
+      signal: controller.signal,
     })
+    
+    clearTimeout(timeout)
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Failed to remove peer from server:', response.status, errorText)
+      console.error('Failed to remove peer from server:', response.status)
       return false
     }
 
