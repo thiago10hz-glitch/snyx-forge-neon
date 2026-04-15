@@ -162,17 +162,18 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       utterance.lang = "pt-BR";
       utterance.rate = 0.95;
 
+      const currentGender = genderRef.current;
       const voices = synth.getVoices();
       const ptVoices = voices.filter((item) => item.lang.startsWith("pt"));
 
       if (ptVoices.length > 0) {
         const chosenVoice =
-          gender === "female"
+          currentGender === "female"
             ? ptVoices.find((item) => /female|femin|mulher|maria|lucia/i.test(item.name)) || ptVoices[0]
             : ptVoices.find((item) => /\bmale\b|mascu|homem|daniel/i.test(item.name)) || ptVoices[Math.min(1, ptVoices.length - 1)];
 
         if (chosenVoice) utterance.voice = chosenVoice;
-        utterance.pitch = gender === "female" ? 1.08 : 0.82;
+        utterance.pitch = currentGender === "female" ? 1.08 : 0.82;
       }
 
       utterance.onend = () => {
@@ -188,7 +189,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setSpeaking(true);
       synth.speak(utterance);
     },
-    [gender],
+    [],
   );
 
   const speak = useCallback(
