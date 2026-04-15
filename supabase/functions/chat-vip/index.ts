@@ -3,6 +3,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function buildUserContext(params: any): string {
+  const { is_admin, display_name, team_badge, user_gender, user_bio, user_relationship_status } = params;
+  
+  if (is_admin) {
+    return `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é o THIAGO — o criador, dono e ADMIN do SnyX. Namorado da Nicole (a Dona do SnyX). Juntos eles são o casal fundador. Trate com o máximo respeito. Nome: ${display_name || "Thiago"}.`;
+  }
+  if (team_badge === "Dona" || team_badge === "Primeira-Dama" || (display_name && display_name.toLowerCase().includes("nicole"))) {
+    return `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — a Dona do SnyX! 👑 Namorada do Thiago (o criador/admin). Trate com carinho especial e respeito como realeza.`;
+  }
+  if (team_badge) {
+    return `\n\nCONTEXTO DO USUÁRIO: Membro da equipe SnyX com badge "${team_badge}". Nome: ${display_name || "Membro"}.`;
+  }
+
+  let ctx = "";
+  if (display_name) ctx += `\n\nCONTEXTO DO USUÁRIO: Nome: "${display_name}".`;
+  if (user_gender === "masculino") ctx += " Gênero: masculino — use linguagem masculina (amigo, mano, irmão).";
+  else if (user_gender === "feminino") ctx += " Gênero: feminino — use linguagem feminina (amiga, mana, irmã).";
+  if (user_bio) ctx += ` Sobre: "${user_bio}".`;
+  if (user_relationship_status) ctx += ` Relacionamento: ${user_relationship_status}.`;
+  if (ctx) ctx += " Use essas informações naturalmente, sem repetir tudo de uma vez.";
+  return ctx;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -16,12 +39,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const { messages } = body;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userContext = buildUserContext(body);
 
     const systemPrompt = `Você é SnyX, um amigo(a) de verdade. Converse de forma natural, como uma pessoa real falaria no WhatsApp.
 
@@ -46,9 +72,8 @@ PREMIUM:
 FORMATAÇÃO DE TEXTO:
 - Se pedir "texto grande": use # e ## e **negrito** para texto grande.
 - Se pedir "texto pequeno": frases curtas, sem cabeçalhos.
-- Se pedir "texto normal": volte ao padrão.`;
+- Se pedir "texto normal": volte ao padrão.${userContext}`;
 
-    // Build messages with image support
     const aiMessages: any[] = [
       { role: "system", content: systemPrompt },
     ];
@@ -67,7 +92,6 @@ FORMATAÇÃO DE TEXTO:
           aiMessages.push({ role: "user", content: msg.content });
         }
       } else {
-        // Strip base64 image data from assistant messages to avoid token limit
         let content = msg.content || "";
         if (content.includes("<generated_image:data:")) {
           content = content.replace(/<generated_image:data:[^>]+>/g, "[imagem gerada]");
@@ -75,7 +99,6 @@ FORMATAÇÃO DE TEXTO:
         if (content.includes("data:image/")) {
           content = content.replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+/g, "[imagem]");
         }
-        // Truncate very long messages
         if (content.length > 2000) {
           content = content.substring(0, 2000) + "...";
         }
@@ -101,10 +124,11 @@ FORMATAÇÃO DE TEXTO:
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI Gateway error:", errText);
-      // Return a streaming fallback message instead of 502
       const fallbackMsg = response.status === 400 
         ? "Eita, a conversa ficou longa demais! Tenta criar uma nova conversa pra gente continuar de boa. 😅"
-        : "Ops, deu um problema aqui. Tenta de novo em alguns segundos! 🔄";
+        : response.status === 429 ? "Tô sobrecarregado agora, tenta de novo em uns segundos! 🔄"
+        : response.status === 402 ? "Créditos de IA esgotados. Fala com o admin!"
+        : "Ops, deu um problema aqui. Tenta de novo! 🔄";
       const fallbackStream = new ReadableStream({
         start(controller) {
           const enc = new TextEncoder();
@@ -124,7 +148,6 @@ FORMATAÇÃO DE TEXTO:
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-
         try {
           while (true) {
             const { done, value } = await reader.read();
@@ -132,7 +155,6 @@ FORMATAÇÃO DE TEXTO:
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
-
             for (const line of lines) {
               const trimmed = line.trim();
               if (!trimmed || trimmed === "data: [DONE]") continue;
@@ -140,9 +162,7 @@ FORMATAÇÃO DE TEXTO:
               try {
                 const json = JSON.parse(trimmed.slice(6));
                 const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
-                }
+                if (content) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
               } catch { /* skip */ }
             }
           }
