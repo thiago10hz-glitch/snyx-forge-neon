@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,30 +12,47 @@ serve(async (req) => {
   }
 
   try {
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const stripeKey = Deno.env.get('STRIPE_SANDBOX_API_KEY');
-    
-    console.log("Keys present:", { lovable: !!lovableApiKey, stripe: !!stripeKey });
-    console.log("Lovable key prefix:", lovableApiKey?.substring(0, 10));
-    console.log("Stripe key prefix:", stripeKey?.substring(0, 10));
-    
-    const resp = await fetch("https://connector-gateway.lovable.dev/stripe/v1/prices?lookup_keys[]=vip_monthly", {
-      headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": stripeKey!,
-      },
+    const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
+
+    if (!priceId || typeof priceId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
+      return new Response(JSON.stringify({ error: "Invalid priceId" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const env = (environment || 'sandbox') as StripeEnv;
+    const stripe = createStripeClient(env);
+
+    // Resolve human-readable price ID to Stripe price ID
+    const prices = await stripe.prices.list({ lookup_keys: [priceId] });
+    if (!prices.data.length) {
+      return new Response(JSON.stringify({ error: "Price not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const stripePrice = prices.data[0];
+    const isRecurring = stripePrice.type === "recurring";
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
+      mode: isRecurring ? "subscription" : "payment",
+      ui_mode: "embedded",
+      return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+      ...(customerEmail && { customer_email: customerEmail }),
+      ...(userId && {
+        metadata: { userId },
+        ...(isRecurring && { subscription_data: { metadata: { userId } } }),
+        ...(!isRecurring && { payment_intent_data: { metadata: { userId } } }),
+      }),
     });
-    
-    const body = await resp.text();
-    console.log("Gateway response status:", resp.status);
-    console.log("Gateway response:", body.substring(0, 500));
-    
-    return new Response(body, {
-      status: resp.status,
+
+    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("create-checkout error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
