@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Phone, PhoneOff, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Phone, PhoneOff, Loader2, Volume2, VolumeX, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -11,14 +11,20 @@ interface VoiceCallProps {
 
 const VOICE_OPTIONS = {
   female: [
-    { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah (Doce)", emoji: "👩" },
-    { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica (Animada)", emoji: "👩‍🦰" },
-    { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily (Calma)", emoji: "👩‍🦱" },
+    { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah (Doce)", emoji: "👩", desc: "Voz suave e carinhosa" },
+    { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica (Animada)", emoji: "👩‍🦰", desc: "Voz alegre e energética" },
+    { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily (Calma)", emoji: "👩‍🦱", desc: "Voz relaxante e serena" },
+    { id: "XrExE9yKIg1WjnnlVkGX", label: "Matilda (Sensual)", emoji: "💃", desc: "Voz sedutora e envolvente" },
+    { id: "FGY2WhTYpPnrIDTdsKH5", label: "Laura (Madura)", emoji: "👩‍💼", desc: "Voz elegante e confiante" },
+    { id: "Xb7hH8MSUJpSbSDYk0k2", label: "Alice (Fofa)", emoji: "🧸", desc: "Voz meiga e acolhedora" },
   ],
   male: [
-    { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (Amigável)", emoji: "👨" },
-    { id: "nPczCjzI2devNBz1zQrb", label: "Brian (Calmo)", emoji: "👨‍🦱" },
-    { id: "cjVigY5qzO86Huf0OWal", label: "Eric (Energético)", emoji: "👨‍🦰" },
+    { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (Amigável)", emoji: "👨", desc: "Voz simpática e natural" },
+    { id: "nPczCjzI2devNBz1zQrb", label: "Brian (Calmo)", emoji: "👨‍🦱", desc: "Voz tranquila e grave" },
+    { id: "cjVigY5qzO86Huf0OWal", label: "Eric (Energético)", emoji: "👨‍🦰", desc: "Voz animada e marcante" },
+    { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam (Charmoso)", emoji: "🕺", desc: "Voz atraente e confiante" },
+    { id: "iP95p4xoKVk53GoZ742B", label: "Chris (Sedutor)", emoji: "😏", desc: "Voz profunda e envolvente" },
+    { id: "JBFqnCBsd6RMkjVDRZzb", label: "George (Maduro)", emoji: "👨‍💼", desc: "Voz elegante e firme" },
   ],
 };
 
@@ -32,6 +38,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [selectedGender, setSelectedGender] = useState<"female" | "male">("female");
   const [selectedVoice, setSelectedVoice] = useState(VOICE_OPTIONS.female[0]);
   const [showVoicePicker, setShowVoicePicker] = useState(true);
+  const [adultMode, setAdultMode] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
