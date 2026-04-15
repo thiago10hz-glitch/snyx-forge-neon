@@ -517,9 +517,11 @@ PersistentKeepalive = 25`
       }
 
       for (const peer of linkedPeers || []) {
-        const removed = await removePeerFromServer(peer.peer_public_key)
-        if (!removed) {
-          return new Response(JSON.stringify({ error: 'Não foi possível remover o peer do servidor VPN. Tente novamente.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        // Try to remove from server but don't block deletion if it fails
+        try {
+          await removePeerFromServer(peer.peer_public_key)
+        } catch (e) {
+          console.warn('Failed to remove peer from VPN server, continuing with deletion:', e)
         }
       }
 
