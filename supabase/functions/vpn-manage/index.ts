@@ -299,16 +299,26 @@ PersistentKeepalive = 25`
       const expiresAt = keyData?.expires_at ? new Date(keyData.expires_at) : null
       const isExpired = expiresAt ? expiresAt < new Date() : false
 
-      // Auto-revoke if expired
+      // Auto-revoke if expired — ban user login too
       if (isExpired) {
         await supabase.from('vpn_peers').update({ is_active: false }).eq('id', peer.id)
         await supabase.from('accelerator_keys').update({ status: 'expired' }).eq('id', keyData.id)
+
+        // Ban the user so they can't log in anymore
+        await supabase.from('profiles').update({
+          banned_until: new Date('2099-12-31').toISOString(),
+        }).eq('user_id', authenticatedUserId)
+
+        // Disable auth user to block login completely
+        await supabase.auth.admin.updateUserById(authenticatedUserId!, {
+          ban_duration: '876000h', // ~100 years
+        })
 
         return new Response(JSON.stringify({
           active: false,
           expired: true,
           revoked: true,
-          message: 'Chave expirada. VPN desativada automaticamente. Remova os arquivos locais.',
+          message: 'Chave expirada. VPN e login desativados automaticamente.',
           cleanup_required: true,
         }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
@@ -402,6 +412,13 @@ PersistentKeepalive = 25`
         if (peer.activated_with_key) {
           await supabase.from('accelerator_keys').update({ status: 'revoked' }).eq('id', peer.activated_with_key)
         }
+        // Ban user login
+        await supabase.from('profiles').update({
+          banned_until: new Date('2099-12-31').toISOString(),
+        }).eq('user_id', targetUserId)
+        await supabase.auth.admin.updateUserById(targetUserId, {
+          ban_duration: '876000h',
+        })
       }
 
       return new Response(JSON.stringify({ success: true, message: 'VPN revogada' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
