@@ -8,7 +8,7 @@ import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPre
 import { SupportChat } from "@/components/SupportChat";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { VipModal } from "@/components/VipModal";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users, Palette } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -21,6 +21,7 @@ const Index = () => {
   const [showVipModal, setShowVipModal] = useState(false);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [activeCharacter, setActiveCharacter] = useState<{ id: string; name: string; system_prompt: string; avatar_url: string | null } | null>(null);
 
   useEffect(() => {
@@ -206,9 +207,13 @@ const Index = () => {
         <>
           <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
           <div className="absolute top-12 sm:top-14 right-2 sm:right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] sm:min-w-[200px] animate-reveal max-h-[70dvh] overflow-y-auto">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl">
-              <ThemeSelector />
-            </div>
+            <button
+              onClick={() => { setShowMobileNav(false); setShowThemeModal(true); }}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all w-full"
+            >
+              <Palette className="w-4 h-4" />
+              Tema
+            </button>
             <button
               onClick={openCharactersPanel}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all"
@@ -282,6 +287,7 @@ const Index = () => {
       <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
       <SupportChat />
       <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
+      <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
     </div>
   );
 };
