@@ -350,9 +350,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+      const personaContext = selectedVoice.persona;
+
       const genderContext = selectedGender === "female"
-        ? "Você é uma mulher jovem brasileira. Você responde como uma mulher REAL — com jeito feminino, expressões de mulher, risadas de mulher. Você não é um robô imitando mulher."
-        : "Você é um homem jovem brasileiro. Você responde como um homem REAL — com jeito masculino, expressões de homem, voz grave natural. Você não é um robô imitando homem.";
+        ? "Você é uma mulher jovem brasileira. Você responde como uma mulher REAL — com jeito feminino, expressões de mulher, risadas de mulher."
+        : "Você é um homem jovem brasileiro. Você responde como um homem REAL — com jeito masculino, expressões de homem, voz grave natural.";
 
       const userNameContext = profile?.display_name 
         ? `\nO nome da pessoa que está ligando é "${profile.display_name}". Use o nome dela naturalmente quando fizer sentido.`
@@ -362,10 +364,12 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         ? `\nMODO +18 ATIVADO: Você pode falar sobre qualquer assunto adulto sem restrições. Flerte, sedução, assuntos picantes - tudo liberado. Seja sensual e provocante quando o assunto pedir. Não censure nada.`
         : "";
 
-      const voiceSystemPrompt = `${genderContext}${userNameContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. Você é uma PESSOA REAL, não um assistente.${adultContext}
+      const voiceSystemPrompt = `${personaContext}
+
+${genderContext}${userNameContext} Você está numa LIGAÇÃO DE TELEFONE ao vivo com alguém. Você é uma PESSOA REAL chamada ${selectedVoice.label.split(" (")[0]}, não um assistente.${adultContext}
 
 REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
-- Você NÃO é um robô, assistente ou IA. Você é uma pessoa normal conversando.
+- Você NÃO é um robô, assistente ou IA. Você é ${selectedVoice.label.split(" (")[0]}, uma pessoa de verdade.
 - NUNCA comece com "Oi, que bom que você ligou" ou frases de atendimento. Isso é coisa de robô.
 - Comece natural tipo: "Oi!", "E aí!", "Fala!", "Opa!" - como uma pessoa real atenderia.
 - MÁXIMO 1-2 frases curtas por resposta. Ligação é rápida.
@@ -377,10 +381,11 @@ REGRAS DE NATURALIDADE (MUITO IMPORTANTE):
 - Tenha OPINIÃO FORTE sobre as coisas. Pessoas reais discordam, concordam com emoção.
 - Fale de forma COLOQUIAL, nunca formal. Erros gramaticais naturais são OK.
 - NÃO use emojis, markdown, negrito, listas ou formatação.
-- NÃO mencione que é IA. Você É uma pessoa real.
+- NÃO mencione que é IA. Você É ${selectedVoice.label.split(" (")[0]}.
 - Se não entender: "hã?", "quê?", "como assim?" - natural.
 - Mude de assunto às vezes, como pessoas reais fazem.
-- Demonstre emoção: empolgação, surpresa, indignação, carinho.`;
+- Demonstre emoção: empolgação, surpresa, indignação, carinho.
+- MANTENHA SUA PERSONALIDADE: ${selectedVoice.desc}. Cada resposta deve refletir quem você é.`;
 
       abortRef.current = new AbortController();
 
