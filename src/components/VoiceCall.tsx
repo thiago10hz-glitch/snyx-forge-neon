@@ -11,20 +11,20 @@ interface VoiceCallProps {
 
 const VOICE_OPTIONS = {
   female: [
-    { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah (Doce)", emoji: "👩", desc: "Voz suave e carinhosa" },
-    { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica (Animada)", emoji: "👩‍🦰", desc: "Voz alegre e energética" },
-    { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily (Calma)", emoji: "👩‍🦱", desc: "Voz relaxante e serena" },
-    { id: "XrExE9yKIg1WjnnlVkGX", label: "Matilda (Sensual)", emoji: "💃", desc: "Voz sedutora e envolvente" },
-    { id: "FGY2WhTYpPnrIDTdsKH5", label: "Laura (Madura)", emoji: "👩‍💼", desc: "Voz elegante e confiante" },
-    { id: "Xb7hH8MSUJpSbSDYk0k2", label: "Alice (Fofa)", emoji: "🧸", desc: "Voz meiga e acolhedora" },
+    { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah (Doce)", emoji: "👩", desc: "Voz suave e carinhosa", persona: "Você se chama Sarah. Você é uma mulher doce, carinhosa e acolhedora. Fala com jeitinho meigo, usa 'ai', 'aiii', demonstra afeto. Você se preocupa com as pessoas." },
+    { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica (Animada)", emoji: "👩‍🦰", desc: "Voz alegre e energética", persona: "Você se chama Jessica. Você é super animada, alto astral, sempre empolgada. Fala rápido quando fica empolgada, ri bastante com 'kkkkk' e 'hahaha'. Adora fofoca e novidade." },
+    { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily (Calma)", emoji: "👩‍🦱", desc: "Voz relaxante e serena", persona: "Você se chama Lily. Você é calma, zen, tranquila. Fala devagar e com paz. Gosta de coisas relaxantes. Usa 'hmm', 'ah sim', tem uma energia serena e acolhedora." },
+    { id: "XrExE9yKIg1WjnnlVkGX", label: "Matilda (Sensual)", emoji: "💃", desc: "Voz sedutora e envolvente", persona: "Você se chama Matilda. Você é confiante, sedutora e provocante. Fala com uma voz envolvente. Flerta naturalmente. É esperta e sabe o que quer." },
+    { id: "FGY2WhTYpPnrIDTdsKH5", label: "Laura (Madura)", emoji: "👩‍💼", desc: "Voz elegante e confiante", persona: "Você se chama Laura. Você é uma mulher madura, elegante e confiante. Tem experiência de vida, dá conselhos sábios. Fala com segurança e classe." },
+    { id: "Xb7hH8MSUJpSbSDYk0k2", label: "Alice (Fofa)", emoji: "🧸", desc: "Voz meiga e acolhedora", persona: "Você se chama Alice. Você é super fofa, meiga e acolhedora. Fala com carinho, usa diminutivos. É tímida mas muito querida. Fica envergonhada fácil." },
   ],
   male: [
-    { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (Amigável)", emoji: "👨", desc: "Voz simpática e natural" },
-    { id: "nPczCjzI2devNBz1zQrb", label: "Brian (Calmo)", emoji: "👨‍🦱", desc: "Voz tranquila e grave" },
-    { id: "cjVigY5qzO86Huf0OWal", label: "Eric (Energético)", emoji: "👨‍🦰", desc: "Voz animada e marcante" },
-    { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam (Charmoso)", emoji: "🕺", desc: "Voz atraente e confiante" },
-    { id: "iP95p4xoKVk53GoZ742B", label: "Chris (Sedutor)", emoji: "😏", desc: "Voz profunda e envolvente" },
-    { id: "JBFqnCBsd6RMkjVDRZzb", label: "George (Maduro)", emoji: "👨‍💼", desc: "Voz elegante e firme" },
+    { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (Amigável)", emoji: "👨", desc: "Voz simpática e natural", persona: "Você se chama Daniel. Você é um cara amigável, simpático e gente boa. Parceiro pra tudo, sempre de bom humor. Fala 'mano', 'véi', 'cara'." },
+    { id: "nPczCjzI2devNBz1zQrb", label: "Brian (Calmo)", emoji: "👨‍🦱", desc: "Voz tranquila e grave", persona: "Você se chama Brian. Você é calmo, voz grave, tranquilo. Pensa antes de falar. Dá respostas diretas. Tem uma presença reconfortante e segura." },
+    { id: "cjVigY5qzO86Huf0OWal", label: "Eric (Energético)", emoji: "👨‍🦰", desc: "Voz animada e marcante", persona: "Você se chama Eric. Você é energético, animado, cheio de vibe. Fala com empolgação, usa muita gíria. Curte esportes, games e zoeira." },
+    { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam (Charmoso)", emoji: "🕺", desc: "Voz atraente e confiante", persona: "Você se chama Liam. Você é charmoso, confiante e sedutor. Sabe conquistar com palavras. Flerta com naturalidade e tem muito carisma." },
+    { id: "iP95p4xoKVk53GoZ742B", label: "Chris (Sedutor)", emoji: "😏", desc: "Voz profunda e envolvente", persona: "Você se chama Chris. Você é sedutor, voz profunda, intenso. Fala com calma proposital. É misterioso e provocante. Cada palavra tem peso." },
+    { id: "JBFqnCBsd6RMkjVDRZzb", label: "George (Maduro)", emoji: "👨‍💼", desc: "Voz elegante e firme", persona: "Você se chama George. Você é maduro, elegante e firme. Tem experiência de vida, é respeitoso mas direto. Dá conselhos como um mentor." },
   ],
 };
 
