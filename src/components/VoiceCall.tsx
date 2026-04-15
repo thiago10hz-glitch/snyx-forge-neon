@@ -92,8 +92,44 @@ function VoiceOrb({
   );
 }
 
+// Generate ring tone using Web Audio API
+function createRingTone(audioContext: AudioContext): { start: () => void; stop: () => void } {
+  let oscillator: OscillatorNode | null = null;
+  let gainNode: GainNode | null = null;
+  let intervalId: NodeJS.Timeout | null = null;
+  let isRinging = false;
+
+  const ring = () => {
+    if (!audioContext || audioContext.state === "closed") return;
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(480, audioContext.currentTime + 0.5);
+    gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1);
+  };
+
+  return {
+    start: () => {
+      if (isRinging) return;
+      isRinging = true;
+      ring();
+      intervalId = setInterval(ring, 3000);
+    },
+    stop: () => {
+      isRinging = false;
+      if (intervalId) clearInterval(intervalId);
+      try { oscillator?.stop(); } catch {}
+    },
+  };
+}
+
 export function VoiceCall({ open, onClose }: VoiceCallProps) {
-  const [phase, setPhase] = useState<"pick" | "call">("pick");
+  const [phase, setPhase] = useState<"pick" | "ringing" | "call">("pick");
   const [gender, setGender] = useState<"female" | "male">("female");
   const [voice, setVoice] = useState(VOICES.female[0]);
   const [adultMode, setAdultMode] = useState(false);
@@ -115,6 +151,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const orbIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceRef = useRef(voice);
   const genderRef = useRef(gender);
+  const ringToneRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => { voiceRef.current = voice; }, [voice]);
   useEffect(() => { genderRef.current = gender; }, [gender]);
