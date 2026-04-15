@@ -16,7 +16,7 @@ interface AcceleratorKey {
 }
 
 interface GeneratedAccount {
-  email: string;
+  imei: string;
   password: string;
   activation_key: string;
   expires_at: string | null;
