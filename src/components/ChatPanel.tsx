@@ -946,9 +946,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           setMessages((prev) => [...prev, { role: "assistant", content: musicContent }]);
           await saveMessage(convId, "assistant", `🎵 Música gerada: "${data.prompt || trimmedInput}"`);
         } else if (data.type === "image" && data.image_url) {
-          const imageContent = `🎨 Imagem gerada!\n\n![Imagem gerada](${data.image_url})`;
+          const imageContent = `🎨 **Imagem gerada!** ✨\n\n<generated_image:${data.image_url}>`;
           setMessages((prev) => [...prev, { role: "assistant", content: imageContent }]);
-          await saveMessage(convId, "assistant", imageContent);
+          await saveMessage(convId, "assistant", "🎨 Imagem gerada!");
         } else {
           const textContent = data.text || data.error || "Resposta recebida.";
           setMessages((prev) => [...prev, { role: "assistant", content: textContent }]);
