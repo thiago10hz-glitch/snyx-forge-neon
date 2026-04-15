@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export type ThemeId = "neon-red" | "cyberpunk" | "aurora" | "minimal" | "ocean" | "sunset";
+export type ThemeId = "neon-red" | "cyberpunk" | "aurora" | "minimal" | "ocean" | "sunset" | "custom";
 
 export interface ThemePreset {
   id: ThemeId;
@@ -10,6 +10,60 @@ export interface ThemePreset {
   preview: string[]; // 4 hex colors for preview swatch
   vipOnly?: boolean;
   vars: Record<string, string>;
+}
+
+function hexToHsl(hex: string): string {
+  hex = hex.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function generateCustomThemeVars(primary: string, bg: string, accent: string): Record<string, string> {
+  const primaryHsl = hexToHsl(primary);
+  const bgHsl = hexToHsl(bg);
+  const accentHsl = hexToHsl(accent);
+  
+  // Parse bg lightness to determine card/muted variations
+  const bgParts = bgHsl.split(" ");
+  const bgH = bgParts[0];
+  const bgS = parseInt(bgParts[1]);
+  const bgL = parseInt(bgParts[2]);
+  
+  return {
+    "--background": bgHsl,
+    "--foreground": `${bgH} ${Math.min(bgS, 10)}% 95%`,
+    "--card": `${bgH} ${Math.max(bgS - 3, 0)}% ${Math.min(bgL + 3, 15)}%`,
+    "--card-foreground": `${bgH} ${Math.min(bgS, 10)}% 95%`,
+    "--popover": `${bgH} ${Math.max(bgS - 3, 0)}% ${Math.min(bgL + 4, 16)}%`,
+    "--popover-foreground": `${bgH} ${Math.min(bgS, 10)}% 95%`,
+    "--primary": primaryHsl,
+    "--primary-foreground": "0 0% 100%",
+    "--secondary": `${bgH} ${Math.max(bgS - 5, 0)}% ${Math.min(bgL + 5, 18)}%`,
+    "--secondary-foreground": `${bgH} ${Math.min(bgS, 10)}% 80%`,
+    "--muted": `${bgH} ${Math.max(bgS - 5, 0)}% ${Math.min(bgL + 7, 20)}%`,
+    "--muted-foreground": `${bgH} ${Math.min(bgS, 8)}% 48%`,
+    "--accent": accentHsl,
+    "--accent-foreground": "0 0% 100%",
+    "--border": `${bgH} ${Math.max(bgS - 5, 0)}% ${Math.min(bgL + 10, 22)}%`,
+    "--input": `${bgH} ${Math.max(bgS - 5, 0)}% ${Math.min(bgL + 10, 22)}%`,
+    "--ring": primaryHsl,
+    "--sidebar-background": `${bgH} ${bgS}% ${Math.max(bgL - 1, 3)}%`,
+    "--sidebar-primary": primaryHsl,
+    "--neon-glow": `0 0 10px hsl(${primaryHsl} / 0.3), 0 0 30px hsl(${primaryHsl} / 0.1)`,
+    "--neon-glow-strong": `0 0 10px hsl(${primaryHsl} / 0.5), 0 0 40px hsl(${accentHsl} / 0.2), 0 0 80px hsl(${primaryHsl} / 0.08)`,
+  };
 }
 
 export const themes: ThemePreset[] = [
@@ -197,10 +251,18 @@ export const themes: ThemePreset[] = [
   },
 ];
 
+export interface CustomThemeColors {
+  primary: string;
+  background: string;
+  accent: string;
+}
+
 interface ThemeContextType {
   currentTheme: ThemeId;
   setTheme: (id: ThemeId) => void;
   getTheme: () => ThemePreset;
+  customColors: CustomThemeColors;
+  setCustomColors: (colors: CustomThemeColors) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
@@ -212,25 +274,57 @@ function applyTheme(theme: ThemePreset) {
   });
 }
 
+const DEFAULT_CUSTOM: CustomThemeColors = { primary: "#ff0000", background: "#0a0a12", accent: "#ff3333" };
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [currentTheme, setCurrentTheme] = useState<ThemeId>(() => {
     return (localStorage.getItem("snyx-theme") as ThemeId) || "neon-red";
   });
 
-  const getTheme = () => themes.find((t) => t.id === currentTheme) || themes[0];
+  const [customColors, setCustomColorsState] = useState<CustomThemeColors>(() => {
+    try {
+      const saved = localStorage.getItem("snyx-custom-theme");
+      return saved ? JSON.parse(saved) : DEFAULT_CUSTOM;
+    } catch { return DEFAULT_CUSTOM; }
+  });
+
+  const getTheme = () => {
+    if (currentTheme === "custom") {
+      return {
+        id: "custom" as ThemeId,
+        name: "Personalizado",
+        emoji: "🎨",
+        description: "Sua paleta personalizada",
+        preview: [customColors.background, customColors.background, customColors.primary, customColors.accent],
+        vipOnly: true,
+        vars: generateCustomThemeVars(customColors.primary, customColors.background, customColors.accent),
+      };
+    }
+    return themes.find((t) => t.id === currentTheme) || themes[0];
+  };
 
   useEffect(() => {
-    const theme = themes.find((t) => t.id === currentTheme) || themes[0];
+    const theme = getTheme();
     applyTheme(theme);
-  }, [currentTheme]);
+  }, [currentTheme, customColors]);
 
   const setTheme = (id: ThemeId) => {
     setCurrentTheme(id);
     localStorage.setItem("snyx-theme", id);
   };
 
+  const setCustomColors = (colors: CustomThemeColors) => {
+    setCustomColorsState(colors);
+    localStorage.setItem("snyx-custom-theme", JSON.stringify(colors));
+    if (currentTheme === "custom") {
+      const vars = generateCustomThemeVars(colors.primary, colors.background, colors.accent);
+      const root = document.documentElement;
+      Object.entries(vars).forEach(([key, value]) => root.style.setProperty(key, value));
+    }
+  };
+
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, getTheme }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme, getTheme, customColors, setCustomColors }}>
       {children}
     </ThemeContext.Provider>
   );

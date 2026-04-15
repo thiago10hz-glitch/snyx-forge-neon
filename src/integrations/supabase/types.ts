@@ -554,6 +554,7 @@ export type Database = {
           dev_expires_at: string | null
           display_name: string | null
           free_messages_used: number
+          gender: string | null
           hosting_tier: string
           id: string
           is_dev: boolean
@@ -577,6 +578,7 @@ export type Database = {
           dev_expires_at?: string | null
           display_name?: string | null
           free_messages_used?: number
+          gender?: string | null
           hosting_tier?: string
           id?: string
           is_dev?: boolean
@@ -600,6 +602,7 @@ export type Database = {
           dev_expires_at?: string | null
           display_name?: string | null
           free_messages_used?: number
+          gender?: string | null
           hosting_tier?: string
           id?: string
           is_dev?: boolean

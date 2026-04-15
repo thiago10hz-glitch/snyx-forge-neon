@@ -853,6 +853,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
           team_badge: (profile as any)?.team_badge || null,
+          user_gender: (profile as any)?.gender || null,
           ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
         };
       }

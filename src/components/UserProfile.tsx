@@ -15,6 +15,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
+  const [gender, setGender] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +26,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
       setRelationshipStatus(profile.relationship_status || "");
+      setGender((profile as any).gender || "");
     }
   }, [open, profile]);
 
@@ -59,11 +61,12 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.from("profiles").update({
+      const { error } = await (supabase as any).from("profiles").update({
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         avatar_url: avatarUrl || null,
         relationship_status: relationshipStatus || null,
+        gender: gender || null,
       }).eq("user_id", user.id);
       if (error) throw error;
       await refreshProfile();
@@ -164,6 +167,35 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               maxLength={50}
               className="w-full glass-input border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/20 focus:shadow-lg focus:shadow-primary/5 transition-all duration-300"
             />
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block flex items-center gap-1">
+              <User size={10} className="text-cyan-400/50" />
+              Gênero
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { label: "Masculino", value: "masculino", emoji: "👨" },
+                { label: "Feminino", value: "feminino", emoji: "👩" },
+                { label: "Outro", value: "outro", emoji: "🌈" },
+                { label: "Prefiro não dizer", value: "", emoji: "🤐" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGender(opt.value)}
+                  className={`text-[11px] px-2 py-2 rounded-xl border transition-all duration-200 ${
+                    gender === opt.value
+                      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 font-medium"
+                      : "border-border/15 text-muted-foreground/50 hover:border-border/30 hover:text-foreground"
+                  }`}
+                >
+                  {opt.emoji} {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Relationship Status */}
