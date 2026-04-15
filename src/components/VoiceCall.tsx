@@ -113,6 +113,11 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const abortRef = useRef<AbortController | null>(null);
   const processRef = useRef<((text: string) => void) | null>(null);
   const orbIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceRef = useRef(voice);
+  const genderRef = useRef(gender);
+
+  useEffect(() => { voiceRef.current = voice; }, [voice]);
+  useEffect(() => { genderRef.current = gender; }, [gender]);
 
   const { profile } = useAuth();
 
@@ -157,17 +162,18 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       utterance.lang = "pt-BR";
       utterance.rate = 0.95;
 
+      const currentGender = genderRef.current;
       const voices = synth.getVoices();
       const ptVoices = voices.filter((item) => item.lang.startsWith("pt"));
 
       if (ptVoices.length > 0) {
         const chosenVoice =
-          gender === "female"
+          currentGender === "female"
             ? ptVoices.find((item) => /female|femin|mulher|maria|lucia/i.test(item.name)) || ptVoices[0]
             : ptVoices.find((item) => /\bmale\b|mascu|homem|daniel/i.test(item.name)) || ptVoices[Math.min(1, ptVoices.length - 1)];
 
         if (chosenVoice) utterance.voice = chosenVoice;
-        utterance.pitch = gender === "female" ? 1.08 : 0.82;
+        utterance.pitch = currentGender === "female" ? 1.08 : 0.82;
       }
 
       utterance.onend = () => {
@@ -183,7 +189,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setSpeaking(true);
       synth.speak(utterance);
     },
-    [gender],
+    [],
   );
 
   const speak = useCallback(
@@ -194,6 +200,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       }
 
       setSpeaking(true);
+      const currentVoice = voiceRef.current;
+      const currentGender = genderRef.current;
 
       try {
         const { data: sessionData } = await supabase.auth.getSession();
@@ -210,8 +218,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           },
           body: JSON.stringify({
             text,
-            voiceId: voice.id,
-            gender,
+            voiceId: currentVoice.id,
+            gender: currentGender,
           }),
           signal: controller.signal,
         });
@@ -256,7 +264,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         browserSpeak(text, onEnd);
       }
     },
-    [browserSpeak, gender, muted, voice.id],
+    [browserSpeak, muted],
   );
 
   const startListening = useCallback(() => {
@@ -327,21 +335,24 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setProcessing(true);
       conversationRef.current.push({ role: "user", content: text });
 
+      const currentVoice = voiceRef.current;
+      const currentGender = genderRef.current;
+
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
         const genderContext =
-          gender === "female"
+          currentGender === "female"
             ? "Você é uma mulher jovem brasileira. Responde como mulher real, com jeito feminino natural."
             : "Você é um homem jovem brasileiro. Responde como homem real, com jeito masculino natural.";
 
         const userNameContext = profile?.display_name
-          ? `\nA pessoa que liga se chama \"${profile.display_name}\". Trate pelo nome quando fizer sentido.`
+          ? `\nA pessoa que está falando com você se chama "${profile.display_name}". SEMPRE use o nome dela desde a PRIMEIRA mensagem. Quando ela disser "oi", "olá" ou qualquer cumprimento, responda usando o nome dela imediatamente.`
           : "";
 
         const relationshipContext = profile?.relationship_status
-          ? `\nStatus de relacionamento: ${profile.relationship_status}.`
+          ? `\nStatus de relacionamento da pessoa: ${profile.relationship_status}.`
           : "";
 
         const bioContext = profile?.bio ? `\nSobre a pessoa: ${profile.bio}.` : "";
@@ -349,10 +360,10 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           ? "\nMODO +18 ATIVADO: Fale sobre assuntos adultos sem censura quando a conversa pedir."
           : "";
 
-        const systemPrompt = `${voice.persona}
+        const systemPrompt = `${currentVoice.persona}
 
 ${genderContext}${userNameContext}${relationshipContext}${bioContext}
-Você está numa ligação de telefone ao vivo. Você é ${voice.label}, uma pessoa real.${adultContext}
+Você está numa ligação de telefone ao vivo. Você é ${currentVoice.label}, uma pessoa real.${adultContext}
 
 REGRAS — SOAR COMO PESSOA DE VERDADE:
 - Você NÃO é assistente, robô ou IA. Você é uma pessoa real.
@@ -363,7 +374,8 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
 - Contrações: "tô", "tá", "cê", "pra", "né".
 - Sem emojis, markdown, listas ou formatação.
 - Nunca explique o que você é. Desconverse naturalmente.
-- Seja emotivo(a): ria, demonstre surpresa, interesse genuíno.`;
+- Seja emotivo(a): ria, demonstre surpresa, interesse genuíno.
+- IMPORTANTE: Você já sabe o nome da pessoa. Use desde a primeira interação. Não pergunte "quem é você" ou "qual seu nome".`;
 
         abortRef.current = new AbortController();
 
@@ -467,7 +479,7 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
         }, delay);
       }
     },
-    [adultMode, gender, profile, speak, startListening, voice.label, voice.persona],
+    [adultMode, profile, speak, startListening],
   );
 
   const startCall = useCallback(() => {
