@@ -22,6 +22,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SiteManage = lazy(() => import("./pages/SiteManage"));
 const Characters = lazy(() => import("./pages/Characters"));
 const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
+const Accelerator = lazy(() => import("./pages/Accelerator"));
 const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 const queryClient = new QueryClient({
@@ -107,6 +108,7 @@ const App = () => {
                   <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
                   <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
                   <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
+                  <Route path="/accelerator" element={<Accelerator />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
