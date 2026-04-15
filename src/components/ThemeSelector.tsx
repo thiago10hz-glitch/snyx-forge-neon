@@ -75,7 +75,7 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
 
           {/* Panel */}
-          <div className="relative w-full sm:max-w-md max-h-[85dvh] sm:max-h-[80vh] bg-background border border-border/15 rounded-t-3xl sm:rounded-2xl overflow-visible animate-reveal flex flex-col shadow-2xl">
+          <div className="relative w-full sm:max-w-md max-h-[85dvh] sm:max-h-[80vh] bg-background border border-border/15 rounded-t-3xl sm:rounded-2xl overflow-hidden animate-reveal flex flex-col shadow-2xl">
             {/* Handle bar (mobile) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
