@@ -25,6 +25,7 @@ export function createStripeClient(env: StripeEnv): Stripe {
       ...init,
       headers: {
         ...existingHeaders,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'X-Connection-Api-Key': connectionApiKey,
         'Lovable-API-Key': lovableApiKey,
       },
