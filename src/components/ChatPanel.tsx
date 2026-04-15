@@ -852,6 +852,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             content: m.content,
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
+          display_name: profile?.display_name || "",
+          user_gender: profile?.gender || null,
         };
       } else {
         requestBody = {
