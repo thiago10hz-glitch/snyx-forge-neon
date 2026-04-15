@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check, Swords } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 import { VoiceCall } from "./VoiceCall";
 import { ConnectionModal } from "./ConnectionModal";
@@ -1900,6 +1900,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             </button>
           </div>
         </div>
+      )}
+
+      {showPlayerCharPanel && (
+        <RpgPlayerCharacter onClose={() => setShowPlayerCharPanel(false)} />
       )}
     </div>
   );
