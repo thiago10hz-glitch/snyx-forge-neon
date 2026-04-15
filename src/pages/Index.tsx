@@ -91,7 +91,7 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden relative">
       {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-primary/5 blur-[100px] animate-glow-pulse" />
