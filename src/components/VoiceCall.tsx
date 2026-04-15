@@ -230,8 +230,13 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    const femaleGreetings = ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
-    const maleGreetings = ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
+    const hasHistory = conversationRef.current.length > 0;
+    const femaleGreetings = hasHistory
+      ? ["Oi, voltou! Fala!", "E aí, de volta!", "Opa, saudades!", "Oii, fala!"]
+      : ["Oi! Fala!", "E aí, tudo bem?", "Opa, oi!", "Fala, fala!", "Oii!"];
+    const maleGreetings = hasHistory
+      ? ["E aí, voltou!", "Opa, fala de novo!", "Salve, sumiu hein!", "Fala, mano!"]
+      : ["E aí!", "Fala, mano!", "Opa!", "Salve!", "Oi, fala!"];
     const greetings = selectedGender === "female" ? femaleGreetings : maleGreetings;
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
@@ -248,6 +253,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     setIsProcessing(false);
     setCallDuration(0);
 
+    // Save conversation history
+    saveHistory();
+
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
       callTimerRef.current = null;
@@ -261,7 +269,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     try { recognitionRef.current?.stop(); } catch {}
     try { audioRef.current?.pause(); audioRef.current = null; } catch {}
     try { window.speechSynthesis?.cancel(); } catch {}
-  }, []);
+  }, [saveHistory]);
 
   const startListening = useCallback(() => {
     if (!isCallActiveRef.current) return;
