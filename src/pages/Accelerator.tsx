@@ -8,13 +8,25 @@ import { toast } from "sonner";
 
 const Accelerator = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [installing, setInstalling] = useState(false);
   const [speed, setSpeed] = useState(0);
   const [activationKey, setActivationKey] = useState("");
   const [activating, setActivating] = useState(false);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [checkingKey, setCheckingKey] = useState(true);
+
+  // Speed test state
+  const [testing, setTesting] = useState(false);
+  const [testResults, setTestResults] = useState<{
+    ping: number;
+    downloadNormal: number;
+    downloadAccel: number;
+    uploadNormal: number;
+    uploadAccel: number;
+    boost: number;
+  } | null>(null);
+  const [testPhase, setTestPhase] = useState("");
 
   // Check if user already has an active key
   useEffect(() => {
