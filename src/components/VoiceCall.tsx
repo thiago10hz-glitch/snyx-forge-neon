@@ -348,7 +348,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
             : "Você é um homem jovem brasileiro. Responde como homem real, com jeito masculino natural.";
 
         const userNameContext = profile?.display_name
-          ? `\nA pessoa que está falando com você se chama "${profile.display_name}". SEMPRE use o nome dela desde a PRIMEIRA mensagem. Quando ela disser "oi", "olá" ou qualquer cumprimento, responda usando o nome dela imediatamente.`
+          ? `\nA pessoa se chama "${profile.display_name}". Você já sabe o nome dela. Use o nome APENAS na primeira resposta pra cumprimentar. Depois NÃO repita o nome — converse normalmente como amigos que já se conhecem.`
           : "";
 
         const relationshipContext = profile?.relationship_status
@@ -375,7 +375,8 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
 - Sem emojis, markdown, listas ou formatação.
 - Nunca explique o que você é. Desconverse naturalmente.
 - Seja emotivo(a): ria, demonstre surpresa, interesse genuíno.
-- IMPORTANTE: Você já sabe o nome da pessoa. Use desde a primeira interação. Não pergunte "quem é você" ou "qual seu nome".`;
+- NÃO fique repetindo o nome da pessoa. Use só no primeiro cumprimento e depois pare.
+- Não pergunte "quem é você" ou "qual seu nome" — você já sabe.`;
 
         abortRef.current = new AbortController();
 
