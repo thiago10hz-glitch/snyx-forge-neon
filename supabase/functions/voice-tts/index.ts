@@ -65,8 +65,8 @@ serve(async (req) => {
     if (!response.ok) {
       const errText = await response.text();
       console.error("ElevenLabs TTS error:", response.status, errText.slice(0, 300));
-      return new Response(JSON.stringify({ error: "TTS generation failed" }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: "TTS_SERVICE_UNAVAILABLE", fallback: true }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
