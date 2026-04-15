@@ -320,21 +320,30 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
                 <MessageSquare size={10} className="text-primary/50" /> Estilo do balão de fala
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {BUBBLE_STYLES.map(b => (
-                  <button
-                    key={b.value}
-                    onClick={() => setSettings(prev => ({ ...prev, bubble_style: b.value }))}
-                    className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
-                      settings.bubble_style === b.value
-                        ? "border-primary/40 bg-primary/10 text-primary font-medium"
-                        : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
-                    }`}
-                  >
-                    <span className="text-sm">{b.emoji}</span>
-                    <span className="ml-1">{b.label}</span>
-                    <p className="text-[9px] text-muted-foreground/40 mt-0.5">{b.desc}</p>
-                  </button>
-                ))}
+                {BUBBLE_STYLES.map(b => {
+                  const locked = b.vip && !isVip;
+                  return (
+                    <button
+                      key={b.value}
+                      onClick={() => {
+                        if (locked) { toast.error("Estilo exclusivo para VIP/DEV!"); return; }
+                        setSettings(prev => ({ ...prev, bubble_style: b.value }));
+                      }}
+                      className={`text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 text-left relative ${
+                        locked
+                          ? "border-border/10 text-muted-foreground/30 opacity-60 cursor-not-allowed"
+                          : settings.bubble_style === b.value
+                            ? "border-primary/40 bg-primary/10 text-primary font-medium"
+                            : "border-border/15 text-muted-foreground/60 hover:border-border/30 hover:text-foreground"
+                      }`}
+                    >
+                      <span className="text-sm">{b.emoji}</span>
+                      <span className="ml-1">{b.label}</span>
+                      {locked && <span className="ml-1 text-[9px]">🔒</span>}
+                      <p className="text-[9px] text-muted-foreground/40 mt-0.5">{locked ? "VIP" : b.desc}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
