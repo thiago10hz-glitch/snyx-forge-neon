@@ -699,11 +699,26 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
             accent={accent}
             label={voice.label}
             levels={orbLevels}
-            active={phase === "call" ? speaking || listening || processing : true}
+            active={phase === "call" ? speaking || listening || processing : phase === "ringing" ? true : true}
             compact={phase === "pick"}
           />
 
-          {phase === "pick" ? (
+          {phase === "ringing" ? (
+            <div className="flex flex-col items-center gap-6">
+              <p className="animate-pulse text-sm text-muted-foreground">Aguarde, chamando {voice.label}...</p>
+              <button
+                onClick={() => { endCall(); onClose(); }}
+                className="flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.82))",
+                  boxShadow: "0 0 32px hsl(var(--destructive) / 0.4)",
+                }}
+                aria-label="Cancelar ligação"
+              >
+                <PhoneOff size={28} />
+              </button>
+            </div>
+          ) : phase === "pick" ? (
             <div className="flex w-full flex-col items-center gap-4">
               <div className="flex items-center justify-center gap-2 rounded-full border border-border/15 bg-card/35 p-1 backdrop-blur-sm">
                 {(["female", "male"] as const).map((item) => {
