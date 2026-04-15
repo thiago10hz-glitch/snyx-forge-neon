@@ -143,13 +143,11 @@ async function buildResponse(
     ? new Date(Date.now() + expiresMonths * 30 * 24 * 60 * 60 * 1000).toISOString()
     : null;
 
-  // Insert and activate the key
+  // Insert key as available - user will activate it themselves
   await adminClient.from("accelerator_keys").insert({
     activation_key: activationKey,
     created_by: callerId,
-    activated_by: userId,
-    activated_at: new Date().toISOString(),
-    status: "active",
+    status: "available",
     expires_at: expiresAt,
   });
 
