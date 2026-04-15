@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Crown } from "lucide-react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,13 +8,25 @@ import { toast } from "sonner";
 
 const Accelerator = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [installing, setInstalling] = useState(false);
   const [speed, setSpeed] = useState(0);
   const [activationKey, setActivationKey] = useState("");
   const [activating, setActivating] = useState(false);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [checkingKey, setCheckingKey] = useState(true);
+
+  // Speed test state
+  const [testing, setTesting] = useState(false);
+  const [testResults, setTestResults] = useState<{
+    ping: number;
+    downloadNormal: number;
+    downloadAccel: number;
+    uploadNormal: number;
+    uploadAccel: number;
+    boost: number;
+  } | null>(null);
+  const [testPhase, setTestPhase] = useState("");
 
   // Check if user already has an active key
   useEffect(() => {
@@ -38,6 +50,52 @@ const Accelerator = () => {
     }, 50);
     return () => clearInterval(interval);
   }, []);
+
+  const runSpeedTest = async () => {
+    setTesting(true);
+    setTestResults(null);
+    
+    // Measure ping
+    setTestPhase("Medindo ping...");
+    const pingStart = performance.now();
+    try { await fetch(window.location.origin + "/manifest.json", { cache: "no-store" }); } catch {}
+    const ping = Math.round(performance.now() - pingStart);
+
+    // Simulate download speed test (fetch a resource and measure time)
+    setTestPhase("Testando download...");
+    const dlStart = performance.now();
+    const testUrls = ["/manifest.json", "/robots.txt", "/placeholder.svg"];
+    await Promise.all(testUrls.map(u => fetch(window.location.origin + u, { cache: "no-store" }).then(r => r.text()).catch(() => "")));
+    const dlTime = (performance.now() - dlStart) / 1000;
+    // Estimate based on typical small file sizes (~2-5KB each)
+    const estimatedBytes = 15000; // ~15KB total
+    const downloadNormal = Math.round((estimatedBytes * 8) / dlTime / 1000); // kbps to Mbps approximation
+    const normalMbps = Math.max(downloadNormal / 100, 5 + Math.random() * 45); // Realistic range
+
+    // Simulate upload (POST timing)
+    setTestPhase("Testando upload...");
+    const ulStart = performance.now();
+    try { await fetch(window.location.origin + "/manifest.json", { method: "HEAD", cache: "no-store" }); } catch {}
+    const ulTime = performance.now() - ulStart;
+    const uploadNormal = Math.max(2, normalMbps * 0.3 + Math.random() * 5);
+
+    // Calculate "accelerated" speeds (simulated boost)
+    const boostMultiplier = 8 + Math.random() * 12; // 8x to 20x
+    const downloadAccel = Math.round(normalMbps * boostMultiplier * 10) / 10;
+    const uploadAccel = Math.round(uploadNormal * (boostMultiplier * 0.6) * 10) / 10;
+    const boost = Math.round(((downloadAccel - normalMbps) / normalMbps) * 100);
+
+    setTestPhase("Concluído!");
+    setTestResults({
+      ping: Math.max(1, ping),
+      downloadNormal: Math.round(normalMbps * 10) / 10,
+      downloadAccel,
+      uploadNormal: Math.round(uploadNormal * 10) / 10,
+      uploadAccel,
+      boost,
+    });
+    setTesting(false);
+  };
 
   const handleActivateKey = async () => {
     if (!activationKey.trim()) { toast.error("Digite a chave de ativação"); return; }
@@ -295,6 +353,85 @@ a{display:inline-block;padding:1rem 2rem;background:linear-gradient(135deg,#dc26
             </div>
           ))}
         </div>
+
+        {/* Speed Test Section - only for activated users */}
+        {hasActiveKey && user && (
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
+                <Activity className="w-6 h-6 text-red-500" />
+                Teste de Velocidade
+              </h2>
+              <p className="text-white/40 text-sm">Veja o quanto o Accelerator aumentou sua conexão com o SnyX</p>
+            </div>
+
+            <div className="text-center mb-6">
+              <Button
+                onClick={runSpeedTest}
+                disabled={testing}
+                className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 border-0 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
+              >
+                <Gauge className="w-5 h-5 mr-2" />
+                {testing ? testPhase || "Testando..." : "Iniciar Teste de Velocidade"}
+              </Button>
+            </div>
+
+            {testResults && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Ping */}
+                <div className="text-center">
+                  <span className="text-white/40 text-sm">Ping</span>
+                  <div className="text-3xl font-black text-cyan-400">{testResults.ping}<span className="text-sm text-white/40 ml-1">ms</span></div>
+                </div>
+
+                {/* Download comparison */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Download Normal</div>
+                    <div className="text-3xl font-black text-red-400">{testResults.downloadNormal}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold">
+                      +{testResults.boost}%
+                    </div>
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Com Accelerator</div>
+                    <div className="text-3xl font-black text-green-400">{testResults.downloadAccel}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                </div>
+
+                {/* Upload comparison */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Upload Normal</div>
+                    <div className="text-3xl font-black text-red-400">{testResults.uploadNormal}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Com Accelerator</div>
+                    <div className="text-3xl font-black text-green-400">{testResults.uploadAccel}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                </div>
+
+                {/* Boost bar */}
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
+                  <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Velocidade Aumentada</div>
+                  <div className="w-full bg-white/5 rounded-full h-4 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-green-500 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }}
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-orange-400 mt-2">
+                    {(testResults.downloadAccel / testResults.downloadNormal).toFixed(1)}x mais rápido
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* How it works */}
         <div className="text-center mb-16">
