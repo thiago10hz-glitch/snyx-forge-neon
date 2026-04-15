@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Palette, Lock, Check, Pipette, X } from "lucide-react";
 import { themes, useTheme, ThemeId } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
