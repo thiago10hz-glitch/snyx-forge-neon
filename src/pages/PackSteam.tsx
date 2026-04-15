@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { TiltCard } from "@/components/TiltCard";
 import { ArrowLeft, Gamepad2, Sparkles, Zap, Shield, Download, Star, Crown, Clock } from "lucide-react";
 const InfinityIcon = ({ className }: { className?: string }) => (
@@ -10,37 +9,19 @@ const InfinityIcon = ({ className }: { className?: string }) => (
 
 export default function PackSteam() {
   const { profile, user } = useAuth();
-  const { openCheckout, isOpen, CheckoutForm, closeCheckout } = useStripeCheckout();
+  const { openCheckout, isLoading, error } = useMercadoPagoCheckout();
   const hasAccess = profile?.is_vip || profile?.is_dev || profile?.is_pack_steam;
 
   const handleBuyPackSteam = () => {
     openCheckout({
-      priceId: "pack_steam_lifetime",
+      title: "Pack Steam — Acesso Vitalício",
+      description: "+40.000 jogos da Steam com acesso vitalício",
+      price: 30,
       quantity: 1,
-      customerEmail: user?.email || undefined,
+      userEmail: user?.email || undefined,
       userId: user?.id || "",
-      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     });
   };
-
-  if (isOpen && CheckoutForm) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full glass-elevated rounded-2xl overflow-hidden border border-border/20">
-          <div className="p-4 flex items-center justify-between border-b border-border/10">
-            <h2 className="text-sm font-bold">Finalizar Pagamento — Pack Steam</h2>
-            <button onClick={closeCheckout} className="p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all">
-              ✕
-            </button>
-          </div>
-          <PaymentTestModeBanner />
-          <div className="p-4">
-            <CheckoutForm />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -170,8 +151,9 @@ export default function PackSteam() {
                 <Sparkles className="w-5 h-5" />
                 Adquirir Pack Steam — $30 Vitalício
               </button>
+              {error && <p className="text-xs text-red-400">{error}</p>}
               <p className="text-xs text-muted-foreground/30">
-                Pagamento seguro via Stripe • Acesso imediato
+                Pagamento seguro via Mercado Pago • Acesso imediato
               </p>
             </div>
           )}

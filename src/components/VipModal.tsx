@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2 } from "lucide-react";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
@@ -45,14 +45,14 @@ const programmerFeatures = [
   { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido" },
 ];
 
-const PLAN_PRICES: Record<string, string> = {
-  vip: "vip_monthly",
-  rpg: "rpg_monthly",
-  programmer: "dev_monthly",
+const PLAN_CONFIG: Record<string, { title: string; price: number }> = {
+  vip: { title: "SnyX VIP", price: 50 },
+  rpg: { title: "SnyX RPG Premium", price: 80 },
+  programmer: { title: "SnyX Programador DEV", price: 120 },
 };
 
 export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps) {
-  const { openCheckout, isOpen, CheckoutForm, closeCheckout } = useStripeCheckout();
+  const { openCheckout, isLoading, error } = useMercadoPagoCheckout();
   const { user } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -60,33 +60,16 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
   const handleSubscribe = (plan: "vip" | "rpg" | "programmer") => {
     setLoadingPlan(plan);
+    const config = PLAN_CONFIG[plan];
     openCheckout({
-      priceId: PLAN_PRICES[plan],
+      title: config.title,
+      description: `Assinatura mensal ${config.title}`,
+      price: config.price,
       quantity: 1,
-      customerEmail: user?.email || undefined,
+      userEmail: user?.email || undefined,
       userId: user?.id || "",
-      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     });
   };
-
-  if (isOpen && CheckoutForm) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-        <div className="glass-elevated rounded-2xl max-w-2xl w-full overflow-hidden animate-enter border border-border/20 max-h-[90vh] flex flex-col">
-          <div className="p-4 flex items-center justify-between border-b border-border/10 shrink-0">
-            <h2 className="text-sm font-bold">Finalizar Pagamento</h2>
-            <button onClick={() => { closeCheckout(); setLoadingPlan(null); }} className="p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all">
-              <X size={18} />
-            </button>
-          </div>
-          <PaymentTestModeBanner />
-          <div className="flex-1 overflow-y-auto p-4">
-            <CheckoutForm />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
@@ -263,8 +246,11 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
         {/* Footer */}
         <div className="px-5 pb-4 shrink-0">
+          {error && (
+            <p className="text-[11px] text-red-400 text-center mb-2">{error}</p>
+          )}
           <p className="text-[10px] text-muted-foreground/30 text-center">
-            Pagamento seguro via Stripe • Cartão de crédito/débito • Cancele quando quiser
+            Pagamento seguro via Mercado Pago • Pix, cartão, boleto • Cancele quando quiser
           </p>
         </div>
       </div>
