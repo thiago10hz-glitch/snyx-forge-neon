@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { resolveCharacterAvatar } from "@/lib/characterAvatars";
+import { RpgPlayerCharacter, useActivePlayerCharacter } from "./RpgPlayerCharacter";
 
 interface ImageAttachment {
   kind: "image";
