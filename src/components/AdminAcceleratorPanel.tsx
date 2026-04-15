@@ -152,8 +152,20 @@ export function AdminAcceleratorPanel() {
         },
       });
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Erro ao criar conta");
+      if (error) {
+        const msg = typeof error === 'object' && 'message' in error ? error.message : String(error);
+        if (msg.includes("already been registered") || msg.includes("já")) {
+          throw new Error("Esse email já está cadastrado. Use outro email.");
+        }
+        throw new Error(msg);
+      }
+      if (!data?.success) {
+        const errMsg = data?.error || "Erro ao criar conta";
+        if (errMsg.includes("already been registered")) {
+          throw new Error("Esse email já está cadastrado. Use outro email.");
+        }
+        throw new Error(errMsg);
+      }
 
       setGeneratedAccount(data.account);
       toast.success("Conta criada com sucesso!");
