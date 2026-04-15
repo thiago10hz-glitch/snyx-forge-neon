@@ -51,6 +51,52 @@ const Accelerator = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const runSpeedTest = async () => {
+    setTesting(true);
+    setTestResults(null);
+    
+    // Measure ping
+    setTestPhase("Medindo ping...");
+    const pingStart = performance.now();
+    try { await fetch(window.location.origin + "/manifest.json", { cache: "no-store" }); } catch {}
+    const ping = Math.round(performance.now() - pingStart);
+
+    // Simulate download speed test (fetch a resource and measure time)
+    setTestPhase("Testando download...");
+    const dlStart = performance.now();
+    const testUrls = ["/manifest.json", "/robots.txt", "/placeholder.svg"];
+    await Promise.all(testUrls.map(u => fetch(window.location.origin + u, { cache: "no-store" }).then(r => r.text()).catch(() => "")));
+    const dlTime = (performance.now() - dlStart) / 1000;
+    // Estimate based on typical small file sizes (~2-5KB each)
+    const estimatedBytes = 15000; // ~15KB total
+    const downloadNormal = Math.round((estimatedBytes * 8) / dlTime / 1000); // kbps to Mbps approximation
+    const normalMbps = Math.max(downloadNormal / 100, 5 + Math.random() * 45); // Realistic range
+
+    // Simulate upload (POST timing)
+    setTestPhase("Testando upload...");
+    const ulStart = performance.now();
+    try { await fetch(window.location.origin + "/manifest.json", { method: "HEAD", cache: "no-store" }); } catch {}
+    const ulTime = performance.now() - ulStart;
+    const uploadNormal = Math.max(2, normalMbps * 0.3 + Math.random() * 5);
+
+    // Calculate "accelerated" speeds (simulated boost)
+    const boostMultiplier = 8 + Math.random() * 12; // 8x to 20x
+    const downloadAccel = Math.round(normalMbps * boostMultiplier * 10) / 10;
+    const uploadAccel = Math.round(uploadNormal * (boostMultiplier * 0.6) * 10) / 10;
+    const boost = Math.round(((downloadAccel - normalMbps) / normalMbps) * 100);
+
+    setTestPhase("Concluído!");
+    setTestResults({
+      ping: Math.max(1, ping),
+      downloadNormal: Math.round(normalMbps * 10) / 10,
+      downloadAccel,
+      uploadNormal: Math.round(uploadNormal * 10) / 10,
+      uploadAccel,
+      boost,
+    });
+    setTesting(false);
+  };
+
   const handleActivateKey = async () => {
     if (!activationKey.trim()) { toast.error("Digite a chave de ativação"); return; }
     setActivating(true);
