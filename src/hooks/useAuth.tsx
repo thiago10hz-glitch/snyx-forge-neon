@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, useRef, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -35,52 +35,79 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
+// In-flight dedup: only one profile fetch at a time
+let profileFetchPromise: Promise<Profile | null> | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const initializedRef = useRef(false);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    // Deduplicate concurrent calls
+    if (profileFetchPromise) return profileFetchPromise;
+    
+    profileFetchPromise = supabase
       .from("profiles")
       .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge")
       .eq("user_id", userId)
-      .single();
-    if (data) setProfile(data as Profile);
-  };
+      .single()
+      .then(({ data }) => {
+        const p = data as Profile | null;
+        if (p) setProfile(p);
+        profileFetchPromise = null;
+        return p;
+      })
+      .catch(() => {
+        profileFetchPromise = null;
+        return null;
+      });
+
+    return profileFetchPromise;
+  }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => fetchProfile(session.user.id), 0);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
-      }
-    );
-
+    // Get initial session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setLoading(false);
+      if (session?.user) {
+        fetchProfile(session.user.id).then(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+      initializedRef.current = true;
     });
 
+    // Then listen for changes (skip the initial event since we handle it above)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!initializedRef.current) return; // Skip first event, handled by getSession
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
     return () => subscription.unsubscribe();
+  }, [fetchProfile]);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
-  };
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      profileFetchPromise = null; // Force fresh fetch
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
 
   return (
     <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
