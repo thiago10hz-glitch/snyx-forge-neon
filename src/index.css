@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Fonts loaded via index.html preload for max speed */
 
 @tailwind base;
 @tailwind components;
@@ -47,6 +47,16 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    text-rendering: optimizeSpeed;
+  }
+  img, video {
+    content-visibility: auto;
+  }
+  /* GPU-accelerate animated elements */
+  .animate-float, .animate-glow-pulse, .animate-shimmer, .animate-breathe,
+  .animate-pulse-ring, .animate-spin-slow, .animate-reveal, .animate-fade-in-up {
+    will-change: transform, opacity;
+    transform: translateZ(0);
   }
 }
 
