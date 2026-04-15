@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { type StripeEnv, stripeRequest } from "../_shared/stripe.ts";
+import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,20 +21,32 @@ serve(async (req) => {
     }
 
     const env = (environment || 'sandbox') as StripeEnv;
-    const prices = await stripeRequest(env, 'GET', `/v1/prices?lookup_keys[]=${encodeURIComponent(priceId)}`);
+    const stripe = createStripeClient(env);
+    const prices = await stripe.prices.list({ lookup_keys: [priceId] });
+    const priceData = Array.isArray((prices as { data?: unknown }).data)
+      ? (prices as { data: Array<{ id: string }> }).data
+      : null;
 
-    if (!prices.data || !prices.data.length) {
+    if (!priceData) {
+      const gatewayMessage = typeof (prices as { message?: unknown }).message === "string"
+        ? (prices as { message: string }).message
+        : "Stripe gateway returned an invalid response";
+      throw new Error(gatewayMessage);
+    }
+
+    if (!priceData.length) {
       return new Response(JSON.stringify({ error: "Price not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ stripeId: prices.data[0].id }), {
+    return new Response(JSON.stringify({ stripeId: priceData[0].id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
