@@ -1,97 +1,89 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 function generateIMEI(): string {
   let imei = "";
-  for (let i = 0; i < 15; i++) {
-    imei += Math.floor(Math.random() * 10).toString();
-  }
+  for (let i = 0; i < 15; i++) imei += Math.floor(Math.random() * 10).toString();
   return imei;
 }
 
-async function generateWgKeys(vpnApiUrl: string, vpnApiToken: string): Promise<{ private_key: string; public_key: string } | null> {
+async function fetchWithTimeout(url: string, opts: RequestInit, timeoutMs = 5000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(`${vpnApiUrl}/generate-keys`, {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function generateWgKeys(vpnApiUrl: string, vpnApiToken: string) {
+  try {
+    const res = await fetchWithTimeout(`${vpnApiUrl}/generate-keys`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${vpnApiToken}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${vpnApiToken}`, "Content-Type": "application/json" },
     });
-    if (res.ok) {
-      return await res.json();
-    }
+    if (res.ok) return await res.json() as { private_key: string; public_key: string };
   } catch (e) {
-    console.error("Failed to generate keys via VPS API:", e);
+    console.error("WG key gen failed:", e);
   }
   return null;
 }
 
-async function addPeerToServer(vpnApiUrl: string, vpnApiToken: string, publicKey: string, allowedIp: string): Promise<boolean> {
+async function addPeerToServer(vpnApiUrl: string, vpnApiToken: string, publicKey: string, allowedIp: string) {
   try {
-    const res = await fetch(`${vpnApiUrl}/add-peer`, {
+    const res = await fetchWithTimeout(`${vpnApiUrl}/add-peer`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${vpnApiToken}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${vpnApiToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ public_key: publicKey, allowed_ip: allowedIp }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      console.log("Peer added to server:", data);
-      return true;
-    } else {
-      const err = await res.text();
-      console.error("Failed to add peer:", err);
-    }
+    if (res.ok) return true;
+    console.error("Add peer failed:", await res.text());
   } catch (e) {
-    console.error("Failed to connect to VPS API:", e);
+    console.error("Add peer error:", e);
   }
   return false;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
-
     const WG_SERVER_PUBLIC_KEY = Deno.env.get("WG_SERVER_PUBLIC_KEY") || "";
-    const WG_SERVER_PRIVATE_KEY = Deno.env.get("WG_SERVER_PRIVATE_KEY") || "";
     const WG_SERVER_IP = Deno.env.get("WG_SERVER_IP") || "";
     const VPN_API_URL = Deno.env.get("VPN_API_URL") || "";
     const VPN_API_TOKEN = Deno.env.get("VPN_API_TOKEN") || "";
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return json({ error: "Não autorizado" }, 401);
 
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user: caller } } = await callerClient.auth.getUser();
-    if (!caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    // Parse body and auth in parallel
+    const [bodyData, { data: { user: caller } }] = await Promise.all([
+      req.json(),
+      callerClient.auth.getUser(),
+    ]);
+
+    if (!caller) return json({ error: "Não autorizado" }, 401);
+
+    // Check admin role
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
@@ -99,253 +91,140 @@ serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Apenas admins podem criar contas" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!roleData) return json({ error: "Apenas admins podem criar contas" }, 403);
 
-    const { password, display_name, expires_months } = await req.json();
+    const { password, display_name, expires_months } = bodyData;
+    if (!password || password.length < 6) return json({ error: "Senha deve ter no mínimo 6 caracteres" }, 400);
+    if (!WG_SERVER_PUBLIC_KEY || !WG_SERVER_IP) return json({ error: "Servidor VPN não configurado." }, 500);
 
-    if (!password || password.length < 6) {
-      return new Response(JSON.stringify({ error: "Senha deve ter no mínimo 6 caracteres" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!WG_SERVER_PUBLIC_KEY || !WG_SERVER_IP) {
-      return new Response(JSON.stringify({ error: "Servidor VPN não configurado. Configure WG_SERVER_PUBLIC_KEY e WG_SERVER_IP nos secrets." }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Sync server config to DB
-    const { data: existingConfig } = await adminClient.from("vpn_server_config").select("id").limit(1).single();
-    if (existingConfig) {
-      await adminClient.from("vpn_server_config").update({
-        server_ip: WG_SERVER_IP,
-        server_public_key: WG_SERVER_PUBLIC_KEY,
-        server_private_key: WG_SERVER_PRIVATE_KEY,
-        listen_port: 51820,
-        is_setup: true,
-      }).eq("id", existingConfig.id);
-    } else {
-      await adminClient.from("vpn_server_config").insert({
-        server_ip: WG_SERVER_IP,
-        server_public_key: WG_SERVER_PUBLIC_KEY,
-        server_private_key: WG_SERVER_PRIVATE_KEY,
-        listen_port: 51820,
-        is_setup: true,
-      });
-    }
-
+    // Create user account
     const imei = generateIMEI();
     const loginEmail = `${imei}@vpn.snyx`;
+    const name = display_name || `VPN-${imei.slice(0, 9)}`;
+
+    let userId: string;
+    let finalImei = imei;
+    let finalEmail = loginEmail;
 
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email: loginEmail,
       password,
       email_confirm: true,
-      user_metadata: {
-        full_name: display_name || `VPN-${imei.slice(0, 9)}`,
-        vpn_imei: imei,
-      },
+      user_metadata: { full_name: name, vpn_imei: imei },
     });
 
     if (createError) {
-      if (createError.message.includes("already been registered")) {
-        const imei2 = generateIMEI();
-        const loginEmail2 = `${imei2}@vpn.snyx`;
-        const { data: retryUser, error: retryError } = await adminClient.auth.admin.createUser({
-          email: loginEmail2,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: display_name || `VPN-${imei2.slice(0, 9)}`,
-            vpn_imei: imei2,
-          },
-        });
-
-        if (retryError) {
-          return new Response(JSON.stringify({ error: retryError.message }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        return buildResponse(adminClient, caller.id, imei2, password, display_name, expires_months, retryUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP, VPN_API_URL, VPN_API_TOKEN);
+      if (!createError.message.includes("already been registered")) {
+        return json({ error: createError.message }, 400);
       }
-
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Retry with new IMEI
+      finalImei = generateIMEI();
+      finalEmail = `${finalImei}@vpn.snyx`;
+      const { data: retryUser, error: retryError } = await adminClient.auth.admin.createUser({
+        email: finalEmail,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: display_name || `VPN-${finalImei.slice(0, 9)}`, vpn_imei: finalImei },
       });
+      if (retryError) return json({ error: retryError.message }, 400);
+      userId = retryUser!.user.id;
+    } else {
+      userId = newUser!.user.id;
     }
 
-    return buildResponse(adminClient, caller.id, imei, password, display_name, expires_months, newUser!.user.id, WG_SERVER_PUBLIC_KEY, WG_SERVER_IP, VPN_API_URL, VPN_API_TOKEN);
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+    // Generate key string
+    const keyPart1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const keyPart2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const keyPart3 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const activationKey = `SNYX-ACC-${keyPart1}-${keyPart2}-${keyPart3}`;
+    const expiresAt = expires_months
+      ? new Date(Date.now() + expires_months * 30 * 24 * 60 * 60 * 1000).toISOString()
+      : null;
 
-async function buildResponse(
-  adminClient: any,
-  callerId: string,
-  imei: string,
-  password: string,
-  displayName: string | undefined,
-  expiresMonths: number | null,
-  userId: string,
-  serverPublicKey: string,
-  serverIp: string,
-  vpnApiUrl: string,
-  vpnApiToken: string,
-) {
-  const keyPart1 = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const keyPart2 = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const keyPart3 = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const activationKey = `SNYX-ACC-${keyPart1}-${keyPart2}-${keyPart3}`;
+    // Run key insert, WG key generation, and peer count ALL in parallel
+    const [keyInsertResult, wgKeys, peerCountResult] = await Promise.all([
+      adminClient.from("accelerator_keys").insert({
+        activation_key: activationKey,
+        created_by: caller.id,
+        status: "active",
+        activated_by: userId,
+        activated_at: new Date().toISOString(),
+        expires_at: expiresAt,
+        linked_imei: finalImei,
+      }).select("id").single(),
+      VPN_API_URL && VPN_API_TOKEN ? generateWgKeys(VPN_API_URL, VPN_API_TOKEN) : Promise.resolve(null),
+      adminClient.from("vpn_peers").select("*", { count: "exact", head: true }),
+    ]);
 
-  const expiresAt = expiresMonths
-    ? new Date(Date.now() + expiresMonths * 30 * 24 * 60 * 60 * 1000).toISOString()
-    : null;
+    const keyId = keyInsertResult.data?.id || null;
+    const peerNumber = ((peerCountResult.count || 0) + 2);
+    const assignedIp = `10.0.0.${peerNumber}`;
 
-  // Insert activation key
-  const { data: keyRow } = await adminClient.from("accelerator_keys").insert({
-    activation_key: activationKey,
-    created_by: callerId,
-    status: "active",
-    activated_by: userId,
-    activated_at: new Date().toISOString(),
-    expires_at: expiresAt,
-    linked_imei: imei,
-  }).select("id").single();
+    let peerPrivateKey: string;
+    let peerPublicKey: string;
+    let serverRegistered = false;
 
-  // Generate WireGuard peer keys - try via VPS API first (real keys), fallback to random
-  let peerPrivateKey: string;
-  let peerPublicKey: string;
-  let serverRegistered = false;
+    if (wgKeys) {
+      peerPrivateKey = wgKeys.private_key;
+      peerPublicKey = wgKeys.public_key;
+      // Register peer on server and save to DB in parallel
+      const [registered] = await Promise.all([
+        addPeerToServer(VPN_API_URL, VPN_API_TOKEN, peerPublicKey, assignedIp),
+        adminClient.from("vpn_peers").insert({
+          user_id: userId,
+          peer_private_key: peerPrivateKey,
+          peer_public_key: peerPublicKey,
+          assigned_ip: assignedIp,
+          activated_with_key: keyId,
+        }),
+      ]);
+      serverRegistered = registered;
+    } else {
+      // Fallback: random keys
+      const bytes1 = new Uint8Array(32);
+      crypto.getRandomValues(bytes1);
+      peerPrivateKey = btoa(String.fromCharCode(...bytes1));
+      const bytes2 = new Uint8Array(32);
+      crypto.getRandomValues(bytes2);
+      peerPublicKey = btoa(String.fromCharCode(...bytes2));
 
-  if (vpnApiUrl && vpnApiToken) {
-    const keys = await generateWgKeys(vpnApiUrl, vpnApiToken);
-    if (keys) {
-      peerPrivateKey = keys.private_key;
-      peerPublicKey = keys.public_key;
-
-      // Count existing peers to assign next IP
-      const { count } = await adminClient
-        .from("vpn_peers")
-        .select("*", { count: "exact", head: true });
-      const peerNumber = (count || 0) + 2;
-      const assignedIp = `10.0.0.${peerNumber}`;
-
-      // Register peer on the VPS server automatically
-      serverRegistered = await addPeerToServer(vpnApiUrl, vpnApiToken, peerPublicKey, assignedIp);
-
-      // Create VPN peer in DB
       await adminClient.from("vpn_peers").insert({
         user_id: userId,
         peer_private_key: peerPrivateKey,
         peer_public_key: peerPublicKey,
         assigned_ip: assignedIp,
-        activated_with_key: keyRow?.id || null,
+        activated_with_key: keyId,
       });
-
-      const wgConfig = `[Interface]
-PrivateKey = ${peerPrivateKey}
-Address = ${assignedIp}/24
-DNS = 1.1.1.1, 8.8.8.8
-
-[Peer]
-PublicKey = ${serverPublicKey}
-Endpoint = ${serverIp}:51820
-AllowedIPs = 0.0.0.0/0, ::/0
-PersistentKeepalive = 25`;
-
-      const name = displayName || `VPN-${imei.slice(0, 9)}`;
-      const loginEmail = `${imei}@vpn.snyx`;
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          server_registered: serverRegistered,
-          account: {
-            imei,
-            login_email: loginEmail,
-            password,
-            user_id: userId,
-            activation_key: activationKey,
-            expires_at: expiresAt,
-            display_name: name,
-            assigned_ip: assignedIp,
-            wg_config: wgConfig,
-          },
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
     }
-  }
 
-  // Fallback: generate random keys (won't work with real WireGuard but saves in DB)
-  const peerKeyBytes = new Uint8Array(32);
-  crypto.getRandomValues(peerKeyBytes);
-  peerPrivateKey = btoa(String.fromCharCode(...peerKeyBytes));
-
-  const peerPubBytes = new Uint8Array(32);
-  crypto.getRandomValues(peerPubBytes);
-  peerPublicKey = btoa(String.fromCharCode(...peerPubBytes));
-
-  const { count } = await adminClient
-    .from("vpn_peers")
-    .select("*", { count: "exact", head: true });
-  const peerNumber = (count || 0) + 2;
-  const assignedIp = `10.0.0.${peerNumber}`;
-
-  await adminClient.from("vpn_peers").insert({
-    user_id: userId,
-    peer_private_key: peerPrivateKey,
-    peer_public_key: peerPublicKey,
-    assigned_ip: assignedIp,
-    activated_with_key: keyRow?.id || null,
-  });
-
-  const wgConfig = `[Interface]
+    const wgConfig = `[Interface]
 PrivateKey = ${peerPrivateKey}
 Address = ${assignedIp}/24
 DNS = 1.1.1.1, 8.8.8.8
 
 [Peer]
-PublicKey = ${serverPublicKey}
-Endpoint = ${serverIp}:51820
+PublicKey = ${WG_SERVER_PUBLIC_KEY}
+Endpoint = ${WG_SERVER_IP}:51820
 AllowedIPs = 0.0.0.0/0, ::/0
 PersistentKeepalive = 25`;
 
-  const name = displayName || `VPN-${imei.slice(0, 9)}`;
-  const loginEmail = `${imei}@vpn.snyx`;
-
-  return new Response(
-    JSON.stringify({
+    return json({
       success: true,
-      server_registered: false,
+      server_registered: serverRegistered,
       account: {
-        imei,
-        login_email: loginEmail,
+        imei: finalImei,
+        login_email: finalEmail,
         password,
         user_id: userId,
         activation_key: activationKey,
         expires_at: expiresAt,
-        display_name: name,
+        display_name: display_name || `VPN-${finalImei.slice(0, 9)}`,
         assigned_ip: assignedIp,
         wg_config: wgConfig,
       },
-    }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-  );
-}
+    });
+  } catch (error) {
+    console.error("create-vpn-account error:", error);
+    return json({ error: error.message }, 500);
+  }
+});
