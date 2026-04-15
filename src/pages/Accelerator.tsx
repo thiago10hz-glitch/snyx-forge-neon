@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Smartphone, Monitor, Apple } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -8,12 +8,24 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+type Platform = "android" | "ios" | "desktop-chromium" | "desktop-other";
+
+const detectPlatform = (): Platform => {
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) return "android";
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Chrome|Chromium|Edg|Brave|OPR/.test(ua)) return "desktop-chromium";
+  return "desktop-other";
+};
+
 const Accelerator = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [speed, setSpeed] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const platform = detectPlatform();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -29,7 +41,6 @@ const Accelerator = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Animated speed counter
   useEffect(() => {
     const interval = setInterval(() => {
       setSpeed(prev => {
@@ -50,6 +61,8 @@ const Accelerator = () => {
       }
       setDeferredPrompt(null);
       setInstalling(false);
+    } else {
+      setShowInstructions(true);
     }
   };
 
