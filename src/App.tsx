@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import OwnerPanel from "./pages/OwnerPanel";
 import IPTV from "./pages/IPTV";
 import Hosting from "./pages/Hosting";
 import ResetPassword from "./pages/ResetPassword";
@@ -91,6 +92,7 @@ const App = () => {
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
               <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
               <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
               <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
