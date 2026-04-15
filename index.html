@@ -58,8 +58,9 @@
 
     <style>
       /* Critical CSS inline - instant first paint */
-      html { background: #07070f; }
-      body { margin: 0; background: #07070f; color: #f2f2f2; font-family: Inter, system-ui, -apple-system, sans-serif; }
+      html { background: #07070f; height: 100%; overflow: hidden; }
+      body { margin: 0; background: #07070f; color: #f2f2f2; font-family: Inter, system-ui, -apple-system, sans-serif; height: 100%; overflow: hidden; position: fixed; width: 100%; }
+      #root { height: 100dvh; height: 100vh; overflow: hidden; }
       #root { min-height: 100vh; }
       /* Instant loading spinner */
       .app-loader { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
