@@ -58,6 +58,50 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function CopyProtection() {
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) return;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+        setIsAdmin(!!data);
+      });
+    });
+  }, [user]);
+
+  React.useEffect(() => {
+    if (isAdmin) {
+      document.documentElement.style.userSelect = '';
+      return;
+    }
+
+    // Block copy/cut/select for non-admins
+    document.documentElement.style.userSelect = 'none';
+
+    const blockCopy = (e: ClipboardEvent) => {
+      if (!isAdmin) e.preventDefault();
+    };
+    const blockSelect = (e: Event) => {
+      if (!isAdmin) e.preventDefault();
+    };
+
+    document.addEventListener('copy', blockCopy);
+    document.addEventListener('cut', blockCopy);
+    document.addEventListener('selectstart', blockSelect);
+
+    return () => {
+      document.documentElement.style.userSelect = '';
+      document.removeEventListener('copy', blockCopy);
+      document.removeEventListener('cut', blockCopy);
+      document.removeEventListener('selectstart', blockSelect);
+    };
+  }, [isAdmin]);
+
+  return null;
+}
+
 const App = () => {
   React.useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -65,7 +109,7 @@ const App = () => {
       if (
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase()))
+        (e.ctrlKey && ['U', 'S', 'C', 'A'].includes(e.key.toUpperCase()))
       ) {
         e.preventDefault();
       }
