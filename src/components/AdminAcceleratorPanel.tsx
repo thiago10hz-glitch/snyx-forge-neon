@@ -201,7 +201,20 @@ export function AdminAcceleratorPanel() {
       } else {
         toast.success("Conta criada! (peer não registrado automaticamente no servidor)");
       }
-      fetchKeys();
+      setKeys((prev) => [
+        {
+          id: crypto.randomUUID(),
+          activation_key: data.account.activation_key,
+          status: "active",
+          created_at: new Date().toISOString(),
+          activated_by: data.account.user_id,
+          activated_at: new Date().toISOString(),
+          expires_at: data.account.expires_at,
+          linked_imei: data.account.imei,
+          activated_user_name: data.account.display_name,
+        },
+        ...prev,
+      ]);
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar conta");
     }
@@ -324,7 +337,7 @@ export function AdminAcceleratorPanel() {
 
             <Button onClick={createAccount} disabled={creatingAccount} className="w-full gap-2 bg-purple-600 hover:bg-purple-700">
               {creatingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-              Criar Conta + Ativar Chave
+              {creatingAccount ? "Criando conta, chave e VPN..." : "Criar Conta + Ativar Chave"}
             </Button>
           </div>
         )}
