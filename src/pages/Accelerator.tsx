@@ -354,6 +354,85 @@ a{display:inline-block;padding:1rem 2rem;background:linear-gradient(135deg,#dc26
           ))}
         </div>
 
+        {/* Speed Test Section - only for activated users */}
+        {hasActiveKey && user && (
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
+                <Activity className="w-6 h-6 text-red-500" />
+                Teste de Velocidade
+              </h2>
+              <p className="text-white/40 text-sm">Veja o quanto o Accelerator aumentou sua conexão com o SnyX</p>
+            </div>
+
+            <div className="text-center mb-6">
+              <Button
+                onClick={runSpeedTest}
+                disabled={testing}
+                className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 border-0 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
+              >
+                <Gauge className="w-5 h-5 mr-2" />
+                {testing ? testPhase || "Testando..." : "Iniciar Teste de Velocidade"}
+              </Button>
+            </div>
+
+            {testResults && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Ping */}
+                <div className="text-center">
+                  <span className="text-white/40 text-sm">Ping</span>
+                  <div className="text-3xl font-black text-cyan-400">{testResults.ping}<span className="text-sm text-white/40 ml-1">ms</span></div>
+                </div>
+
+                {/* Download comparison */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Download Normal</div>
+                    <div className="text-3xl font-black text-red-400">{testResults.downloadNormal}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold">
+                      +{testResults.boost}%
+                    </div>
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Com Accelerator</div>
+                    <div className="text-3xl font-black text-green-400">{testResults.downloadAccel}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                </div>
+
+                {/* Upload comparison */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Upload Normal</div>
+                    <div className="text-3xl font-black text-red-400">{testResults.uploadNormal}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
+                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Com Accelerator</div>
+                    <div className="text-3xl font-black text-green-400">{testResults.uploadAccel}</div>
+                    <div className="text-xs text-white/30">Mb/s</div>
+                  </div>
+                </div>
+
+                {/* Boost bar */}
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
+                  <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Velocidade Aumentada</div>
+                  <div className="w-full bg-white/5 rounded-full h-4 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-green-500 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }}
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-orange-400 mt-2">
+                    {(testResults.downloadAccel / testResults.downloadNormal).toFixed(1)}x mais rápido
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* How it works */}
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold mb-8">Como funciona?</h2>
