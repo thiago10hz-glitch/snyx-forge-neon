@@ -89,6 +89,17 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
         throw new Error("TTS failed");
       }
 
+      // Check if response is JSON (fallback signal) vs audio
+      const contentType = response.headers.get("Content-Type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        if (data?.fallback) {
+          console.warn("ElevenLabs unavailable, using browser TTS");
+          throw new Error("fallback");
+        }
+        throw new Error(data?.error || "TTS failed");
+      }
+
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
 
