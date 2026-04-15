@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import OwnerPanel from "./pages/OwnerPanel";
 import IPTV from "./pages/IPTV";
 import Hosting from "./pages/Hosting";
 import ResetPassword from "./pages/ResetPassword";
