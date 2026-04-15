@@ -318,7 +318,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
               <label className="text-xs font-medium text-muted-foreground/60 mb-2 block flex items-center gap-1.5">
                 <MessageSquare size={10} className="text-primary/50" /> Estilo do balão de fala
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {BUBBLE_STYLES.map(b => (
                   <button
                     key={b.value}
