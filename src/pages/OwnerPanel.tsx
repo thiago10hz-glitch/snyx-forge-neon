@@ -171,6 +171,7 @@ export default function OwnerPanel() {
   const tabs: { key: OwnerTab; label: string; icon: typeof Crown }[] = [
     { key: "overview", label: "Visão Geral", icon: Eye },
     { key: "analytics", label: "Analytics", icon: BarChart3 },
+    { key: "admins", label: "Administradores", icon: ShieldCheck },
     { key: "broadcast", label: "Broadcast", icon: Megaphone },
     { key: "actions", label: "Ações Rápidas", icon: Zap },
     { key: "platform", label: "Plataforma", icon: Settings },
