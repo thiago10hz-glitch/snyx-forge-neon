@@ -692,6 +692,212 @@ function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
   );
 }
 
+/* ─── Admins Tab ─── */
+function AdminsTab() {
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchResult, setSearchResult] = useState<{ user_id: string; display_name: string | null; is_admin: boolean } | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [admins, setAdmins] = useState<{ user_id: string; display_name: string | null; role: string }[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchAdmins = async () => {
+    setLoadingAdmins(true);
+    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+    if (roles && roles.length > 0) {
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
+      const namesMap: Record<string, string | null> = {};
+      (profiles || []).forEach(p => { namesMap[p.user_id] = p.display_name; });
+      setAdmins(roles.map(r => ({ ...r, display_name: namesMap[r.user_id] || null })));
+    } else {
+      setAdmins([]);
+    }
+    setLoadingAdmins(false);
+  };
+
+  useEffect(() => { fetchAdmins(); }, []);
+
+  const searchUser = async () => {
+    if (!searchEmail.trim()) return;
+    setSearching(true);
+    setSearchResult(null);
+    try {
+      const { data: userId, error } = await supabase.rpc("find_user_by_email", { p_email: searchEmail.trim() });
+      if (error || !userId) {
+        toast.error("Usuário não encontrado com esse email");
+        setSearching(false);
+        return;
+      }
+      const { data: profile } = await supabase.from("profiles").select("user_id, display_name").eq("user_id", userId).single();
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      const isAdmin = (roles || []).some(r => r.role === "admin");
+      setSearchResult({
+        user_id: userId,
+        display_name: profile?.display_name || null,
+        is_admin: isAdmin,
+      });
+    } catch {
+      toast.error("Erro ao buscar usuário");
+    }
+    setSearching(false);
+  };
+
+  const grantAdmin = async (userId: string) => {
+    setActionLoading(userId);
+    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" as any });
+    if (error) {
+      if (error.message.includes("duplicate") || error.message.includes("unique")) {
+        toast.info("Usuário já é admin");
+      } else {
+        toast.error("Erro: " + error.message);
+      }
+    } else {
+      toast.success("Admin concedido com sucesso!");
+      if (searchResult) setSearchResult({ ...searchResult, is_admin: true });
+      fetchAdmins();
+    }
+    setActionLoading(null);
+  };
+
+  const revokeAdmin = async (userId: string) => {
+    setActionLoading(userId);
+    const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin" as any);
+    if (error) {
+      toast.error("Erro: " + error.message);
+    } else {
+      toast.success("Admin removido!");
+      if (searchResult?.user_id === userId) setSearchResult({ ...searchResult, is_admin: false });
+      fetchAdmins();
+    }
+    setActionLoading(null);
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Search User */}
+      <div className="rounded-2xl border border-amber-500/15 bg-gradient-to-br from-amber-950/10 to-background p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <ShieldCheck className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-bold">Gerenciar Administradores</h3>
+        </div>
+        <p className="text-[10px] text-muted-foreground/40 mb-4">Busque por email para dar ou remover o cargo de admin</p>
+
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={searchEmail}
+            onChange={(e) => setSearchEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && searchUser()}
+            placeholder="Email do usuário..."
+            className="flex-1 px-3 py-2 rounded-xl bg-muted/30 border border-border/20 text-sm focus:outline-none focus:border-amber-500/30"
+          />
+          <button
+            onClick={searchUser}
+            disabled={searching}
+            className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-all border border-amber-500/20 flex items-center gap-2"
+          >
+            {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Users className="w-3.5 h-3.5" />}
+            Buscar
+          </button>
+        </div>
+
+        {searchResult && (
+          <div className="mt-4 p-4 rounded-xl border border-border/20 bg-card/30 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">{searchResult.display_name || "Sem nome"}</p>
+              <p className="text-[10px] text-muted-foreground/40 font-mono">{searchResult.user_id.slice(0, 12)}...</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                {searchResult.is_admin ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-bold">
+                    ✅ Admin
+                  </span>
+                ) : (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/20 font-medium">
+                    Usuário comum
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
+              {searchResult.is_admin ? (
+                <button
+                  onClick={() => revokeAdmin(searchResult.user_id)}
+                  disabled={actionLoading === searchResult.user_id}
+                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all border border-red-500/20 flex items-center gap-1.5"
+                >
+                  {actionLoading === searchResult.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
+                  Remover Admin
+                </button>
+              ) : (
+                <button
+                  onClick={() => grantAdmin(searchResult.user_id)}
+                  disabled={actionLoading === searchResult.user_id}
+                  className="px-3 py-2 rounded-xl text-xs font-medium bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all border border-emerald-500/20 flex items-center gap-1.5"
+                >
+                  {actionLoading === searchResult.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                  Dar Admin
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Current Admins List */}
+      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Crown className="w-4 h-4 text-amber-400" />
+            <h3 className="text-sm font-bold">Admins Atuais</h3>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">{admins.length}</span>
+          </div>
+          <button onClick={fetchAdmins} className="text-muted-foreground/40 hover:text-foreground transition">
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingAdmins ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+
+        {loadingAdmins ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-5 h-5 animate-spin text-amber-400/50" />
+          </div>
+        ) : admins.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground/40 py-6">Nenhum admin encontrado</p>
+        ) : (
+          <div className="space-y-2">
+            {admins.map((a) => (
+              <div key={a.user_id + a.role} className="flex items-center justify-between p-3 rounded-xl border border-border/15 hover:bg-muted/10 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/20 to-yellow-500/20 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">{a.display_name || "Sem nome"}</p>
+                    <p className="text-[10px] text-muted-foreground/30 font-mono">{a.user_id.slice(0, 12)}...</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/15 font-bold uppercase">
+                    {a.role}
+                  </span>
+                  <button
+                    onClick={() => revokeAdmin(a.user_id)}
+                    disabled={actionLoading === a.user_id}
+                    className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                    title="Remover admin"
+                  >
+                    {actionLoading === a.user_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Platform Tab ─── */
 function PlatformTab({ stats }: { stats: PlatformStats }) {
   const services = [
