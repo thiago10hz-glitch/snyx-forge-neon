@@ -194,11 +194,22 @@ export default function Auth() {
         return;
       }
 
+      // Auto-confirm is enabled, so auto-login after signup
+      if (data?.success) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password,
+        });
+        if (!loginError) {
+          toast({ title: "Conta criada!", description: "Bem-vindo ao SnyX!" });
+          navigate("/");
+          return;
+        }
+      }
+
       toast({
         title: "Cadastro realizado",
-        description: data?.requires_email_confirmation
-          ? "Conta criada com sucesso. Verifique seu e-mail para confirmar o cadastro."
-          : "Conta criada com sucesso. Agora entre com seu e-mail e senha.",
+        description: "Conta criada com sucesso! Faça login para continuar.",
       });
       setPassword("");
       setView("login");
