@@ -8,7 +8,7 @@ import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPre
 import { SupportChat } from "@/components/SupportChat";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { VipModal } from "@/components/VipModal";
-import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users, Palette } from "lucide-react";
+import { Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download, Menu, Gamepad2, Users, Palette, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -131,10 +131,16 @@ const Index = () => {
             </Link>
           ))}
           {isAdmin && (
-            <Link to="/admin" className="nav-link group">
-              <ShieldCheck className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
-              <span>Admin</span>
-            </Link>
+            <>
+              <Link to="/admin" className="nav-link group">
+                <ShieldCheck className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
+                <span>Admin</span>
+              </Link>
+              <Link to="/dono" className="nav-link group">
+                <Crown className="w-4 h-4 group-hover:text-amber-400 transition-colors duration-300" />
+                <span>Dono</span>
+              </Link>
+            </>
           )}
         </nav>
 
