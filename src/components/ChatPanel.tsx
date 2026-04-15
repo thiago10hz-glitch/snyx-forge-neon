@@ -852,8 +852,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           is_vip: !!profile?.is_vip,
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
-          team_badge: (profile as any)?.team_badge || null,
-          user_gender: (profile as any)?.gender || null,
+          team_badge: profile?.team_badge || null,
+          user_gender: profile?.gender || null,
           ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
         };
       }
