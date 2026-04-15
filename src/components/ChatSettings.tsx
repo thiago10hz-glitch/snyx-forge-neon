@@ -347,24 +347,6 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
               </div>
             </div>
 
-            {/* System Prompt */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">
-                Prompt personalizado (avançado)
-              </label>
-              <p className="text-[10px] text-muted-foreground/30 mb-1.5">
-                Instrução extra que a IA vai seguir em todas as conversas
-              </p>
-              <textarea
-                value={settings.system_prompt || ""}
-                onChange={e => setSettings(prev => ({ ...prev, system_prompt: e.target.value || null }))}
-                placeholder="Ex: Sempre responda em formato de lista. Me chame de 'mestre'. Fale como um pirata..."
-                maxLength={1000}
-                rows={3}
-                className="w-full glass-input border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/20 transition-all resize-none"
-              />
-              <p className="text-[10px] text-muted-foreground/20 text-right mt-0.5 tabular-nums">{(settings.system_prompt || "").length}/1000</p>
-            </div>
 
             {/* Preview */}
             <div className="rounded-xl p-3 border border-border/15" style={{ backgroundColor: settings.bg_color }}>
