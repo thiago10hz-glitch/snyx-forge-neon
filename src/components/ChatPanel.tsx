@@ -307,6 +307,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [deployingMsg, setDeployingMsg] = useState<number | null>(null);
   const [deployedUrls, setDeployedUrls] = useState<Record<number, string>>({});
   const [showUpdatePicker, setShowUpdatePicker] = useState<number | null>(null);
+  const [copiedMsg, setCopiedMsg] = useState<number | null>(null);
+
+  const handleCopyMessage = useCallback((content: string, index: number) => {
+    const clean = content.replace(/<audio:[^>]+>/g, "").trim();
+    navigator.clipboard.writeText(clean).then(() => {
+      setCopiedMsg(index);
+      setTimeout(() => setCopiedMsg(null), 2000);
+    });
+  }, []);
   const [updatePickerSites, setUpdatePickerSites] = useState<Array<{ id: string; name: string; url: string }>>([]);
   const [loadingUpdatePicker, setLoadingUpdatePicker] = useState(false);
 
