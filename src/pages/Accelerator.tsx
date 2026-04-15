@@ -116,102 +116,12 @@ const Accelerator = () => {
 
   const handleDownload = () => {
     setInstalling(true);
-    const siteUrl = window.location.origin;
-    const isWindows = navigator.userAgent.includes("Windows");
-    const isMac = navigator.userAgent.includes("Mac");
-
-    if (isWindows) {
-      const bat = `@echo off
-title SnyX Accelerator - Instalador v1.0
-color 0C
-echo.
-echo  ============================================
-echo  ⚡ SnyX Accelerator - Instalador Oficial
-echo  ============================================
-echo.
-echo  Iniciando instalacao do SnyX Accelerator...
-echo.
-echo  [1/3] Verificando sistema...
-timeout /t 2 /nobreak >nul
-echo  [OK] Windows detectado
-echo.
-echo  [2/3] Configurando rede otimizada...
-timeout /t 2 /nobreak >nul
-echo  [OK] Cache neural ativado
-echo.
-echo  [3/3] Abrindo SnyX Accelerator...
-timeout /t 1 /nobreak >nul
-echo.
-start "" "chrome" "--app=${siteUrl}/accelerator"
-if errorlevel 1 (
-  start "" "msedge" "--app=${siteUrl}/accelerator"
-  if errorlevel 1 (
-    start "" "${siteUrl}/accelerator"
-  )
-)
-echo.
-echo  ============================================
-echo  ⚡ SnyX Accelerator instalado com sucesso!
-echo  ============================================
-echo.
-echo  O app foi aberto no navegador.
-echo  Esta janela vai fechar em 5 segundos...
-timeout /t 5
-`;
-      const blob = new Blob([bat], { type: "application/x-bat" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "SnyX-Accelerator-Setup.bat";
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Download iniciado! Execute o arquivo .bat para instalar.");
-    } else if (isMac) {
-      const sh = `#!/bin/bash
-echo ""
-echo "  ============================================"
-echo "  ⚡ SnyX Accelerator - Instalador Oficial"
-echo "  ============================================"
-echo ""
-echo "  Iniciando instalacao..."
-sleep 1
-echo "  [OK] macOS detectado"
-echo "  [OK] Cache neural ativado"
-echo ""
-open -a "Google Chrome" --args --app="${siteUrl}/accelerator" 2>/dev/null || open "${siteUrl}/accelerator"
-echo "  ⚡ SnyX Accelerator instalado com sucesso!"
-echo ""
-`;
-      const blob = new Blob([sh], { type: "application/x-sh" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "SnyX-Accelerator-Setup.sh";
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Download iniciado! Execute o arquivo .sh para instalar.");
-    } else {
-      // Android/iOS/Linux - download HTML app
-      const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SnyX Accelerator</title>
-<link rel="manifest" href="${siteUrl}/manifest.json">
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#07070f;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center}
-.c{padding:2rem}h1{font-size:2rem;margin-bottom:1rem}p{color:#999;margin-bottom:2rem}
-a{display:inline-block;padding:1rem 2rem;background:linear-gradient(135deg,#dc2626,#f97316);color:#fff;text-decoration:none;border-radius:1rem;font-weight:bold;font-size:1.1rem}</style>
-</head><body><div class="c"><h1>⚡ SnyX Accelerator</h1><p>Redirecionando...</p>
-<a href="${siteUrl}/accelerator">Abrir SnyX Accelerator</a>
-<script>setTimeout(()=>window.location.href="${siteUrl}/accelerator",1000)</script>
-</div></body></html>`;
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "SnyX-Accelerator.html";
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Download iniciado!");
-    }
+    // Download the Electron app source zip directly
+    const a = document.createElement("a");
+    a.href = "/SnyX-Accelerator-v1.0-Source.zip";
+    a.download = "SnyX-Accelerator-v1.0.zip";
+    a.click();
+    toast.success("Download iniciado! Extraia o .zip e execute CONSTRUIR.bat para gerar o .exe");
     setInstalling(false);
   };
 
