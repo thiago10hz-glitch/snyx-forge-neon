@@ -81,7 +81,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     return () => { endCall(); };
   }, []);
 
-  // ElevenLabs TTS - streams audio from edge function
+  // TTS - tries edge function first, falls back to browser TTS
   const speak = useCallback(async (text: string, onEnd?: () => void) => {
     if (muted) {
       onEnd?.();
@@ -93,6 +93,9 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-tts`, {
         method: "POST",
@@ -106,18 +109,19 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
           voiceId: selectedVoice.id,
           gender: selectedGender,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("TTS failed");
       }
 
-      // Check if response is JSON (fallback signal) vs audio
       const contentType = response.headers.get("Content-Type") || "";
       if (contentType.includes("application/json")) {
         const data = await response.json();
         if (data?.fallback) {
-          console.warn("ElevenLabs unavailable, using browser TTS");
           throw new Error("fallback");
         }
         throw new Error(data?.error || "TTS failed");
@@ -126,7 +130,6 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Stop any previous audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -149,9 +152,8 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
 
       await audio.play();
     } catch (err) {
-      console.error("TTS error:", err);
+      // Use browser TTS as fallback
       setIsSpeaking(false);
-      // Fallback to browser TTS if ElevenLabs fails
       fallbackSpeak(text, onEnd);
     }
   }, [muted, selectedVoice, selectedGender]);
