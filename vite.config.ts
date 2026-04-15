@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: "esnext",
+    base: "./",
     minify: "esbuild",
     cssMinify: true,
     sourcemap: false,
