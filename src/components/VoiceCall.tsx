@@ -575,8 +575,6 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
       });
     }, ringDuration);
   }, [gender, profile?.display_name, speak, startListening]);
-    });
-  }, [gender, profile?.display_name, speak, startListening]);
 
   useEffect(() => {
     setMounted(true);
