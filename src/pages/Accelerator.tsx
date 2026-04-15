@@ -381,33 +381,7 @@ const Accelerator = () => {
           </div>
         )}
 
-        {/* Download Desktop App Section */}
-        {hasActiveKey && user && (
-          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-sm mb-4">
-                <Download className="w-4 h-4" /> Download Desktop App
-              </div>
-              <h2 className="text-2xl font-bold mb-2">SnyX Accelerator Desktop v1.0</h2>
-              <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto">
-                App completo estilo Steam/Roblox. Instale no Windows, abra com um clique e tenha otimização de rede real + proxy integrado.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                <a
-                  href="/SnyX-Accelerator-v1.0-Source.zip"
-                  download
-                  className="inline-flex items-center gap-2 px-8 py-4 text-base font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white shadow-[0_0_30px_rgba(34,197,94,0.3)] transition-all"
-                >
-                  <Download className="w-5 h-5" />
-                  Baixar SnyX Accelerator (.zip)
-                </a>
-              </div>
-              <p className="text-white/30 text-xs mt-4">
-                Extraia o .zip → Execute <code className="text-green-400/70">CONSTRUIR.bat</code> → App pronto!
-              </p>
-            </div>
-          </div>
-        )}
+
 
         {/* Download VPN App Section */}
         {hasActiveKey && user && (
