@@ -15,6 +15,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
+  const [gender, setGender] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +26,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
       setRelationshipStatus(profile.relationship_status || "");
+      setGender((profile as any).gender || "");
     }
   }, [open, profile]);
 
@@ -59,11 +61,12 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.from("profiles").update({
+      const { error } = await (supabase as any).from("profiles").update({
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         avatar_url: avatarUrl || null,
         relationship_status: relationshipStatus || null,
+        gender: gender || null,
       }).eq("user_id", user.id);
       if (error) throw error;
       await refreshProfile();
