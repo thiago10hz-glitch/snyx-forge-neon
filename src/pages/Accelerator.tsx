@@ -414,6 +414,52 @@ const Accelerator = () => {
           </div>
         )}
 
+        {/* Download VPN App Section */}
+        {hasActiveKey && user && (
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-purple-500/20 bg-purple-500/[0.03]">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 text-sm mb-4">
+                <Shield className="w-4 h-4" /> VPN Exclusiva
+              </div>
+              <h2 className="text-2xl font-bold mb-2">SnyX VPN — Accelerator de Rede</h2>
+              <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto">
+                Mude seu IP, aumente a velocidade da internet e navegue com proteção total. 
+                Tudo automático — instala WireGuard, ativa a chave e conecta com 1 clique.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto mb-6">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                  <Wifi className="w-5 h-5 text-purple-400 mx-auto mb-1" />
+                  <div className="text-xs text-white/50">Troca de IP</div>
+                  <div className="text-sm font-bold text-purple-300">Automática</div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                  <Gauge className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                  <div className="text-xs text-white/50">Velocidade</div>
+                  <div className="text-sm font-bold text-green-300">+800%</div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                  <Shield className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+                  <div className="text-xs text-white/50">Criptografia</div>
+                  <div className="text-sm font-bold text-cyan-300">WireGuard</div>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <a
+                  href="/SnyX-VPN-v1.0.zip"
+                  download
+                  className="inline-flex items-center gap-2 px-8 py-4 text-base font-bold rounded-xl bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-500 hover:to-violet-400 text-white shadow-[0_0_30px_rgba(147,51,234,0.3)] transition-all"
+                >
+                  <Download className="w-5 h-5" />
+                  Baixar SnyX VPN (.zip)
+                </a>
+              </div>
+              <p className="text-white/30 text-xs mt-4">
+                Extraia o .zip → Execute <code className="text-purple-400/70">npm install && npm start</code> → Pronto!
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* How it works */}
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold mb-8">Como funciona?</h2>
