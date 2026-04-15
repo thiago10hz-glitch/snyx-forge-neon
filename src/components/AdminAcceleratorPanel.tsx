@@ -253,46 +253,30 @@ export function AdminAcceleratorPanel() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Senha *</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={accPassword}
-                      onChange={e => setAccPassword(e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm pr-8"
-                    />
-                    <button
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Senha *</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={accPassword}
+                    onChange={e => setAccPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm pr-8"
+                  />
                   <button
-                    onClick={generateRandomPassword}
-                    className="px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-xs hover:bg-muted transition whitespace-nowrap"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    Gerar
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Validade</label>
-                <select
-                  value={accExpires ?? ""}
-                  onChange={e => setAccExpires(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-sm"
+                <button
+                  onClick={generateRandomPassword}
+                  className="px-3 py-2 rounded-lg bg-muted/50 border border-border/30 text-xs hover:bg-muted transition whitespace-nowrap"
                 >
-                  <option value="">Sem expiração</option>
-                  <option value="1">1 mês</option>
-                  <option value="3">3 meses</option>
-                  <option value="6">6 meses</option>
-                  <option value="12">12 meses</option>
-                </select>
+                  Gerar
+                </button>
               </div>
             </div>
 
