@@ -49,14 +49,13 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const processUserSpeechRef = useRef<((text: string) => void) | null>(null);
   const { user, profile } = useAuth();
 
-  const resetPersistedHistory = useCallback(async () => {
+  const clearAllCallHistory = useCallback(async () => {
     if (!user) return;
     await (supabase as any)
       .from("voice_call_history")
       .delete()
-      .eq("user_id", user.id)
-      .eq("voice_id", selectedVoice.id);
-  }, [user, selectedVoice.id]);
+      .eq("user_id", user.id);
+  }, [user]);
 
   useEffect(() => {
     conversationRef.current = [];
