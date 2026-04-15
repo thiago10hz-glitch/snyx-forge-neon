@@ -47,7 +47,7 @@ export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isCallActiveRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // Load conversation history for this voice
   useEffect(() => {
