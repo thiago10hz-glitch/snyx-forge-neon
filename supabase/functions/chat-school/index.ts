@@ -3,6 +3,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function buildUserContext(params: any): string {
+  const { display_name, user_gender } = params;
+  let ctx = "";
+  if (display_name) ctx += `\n\nO nome do aluno é "${display_name}". Use o nome dele(a) naturalmente.`;
+  if (user_gender === "masculino") ctx += " Trate no masculino (aluno, ele).";
+  else if (user_gender === "feminino") ctx += " Trate no feminino (aluna, ela).";
+  return ctx;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -16,12 +25,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const { messages } = body;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userContext = buildUserContext(body);
 
     const systemPrompt = `Você é SnyX Escola, um tutor educacional inteligente e paciente. 
 
@@ -41,9 +53,8 @@ REGRAS OBRIGATÓRIAS:
 - Fale em português BR claro e acessível
 - Se não conseguir ler uma imagem, peça para tirar outra foto mais nítida
 - NUNCA dê respostas curtas. Explique TUDO em detalhes.
-- Sempre pergunte se o aluno entendeu e se quer mais explicações`;
+- Sempre pergunte se o aluno entendeu e se quer mais explicações${userContext}`;
 
-    // Build messages for the AI
     const aiMessages: any[] = [
       { role: "system", content: systemPrompt },
     ];
@@ -51,7 +62,6 @@ REGRAS OBRIGATÓRIAS:
     for (const msg of messages.slice(-20)) {
       if (msg.role === "user") {
         if (msg.imageData) {
-          // Message with image
           aiMessages.push({
             role: "user",
             content: [
@@ -90,14 +100,12 @@ REGRAS OBRIGATÓRIAS:
       });
     }
 
-    // Stream SSE response
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-
         try {
           while (true) {
             const { done, value } = await reader.read();
@@ -105,7 +113,6 @@ REGRAS OBRIGATÓRIAS:
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
-
             for (const line of lines) {
               const trimmed = line.trim();
               if (!trimmed || trimmed === "data: [DONE]") continue;
@@ -113,9 +120,7 @@ REGRAS OBRIGATÓRIAS:
               try {
                 const json = JSON.parse(trimmed.slice(6));
                 const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
-                }
+                if (content) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
               } catch { /* skip */ }
             }
           }
