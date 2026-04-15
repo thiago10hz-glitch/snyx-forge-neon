@@ -91,7 +91,7 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden relative">
       {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-primary/5 blur-[100px] animate-glow-pulse" />
@@ -100,18 +100,18 @@ const Index = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-20 h-14 md:h-16 flex items-center justify-between px-3 sm:px-5 md:px-8 shrink-0 border-b border-border/10 glass">
+      <header className="relative z-20 h-12 sm:h-14 md:h-16 flex items-center justify-between px-2 sm:px-5 md:px-8 shrink-0 border-b border-border/10 glass">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="relative group cursor-pointer" onClick={() => setShowProfile(true)}>
-            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/8 group-hover:shadow-primary/20 transition-all duration-500">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/8 group-hover:shadow-primary/20 transition-all duration-500">
               <Zap className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
             <div className="absolute -inset-1 rounded-xl bg-primary/6 blur-lg -z-10 animate-breathe opacity-50" />
           </div>
           <div className="leading-none">
-            <h1 className="text-sm md:text-base font-black tracking-wide gradient-text-subtle">SnyX</h1>
-            <p className="text-[8px] md:text-[9px] text-muted-foreground/30 font-semibold tracking-[0.25em] uppercase hidden sm:block">AI Platform</p>
+            <h1 className="text-xs sm:text-sm md:text-base font-black tracking-wide gradient-text-subtle">SnyX</h1>
+            <p className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/30 font-semibold tracking-[0.25em] uppercase hidden sm:block">AI Platform</p>
           </div>
         </div>
 
@@ -138,29 +138,29 @@ const Index = () => {
         </nav>
 
         {/* Right section */}
-        <div className="flex items-center gap-2">
-          {/* Tier badge */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Tier badge - hide long text on very small screens */}
           {profile?.is_dev ? (
-            <span className="badge-dev flex items-center gap-1 text-[9px] md:text-[10px]">
-              <Code size={10} /> DEV
+            <span className="badge-dev flex items-center gap-1 text-[8px] sm:text-[9px] md:text-[10px]">
+              <Code size={9} /> DEV
             </span>
           ) : (profile as any)?.is_rpg_premium ? (
-            <span className="flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold shadow-lg shadow-purple-500/10">
-              🎭 RPG Premium
+            <span className="flex items-center gap-1 text-[8px] sm:text-[9px] md:text-[10px] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold shadow-lg shadow-purple-500/10">
+              🎭 <span className="hidden xs:inline">RPG</span>
             </span>
           ) : profile?.is_pack_steam ? (
-            <span className="badge-pack-steam flex items-center gap-1 text-[9px] md:text-[10px]">
-              🎮 Pack Steam
+            <span className="badge-pack-steam flex items-center gap-1 text-[8px] sm:text-[9px] md:text-[10px]">
+              🎮 <span className="hidden xs:inline">Steam</span>
             </span>
           ) : profile?.is_vip ? (
-            <span className="badge-vip text-[9px] md:text-[10px]">⭐ VIP</span>
+            <span className="badge-vip text-[8px] sm:text-[9px] md:text-[10px]">⭐ VIP</span>
           ) : (
-            <span className="badge-free text-[9px] md:text-[10px]">Free</span>
+            <span className="badge-free text-[8px] sm:text-[9px] md:text-[10px]">Free</span>
           )}
 
-          {/* Owner badge */}
+          {/* Owner badge - compact on mobile */}
           {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-            <span className="flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
+            <span className="hidden sm:flex items-center gap-1 text-[9px] md:text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
               <span>👑</span> {profile.team_badge}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="ml-0.5">
                 <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -172,7 +172,7 @@ const Index = () => {
           {/* Avatar */}
           <button
             onClick={() => setShowProfile(true)}
-            className="w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-border/15 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/8 hover:bg-muted/15 group ring-2 ring-transparent hover:ring-primary/8"
+            className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-border/15 hover:border-primary/20 transition-all duration-300 flex items-center justify-center bg-muted/8 hover:bg-muted/15 group ring-2 ring-transparent hover:ring-primary/8 shrink-0"
             title="Minha conta"
           >
             {profile?.avatar_url ? (
@@ -185,7 +185,7 @@ const Index = () => {
           {/* Mobile menu toggle */}
           <button
             onClick={() => setShowMobileNav(!showMobileNav)}
-            className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all"
+            className="sm:hidden w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all shrink-0"
           >
             <Menu className="w-4 h-4" />
           </button>
@@ -205,7 +205,7 @@ const Index = () => {
       {showMobileNav && (
         <>
           <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setShowMobileNav(false)} />
-          <div className="absolute top-14 right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[200px] animate-reveal">
+          <div className="absolute top-12 sm:top-14 right-2 sm:right-3 z-30 glass-elevated rounded-2xl border border-border/10 p-2 min-w-[180px] sm:min-w-[200px] animate-reveal max-h-[70dvh] overflow-y-auto">
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl">
               <ThemeSelector />
             </div>
