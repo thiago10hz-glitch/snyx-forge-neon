@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Phone, PhoneOff, Mic, MicOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,172 +29,335 @@ const VOICES = {
   ],
 };
 
+function VoiceOrb({
+  accent,
+  label,
+  levels,
+  active,
+  compact = false,
+}: {
+  accent: string;
+  label: string;
+  levels: number[];
+  active: boolean;
+  compact?: boolean;
+}) {
+  const sizeClass = compact ? "h-28 w-28" : "h-[220px] w-[220px] sm:h-[260px] sm:w-[260px]";
+  const ringBase = compact ? 34 : 42;
+  const ringStep = compact ? 14 : 18;
+
+  return (
+    <div className={`relative ${sizeClass}`}>
+      <div
+        className="absolute inset-0 rounded-full blur-3xl"
+        style={{
+          background: `radial-gradient(circle, ${accent}44 0%, ${accent}12 45%, transparent 75%)`,
+          opacity: active ? 1 : 0.75,
+          transform: active ? "scale(1.04)" : "scale(1)",
+          transition: "all 200ms ease",
+        }}
+      />
+
+      {levels.map((level, index) => {
+        const alpha = Math.max(0.2, 0.62 - index * 0.1);
+        return (
+          <div key={index} className="absolute inset-0 flex items-center justify-center">
+            <div
+              className="rounded-full border transition-all duration-150 ease-out"
+              style={{
+                width: `${ringBase + index * ringStep + level * (compact ? 16 : 26)}%`,
+                height: `${ringBase + index * ringStep + level * (compact ? 16 : 26)}%`,
+                borderColor: `${accent}${Math.round(alpha * 255)
+                  .toString(16)
+                  .padStart(2, "0")}`,
+                boxShadow: active ? `0 0 ${10 + level * 18}px ${accent}55` : "none",
+              }}
+            />
+          </div>
+        );
+      })}
+
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold text-primary-foreground shadow-2xl sm:h-24 sm:w-24 sm:text-3xl"
+          style={{
+            background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+            boxShadow: `0 0 36px ${accent}66`,
+          }}
+        >
+          {label[0]}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VoiceCall({ open, onClose }: VoiceCallProps) {
   const [phase, setPhase] = useState<"pick" | "call">("pick");
   const [gender, setGender] = useState<"female" | "male">("female");
   const [voice, setVoice] = useState(VOICES.female[0]);
   const [adultMode, setAdultMode] = useState(false);
-
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [duration, setDuration] = useState(0);
   const [muted, setMuted] = useState(false);
-
-  // Animated orb levels
-  const [orbLevels, setOrbLevels] = useState<number[]>([0.3, 0.3, 0.3, 0.3, 0.3]);
+  const [orbLevels, setOrbLevels] = useState<number[]>([0.2, 0.28, 0.24, 0.3, 0.22]);
+  const [mounted, setMounted] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const convoRef = useRef<Array<{ role: string; content: string }>>([]);
+  const conversationRef = useRef<Array<{ role: string; content: string }>>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
-  const processRef = useRef<((t: string) => void) | null>(null);
+  const processRef = useRef<((text: string) => void) | null>(null);
   const orbIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { user, profile } = useAuth();
 
-  // Orb animation
-  useEffect(() => {
-    if (phase !== "call") {
-      if (orbIntervalRef.current) clearInterval(orbIntervalRef.current);
-      return;
-    }
-    orbIntervalRef.current = setInterval(() => {
-      setOrbLevels(() => {
-        if (speaking) return Array.from({ length: 5 }, () => 0.4 + Math.random() * 0.6);
-        if (listening) return Array.from({ length: 5 }, () => 0.2 + Math.random() * 0.3);
-        if (processing) return Array.from({ length: 5 }, () => 0.15 + Math.sin(Date.now() / 300) * 0.15);
-        return [0.2, 0.2, 0.2, 0.2, 0.2];
-      });
-    }, 120);
-    return () => { if (orbIntervalRef.current) clearInterval(orbIntervalRef.current); };
-  }, [phase, speaking, listening, processing]);
-
-  useEffect(() => { convoRef.current = []; }, [open, voice.id, gender]);
-  useEffect(() => { setVoice(VOICES[gender][0]); }, [gender]);
-  useEffect(() => { if (!open) { endCall(); setPhase("pick"); } }, [open]);
-  useEffect(() => () => { endCall(); }, []);
-
-  const speak = useCallback(async (text: string, onEnd?: () => void) => {
-    if (muted) { onEnd?.(); return; }
-    setSpeaking(true);
-    try {
-      const { data: sd } = await supabase.auth.getSession();
-      const token = sd?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 12000);
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ text, voiceId: voice.id, gender }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(tid);
-      if (!res.ok) throw new Error("fail");
-      const ct = res.headers.get("Content-Type") || "";
-      if (ct.includes("application/json")) { const d = await res.json(); if (d?.fallback) throw new Error("fb"); throw new Error(d?.error || "fail"); }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); onEnd?.(); };
-      audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); onEnd?.(); };
-      await audio.play();
-    } catch {
-      setSpeaking(false);
-      browserSpeak(text, onEnd);
-    }
-  }, [muted, voice, gender]);
-
-  const browserSpeak = useCallback((text: string, onEnd?: () => void) => {
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "pt-BR";
-    u.rate = 0.95;
-    const voices = synth.getVoices();
-    const pt = voices.filter(v => v.lang.startsWith("pt"));
-    if (pt.length > 0) {
-      const chosen = gender === "female"
-        ? pt.find(v => /female|femin|mulher|maria|lucia/i.test(v.name)) || pt[0]
-        : pt.find(v => /\bmale\b|mascu|homem|daniel/i.test(v.name)) || pt[pt.length > 1 ? 1 : 0];
-      if (chosen) u.voice = chosen;
-      u.pitch = gender === "female" ? 1.1 : 0.8;
-    }
-    u.onend = () => { setSpeaking(false); onEnd?.(); };
-    u.onerror = () => { setSpeaking(false); onEnd?.(); };
-    setSpeaking(true);
-    synth.speak(u);
-  }, [gender]);
+  const { profile } = useAuth();
 
   const endCall = useCallback(() => {
     activeRef.current = false;
-    setListening(false); setSpeaking(false); setProcessing(false); setDuration(0);
-    convoRef.current = [];
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
-    try { recognitionRef.current?.stop(); } catch {}
-    try { audioRef.current?.pause(); audioRef.current = null; } catch {}
-    try { window.speechSynthesis?.cancel(); } catch {}
+    setListening(false);
+    setSpeaking(false);
+    setProcessing(false);
+    setDuration(0);
+    conversationRef.current = [];
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+
+    try {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    } catch {}
+
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {}
   }, []);
+
+  const browserSpeak = useCallback(
+    (text: string, onEnd?: () => void) => {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "pt-BR";
+      utterance.rate = 0.95;
+
+      const voices = synth.getVoices();
+      const ptVoices = voices.filter((item) => item.lang.startsWith("pt"));
+
+      if (ptVoices.length > 0) {
+        const chosenVoice =
+          gender === "female"
+            ? ptVoices.find((item) => /female|femin|mulher|maria|lucia/i.test(item.name)) || ptVoices[0]
+            : ptVoices.find((item) => /\bmale\b|mascu|homem|daniel/i.test(item.name)) || ptVoices[Math.min(1, ptVoices.length - 1)];
+
+        if (chosenVoice) utterance.voice = chosenVoice;
+        utterance.pitch = gender === "female" ? 1.08 : 0.82;
+      }
+
+      utterance.onend = () => {
+        setSpeaking(false);
+        onEnd?.();
+      };
+
+      utterance.onerror = () => {
+        setSpeaking(false);
+        onEnd?.();
+      };
+
+      setSpeaking(true);
+      synth.speak(utterance);
+    },
+    [gender],
+  );
+
+  const speak = useCallback(
+    async (text: string, onEnd?: () => void) => {
+      if (muted) {
+        onEnd?.();
+        return;
+      }
+
+      setSpeaking(true);
+
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-tts`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            text,
+            voiceId: voice.id,
+            gender,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error("tts_failed");
+
+        const contentType = response.headers.get("Content-Type") || "";
+        if (contentType.includes("application/json")) {
+          const data = await response.json();
+          if (data?.fallback) throw new Error("tts_fallback");
+          throw new Error(data?.error || "tts_failed");
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        audio.onended = () => {
+          setSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          onEnd?.();
+        };
+
+        audio.onerror = () => {
+          setSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          onEnd?.();
+        };
+
+        await audio.play();
+      } catch {
+        setSpeaking(false);
+        browserSpeak(text, onEnd);
+      }
+    },
+    [browserSpeak, gender, muted, voice.id],
+  );
 
   const startListening = useCallback(() => {
     if (!activeRef.current) return;
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const rec = new SR();
-    rec.lang = "pt-BR"; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-    recognitionRef.current = rec;
-    let final = "";
-    let silenceT: NodeJS.Timeout | null = null;
-    rec.onresult = (e: any) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript + " ";
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
+    let silenceTimer: NodeJS.Timeout | null = null;
+
+    recognition.onresult = (event: any) => {
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        if (event.results[index].isFinal) {
+          finalTranscript += `${event.results[index][0].transcript} `;
+        }
       }
-      if (silenceT) clearTimeout(silenceT);
-      silenceT = setTimeout(() => { if (final.trim()) try { rec.stop(); } catch {} }, 1800);
+
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        if (finalTranscript.trim()) {
+          try {
+            recognition.stop();
+          } catch {}
+        }
+      }, 1800);
     };
-    rec.onend = () => {
+
+    recognition.onend = () => {
       setListening(false);
-      if (silenceT) clearTimeout(silenceT);
-      if (final.trim()) processRef.current?.(final.trim());
-      else if (activeRef.current) setTimeout(() => { if (activeRef.current) startListening(); }, 300);
-    };
-    rec.onerror = (e: any) => {
-      setListening(false);
-      if (silenceT) clearTimeout(silenceT);
-      if (activeRef.current && ["no-speech", "network", "audio-capture"].includes(e.error)) {
-        setTimeout(() => { if (activeRef.current) startListening(); }, 500);
+      if (silenceTimer) clearTimeout(silenceTimer);
+
+      if (finalTranscript.trim()) {
+        processRef.current?.(finalTranscript.trim());
+      } else if (activeRef.current) {
+        setTimeout(() => {
+          if (activeRef.current) startListening();
+        }, 300);
       }
     };
+
+    recognition.onerror = (event: any) => {
+      setListening(false);
+      if (silenceTimer) clearTimeout(silenceTimer);
+
+      if (activeRef.current && ["no-speech", "network", "audio-capture"].includes(event.error)) {
+        setTimeout(() => {
+          if (activeRef.current) startListening();
+        }, 500);
+      }
+    };
+
     setListening(true);
-    rec.start();
+    recognition.start();
   }, []);
 
-  const processUserSpeech = useCallback(async (text: string) => {
-    if (!activeRef.current) return;
-    setProcessing(true);
-    convoRef.current.push({ role: "user", content: text });
-    try {
-      const { data: sd } = await supabase.auth.getSession();
-      const token = sd?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const gCtx = gender === "female"
-        ? "Você é uma mulher jovem brasileira. Responde como mulher real, com jeito feminino natural."
-        : "Você é um homem jovem brasileiro. Responde como homem real, com jeito masculino natural.";
-      const nameCtx = profile?.display_name ? `\nA pessoa que liga se chama "${profile.display_name}". Trate pelo nome.` : "";
-      const relCtx = profile?.relationship_status ? `\nStatus de relacionamento: ${profile.relationship_status}.` : "";
-      const bioCtx = profile?.bio ? `\nSobre a pessoa: ${profile.bio}.` : "";
-      const adultCtx = adultMode ? `\nMODO +18 ATIVADO: Fale sobre assuntos adultos sem censura quando a conversa pedir.` : "";
+  const processUserSpeech = useCallback(
+    async (text: string) => {
+      if (!activeRef.current) return;
 
-      const sysPrompt = `${voice.persona}\n\n${gCtx}${nameCtx}${relCtx}${bioCtx}
-Você está numa ligação de telefone ao vivo. Você é ${voice.label}, uma pessoa real.${adultCtx}
+      setProcessing(true);
+      conversationRef.current.push({ role: "user", content: text });
+
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+        const genderContext =
+          gender === "female"
+            ? "Você é uma mulher jovem brasileira. Responde como mulher real, com jeito feminino natural."
+            : "Você é um homem jovem brasileiro. Responde como homem real, com jeito masculino natural.";
+
+        const userNameContext = profile?.display_name
+          ? `\nA pessoa que liga se chama \"${profile.display_name}\". Trate pelo nome quando fizer sentido.`
+          : "";
+
+        const relationshipContext = profile?.relationship_status
+          ? `\nStatus de relacionamento: ${profile.relationship_status}.`
+          : "";
+
+        const bioContext = profile?.bio ? `\nSobre a pessoa: ${profile.bio}.` : "";
+        const adultContext = adultMode
+          ? "\nMODO +18 ATIVADO: Fale sobre assuntos adultos sem censura quando a conversa pedir."
+          : "";
+
+        const systemPrompt = `${voice.persona}
+
+${genderContext}${userNameContext}${relationshipContext}${bioContext}
+Você está numa ligação de telefone ao vivo. Você é ${voice.label}, uma pessoa real.${adultContext}
 
 REGRAS — SOAR COMO PESSOA DE VERDADE:
 - Você NÃO é assistente, robô ou IA. Você é uma pessoa real.
 - Fale como brasileiro fala: "kkk", "pô", "mano", "véi", "tlgd", "tipo assim".
-- Respostas CURTAS: 1-2 frases máximo.
+- Respostas CURTAS: 1-2 frases no máximo.
 - Reações naturais: "ah", "hmm", "eita", "nossa", "sério?", "ata".
 - Hesite às vezes: "é... tipo...", "aí né...", "sei lá, acho que...".
 - Contrações: "tô", "tá", "cê", "pra", "né".
@@ -201,213 +365,389 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
 - Nunca explique o que você é. Desconverse naturalmente.
 - Seja emotivo(a): ria, demonstre surpresa, interesse genuíno.`;
 
-      abortRef.current = new AbortController();
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-friend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        signal: abortRef.current.signal,
-        body: JSON.stringify({
-          messages: convoRef.current.slice(-20),
-          mode: "friend",
-          is_vip: !!profile?.is_vip,
-          is_admin: !!profile?.is_dev,
-          display_name: profile?.display_name || "",
-          team_badge: profile?.team_badge || null,
-          user_gender: profile?.gender || null,
-          user_bio: profile?.bio || null,
-          user_relationship_status: profile?.relationship_status || null,
-          character_system_prompt: sysPrompt,
-        }),
-      });
-      if (!res.ok) { if (res.status === 429) throw new Error("rate_limit"); throw new Error("err"); }
+        abortRef.current = new AbortController();
 
-      let responseText = "";
-      const ct = res.headers.get("content-type") || "";
-      if (ct.includes("application/json")) {
-        const d = await res.json();
-        responseText = d.text || d.error || "";
-      } else if (res.body) {
-        const reader = res.body.getReader();
-        const dec = new TextDecoder();
-        let buf = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buf += dec.decode(value, { stream: true });
-          let ni: number;
-          while ((ni = buf.indexOf("\n")) !== -1) {
-            let line = buf.slice(0, ni); buf = buf.slice(ni + 1);
-            if (line.endsWith("\r")) line = line.slice(0, -1);
-            if (!line.startsWith("data: ")) continue;
-            const js = line.slice(6).trim();
-            if (js === "[DONE]") break;
-            try { const p = JSON.parse(js); const c = p.choices?.[0]?.delta?.content || p.text; if (c) responseText += c; } catch {}
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-friend`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          signal: abortRef.current.signal,
+          body: JSON.stringify({
+            messages: conversationRef.current.slice(-20),
+            mode: "friend",
+            is_vip: !!profile?.is_vip,
+            is_admin: !!profile?.is_dev,
+            display_name: profile?.display_name || "",
+            team_badge: profile?.team_badge || null,
+            user_gender: profile?.gender || null,
+            user_bio: profile?.bio || null,
+            user_relationship_status: profile?.relationship_status || null,
+            character_system_prompt: systemPrompt,
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 429) throw new Error("rate_limit");
+          throw new Error("ai_failed");
+        }
+
+        let responseText = "";
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+          const data = await response.json();
+          responseText = data.text || data.error || "";
+        } else if (response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            let newlineIndex = buffer.indexOf("\n");
+
+            while (newlineIndex !== -1) {
+              let line = buffer.slice(0, newlineIndex);
+              buffer = buffer.slice(newlineIndex + 1);
+
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (!line.startsWith("data: ")) {
+                newlineIndex = buffer.indexOf("\n");
+                continue;
+              }
+
+              const jsonString = line.slice(6).trim();
+              if (jsonString === "[DONE]") break;
+
+              try {
+                const parsed = JSON.parse(jsonString);
+                const chunk = parsed.choices?.[0]?.delta?.content || parsed.text;
+                if (chunk) responseText += chunk;
+              } catch {}
+
+              newlineIndex = buffer.indexOf("\n");
+            }
           }
         }
-      }
-      responseText = responseText.replace(/[*_#`~]/g, "").replace(/\[.*?\]\(.*?\)/g, "").replace(/\n+/g, " ").trim();
-      if (!responseText) responseText = "Ahn? Não peguei, fala de novo?";
-      convoRef.current.push({ role: "assistant", content: responseText });
-      setProcessing(false);
-      speak(responseText, () => { if (activeRef.current) startListening(); });
-    } catch (err: any) {
-      if (err?.name === "AbortError") return;
-      setProcessing(false);
-      const fb = err?.message === "rate_limit" ? "Calma, muita gente falando. Espera um pouquinho." : "Opa, deu um probleminha. Fala de novo?";
-      const delay = err?.message === "rate_limit" ? 3000 : 500;
-      setTimeout(() => { speak(fb, () => { if (activeRef.current) startListening(); }); }, delay);
-    }
-  }, [adultMode, gender, profile, voice, speak, startListening]);
 
-  useEffect(() => { processRef.current = processUserSpeech; }, [processUserSpeech]);
+        responseText = responseText
+          .replace(/[*_#`~]/g, "")
+          .replace(/\[.*?\]\(.*?\)/g, "")
+          .replace(/\n+/g, " ")
+          .trim();
+
+        if (!responseText) responseText = "Ahn? Não peguei, fala de novo?";
+
+        conversationRef.current.push({ role: "assistant", content: responseText });
+        setProcessing(false);
+
+        speak(responseText, () => {
+          if (activeRef.current) startListening();
+        });
+      } catch (error: any) {
+        if (error?.name === "AbortError") return;
+
+        setProcessing(false);
+        const fallbackText =
+          error?.message === "rate_limit"
+            ? "Calma, muita gente falando. Espera um pouquinho."
+            : "Opa, deu um probleminha. Fala de novo?";
+
+        const delay = error?.message === "rate_limit" ? 3000 : 500;
+        setTimeout(() => {
+          speak(fallbackText, () => {
+            if (activeRef.current) startListening();
+          });
+        }, delay);
+      }
+    },
+    [adultMode, gender, profile, speak, startListening, voice.label, voice.persona],
+  );
 
   const startCall = useCallback(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { toast.error("Navegador não suporta voz. Use Chrome ou Edge."); return; }
-    convoRef.current = [];
-    setPhase("call");
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Navegador não suporta voz. Use Chrome ou Edge.");
+      return;
+    }
+
+    conversationRef.current = [];
     activeRef.current = true;
+    setPhase("call");
     setDuration(0);
-    timerRef.current = setInterval(() => setDuration(p => p + 1), 1000);
-    const name = profile?.display_name?.trim().split(/\s+/)[0];
-    const greetings = gender === "female"
-      ? [name ? `Oi, ${name}!` : "Oii!", name ? `E aí, ${name}!` : "E aí!", name ? `Oi ${name}, tudo bem?` : "Oi, tudo bem?"]
-      : [name ? `Fala, ${name}!` : "Fala!", name ? `E aí, ${name}!` : "E aí!", name ? `Opa, ${name}!` : "Opa!"];
-    const g = greetings[Math.floor(Math.random() * greetings.length)];
-    speak(g, () => { if (activeRef.current) startListening(); });
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setDuration((previous) => previous + 1);
+    }, 1000);
+
+    const firstName = profile?.display_name?.trim().split(/\s+/)[0];
+    const greetings =
+      gender === "female"
+        ? [
+            firstName ? `Oi, ${firstName}!` : "Oii!",
+            firstName ? `E aí, ${firstName}!` : "E aí!",
+            firstName ? `Oi ${firstName}, tudo bem?` : "Oi, tudo bem?",
+          ]
+        : [
+            firstName ? `Fala, ${firstName}!` : "Fala!",
+            firstName ? `E aí, ${firstName}!` : "E aí!",
+            firstName ? `Opa, ${firstName}!` : "Opa!",
+          ];
+
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+    speak(greeting, () => {
+      if (activeRef.current) startListening();
+    });
   }, [gender, profile?.display_name, speak, startListening]);
 
-  const fmt = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (!open) {
+      endCall();
+      setPhase("pick");
+    }
+  }, [endCall, open]);
 
-  const vc = voice.color;
+  useEffect(() => {
+    return () => {
+      endCall();
+    };
+  }, [endCall]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.97) 100%)" }}>
-      <div className="w-full max-w-md mx-auto flex flex-col items-center justify-between h-full py-8 px-6 animate-in fade-in-0 duration-500">
+  useEffect(() => {
+    processRef.current = processUserSpeech;
+  }, [processUserSpeech]);
 
-        {/* Top: voice name & status */}
-        <div className="text-center mt-4">
-          <h2 className="text-2xl font-semibold text-white tracking-tight">{voice.label}</h2>
-          <p className="text-sm mt-1" style={{ color: `${vc}99` }}>
-            {phase === "pick" ? "Toque para ligar" :
-             speaking ? "Falando..." :
-             listening ? "Ouvindo..." :
-             processing ? "Pensando..." : "Conectado"}
-          </p>
-          {phase === "call" && (
-            <p className="text-xs text-white/30 font-mono mt-2 tabular-nums">{fmt(duration)}</p>
-          )}
-        </div>
+  useEffect(() => {
+    setVoice(VOICES[gender][0]);
+  }, [gender]);
 
-        {/* Center: animated orb */}
-        <div className="flex-1 flex items-center justify-center">
+  useEffect(() => {
+    conversationRef.current = [];
+  }, [gender, open, voice.id]);
+
+  useEffect(() => {
+    if (!open || !mounted) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mounted, open]);
+
+  useEffect(() => {
+    if (phase !== "call") {
+      setOrbLevels([0.2, 0.28, 0.24, 0.3, 0.22]);
+      if (orbIntervalRef.current) clearInterval(orbIntervalRef.current);
+      return;
+    }
+
+    orbIntervalRef.current = setInterval(() => {
+      setOrbLevels(() => {
+        if (speaking) return Array.from({ length: 5 }, () => 0.48 + Math.random() * 0.48);
+        if (listening) return Array.from({ length: 5 }, () => 0.22 + Math.random() * 0.24);
+        if (processing) {
+          const wave = 0.18 + (Math.sin(Date.now() / 220) + 1) * 0.08;
+          return [wave, wave + 0.05, wave + 0.02, wave + 0.06, wave + 0.03];
+        }
+        return [0.18, 0.22, 0.2, 0.24, 0.18];
+      });
+    }, 120);
+
+    return () => {
+      if (orbIntervalRef.current) clearInterval(orbIntervalRef.current);
+    };
+  }, [listening, phase, processing, speaking]);
+
+  if (!open || !mounted) return null;
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  const accent = voice.color;
+  const statusText =
+    phase === "pick"
+      ? "Escolha uma voz"
+      : speaking
+        ? "Falando..."
+        : listening
+          ? "Ouvindo você..."
+          : processing
+            ? "Pensando..."
+            : "Conectado";
+
+  const overlay = (
+    <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-2xl">
+      <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
+        {phase === "pick" && (
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-border/20 bg-card/60 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card"
+            aria-label="Fechar ligação"
+          >
+            ✕
+          </button>
+        )}
+
+        <div className="flex w-full max-w-sm flex-col items-center justify-center gap-6 text-center sm:gap-7">
+          <div className="space-y-2">
+            <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground/50">Ligação por voz</p>
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-[2rem]">{voice.label}</h2>
+            <p className="text-sm font-medium" style={{ color: `${accent}dd` }}>
+              {statusText}
+            </p>
+            {phase === "call" && (
+              <p className="text-xs font-mono tabular-nums text-muted-foreground/55">{formatDuration(duration)}</p>
+            )}
+          </div>
+
+          <VoiceOrb
+            accent={accent}
+            label={voice.label}
+            levels={orbLevels}
+            active={phase === "call" ? speaking || listening || processing : true}
+            compact={phase === "pick"}
+          />
+
           {phase === "pick" ? (
-            <div className="space-y-6 w-full max-w-xs">
-              {/* Gender tabs */}
-              <div className="flex justify-center gap-2">
-                {(["female", "male"] as const).map(g => (
-                  <button key={g} onClick={() => setGender(g)}
-                    className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 ${
-                      gender === g
-                        ? "text-white shadow-lg" + (g === "female" ? " bg-pink-500/30 border border-pink-500/40" : " bg-blue-500/30 border border-blue-500/40")
-                        : "text-white/40 bg-white/5 border border-white/10 hover:bg-white/10"
-                    }`}>
-                    {g === "female" ? "♀ Feminino" : "♂ Masculino"}
-                  </button>
-                ))}
+            <div className="flex w-full flex-col items-center gap-4">
+              <div className="flex items-center justify-center gap-2 rounded-full border border-border/15 bg-card/35 p-1 backdrop-blur-sm">
+                {(["female", "male"] as const).map((item) => {
+                  const selected = gender === item;
+                  const itemAccent = item === "female" ? "#f472b6" : "#60a5fa";
+
+                  return (
+                    <button
+                      key={item}
+                      onClick={() => setGender(item)}
+                      className="rounded-full px-4 py-2 text-sm font-medium transition-all"
+                      style={
+                        selected
+                          ? {
+                              background: `${itemAccent}2a`,
+                              color: itemAccent,
+                              border: `1px solid ${itemAccent}66`,
+                              boxShadow: `0 0 18px ${itemAccent}22`,
+                            }
+                          : undefined
+                      }
+                    >
+                      {item === "female" ? "♀ Feminino" : "♂ Masculino"}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Voice cards */}
-              <div className="grid grid-cols-3 gap-2">
-                {VOICES[gender].map(v => (
-                  <button key={v.id} onClick={() => setVoice(v)}
-                    className={`relative p-3 rounded-2xl text-center transition-all duration-300 ${
-                      voice.id === v.id
-                        ? "bg-white/15 border-2 scale-105 shadow-lg"
-                        : "bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-102"
-                    }`}
-                    style={voice.id === v.id ? { borderColor: v.color, boxShadow: `0 0 20px ${v.color}33` } : {}}>
-                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-lg font-bold text-white"
-                      style={{ background: `linear-gradient(135deg, ${v.color}, ${v.color}88)` }}>
-                      {v.label[0]}
-                    </div>
-                    <span className="text-xs font-medium text-white/80">{v.label}</span>
-                  </button>
-                ))}
+              <div className="grid w-full grid-cols-3 gap-3">
+                {VOICES[gender].map((item) => {
+                  const selected = voice.id === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setVoice(item)}
+                      className="flex aspect-[0.88] flex-col items-center justify-center gap-2 rounded-3xl border bg-card/35 px-2 py-3 text-center backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-card/55"
+                      style={
+                        selected
+                          ? {
+                              borderColor: `${item.color}99`,
+                              boxShadow: `0 0 24px ${item.color}22`,
+                              background: `linear-gradient(180deg, ${item.color}16, transparent)`,
+                            }
+                          : {
+                              borderColor: "hsl(var(--border) / 0.15)",
+                            }
+                      }
+                    >
+                      <div
+                        className="h-11 w-11 rounded-full"
+                        style={{
+                          background: `radial-gradient(circle, ${item.color} 0%, ${item.color}88 55%, ${item.color}33 100%)`,
+                          boxShadow: `0 0 18px ${item.color}33`,
+                        }}
+                      />
+                      <span className="text-xs font-semibold text-foreground">{item.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* +18 */}
-              <div className="flex justify-center">
-                <button onClick={() => setAdultMode(!adultMode)}
-                  className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                    adultMode ? "bg-red-500/25 text-red-400 border border-red-500/40" : "bg-white/5 text-white/30 border border-white/10 hover:bg-white/10"
-                  }`}>
-                  🔥 +18 {adultMode ? "ON" : "OFF"}
-                </button>
-              </div>
+              <button
+                onClick={() => setAdultMode((previous) => !previous)}
+                className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                style={
+                  adultMode
+                    ? {
+                        background: "hsl(var(--destructive) / 0.14)",
+                        borderColor: "hsl(var(--destructive) / 0.45)",
+                        color: "hsl(var(--destructive))",
+                      }
+                    : {
+                        background: "hsl(var(--card) / 0.35)",
+                        borderColor: "hsl(var(--border) / 0.18)",
+                        color: "hsl(var(--muted-foreground) / 0.85)",
+                      }
+                }
+              >
+                🔥 +18 {adultMode ? "ON" : "OFF"}
+              </button>
+
+              <button
+                onClick={startCall}
+                className="mt-1 flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                  boxShadow: `0 0 36px ${accent}44`,
+                }}
+                aria-label="Iniciar ligação"
+              >
+                <Phone size={28} />
+              </button>
             </div>
           ) : (
-            /* Animated orb during call */
-            <div className="relative w-48 h-48">
-              {/* Glow */}
-              <div className="absolute inset-0 rounded-full blur-3xl opacity-30 animate-pulse" style={{ background: vc }} />
-              {/* Orb rings */}
-              {orbLevels.map((level, i) => (
-                <div key={i} className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-full border transition-all duration-150"
-                    style={{
-                      width: `${60 + i * 20 + level * 30}%`,
-                      height: `${60 + i * 20 + level * 30}%`,
-                      borderColor: `${vc}${Math.round((0.6 - i * 0.1) * 255).toString(16).padStart(2, '0')}`,
-                      boxShadow: speaking ? `0 0 ${10 + level * 20}px ${vc}44` : "none",
-                    }} />
-                </div>
-              ))}
-              {/* Center circle */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-2xl"
-                  style={{ background: `linear-gradient(135deg, ${vc}, ${vc}88)`, boxShadow: `0 0 40px ${vc}66` }}>
-                  {voice.label[0]}
-                </div>
-              </div>
+            <div className="flex items-center justify-center gap-5 pt-1">
+              <button
+                onClick={() => setMuted((previous) => !previous)}
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-border/20 bg-card/55 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card"
+                aria-label={muted ? "Ativar áudio" : "Silenciar áudio"}
+              >
+                {muted ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
+
+              <button
+                onClick={() => {
+                  endCall();
+                  onClose();
+                }}
+                className="flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.82))",
+                  boxShadow: "0 0 32px hsl(var(--destructive) / 0.4)",
+                }}
+                aria-label="Encerrar ligação"
+              >
+                <PhoneOff size={28} />
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Bottom controls */}
-        <div className="flex items-center justify-center gap-6 pb-4">
-          {phase === "call" && (
-            <button onClick={() => setMuted(!muted)}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
-                muted ? "bg-white/20 text-white" : "bg-white/10 text-white/60 hover:bg-white/15"
-              }`}>
-              {muted ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
-          )}
-
-          {phase === "pick" ? (
-            <button onClick={startCall}
-              className="w-20 h-20 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300"
-              style={{ background: `linear-gradient(135deg, ${vc}, ${vc}cc)`, boxShadow: `0 8px 32px ${vc}55` }}>
-              <Phone size={28} className="text-white" />
-            </button>
-          ) : (
-            <button onClick={() => { endCall(); onClose(); }}
-              className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-2xl shadow-red-500/40 hover:scale-110 transition-all duration-300">
-              <PhoneOff size={28} />
-            </button>
-          )}
-
-          {phase === "pick" && (
-            <button onClick={onClose}
-              className="w-14 h-14 rounded-full bg-white/10 text-white/60 flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-sm">
-              ✕
-            </button>
           )}
         </div>
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
