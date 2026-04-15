@@ -23,6 +23,7 @@ export type Database = {
           created_by: string
           expires_at: string | null
           id: string
+          linked_imei: string | null
           status: string
           updated_at: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           created_by: string
           expires_at?: string | null
           id?: string
+          linked_imei?: string | null
           status?: string
           updated_at?: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           created_by?: string
           expires_at?: string | null
           id?: string
+          linked_imei?: string | null
           status?: string
           updated_at?: string
         }

@@ -1,0 +1,1 @@
+ALTER TABLE public.accelerator_keys ADD COLUMN linked_imei text DEFAULT NULL;
