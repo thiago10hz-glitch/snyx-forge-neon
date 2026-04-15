@@ -413,7 +413,7 @@ const Accelerator = () => {
                 </a>
               </div>
               <p className="text-white/30 text-xs mt-4">
-                Extraia o .zip → Execute <code className="text-purple-400/70">npm install && npm start</code> → Pronto!
+                Extraia o .zip → Clique 2x em <code className="text-purple-400/70">CONSTRUIR.bat</code> → Ele instala tudo e gera o .exe!
               </p>
             </div>
           </div>
