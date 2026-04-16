@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const DEEPGRAM_API_KEY = Deno.env.get("DEEPGRAM_API_KEY");
-    if (!DEEPGRAM_API_KEY) {
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
       return new Response(
         JSON.stringify({ success: false, error: "API de voz não configurada" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { text, voiceId = "aura-2-thalia-en" } = body;
+    const { text, voiceId = "nova" } = body;
 
     if (!text || typeof text !== "string" || text.length < 3) {
       return new Response(
@@ -61,25 +61,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Generating vocal with Deepgram Aura:", text.slice(0, 100));
+    console.log("Generating vocal with OpenAI TTS:", text.slice(0, 100), "voice:", voiceId);
 
-    const ttsRes = await fetch(
-      `https://api.deepgram.com/v1/speak?model=${encodeURIComponent(voiceId)}&encoding=mp3`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Token ${DEEPGRAM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: text.slice(0, 5000),
-        }),
-      }
-    );
+    const ttsRes = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "tts-1-hd",
+        input: text.slice(0, 4096),
+        voice: voiceId,
+        response_format: "mp3",
+        speed: 1.0,
+      }),
+    });
 
     if (!ttsRes.ok) {
       const errText = await ttsRes.text();
-      console.error("Deepgram TTS error:", ttsRes.status, errText);
+      console.error("OpenAI TTS error:", ttsRes.status, errText);
 
       if (ttsRes.status === 429) {
         return new Response(
