@@ -325,9 +325,12 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
   };
 
   const filtered = characters.filter((c) => {
-    const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.description.toLowerCase().includes(search.toLowerCase()) || (c.tags || []).some(t => t.toLowerCase().includes(search.toLowerCase()));
-    const matchCat = category === "all" || category === "trending" || c.category === category;
-    return matchSearch && matchCat;
+    const q = search.toLowerCase().trim();
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || (c.tags || []).some(t => t.toLowerCase().includes(q)) || c.category.toLowerCase().includes(q);
+    const matchCat = category === "all" || category === "trending" || category === "favs" || c.category === category;
+    const matchFav = !showOnlyFavs || favIds.has(c.id);
+    const matchNsfw = !hideNsfw || !c.is_nsfw;
+    return matchSearch && matchCat && matchFav && matchNsfw;
   });
 
   const sorted = category === "trending"
@@ -462,6 +465,13 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                         <MessageCircle className="w-3 h-3" />
                         {formatCount(char.chat_count)}
                       </div>
+                      <button
+                        onClick={(e) => toggleFav(char.id, e)}
+                        className={`w-8 h-8 rounded-full backdrop-blur flex items-center justify-center transition-all ${favIds.has(char.id) ? "bg-yellow-500/80 hover:bg-yellow-500" : "bg-black/50 hover:bg-black/70"}`}
+                        title={favIds.has(char.id) ? "Remover favorito" : "Favoritar"}
+                      >
+                        <Sparkles className={`w-4 h-4 ${favIds.has(char.id) ? "fill-white text-white" : "text-white/70"}`} />
+                      </button>
                       <button
                         onClick={(e) => toggleLike(char.id, e)}
                         className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center hover:bg-black/70 transition-all"
