@@ -208,20 +208,19 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // ── CLEANUP expired demos ──
+    // ── CLEANUP all active demos (admin revoke all) ──
     if (action === "cleanup") {
       const VERCEL_TOKEN = Deno.env.get("VERCEL_TOKEN");
       
-      // Get expired active demos
-      const { data: expiredDemos } = await adminClient
+      // Get ALL active demos (not just expired)
+      const { data: activeDemos } = await adminClient
         .from("clone_demos")
         .select("*")
-        .eq("status", "active")
-        .lt("expires_at", new Date().toISOString());
+        .eq("status", "active");
 
       let cleaned = 0;
-      if (expiredDemos) {
-        for (const demo of expiredDemos) {
+      if (activeDemos) {
+        for (const demo of activeDemos) {
           // Delete from Vercel
           if (demo.vercel_project_id && VERCEL_TOKEN) {
             try {
