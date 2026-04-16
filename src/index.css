@@ -84,31 +84,23 @@
 }
 
 @layer components {
-  /* === Glass effects === */
+  /* === Glass effects (opaque bg, no backdrop-blur for performance) === */
   .glass {
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(10, 10, 15, 0.85);
     border-color: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
   }
   .glass-elevated {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(10, 10, 15, 0.92);
     border-color: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(32px) saturate(1.6);
-    -webkit-backdrop-filter: blur(32px) saturate(1.6);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .glass-subtle {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(10, 10, 15, 0.75);
     border-color: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
   .glass-input {
     background: rgba(255, 255, 255, 0.035);
     border-color: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
 
   /* === Neon effects === */
