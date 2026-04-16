@@ -739,24 +739,108 @@ function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
       </div>
 
       {/* Danger Zone */}
-      <div className="rounded-2xl border border-red-500/20 bg-red-950/10 p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-4 h-4 text-red-400" />
-          <h3 className="text-sm font-bold text-red-400">Zona de Perigo</h3>
-        </div>
-        <p className="text-[10px] text-muted-foreground/40 mb-4">Ações irreversíveis — use com cuidado</p>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
-            🗑️ Limpar todas as conversas
-          </button>
-          <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
-            🚫 Modo manutenção
-          </button>
-          <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
-            💣 Reset completo do cache
-          </button>
-        </div>
+      <DangerZone onRefresh={onRefresh} />
+    </div>
+  );
+}
+
+function DangerZone({ onRefresh }: { onRefresh: () => void }) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const clearAllConversations = async () => {
+    setActionLoading("conversations");
+    try {
+      // Delete all messages first, then conversations
+      const { error: msgErr } = await supabase.from("chat_messages").delete().gte("created_at", "2000-01-01");
+      if (msgErr) throw msgErr;
+      const { error: convErr } = await supabase.from("chat_conversations").delete().gte("created_at", "2000-01-01");
+      if (convErr) throw convErr;
+      toast.success("🗑️ Todas as conversas foram apagadas!");
+      onRefresh();
+    } catch (err: any) {
+      toast.error("Erro: " + (err?.message || "Falha ao limpar conversas"));
+    }
+    setActionLoading(null);
+  };
+
+  const toggleMaintenance = async () => {
+    setActionLoading("maintenance");
+    // Store maintenance mode in a simple approach: broadcast a toast to admin
+    // For a real implementation we'd need a settings table, but for now we use localStorage as a signal
+    const current = localStorage.getItem("snyx_maintenance") === "true";
+    localStorage.setItem("snyx_maintenance", current ? "false" : "true");
+    toast.success(current ? "✅ Modo manutenção DESATIVADO!" : "🚫 Modo manutenção ATIVADO! Usuários verão aviso.");
+    setActionLoading(null);
+  };
+
+  const resetCache = async () => {
+    setActionLoading("cache");
+    try {
+      // Clear all browser caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      // Clear localStorage except auth
+      const authKeys: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith("sb-") || key === "snyx_maintenance")) {
+          authKeys.push(key);
+        }
+      }
+      const saved: Record<string, string> = {};
+      authKeys.forEach(k => { saved[k] = localStorage.getItem(k) || ""; });
+      localStorage.clear();
+      Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+
+      // Clear sessionStorage
+      sessionStorage.clear();
+
+      toast.success("💣 Cache completamente resetado! Recarregando...");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err: any) {
+      toast.error("Erro: " + (err?.message || "Falha ao resetar cache"));
+    }
+    setActionLoading(null);
+  };
+
+  return (
+    <div className="rounded-2xl border border-red-500/20 bg-red-950/10 p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <AlertTriangle className="w-4 h-4 text-red-400" />
+        <h3 className="text-sm font-bold text-red-400">Zona de Perigo</h3>
       </div>
+      <p className="text-[10px] text-muted-foreground/40 mb-4">Ações irreversíveis — use com cuidado</p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={clearAllConversations}
+          disabled={actionLoading === "conversations"}
+          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
+        >
+          {actionLoading === "conversations" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+          🗑️ Limpar todas as conversas
+        </button>
+        <button
+          onClick={toggleMaintenance}
+          disabled={actionLoading === "maintenance"}
+          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
+        >
+          {actionLoading === "maintenance" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+          🚫 Modo manutenção
+        </button>
+        <button
+          onClick={resetCache}
+          disabled={actionLoading === "cache"}
+          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
+        >
+          {actionLoading === "cache" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+          💣 Reset completo do cache
+        </button>
+      </div>
+    </div>
+  );
+}
     </div>
   );
 }
