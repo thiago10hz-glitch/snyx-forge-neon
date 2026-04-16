@@ -78,6 +78,17 @@ Deno.serve(async (req: Request) => {
 
       const videoData = statusData.data;
       const status = videoData?.status;
+      const heygenError = videoData?.error;
+
+      // Friendly error message
+      let errorMessage: string | null = null;
+      if (status === "failed" && heygenError) {
+        if (heygenError.code === "MOVIO_PAYMENT_INSUFFICIENT_CREDIT") {
+          errorMessage = "⚠️ A conta HeyGen está sem créditos de API. O administrador precisa recarregar em heygen.com.";
+        } else {
+          errorMessage = `Falha no HeyGen: ${heygenError.message || heygenError.detail || heygenError.code}`;
+        }
+      }
 
       // If completed, update DB
       if (status === "completed" && videoData?.video_url) {
@@ -99,10 +110,9 @@ Deno.serve(async (req: Request) => {
         video_url: videoData?.video_url || null,
         thumbnail_url: videoData?.thumbnail_url || null,
         duration: videoData?.duration || null,
+        error_message: errorMessage,
       });
     }
-
-    // ===== ACTION: list_avatars =====
     if (action === "list_avatars") {
       const avatarRes = await fetch(`${HEYGEN_API}/v2/avatars`, {
         headers: { accept: "application/json", "x-api-key": HEYGEN_API_KEY },
