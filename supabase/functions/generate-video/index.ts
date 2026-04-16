@@ -204,7 +204,12 @@ Deno.serve(async (req: Request) => {
 
     if (!heygenRes.ok || heygenData.error) {
       console.error("HeyGen error:", JSON.stringify(heygenData));
-      return json({ error: heygenData.error?.message || "Erro ao gerar vídeo no HeyGen" }, 500);
+      const errCode = heygenData.error?.code || "";
+      const errMsg = heygenData.error?.message || heygenData.error?.detail || "";
+      if (errCode.includes("PAYMENT") || errCode.includes("CREDIT") || errMsg.toLowerCase().includes("credit")) {
+        return json({ error: "⚠️ A conta HeyGen está sem créditos de API. Avise o administrador para recarregar em heygen.com." }, 402);
+      }
+      return json({ error: errMsg || "Erro ao gerar vídeo no HeyGen" }, 500);
     }
 
     const videoId = heygenData.data?.video_id;
