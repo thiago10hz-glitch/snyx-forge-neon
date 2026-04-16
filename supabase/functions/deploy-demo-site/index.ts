@@ -557,7 +557,7 @@ Deno.serve(async (req) => {
             try {
               await fetch(`https://api.vercel.com/v9/projects/${demo.vercel_project_id}`, {
                 method: "DELETE",
-                headers: { Authorization: \`Bearer \${VERCEL_TOKEN}\` },
+                headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
               });
             } catch (e) {
               console.error("Failed to delete Vercel project:", e);
@@ -587,9 +587,9 @@ Deno.serve(async (req) => {
         for (const demo of activeDemos) {
           if (demo.vercel_project_id && VERCEL_TOKEN) {
             try {
-              await fetch(\`https://api.vercel.com/v9/projects/\${demo.vercel_project_id}\`, {
+              await fetch(`https://api.vercel.com/v9/projects/${demo.vercel_project_id}`, {
                 method: "DELETE",
-                headers: { Authorization: \`Bearer \${VERCEL_TOKEN}\` },
+                headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
               });
             } catch (e) {
               console.error("Failed to delete Vercel project:", e);
@@ -632,12 +632,12 @@ Deno.serve(async (req) => {
     const html = generateDemoSiteHTML(siteName, primaryColor || "#ff0000", description, ownerEmail);
 
     // Deploy to Vercel
-    const safeName = \`demo-\${siteName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 40)}\`;
+    const safeName = `demo-${siteName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 40)}`;
 
     const deployRes = await fetch("https://api.vercel.com/v13/deployments", {
       method: "POST",
       headers: {
-        Authorization: \`Bearer \${VERCEL_TOKEN}\`,
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -662,9 +662,9 @@ Deno.serve(async (req) => {
     }
 
     const hostedUrl = deployData.url
-      ? \`https://\${deployData.url}\`
+      ? `https://${deployData.url}`
       : deployData.alias?.[0]
-        ? \`https://\${deployData.alias[0]}\`
+        ? `https://${deployData.alias[0]}`
         : null;
 
     // Save demo record
@@ -688,9 +688,9 @@ Deno.serve(async (req) => {
     if (insertErr) {
       console.error("Insert error:", insertErr);
       if (deployData.projectId) {
-        await fetch(\`https://api.vercel.com/v9/projects/\${deployData.projectId}\`, {
+        await fetch(`https://api.vercel.com/v9/projects/${deployData.projectId}`, {
           method: "DELETE",
-          headers: { Authorization: \`Bearer \${VERCEL_TOKEN}\` },
+          headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
         }).catch(() => {});
       }
       return jsonResponse({ error: "Erro ao salvar demonstração" }, 500);
