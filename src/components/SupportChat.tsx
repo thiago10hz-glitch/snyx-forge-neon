@@ -323,17 +323,18 @@ export function SupportChat() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Suporte side tab */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-primary-foreground flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-110 transition-all group"
+          className="fixed right-0 top-1/3 z-40 flex items-center gap-1.5 px-2 py-3 rounded-l-xl bg-emerald-500/90 hover:bg-emerald-500 backdrop-blur-sm text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:pr-3 transition-all duration-300 group writing-mode-vertical"
           title="Suporte"
+          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
         >
-          <MessageCircle size={20} className="sm:hidden" />
-          <MessageCircle size={22} className="hidden sm:block" />
+          <MessageCircle size={14} className="rotate-90 shrink-0" />
+          <span className="text-[11px] font-bold tracking-wider uppercase">Suporte</span>
           {adminOnline && (
-            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
+            <div className="absolute -left-1 top-2 w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-600 animate-pulse" />
           )}
         </button>
       )}
