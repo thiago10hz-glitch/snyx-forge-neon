@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log("IPTV URL:", PLAYLIST_URL);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
 
