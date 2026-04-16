@@ -31,7 +31,7 @@ export default function Downloads() {
     if (!user || !session) return;
     const verify = async () => {
       try {
-        const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, "verify");
+        const { signature, timestamp, fingerprint } = await generateIntegrityToken(user.id, "verify");
         const { error } = await supabase.functions.invoke("secure-download", {
           body: { action: "verify_integrity" },
           headers: {
@@ -72,7 +72,7 @@ export default function Downloads() {
     
     setDownloadingId(rel.id);
     try {
-      const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, rel.file_url);
+      const { signature, timestamp, fingerprint } = await generateIntegrityToken(user.id, rel.file_url);
 
       toast.info("🔐 Verificando integridade...", { duration: 2000 });
 

@@ -24,7 +24,9 @@ interface Channel {
   g: string;
 }
 
-const PLAYLIST_URL = "http://dns.acesse.digital/get.php?username=59176152&password=77525563&type=m3u_plus&output=mpegts";
+const IPTV_USERNAME = Deno.env.get("IPTV_USERNAME") || "";
+const IPTV_PASSWORD = Deno.env.get("IPTV_PASSWORD") || "";
+const PLAYLIST_URL = `http://dns.acesse.digital/get.php?username=${IPTV_USERNAME}&password=${IPTV_PASSWORD}&type=m3u_plus&output=mpegts`;
 
 async function streamParseM3U(response: Response): Promise<Channel[]> {
   const channels: Channel[] = [];
