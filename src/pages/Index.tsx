@@ -1,22 +1,30 @@
-import { useState, useEffect } from "react";
-import { ChatPanel } from "@/components/ChatPanel";
-import { CodeEditor } from "@/components/CodeEditor";
-import { MusicPanel } from "@/components/MusicPanel";
-import { CharactersPanel } from "@/components/CharactersPanel";
-import { UserProfile } from "@/components/UserProfile";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
-import { SupportChat } from "@/components/SupportChat";
-import { ThemeSelector } from "@/components/ThemeSelector";
-import { VipModal } from "@/components/VipModal";
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
   Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
-  ChevronRight, Flame, X, Globe,
+  ChevronRight, Flame, X, Globe, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Lazy load heavy components
+const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
+const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
+const MusicPanel = lazy(() => import("@/components/MusicPanel").then(m => ({ default: m.MusicPanel })));
+const CharactersPanel = lazy(() => import("@/components/CharactersPanel").then(m => ({ default: m.CharactersPanel })));
+const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
+const SupportChat = lazy(() => import("@/components/SupportChat").then(m => ({ default: m.SupportChat })));
+const ThemeSelector = lazy(() => import("@/components/ThemeSelector").then(m => ({ default: m.ThemeSelector })));
+const VipModal = lazy(() => import("@/components/VipModal").then(m => ({ default: m.VipModal })));
+
+const PanelLoader = () => (
+  <div className="flex items-center justify-center h-full">
+    <Loader2 className="w-5 h-5 animate-spin text-primary/40" />
+  </div>
+);
 
 const Index = () => {
   const [code, setCode] = useState("");
@@ -243,25 +251,33 @@ const Index = () => {
         <div className="flex-1 flex overflow-hidden">
           {safeChatMode === "music" ? (
             <div className="flex-1 overflow-hidden">
-              <MusicPanel onBack={() => setChatMode("friend")} />
+              <Suspense fallback={<PanelLoader />}>
+                <MusicPanel onBack={() => setChatMode("friend")} />
+              </Suspense>
             </div>
           ) : safeChatMode === "characters" ? (
             <div className="flex-1 overflow-hidden">
-              <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
+              <Suspense fallback={<PanelLoader />}>
+                <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
+              </Suspense>
             </div>
           ) : (
             <>
               <div className={`w-full ${safeChatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
-                <ChatPanel
-                  onCodeGenerated={setCode}
-                  onModeChange={(mode) => setChatMode(mode)}
-                  activeCharacter={hasRpgAccess ? activeCharacter : null}
-                  onClearCharacter={() => setActiveCharacter(null)}
-                />
+                <Suspense fallback={<PanelLoader />}>
+                  <ChatPanel
+                    onCodeGenerated={setCode}
+                    onModeChange={(mode) => setChatMode(mode)}
+                    activeCharacter={hasRpgAccess ? activeCharacter : null}
+                    onClearCharacter={() => setActiveCharacter(null)}
+                  />
+                </Suspense>
               </div>
               {safeChatMode === "programmer" && (
                 <div className="hidden md:block flex-1 min-w-0">
-                  <CodeEditor code={code} onCodeChange={setCode} />
+                  <Suspense fallback={<PanelLoader />}>
+                    <CodeEditor code={code} onCodeChange={setCode} />
+                  </Suspense>
                 </div>
               )}
             </>
@@ -320,10 +336,12 @@ const Index = () => {
         </>
       )}
 
-      <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
-      <SupportChat />
-      <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
-      <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
+      <Suspense fallback={null}>
+        <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
+        <SupportChat />
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
+        <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
+      </Suspense>
     </div>
   );
 };
