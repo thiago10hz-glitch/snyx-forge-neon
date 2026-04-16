@@ -211,7 +211,10 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             </div>
           )}
 
-
+        {/* Form content */}
+        <div className="px-5 pb-6 space-y-4">
+          {/* Display Name */}
+          <div>
             <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block">Nome</label>
             <input
               value={displayName}
