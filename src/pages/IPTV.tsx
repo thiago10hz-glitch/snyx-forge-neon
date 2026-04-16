@@ -330,8 +330,12 @@ export default function IPTV() {
 
       if (isMpegTsStream(ch.u) || !isHlsStream(ch.u)) {
         const mpegtsModule = await import("mpegts.js");
-        const mpegts = (mpegtsModule as { default?: { createPlayer: (config: { type: string; isLive: boolean; url: string }) => MpegtsPlayer; getFeatureList?: () => { mseLivePlayback?: boolean }; isSupported?: () => boolean } }).default ?? mpegtsModule;
-        const supported = Boolean(mpegts.getFeatureList?.().mseLivePlayback || mpegts.isSupported?.());
+        const mpegts = ((mpegtsModule as any).default ?? mpegtsModule) as {
+          createPlayer: (config: { type: string; isLive: boolean; url: string }) => MpegtsPlayer;
+          getFeatureList?: () => { mseLivePlayback?: boolean };
+          isSupported?: () => boolean;
+        };
+        const supported = Boolean(mpegts.getFeatureList?.()?.mseLivePlayback || mpegts.isSupported?.());
 
         if (!supported) {
           throw new Error("Seu navegador não suporta este stream ao vivo.");
