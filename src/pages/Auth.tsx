@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, KeyRound,
   Flame, Crown, Zap, Shield, Gamepad2, MonitorPlay, Sparkles, Star, X,
-  Globe, Users, Music, Image as ImageIcon,
+  Globe, Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
