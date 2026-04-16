@@ -12,6 +12,7 @@ import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AdminAcceleratorPanel } from "@/components/AdminAcceleratorPanel";
+import { AdminHealthPanel } from "@/components/AdminHealthPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
@@ -42,7 +43,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases" | "accelerator";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases" | "accelerator" | "health";
 
 interface ChatMessage {
   id: string;
@@ -508,6 +509,7 @@ export default function Admin() {
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
             { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
             { key: "accelerator" as AdminTab, label: "Accelerator", icon: Zap, activeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
+            { key: "health" as AdminTab, label: "IA Health", icon: ShieldCheck, activeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
           ]).map(tab => (
             <button
               key={tab.key}
@@ -1092,6 +1094,12 @@ export default function Admin() {
       {adminTab === "accelerator" && (
         <div className="max-w-4xl mx-auto px-4 py-6">
           <AdminAcceleratorPanel />
+        </div>
+      )}
+
+      {adminTab === "health" && (
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <AdminHealthPanel />
         </div>
       )}
 
