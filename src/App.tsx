@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { Loader2 } from "lucide-react";
-import { initSnyxSecurity } from "@/lib/snyxSecurity";
+import { initSnyxSecurity, setSnyxOwnerMode } from "@/lib/snyxSecurity";
 
 // Eager imports — all pages loaded upfront for instant navigation
 import Index from "./pages/Index";
