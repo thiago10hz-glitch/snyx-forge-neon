@@ -429,13 +429,13 @@ export default function Auth() {
 
                   {/* Forgot sent */}
                   {view === "forgot-sent" && (
-                    <div className="space-y-5">
-                      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                          <Mail className="h-7 w-7 text-primary" />
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-center">
+                        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                          <Mail className="h-5 w-5 text-primary" />
                         </div>
-                        <p className="text-base font-semibold text-foreground">Confira seu e-mail</p>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        <p className="text-sm font-semibold text-foreground">Confira seu e-mail</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
                           Enviamos o link para <span className="font-medium text-foreground">{email}</span>.
                         </p>
                       </div>
@@ -445,26 +445,26 @@ export default function Auth() {
                           <p>Não encontrou? Verifique spam ou promoções.</p>
                         </div>
                       </div>
-                      <button type="button" onClick={() => setView("forgot")} className="w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/35">Reenviar e-mail</button>
+                      <button type="button" onClick={() => setView("forgot")} className="w-full rounded-xl border border-border/30 bg-muted/15 px-3 py-2.5 text-xs font-medium text-foreground transition-all hover:bg-muted/25">Reenviar e-mail</button>
                       <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
                     </div>
                   )}
 
                   {/* Forgot form */}
                   {view === "forgot" && (
-                    <div className="space-y-5">
-                      <div className="rounded-2xl border border-border/20 bg-muted/10 p-5 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10"><KeyRound className="h-6 w-6 text-primary" /></div>
-                        <p className="text-base font-semibold text-foreground">Esqueceu sua senha?</p>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Digite seu e-mail para receber o link de recuperação.</p>
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-border/15 bg-muted/5 p-3 text-center">
+                        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10"><KeyRound className="h-4 w-4 text-primary" /></div>
+                        <p className="text-sm font-semibold text-foreground">Esqueceu sua senha?</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">Digite seu e-mail para receber o link.</p>
                       </div>
-                      <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <form onSubmit={handleForgotPassword} className="space-y-3">
                         <div className="space-y-2">
                           <label className="text-xs font-medium text-muted-foreground">E-mail</label>
                           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required autoFocus className={inputClassName} />
                         </div>
-                        <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50">
-                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} Enviar link
+                        <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50">
+                          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />} Enviar link
                         </button>
                       </form>
                       <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
@@ -473,14 +473,14 @@ export default function Auth() {
 
                   {/* Login / Signup form */}
                   {isAuthForm && (
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       {view === "signup" && (
-                        <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-                          Senha: <span className="font-medium text-foreground">12+ caracteres</span>, maiúscula, minúscula, número e símbolo.
+                        <div className="rounded-lg border border-primary/10 bg-primary/5 px-3 py-2 text-[10px] leading-relaxed text-muted-foreground">
+                          Senha: <span className="font-medium text-foreground">12+ chars</span>, maiúscula, minúscula, número e símbolo.
                         </div>
                       )}
 
-                      <form onSubmit={handleSubmit} className="space-y-4">
+                      <form onSubmit={handleSubmit} className="space-y-3">
                         <div className="space-y-2">
                           <label className="text-xs font-medium text-muted-foreground">E-mail</label>
                           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required className={inputClassName} />
@@ -504,26 +504,26 @@ export default function Auth() {
                         )}
 
                         <button type="submit" disabled={loading}
-                          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 btn-glow">
-                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{view === "login" ? "Entrar agora" : "Criar conta"}<ArrowRight className="h-4 w-4" /></>}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 btn-glow">
+                          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>{view === "login" ? "Entrar" : "Criar conta"}<ArrowRight className="h-3.5 w-3.5" /></>}
                         </button>
                       </form>
 
                       {/* Social divider */}
-                      <div className="flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border/30" />
-                        <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">ou continue com</span>
-                        <div className="h-px flex-1 bg-border/30" />
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-border/20" />
+                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/30">ou</span>
+                        <div className="h-px flex-1 bg-border/20" />
                       </div>
 
                       {/* Social buttons */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2">
                         <button type="button" onClick={() => handleOAuthSignIn("google")} disabled={loading}
-                          className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50">
+                          className="flex items-center justify-center gap-2 rounded-xl border border-border/20 bg-card/60 px-3 py-2 text-[11px] font-medium text-foreground transition-all hover:bg-muted/20 disabled:opacity-50">
                           <GoogleIcon /> Google
                         </button>
                         <button type="button" onClick={() => handleOAuthSignIn("apple")} disabled={loading}
-                          className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50">
+                          className="flex items-center justify-center gap-2 rounded-xl border border-border/20 bg-card/60 px-3 py-2 text-[11px] font-medium text-foreground transition-all hover:bg-muted/20 disabled:opacity-50">
                           <AppleIcon /> Apple
                         </button>
                       </div>
@@ -535,59 +535,55 @@ export default function Auth() {
 
             {/* Footer */}
             {view !== "vip-info" && (
-              <div className="mt-5 text-center space-y-3">
+              <div className="mt-4 text-center space-y-2">
                 <button
                   onClick={() => setView("vip-info")}
-                  className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-5 py-2.5 text-xs font-semibold text-amber-400 transition-all hover:from-amber-500/20 hover:to-orange-500/20 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 backdrop-blur-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-4 py-2 text-[10px] font-semibold text-amber-400 transition-all hover:from-amber-500/20 hover:to-orange-500/20 hover:border-amber-500/40"
                 >
-                  <Crown className="h-3.5 w-3.5" />
-                  Adquirir acesso VIP
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Crown className="h-3 w-3" />
+                  Ver planos Premium
+                  <Sparkles className="h-3 w-3" />
                 </button>
-                <p className="text-[10px] text-muted-foreground/40 flex items-center justify-center gap-1.5">
-                  <Shield className="h-3 w-3" /> Login seguro com e-mail, Google ou Apple
+                <p className="text-[9px] text-muted-foreground/30 flex items-center justify-center gap-1">
+                  <Shield className="h-2.5 w-2.5" /> Login seguro • E-mail, Google ou Apple
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right: Feature showcase (desktop only) */}
-        <div className="hidden lg:flex lg:w-[440px] xl:w-[500px] items-center justify-center border-l border-border/10 bg-gradient-to-br from-muted/5 to-transparent px-8">
-          <div className="w-full max-w-sm space-y-8">
+        {/* Right: Feature showcase (desktop) */}
+        <div className="hidden lg:flex lg:w-[380px] xl:w-[440px] items-center justify-center border-l border-border/10 bg-gradient-to-br from-muted/3 to-transparent px-6">
+          <div className="w-full max-w-xs space-y-5">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Tudo em um só lugar</h2>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">Chat IA, otimização de PC, IPTV, hosting e muito mais.</p>
+              <h2 className="text-lg font-bold text-foreground">Tudo em um só lugar</h2>
+              <p className="mt-1 text-[11px] text-muted-foreground/70 leading-relaxed">Chat IA, otimização, IPTV, hospedagem, RPG e mais.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {[
-                { icon: Sparkles, label: "Chat IA Avançado", desc: "Converse com IA em múltiplos modos", color: "text-amber-400", bg: "bg-amber-500/10" },
-                { icon: Zap, label: "Otimizador de PC", desc: "Boost de performance com 1 clique", color: "text-blue-400", bg: "bg-blue-500/10" },
-                { icon: MonitorPlay, label: "IPTV Premium", desc: "Milhares de canais ao vivo", color: "text-green-400", bg: "bg-green-500/10" },
-                { icon: Shield, label: "VPN Integrada", desc: "Navegação segura e anônima", color: "text-purple-400", bg: "bg-purple-500/10" },
+                { icon: Sparkles, label: "Chat IA Avançado", desc: "6 modos: Amigo, Escola, Programador, RPG", color: "text-amber-400", bg: "bg-amber-500/10" },
+                { icon: Zap, label: "SnyX Optimizer", desc: "Otimize CPU, RAM, rede e GPU", color: "text-cyan-400", bg: "bg-cyan-500/10" },
+                { icon: MonitorPlay, label: "IPTV", desc: "Canais ao vivo com player integrado", color: "text-green-400", bg: "bg-green-500/10" },
+                { icon: Shield, label: "VPN WireGuard", desc: "Navegação segura e anônima", color: "text-purple-400", bg: "bg-purple-500/10" },
+                { icon: Globe, label: "Hospedagem", desc: "Publique sites direto na plataforma", color: "text-blue-400", bg: "bg-blue-500/10" },
+                { icon: Gamepad2, label: "RPG com IA", desc: "Personagens e aventuras com IA", color: "text-pink-400", bg: "bg-pink-500/10" },
               ].map((item, i) => (
-                <div key={i} className="group flex items-center gap-4 rounded-2xl border border-border/15 bg-card/30 p-4 transition-all duration-300 hover:bg-card/50 hover:border-border/30">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.bg} ${item.color} transition-transform group-hover:scale-110`}>
-                    <item.icon className="h-5 w-5" />
+                <div key={i} className="group flex items-center gap-3 rounded-xl border border-border/10 bg-card/20 p-2.5 transition-all hover:bg-card/40">
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${item.bg} ${item.color}`}>
+                    <item.icon className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    <p className="text-[11px] font-semibold text-foreground">{item.label}</p>
+                    <p className="text-[9px] text-muted-foreground/60">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
-              <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-background flex items-center justify-center text-[9px] font-bold text-primary/60">
-                    {String.fromCharCode(64 + i)}
-                  </div>
-                ))}
-              </div>
-              <span>+500 usuários ativos</span>
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
+              <p className="text-[10px] font-semibold text-foreground mb-1">Plano Grátis inclui:</p>
+              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">15 mensagens/dia • 1 personagem RPG • Suporte por ticket • Sem cartão</p>
             </div>
           </div>
         </div>
