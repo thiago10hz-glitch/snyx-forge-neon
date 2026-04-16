@@ -404,15 +404,7 @@ export default function IPTV() {
                           onClick={() => playChannel(ch)}
                           className="group flex flex-col items-center gap-2.5 p-3 rounded-2xl bg-card/30 border border-border/5 hover:bg-card/70 hover:border-border/15 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 hover:scale-[1.04] active:scale-[0.96] shrink-0 w-[110px]"
                         >
-                          {ch.l ? (
-                            <div className="w-14 h-14 rounded-xl bg-black/30 border border-white/5 flex items-center justify-center overflow-hidden">
-                              <img src={ch.l} alt="" className="w-12 h-12 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                            </div>
-                          ) : (
-                            <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${preview.gradient} opacity-15 flex items-center justify-center border border-white/5`}>
-                              <Icon size={22} className="text-foreground/30" />
-                            </div>
-                          )}
+                          <ChannelLogo src={ch.l} size="lg" fallbackIcon={<Icon size={22} className="text-foreground/30" />} />
                           <p className="text-foreground/70 text-[10px] font-medium truncate w-full text-center group-hover:text-foreground transition-colors">{ch.n}</p>
                         </button>
                       ))}
@@ -500,15 +492,12 @@ export default function IPTV() {
                           : "bg-card/25 border-border/5 hover:bg-card/60 hover:border-border/10 hover:shadow-xl hover:shadow-black/10"
                       }`}
                     >
-                      {ch.l ? (
-                        <div className={`w-11 h-11 rounded-xl overflow-hidden bg-black/30 shrink-0 border ${isPlaying ? "border-purple-500/30" : "border-white/5"} flex items-center justify-center`}>
-                          <img src={ch.l} alt="" className="w-9 h-9 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        </div>
-                      ) : (
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${isPlaying ? "bg-purple-500/15 border-purple-500/20" : "bg-card/50 border-white/5 group-hover:bg-card"}`}>
-                          <Tv size={16} className={isPlaying ? "text-purple-400" : "text-muted-foreground/20 group-hover:text-muted-foreground/40"} />
-                        </div>
-                      )}
+                      <ChannelLogo 
+                        src={ch.l} 
+                        size="md" 
+                        className={isPlaying ? "border-purple-500/30" : ""}
+                        fallbackIcon={<Tv size={16} className={isPlaying ? "text-purple-400" : "text-muted-foreground/20 group-hover:text-muted-foreground/40"} />}
+                      />
                       <div className="flex-1 min-w-0">
                         <p className={`text-[13px] font-semibold truncate transition-colors ${isPlaying ? "text-purple-300" : "text-foreground/80 group-hover:text-foreground"}`}>{ch.n}</p>
                         <p className="text-muted-foreground/25 text-[10px] truncate mt-0.5">{ch.g}</p>
