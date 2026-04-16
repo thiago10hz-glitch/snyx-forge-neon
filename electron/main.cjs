@@ -14,6 +14,38 @@ const WG_CONF_FILE = path.join(SNYX_DIR, 'snyx-vpn.conf');
 
 let mainWindow = null;
 let licenseCheckInterval = null;
+let localServer = null;
+const LOCAL_PORT = 19847;
+
+// Serve dist/ via local HTTP so BrowserRouter and Supabase work correctly
+function startLocalServer() {
+  return new Promise((resolve) => {
+    const distPath = path.join(__dirname, '..', 'dist');
+    const mimeTypes = {
+      '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
+      '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+      '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff': 'font/woff',
+      '.woff2': 'font/woff2', '.ttf': 'font/ttf',
+    };
+    localServer = http.createServer((req, res) => {
+      let filePath = path.join(distPath, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        filePath = path.join(distPath, 'index.html'); // SPA fallback
+      }
+      const ext = path.extname(filePath).toLowerCase();
+      const mime = mimeTypes[ext] || 'application/octet-stream';
+      try {
+        const content = fs.readFileSync(filePath);
+        res.writeHead(200, { 'Content-Type': mime });
+        res.end(content);
+      } catch {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+    localServer.listen(LOCAL_PORT, '127.0.0.1', () => resolve());
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -31,14 +63,19 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-  mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  mainWindow.loadURL(`http://127.0.0.1:${LOCAL_PORT}`);
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (!fs.existsSync(SNYX_DIR)) fs.mkdirSync(SNYX_DIR, { recursive: true });
+  await startLocalServer();
   createWindow();
   startLicenseCheck();
+});
+
+app.on('before-quit', () => {
+  if (localServer) localServer.close();
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
