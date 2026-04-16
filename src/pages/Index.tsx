@@ -336,10 +336,12 @@ const Index = () => {
         </>
       )}
 
-      <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
-      <SupportChat />
-      <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
-      <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
+      <Suspense fallback={null}>
+        <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
+        <SupportChat />
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
+        <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
+      </Suspense>
     </div>
   );
 };
