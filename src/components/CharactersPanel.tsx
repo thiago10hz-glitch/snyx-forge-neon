@@ -436,6 +436,32 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
               ))}
             </div>
 
+            {/* Filter toggles */}
+            <div className="flex flex-wrap items-center gap-4 px-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <Switch checked={showOnlyFavs} onCheckedChange={setShowOnlyFavs} />
+                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" /> Só favoritos
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <Switch
+                  checked={!hideNsfw}
+                  onCheckedChange={(v) => {
+                    if (v && !isVip) {
+                      toast.error("Conteúdo +18 disponível apenas para VIP");
+                      return;
+                    }
+                    setHideNsfw(!v);
+                  }}
+                />
+                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-destructive" /> Mostrar +18
+                  {!isVip && <Lock className="w-3 h-3 opacity-50" />}
+                </span>
+              </label>
+            </div>
+
             {/* Grid */}
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
