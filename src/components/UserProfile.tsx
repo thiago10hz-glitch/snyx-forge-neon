@@ -223,7 +223,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
         {/* Form content */}
         <div className="px-5 pb-6 space-y-4">
           {/* Partner / Relationship display */}
-          {partnerName && profile?.relationship_status === "namorando" && (
+          {partnerName && profile?.relationship_status && profile.relationship_status.toLowerCase().includes("namorando") && (
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-pink-500/8 border border-pink-500/15">
               <div className="flex items-center -space-x-3">
                 <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/30 bg-card z-10">
