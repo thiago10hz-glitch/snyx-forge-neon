@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Music, Play, Pause, Download, Loader2, Sparkles, Disc3, Mic, ListMusic, ArrowLeft, PhoneOff, RefreshCw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Music, Play, Pause, Download, Loader2, Sparkles, Disc3, Mic, ListMusic, ArrowLeft, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
