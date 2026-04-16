@@ -24,26 +24,65 @@ function _snyx_antiDebug() {
   }
 }
 
+// Track if current user is admin/owner (set externally)
+let _snyx_is_owner = false;
+
+export function setSnyxOwnerMode(isOwner: boolean) {
+  _snyx_is_owner = isOwner;
+}
+
 // Disable common inspect methods on protected elements
 function _snyx_protectDOM() {
+  // Block right-click for non-owners
   document.addEventListener("contextmenu", (e) => {
+    if (_snyx_is_owner) return;
     const target = e.target as HTMLElement;
-    if (target.closest("[data-snyx-protected]")) {
-      e.preventDefault();
-      return false;
-    }
+    // Allow context menu on inputs/textareas
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+    e.preventDefault();
+    return false;
   });
 
-  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  // Block copy for non-owners
+  document.addEventListener("copy", (e) => {
+    if (_snyx_is_owner) return;
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+    e.preventDefault();
+  });
+
+  // Block cut for non-owners
+  document.addEventListener("cut", (e) => {
+    if (_snyx_is_owner) return;
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+    e.preventDefault();
+  });
+
+  // Block text selection via selectstart for non-owners
+  document.addEventListener("selectstart", (e) => {
+    if (_snyx_is_owner) return;
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+    e.preventDefault();
+  });
+
+  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+C (outside inputs)
   document.addEventListener("keydown", (e) => {
+    if (_snyx_is_owner) return;
     if (
       e.key === "F12" ||
       (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
       (e.ctrlKey && e.shiftKey && (e.key === "J" || e.key === "j")) ||
       (e.ctrlKey && (e.key === "U" || e.key === "u"))
     ) {
-      // Only prevent on protected pages
-      if (document.querySelector("[data-snyx-protected]")) {
+      e.preventDefault();
+      return false;
+    }
+    // Block Ctrl+C outside inputs
+    if (e.ctrlKey && (e.key === "c" || e.key === "C")) {
+      const target = e.target as HTMLElement;
+      if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA" && !target.isContentEditable) {
         e.preventDefault();
         return false;
       }
