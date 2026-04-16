@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.vpn-manage]
 verify_jwt = false
+
+[functions.deploy-demo-site]
+verify_jwt = false
