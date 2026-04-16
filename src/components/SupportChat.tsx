@@ -327,7 +327,7 @@ export function SupportChat() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-0 top-1/3 z-40 flex items-center gap-1.5 px-2 py-3 rounded-l-xl bg-emerald-500/90 hover:bg-emerald-500 backdrop-blur-sm text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:pr-3 transition-all duration-300 group writing-mode-vertical"
+          className="fixed right-0 top-1/3 z-40 flex items-center gap-1.5 px-2 py-3 rounded-l-xl bg-emerald-500/90 hover:bg-emerald-500  text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:pr-3 transition-all duration-300 group writing-mode-vertical"
           title="Suporte"
           style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
         >

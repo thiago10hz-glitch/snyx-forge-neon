@@ -164,7 +164,7 @@ export function AdminDashboard() {
       {/* Hero Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {heroCards.map((s, i) => (
-          <div key={s.label} className="group relative rounded-2xl border border-border/20 bg-card/50 backdrop-blur-sm p-4 overflow-hidden transition-all duration-300 hover:border-border/40 hover:shadow-xl animate-fade-in"
+          <div key={s.label} className="group relative rounded-2xl border border-border/20 bg-card/50  p-4 overflow-hidden transition-all duration-300 hover:border-border/40 hover:shadow-xl animate-fade-in"
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: "both" }}>
             <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 group-hover:opacity-20 blur-2xl transition-opacity duration-500`} />
             <div className="relative">
@@ -184,7 +184,7 @@ export function AdminDashboard() {
       {/* Middle row: User breakdown + quick stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* User Breakdown Chart */}
-        <div className="rounded-2xl border border-border/20 bg-card/50 backdrop-blur-sm p-5 animate-fade-in" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
+        <div className="rounded-2xl border border-border/20 bg-card/50  p-5 animate-fade-in" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold">Distribuição de Usuários</span>
@@ -205,7 +205,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="rounded-2xl border border-border/20 bg-card/50 backdrop-blur-sm p-5 animate-fade-in" style={{ animationDelay: "320ms", animationFillMode: "both" }}>
+        <div className="rounded-2xl border border-border/20 bg-card/50  p-5 animate-fade-in" style={{ animationDelay: "320ms", animationFillMode: "both" }}>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-bold">Métricas Rápidas</span>
@@ -232,7 +232,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Recent activity */}
-      <div className="rounded-2xl border border-border/20 bg-card/50 backdrop-blur-sm p-5 animate-fade-in" style={{ animationDelay: "400ms", animationFillMode: "both" }}>
+      <div className="rounded-2xl border border-border/20 bg-card/50  p-5 animate-fade-in" style={{ animationDelay: "400ms", animationFillMode: "both" }}>
         <div className="flex items-center gap-2 mb-3">
           <Activity className="w-4 h-4 text-primary" />
           <span className="text-xs font-bold">Atividade Recente</span>
