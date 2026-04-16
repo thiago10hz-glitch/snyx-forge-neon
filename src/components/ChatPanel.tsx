@@ -864,7 +864,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             content: m.content,
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
-          mode: usePremium ? "premium" : mode,
+          mode: activeCharacter ? "rpg" : (usePremium ? "premium" : mode),
           is_vip: !!profile?.is_vip,
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
@@ -872,7 +872,16 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           user_gender: profile?.gender || null,
           user_bio: profile?.bio || null,
           user_relationship_status: profile?.relationship_status || null,
-          ...(activeCharacter ? { character_system_prompt: activeCharacter.system_prompt } : {}),
+          ...(activeCharacter ? {
+            character_system_prompt: activeCharacter.system_prompt,
+            character_meta: {
+              name: activeCharacter.name,
+              description: (activeCharacter as any).description,
+              personality: (activeCharacter as any).personality,
+              scenario: (activeCharacter as any).scenario,
+              example_dialog: (activeCharacter as any).example_dialog,
+            },
+          } : {}),
           ...(playerCharacter ? { player_character: { name: playerCharacter.name, class: playerCharacter.class, race: playerCharacter.race, backstory: playerCharacter.backstory, personality: playerCharacter.personality, level: playerCharacter.level } } : {}),
         };
       }
