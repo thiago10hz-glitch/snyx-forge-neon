@@ -17,6 +17,7 @@ interface Profile {
   team_badge: string | null;
   gender: string | null;
   partner_user_id: string | null;
+  background_url: string | null;
 }
 
 interface AuthContextType {
