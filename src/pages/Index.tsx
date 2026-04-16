@@ -117,11 +117,6 @@ const Index = () => {
 
   return (
     <div className="h-[100dvh] flex bg-background overflow-hidden relative">
-      {/* Ambient background */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-primary/4 blur-[140px] animate-glow-pulse" />
-        <div className="absolute bottom-20 right-10 h-64 w-64 rounded-full bg-primary/3 blur-[100px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
-      </div>
 
       {/* === SIDEBAR (desktop) === */}
       <aside className={`hidden md:flex flex-col shrink-0 border-r border-border/15 bg-sidebar transition-all duration-300 z-20 relative
@@ -288,7 +283,7 @@ const Index = () => {
       {/* === MOBILE SIDEBAR OVERLAY === */}
       {mobileMenuOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/70" onClick={() => setMobileMenuOpen(false)} />
           <div className="fixed inset-y-0 left-0 z-50 w-56 bg-sidebar border-r border-border/15 flex flex-col animate-reveal">
             <div className="h-11 flex items-center justify-between px-3 border-b border-border/10">
               <div className="flex items-center gap-1.5">
