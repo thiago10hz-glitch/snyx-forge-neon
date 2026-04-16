@@ -18,21 +18,40 @@ interface Channel {
 
 type MainCategory = "home" | "tv" | "filmes" | "series" | "cinema";
 
+type MpegtsPlayer = {
+  attachMediaElement: (mediaElement: HTMLMediaElement) => void;
+  detachMediaElement?: () => void;
+  load: () => void;
+  play?: () => Promise<void> | void;
+  pause?: () => void;
+  unload?: () => void;
+  destroy: () => void;
+};
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-// Proxy HTTP URLs through edge function to avoid mixed content blocking
 function proxyUrl(url: string): string {
   if (!url) return "";
   if (url.startsWith("https://")) return url;
   return `${SUPABASE_URL}/functions/v1/iptv-stream-proxy?url=${encodeURIComponent(url)}`;
 }
 
-// Get channel initials for fallback
 function getInitials(name: string): string {
-  return name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || "")
+    .join("");
 }
 
-// Component that handles image load errors with a proper fallback
+function isHlsStream(url: string): boolean {
+  return /\.m3u8($|[?#&])/i.test(url);
+}
+
+function isMpegTsStream(url: string): boolean {
+  return /\/play\//i.test(url) || /\.ts($|[?#&])/i.test(url) || /output=mpegts/i.test(url);
+}
+
 const ChannelLogo = memo(function ChannelLogo({ src, name, size = "md", className = "" }: { src?: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const [failed, setFailed] = useState(false);
   const sizeClasses = size === "lg" ? "w-14 h-14" : size === "md" ? "w-11 h-11" : "w-10 h-10";
@@ -43,7 +62,11 @@ const ChannelLogo = memo(function ChannelLogo({ src, name, size = "md", classNam
   if (!src || failed) {
     return (
       <div className={`${sizeClasses} rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/15 flex items-center justify-center shrink-0 border border-white/5 ${className}`}>
-        <span className={`${textSize} font-bold text-purple-300/60`}>{name ? getInitials(name) : <Tv size={size === "lg" ? 22 : 16} className="text-purple-400/40" />}</span>
+        {name ? (
+          <span className={`${textSize} font-bold text-purple-300/60`}>{getInitials(name)}</span>
+        ) : (
+          <Tv size={size === "lg" ? 22 : 16} className="text-purple-400/40" />
+        )}
       </div>
     );
   }
@@ -84,7 +107,6 @@ async function getInvokeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Erro ao sincronizar";
 }
 
-// Memoized channel card to avoid unnecessary re-renders
 const ChannelCard = memo(function ChannelCard({ ch, isPlaying, onPlay }: { ch: Channel; isPlaying: boolean; onPlay: (ch: Channel) => void }) {
   return (
     <button
@@ -130,6 +152,7 @@ export default function IPTV() {
   const [visibleCount, setVisibleCount] = useState(60);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<any>(null);
+  const mpegtsRef = useRef<MpegtsPlayer | null>(null);
 
   const hasAccess = profile?.is_dev;
 
@@ -141,32 +164,81 @@ export default function IPTV() {
       if (res.ok) {
         const json = await res.json();
         setChannels(Array.isArray(json) ? json : []);
-      } else setChannels([]);
-    } catch { setChannels([]); } finally { setLoading(false); }
+      } else {
+        setChannels([]);
+      }
+    } catch {
+      setChannels([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const syncChannels = useCallback(async () => {
-    if (!session?.access_token) { toast.error("Faça login para sincronizar."); return; }
+    if (!session?.access_token) {
+      toast.error("Faça login para sincronizar.");
+      return;
+    }
+
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("iptv-sync");
       if (error) throw error;
-      if (data?.success) { toast.success(`${data.channels} canais sincronizados!`); await loadChannels(); }
-      else toast.error(data?.error || "Erro ao sincronizar");
-    } catch (error) { toast.error(await getInvokeErrorMessage(error)); }
-    finally { setSyncing(false); }
+
+      if (data?.success) {
+        toast.success(`${data.channels} canais sincronizados!`);
+        await loadChannels();
+      } else {
+        toast.error(data?.error || "Erro ao sincronizar");
+      }
+    } catch (error) {
+      toast.error(await getInvokeErrorMessage(error));
+    } finally {
+      setSyncing(false);
+    }
   }, [session?.access_token, loadChannels]);
 
-  useEffect(() => { if (hasAccess) loadChannels(); }, [hasAccess, loadChannels]);
+  const cleanupPlayers = useCallback(() => {
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
-  // Reset visible count when category/filter changes
-  useEffect(() => { setVisibleCount(60); }, [activeCategory, selectedGroup, search]);
+    if (mpegtsRef.current) {
+      try {
+        mpegtsRef.current.pause?.();
+        mpegtsRef.current.unload?.();
+        mpegtsRef.current.detachMediaElement?.();
+        mpegtsRef.current.destroy();
+      } catch {
+        // ignore cleanup failures
+      }
+      mpegtsRef.current = null;
+    }
+
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (hasAccess) loadChannels();
+  }, [hasAccess, loadChannels]);
+
+  useEffect(() => {
+    setVisibleCount(60);
+  }, [activeCategory, selectedGroup, search]);
+
+  useEffect(() => cleanupPlayers, [cleanupPlayers]);
 
   const channelsByCategory = useMemo(() => {
     const map: Record<MainCategory, Channel[]> = { home: [], tv: [], filmes: [], series: [], cinema: [] };
-    channels.forEach(ch => {
+    channels.forEach((ch) => {
       const cats = classifyChannel(ch.g);
-      cats.forEach(cat => map[cat].push(ch));
+      cats.forEach((cat) => map[cat].push(ch));
     });
     return map;
   }, [channels]);
@@ -184,63 +256,114 @@ export default function IPTV() {
   }, [activeCategory, channelsByCategory]);
 
   const subGroups = useMemo(() => {
-    const set = new Set(categoryChannels.map(c => c.g));
+    const set = new Set(categoryChannels.map((c) => c.g));
     return ["Todos", ...Array.from(set).sort()];
   }, [categoryChannels]);
 
   const filtered = useMemo(() => {
     let list = categoryChannels;
-    if (selectedGroup !== "Todos") list = list.filter(c => c.g === selectedGroup);
+
+    if (selectedGroup !== "Todos") list = list.filter((c) => c.g === selectedGroup);
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(c => c.n.toLowerCase().includes(q) || c.g.toLowerCase().includes(q));
+      list = list.filter((c) => c.n.toLowerCase().includes(q) || c.g.toLowerCase().includes(q));
     }
+
     return list;
   }, [categoryChannels, selectedGroup, search]);
 
   const playChannel = useCallback(async (ch: Channel) => {
-    // Cleanup previous HLS instance
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
-
+    cleanupPlayers();
     setPlayingChannel(ch);
 
-    // Proxy the stream URL through our edge function
     const streamUrl = proxyUrl(ch.u);
 
-    setTimeout(async () => {
-      const video = videoRef.current;
-      if (!video) return;
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = streamUrl; video.play().catch(() => {});
-      } else {
-        try {
-          const { default: Hls } = await import("hls.js");
-          if (Hls.isSupported()) {
-            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-            hlsRef.current = hls;
-            hls.loadSource(streamUrl); hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-            hls.on(Hls.Events.ERROR, (_: any, data: any) => {
-              if (data.fatal) {
-                toast.error("Erro ao carregar stream. Tente outro canal.");
-                hls.destroy();
-                hlsRef.current = null;
-              }
-            });
-          } else { video.src = streamUrl; video.play().catch(() => {}); }
-        } catch { video.src = streamUrl; video.play().catch(() => {}); }
+    try {
+      const probeController = new AbortController();
+      const probeTimeout = setTimeout(() => probeController.abort(), 8000);
+      const probe = await fetch(streamUrl, {
+        method: "GET",
+        headers: { Range: "bytes=0-2047" },
+        signal: probeController.signal,
+      });
+      clearTimeout(probeTimeout);
+
+      if (!probe.ok && probe.status !== 206) {
+        throw new Error(`Canal indisponível (${probe.status})`);
       }
-    }, 100);
-  }, []);
+    } catch (error) {
+      setPlayingChannel(null);
+      toast.error(error instanceof Error ? error.message : "Canal indisponível no momento.");
+      return;
+    }
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      if (isHlsStream(ch.u)) {
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = streamUrl;
+          await video.play().catch(() => {});
+          return;
+        }
+
+        const { default: Hls } = await import("hls.js");
+        if (Hls.isSupported()) {
+          const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+          hlsRef.current = hls;
+          hls.loadSource(streamUrl);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(() => {});
+          });
+          hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean }) => {
+            if (data?.fatal) {
+              toast.error("Erro ao carregar o canal. Tente outro.");
+              cleanupPlayers();
+              setPlayingChannel(null);
+            }
+          });
+          return;
+        }
+      }
+
+      if (isMpegTsStream(ch.u) || !isHlsStream(ch.u)) {
+        const mpegtsModule = await import("mpegts.js");
+        const mpegts = (mpegtsModule as { default?: { createPlayer: (config: { type: string; isLive: boolean; url: string }) => MpegtsPlayer; getFeatureList?: () => { mseLivePlayback?: boolean }; isSupported?: () => boolean } }).default ?? mpegtsModule;
+        const supported = Boolean(mpegts.getFeatureList?.().mseLivePlayback || mpegts.isSupported?.());
+
+        if (!supported) {
+          throw new Error("Seu navegador não suporta este stream ao vivo.");
+        }
+
+        const player = mpegts.createPlayer({
+          type: "mpegts",
+          isLive: true,
+          url: streamUrl,
+        });
+
+        mpegtsRef.current = player;
+        player.attachMediaElement(video);
+        player.load();
+        player.play?.();
+        video.play().catch(() => {});
+        return;
+      }
+
+      video.src = streamUrl;
+      await video.play().catch(() => {});
+    } catch (error) {
+      cleanupPlayers();
+      setPlayingChannel(null);
+      toast.error(error instanceof Error ? error.message : "Erro ao abrir o canal.");
+    }
+  }, [cleanupPlayers]);
 
   const stopPlaying = useCallback(() => {
-    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    cleanupPlayers();
     setPlayingChannel(null);
-    if (videoRef.current) videoRef.current.src = "";
-  }, []);
+  }, [cleanupPlayers]);
 
   const goBack = () => {
     if (activeCategory !== "home") {
@@ -251,11 +374,11 @@ export default function IPTV() {
   };
 
   const loadMore = useCallback(() => {
-    setVisibleCount(prev => prev + 60);
+    setVisibleCount((prev) => prev + 60);
   }, []);
 
   const homePreviews = useMemo(() => {
-    return CATEGORIES.map(cat => ({
+    return CATEGORIES.map((cat) => ({
       ...cat,
       channels: channelsByCategory[cat.id].slice(0, 8),
       total: channelsByCategory[cat.id].length,
@@ -292,7 +415,6 @@ export default function IPTV() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <div className="sticky top-0 z-30 backdrop-blur-2xl bg-background/70 border-b border-border/5">
         <div className="flex items-center justify-between px-4 sm:px-6 h-14">
           <div className="flex items-center gap-3">
@@ -315,7 +437,7 @@ export default function IPTV() {
                 <div className="flex items-center gap-1.5">
                   <Signal size={8} className="text-green-400" />
                   <p className="text-[10px] text-muted-foreground/40">
-                    {activeCategory === "home" ? `${channels.length.toLocaleString()} canais ao vivo` : CATEGORIES.find(c => c.id === activeCategory)?.label}
+                    {activeCategory === "home" ? `${channels.length.toLocaleString()} canais ao vivo` : CATEGORIES.find((c) => c.id === activeCategory)?.label}
                   </p>
                 </div>
               </div>
@@ -332,15 +454,18 @@ export default function IPTV() {
           </div>
         </div>
 
-        {/* Category tabs on home */}
         {activeCategory === "home" && channels.length > 0 && (
           <div className="flex gap-1 px-4 sm:px-6 pb-3 overflow-x-auto scrollbar-hide">
-            {CATEGORIES.map(cat => {
+            {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
                 <button
                   key={cat.id}
-                  onClick={() => { setActiveCategory(cat.id); setSelectedGroup("Todos"); setSearch(""); }}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    setSelectedGroup("Todos");
+                    setSearch("");
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/40 border border-border/5 text-muted-foreground/60 hover:text-foreground hover:bg-card/80 transition-all text-xs whitespace-nowrap shrink-0"
                 >
                   <Icon size={12} /> {cat.label}
@@ -351,10 +476,9 @@ export default function IPTV() {
         )}
       </div>
 
-      {/* Player */}
       {playingChannel && (
         <div className="relative bg-black w-full" style={{ maxHeight: "50vh" }}>
-          <video ref={videoRef} controls autoPlay className="w-full max-h-[50vh] bg-black" />
+          <video ref={videoRef} controls autoPlay playsInline className="w-full max-h-[50vh] bg-black" />
           <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/90 via-black/40 to-transparent flex items-center justify-between">
             <div className="flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -369,7 +493,6 @@ export default function IPTV() {
         </div>
       )}
 
-      {/* HOME VIEW */}
       {activeCategory === "home" && (
         <div className="flex-1 overflow-y-auto">
           {loading ? (
@@ -401,7 +524,6 @@ export default function IPTV() {
             </div>
           ) : (
             <div className="px-4 sm:px-6 py-6 space-y-10">
-              {/* Hero Banner */}
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-900/40 via-card/60 to-pink-900/30 border border-purple-500/10 p-6 sm:p-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-500/10 rounded-full blur-[60px] pointer-events-none" />
@@ -424,18 +546,21 @@ export default function IPTV() {
                 </div>
               </div>
 
-              {/* Category Cards */}
               <div>
                 <h2 className="text-foreground font-bold text-base mb-4">Categorias</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {CATEGORIES.map(cat => {
+                  {CATEGORIES.map((cat) => {
                     const Icon = cat.icon;
                     const count = categoryCounts[cat.id];
                     return (
                       <button
                         key={cat.id}
-                        onClick={() => { setActiveCategory(cat.id); setSelectedGroup("Todos"); setSearch(""); }}
-                        className={`group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 backdrop-blur-sm hover:bg-card/60`}
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setSelectedGroup("Todos");
+                          setSearch("");
+                        }}
+                        className="group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 backdrop-blur-sm hover:bg-card/60"
                       >
                         <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-[0.04] group-hover:opacity-[0.12] transition-opacity duration-500`} />
                         <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${cat.gradient} opacity-[0.06] group-hover:opacity-[0.15] blur-2xl transition-opacity duration-500`} />
@@ -456,8 +581,7 @@ export default function IPTV() {
                 </div>
               </div>
 
-              {/* Preview rows */}
-              {homePreviews.filter(p => p.channels.length > 0).map(preview => {
+              {homePreviews.filter((p) => p.channels.length > 0).map((preview) => {
                 const Icon = preview.icon;
                 return (
                   <div key={preview.id}>
@@ -472,7 +596,11 @@ export default function IPTV() {
                         </div>
                       </div>
                       <button
-                        onClick={() => { setActiveCategory(preview.id); setSelectedGroup("Todos"); setSearch(""); }}
+                        onClick={() => {
+                          setActiveCategory(preview.id);
+                          setSelectedGroup("Todos");
+                          setSearch("");
+                        }}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-card/40 border border-border/5 text-muted-foreground/50 hover:text-foreground hover:bg-card/80 transition-all text-xs"
                       >
                         Ver todos <ChevronRight size={12} />
@@ -498,7 +626,6 @@ export default function IPTV() {
         </div>
       )}
 
-      {/* CATEGORY VIEW */}
       {activeCategory !== "home" && (
         <>
           <div className="sticky top-14 z-20 px-4 sm:px-6 py-3 backdrop-blur-2xl bg-background/70 border-b border-border/5">
@@ -508,7 +635,7 @@ export default function IPTV() {
                 <input
                   type="text"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar canal ou categoria..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card/40 border border-border/5 text-foreground text-sm placeholder:text-muted-foreground/25 focus:outline-none focus:border-purple-500/30 focus:ring-2 focus:ring-purple-500/10 focus:bg-card/60 transition-all backdrop-blur-sm"
                 />
@@ -528,7 +655,7 @@ export default function IPTV() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowGroups(false)} />
                     <div className="absolute right-0 top-full mt-2 w-72 max-h-80 overflow-y-auto rounded-2xl bg-card/95 backdrop-blur-xl border border-border/10 shadow-2xl shadow-black/50 z-50 p-2">
-                      {subGroups.map(g => (
+                      {subGroups.map((g) => (
                         <button key={g} onClick={() => { setSelectedGroup(g); setShowGroups(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs transition-all ${g === selectedGroup ? "text-purple-400 bg-purple-500/10 font-semibold" : "text-foreground/60 hover:bg-card hover:text-foreground"}`}>
                           {g}
                         </button>
