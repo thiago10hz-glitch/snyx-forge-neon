@@ -188,18 +188,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   useEffect(() => { void checkMessageLimit(); }, [checkMessageLimit]);
 
-  // Load bubble style from customization
+  // Load bubble style and AI avatar from customization
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data } = await supabase
         .from("chat_customization")
-        .select("bubble_style, theme_color")
+        .select("bubble_style, theme_color, ai_avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
       if (data) {
         setBubbleStyle((data as any).bubble_style || "default");
         setChatThemeColor(data.theme_color || "#8b5cf6");
+        setAiAvatarUrl((data as any).ai_avatar_url || null);
       }
     })();
   }, [user]);
