@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Users, Crown, Code2, MessageCircle, TrendingUp, Ban, Clock, Package,
-  ShieldCheck, Globe, Activity, Zap, BarChart3, ArrowUpRight, ArrowDownRight,
+  Users, Crown, MessageCircle, TrendingUp, Ban, Clock,
+  ShieldCheck, Globe, Activity, BarChart3, ArrowUpRight,
   Swords, Flame
 } from "lucide-react";
 
