@@ -162,6 +162,14 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "reset_password": {
+        if (!new_password || new_password.length < 6) throw new Error("Senha deve ter pelo menos 6 caracteres");
+        const { error } = await adminClient.auth.admin.updateUserById(target_user_id, { password: new_password });
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
         throw new Error(`Ação desconhecida: ${action}`);
     }
