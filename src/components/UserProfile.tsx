@@ -102,7 +102,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           {/* Avatar - overlapping banner */}
           <div className="flex flex-col items-center -mt-12 relative z-10 pb-3">
             <div className="relative group">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-background border-4 border-background shadow-xl flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-card border-4 border-card shadow-xl flex items-center justify-center">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
