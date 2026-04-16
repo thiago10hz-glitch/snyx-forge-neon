@@ -9,7 +9,7 @@ import {
   ArrowLeft, Lock, Cpu, Shield, Zap,
   Monitor, MemoryStick, Settings, CheckCircle2,
   XCircle, Power, Loader2, RefreshCw, Download,
-  RotateCcw, Gamepad2, Eye, MousePointer, Network
+  RotateCcw, Gamepad2, Eye, MousePointer, Network,
 } from "lucide-react";
 
 interface KeyInfo {
@@ -20,12 +20,25 @@ interface KeyInfo {
   days_remaining: number | null;
 }
 
+interface AppRelease {
+  id: string;
+  version: string;
+  platform: string;
+  file_url: string;
+  file_size: number | null;
+  changelog: string | null;
+  created_at: string;
+}
+
 const Optimization = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
+  const [releases, setReleases] = useState<AppRelease[]>([]);
+  const [loadingReleases, setLoadingReleases] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   
 
   // Optimization states
@@ -46,6 +59,50 @@ const Optimization = () => {
     if (!user) { setLoading(false); return; }
     checkKeyStatus();
   }, [user]);
+
+  // Fetch releases when key is active
+  useEffect(() => {
+    if (!user || !hasActiveKey) return;
+    setLoadingReleases(true);
+    supabase
+      .from("app_releases")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        if (data) setReleases(data as AppRelease[]);
+        setLoadingReleases(false);
+      });
+  }, [user, hasActiveKey]);
+
+  const handleDownloadApp = async (rel: AppRelease) => {
+    setDownloadingId(rel.id);
+    try {
+      const ext = rel.file_url.split('.').pop() || "exe";
+      const { data, error } = await supabase.storage
+        .from("app-downloads")
+        .createSignedUrl(rel.file_url, 60, {
+          download: `SnyX-Optimizer-v${rel.version}.${ext}`,
+        });
+      if (error) throw error;
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Download iniciado!");
+    } catch (err: any) {
+      toast.error("Erro no download: " + (err.message || "tente novamente"));
+    }
+    setDownloadingId(null);
+  };
+
+  const formatSize = (bytes: number | null) => {
+    if (!bytes) return "";
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const checkKeyStatus = async () => {
     setLoading(true);
@@ -362,7 +419,58 @@ const Optimization = () => {
               ))}
             </div>
 
-            {/* Warning section */}
+            {/* Download App Section */}
+            <div className="max-w-2xl mx-auto mb-10">
+              <div className="p-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-500">
+                    <Download className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Baixar SnyX Optimizer</h3>
+                    <p className="text-xs text-white/40">Aplicativo desktop para otimização automática</p>
+                  </div>
+                </div>
+
+                {loadingReleases ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                  </div>
+                ) : releases.length === 0 ? (
+                  <p className="text-sm text-white/40 text-center py-4">Nenhuma versão disponível no momento.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {releases.map((rel) => (
+                      <div key={rel.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-cyan-500/20 transition-all">
+                        <div className="flex items-center gap-3">
+                          <Monitor className="w-5 h-5 text-cyan-400" />
+                          <div>
+                            <div className="font-bold text-sm">SnyX Optimizer v{rel.version}</div>
+                            <div className="text-[11px] text-white/30">
+                              {rel.platform === "windows" ? "Windows" : rel.platform}
+                              {rel.file_size ? ` • ${formatSize(rel.file_size)}` : ""}
+                              {" • "}{new Date(rel.created_at).toLocaleDateString("pt-BR")}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDownloadApp(rel)}
+                          disabled={downloadingId === rel.id}
+                          className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 disabled:opacity-50 text-white font-bold rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                        >
+                          {downloadingId === rel.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                          {downloadingId === rel.id ? "Baixando..." : "Baixar"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="max-w-2xl mx-auto mb-16 p-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/5">
               <h3 className="font-bold text-yellow-400 mb-3 flex items-center gap-2">
                 <Shield className="w-5 h-5" /> Importante
