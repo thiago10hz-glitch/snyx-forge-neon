@@ -1705,10 +1705,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                 >
                   {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
                 </button>
-                {/* Desktop-only action buttons */}
                 <button
                   onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
-                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
                     pendingAction === "school"
                       ? "text-green-400 bg-green-500/10"
                       : "text-muted-foreground/30 hover:text-green-400 hover:bg-green-500/8"
@@ -1719,7 +1718,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                 </button>
                 <button
                   onClick={() => setPendingAction(prev => prev === "imagegen" ? null : "imagegen")}
-                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
                     pendingAction === "imagegen"
                       ? "text-purple-400 bg-purple-500/10"
                       : "text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/8"
@@ -1730,7 +1729,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                 </button>
                 <button
                   onClick={() => setPendingAction(prev => prev === "rewrite" ? null : "rewrite")}
-                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
                     pendingAction === "rewrite"
                       ? "text-sky-400 bg-sky-500/10"
                       : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/8"
