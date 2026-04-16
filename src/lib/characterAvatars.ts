@@ -24,8 +24,12 @@ const normalizeCharacterName = (value: string) =>
 
 const fallbackAvatarFor = (name: string) => {
   const seed = encodeURIComponent(normalizeCharacterName(name) || name);
-  // DiceBear "adventurer" – consistent, colorful, no API key, served via CDN
-  return `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+  // High-quality stylized portrait fallback (DiceBear "lorelei" + "notionists" rotation by hash)
+  const styles = ["lorelei", "notionists", "adventurer"];
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  const style = styles[hash % styles.length];
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf,ffd93d,6bcf7f`;
 };
 
 export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string | null) => {
