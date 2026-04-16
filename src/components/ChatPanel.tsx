@@ -154,6 +154,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
+  const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
   const [showPlayerCharPanel, setShowPlayerCharPanel] = useState(false);
   const playerCharacter = useActivePlayerCharacter();
 
@@ -187,18 +188,19 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   useEffect(() => { void checkMessageLimit(); }, [checkMessageLimit]);
 
-  // Load bubble style from customization
+  // Load bubble style and AI avatar from customization
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data } = await supabase
         .from("chat_customization")
-        .select("bubble_style, theme_color")
+        .select("bubble_style, theme_color, ai_avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
       if (data) {
         setBubbleStyle((data as any).bubble_style || "default");
         setChatThemeColor(data.theme_color || "#8b5cf6");
+        setAiAvatarUrl((data as any).ai_avatar_url || null);
       }
     })();
   }, [user]);
@@ -1357,15 +1359,27 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                           {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
                         </button>
                       </div>
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl bg-primary/12 flex items-center justify-center shrink-0 mt-1 border border-primary/8">
-                        <User size={12} className="text-primary md:hidden" />
-                        <User size={14} className="text-primary hidden md:block" />
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 border border-primary/8 bg-primary/12">
+                        {profile?.avatar_url ? (
+                          <img src={profile.avatar_url} alt="Você" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <User size={12} className="text-primary md:hidden" />
+                            <User size={14} className="text-primary hidden md:block" />
+                          </>
+                        )}
                       </div>
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        <Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} />
+                      <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
+                        {activeCharacterAvatar ? (
+                          <img src={activeCharacterAvatar} alt="AI" className="w-full h-full object-cover" />
+                        ) : aiAvatarUrl ? (
+                          <img src={aiAvatarUrl} alt="AI" className="w-full h-full object-cover" />
+                        ) : (
+                          <><Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} /></>
+                        )}
                       </div>
                       <div className={`flex-1 min-w-0 chat-bubble-ai ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
