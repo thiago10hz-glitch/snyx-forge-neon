@@ -175,48 +175,66 @@ export type Database = {
       ai_characters: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
           category: string
           chat_count: number
           created_at: string
           creator_id: string
           description: string
+          example_dialog: string | null
+          first_message: string | null
           id: string
+          is_nsfw: boolean
           is_public: boolean
+          language: string
           likes_count: number
           name: string
           personality: string
+          scenario: string | null
           system_prompt: string
           tags: string[] | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
           category?: string
           chat_count?: number
           created_at?: string
           creator_id: string
           description?: string
+          example_dialog?: string | null
+          first_message?: string | null
           id?: string
+          is_nsfw?: boolean
           is_public?: boolean
+          language?: string
           likes_count?: number
           name: string
           personality?: string
+          scenario?: string | null
           system_prompt?: string
           tags?: string[] | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
           category?: string
           chat_count?: number
           created_at?: string
           creator_id?: string
           description?: string
+          example_dialog?: string | null
+          first_message?: string | null
           id?: string
+          is_nsfw?: boolean
           is_public?: boolean
+          language?: string
           likes_count?: number
           name?: string
           personality?: string
+          scenario?: string | null
           system_prompt?: string
           tags?: string[] | null
           updated_at?: string
