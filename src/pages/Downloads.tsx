@@ -97,21 +97,21 @@ export default function Downloads() {
     return (
       <div key={rel.id} className="animate-fade-in-up space-y-4" style={{ animationDelay: `${index * 100}ms` }}>
         {/* Main app card */}
-        <div className="rounded-3xl border border-border/10 overflow-hidden glass-elevated">
-          <div className="p-5 sm:p-6">
-            <div className="flex items-start gap-4 sm:gap-5">
+        <div className="rounded-2xl border border-border/10 overflow-hidden glass-elevated">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-start gap-3 sm:gap-4">
               {/* App icon */}
               <div className="relative shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[22px] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-2xl shadow-primary/10">
-                  <Zap className="w-9 h-9 sm:w-11 sm:h-11 text-primary" />
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-xl shadow-primary/10">
+                  <Zap className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
                 </div>
-                <div className="absolute -inset-2 rounded-[26px] bg-primary/8 blur-xl -z-10 animate-breathe" />
+                <div className="absolute -inset-2 rounded-2xl bg-primary/8 blur-xl -z-10 animate-breathe" />
               </div>
 
               {/* App info */}
               <div className="flex-1 min-w-0 space-y-2.5">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-black leading-tight">SnyX App</h2>
+                  <h2 className="text-lg sm:text-xl font-black leading-tight">SnyX App</h2>
                   <p className="text-xs text-muted-foreground/40 mt-0.5">
                     Thiago Dev • {rel.platform === "windows" ? "Windows" : rel.platform.charAt(0).toUpperCase() + rel.platform.slice(1)}
                   </p>
@@ -131,7 +131,7 @@ export default function Downloads() {
                 <button
                   onClick={() => handleDownload(rel)}
                   disabled={isDownloading}
-                  className="mt-1 px-6 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-2 w-fit"
+                  className="mt-1 px-5 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-xs shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-1.5 w-fit"
                 >
                   {isDownloading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -145,7 +145,7 @@ export default function Downloads() {
           </div>
 
           {/* Stats bar */}
-          <div className="border-t border-border/8 px-5 sm:px-6 py-3 flex items-center gap-4 sm:gap-6 overflow-x-auto">
+          <div className="border-t border-border/8 px-4 sm:px-5 py-2.5 flex items-center gap-3 sm:gap-5 overflow-x-auto">
             <div className="flex flex-col items-center min-w-fit">
               <span className="text-xs font-bold text-foreground/80">v{rel.version}</span>
               <span className="text-[10px] text-muted-foreground/40">Versão</span>
@@ -177,7 +177,7 @@ export default function Downloads() {
 
         {/* Changelog section */}
         {rel.changelog && (
-          <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
+          <div className="rounded-2xl border border-border/10 glass-elevated p-4 sm:p-5 space-y-2.5">
             <button
               onClick={() => setShowChangelogId(isChangelogOpen ? null : rel.id)}
               className="w-full flex items-center justify-between"
@@ -265,20 +265,20 @@ export default function Downloads() {
         ) : (
           <div className="space-y-8">
             {/* Features section - shared */}
-            <div className="rounded-3xl border border-border/10 glass-elevated p-5 sm:p-6 space-y-3">
-              <h3 className="text-sm font-bold text-foreground/70">Recursos</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-2xl border border-border/10 glass-elevated p-4 sm:p-5 space-y-2.5">
+              <h3 className="text-xs font-bold text-foreground/70">Recursos</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { icon: Shield, label: "Anti-ban seguro" },
                   { icon: Sparkles, label: "Auto atualização" },
                   { icon: Zap, label: "Desempenho máximo" },
                   { icon: CheckCircle2, label: "Fácil instalação" },
                 ].map((feat) => (
-                  <div key={feat.label} className="flex items-center gap-2.5 p-3 rounded-2xl bg-muted/8 border border-border/8">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <feat.icon className="w-4 h-4 text-primary" />
+                  <div key={feat.label} className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/8 border border-border/8">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <feat.icon className="w-3.5 h-3.5 text-primary" />
                     </div>
-                    <span className="text-xs font-medium text-foreground/70">{feat.label}</span>
+                    <span className="text-[11px] font-medium text-foreground/70">{feat.label}</span>
                   </div>
                 ))}
               </div>
