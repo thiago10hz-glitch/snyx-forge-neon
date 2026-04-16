@@ -83,7 +83,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-lg" onClick={onClose}>
       <div
-        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-background sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
+        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
         onClick={e => e.stopPropagation()}
       >
         {/* Header with avatar hero */}
@@ -102,7 +102,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           {/* Avatar - overlapping banner */}
           <div className="flex flex-col items-center -mt-12 relative z-10 pb-3">
             <div className="relative group">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-background border-4 border-background shadow-xl flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-card border-4 border-card shadow-xl flex items-center justify-center">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -121,8 +121,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
 
-            <h3 className="text-base font-bold text-foreground mt-2">{profile?.display_name || "Usuário"}</h3>
-            <p className="text-[11px] text-muted-foreground/40 truncate max-w-[200px]">{user.email}</p>
+            <h3 className="text-base font-bold text-foreground/85 mt-2">{profile?.display_name || "Usuário"}</h3>
+            <p className="text-[11px] text-muted-foreground/30 truncate max-w-[200px]">{user.email}</p>
 
             {/* Badges */}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
@@ -164,7 +164,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Como quer ser chamado?"
               maxLength={50}
-              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200"
+              className="w-full bg-background/40 border border-border/8 rounded-xl px-3.5 py-2.5 text-sm text-foreground/80 placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/20 focus:bg-background/60 transition-all duration-200"
             />
           </div>
 
@@ -238,7 +238,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               placeholder="Ex: Gosto de games, música, tenho 20 anos..."
               maxLength={500}
               rows={3}
-              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200 resize-none"
+              className="w-full bg-background/40 border border-border/8 rounded-xl px-3.5 py-2.5 text-sm text-foreground/80 placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/20 focus:bg-background/60 transition-all duration-200 resize-none"
             />
             <p className="text-[9px] text-muted-foreground/20 text-right mt-0.5 tabular-nums">{bio.length}/500</p>
           </div>
