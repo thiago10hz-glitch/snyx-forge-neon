@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     // Service role client for privileged operations
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const { action, target_user_id, vip_months, ban_hours } = await req.json();
+    const { action, target_user_id, vip_months, ban_hours, new_password } = await req.json();
 
     let result: Record<string, unknown> = {};
 
