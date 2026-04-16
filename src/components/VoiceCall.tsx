@@ -676,23 +676,23 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
               : "Conectado";
 
   const overlay = (
-    <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-2xl">
-      <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
+    <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-2xl flex flex-col">
+      <div className="relative flex flex-1 w-full items-start sm:items-center justify-center overflow-y-auto px-4 py-4 sm:py-6 sm:px-6">
         {phase === "pick" && (
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-border/20 bg-card/60 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card"
+            className="absolute right-3 top-3 sm:right-4 sm:top-4 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-border/20 bg-card/60 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card z-10"
             aria-label="Fechar ligação"
           >
             ✕
           </button>
         )}
 
-        <div className="flex w-full max-w-sm flex-col items-center justify-center gap-6 text-center sm:gap-7">
-          <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground/50">Ligação por voz</p>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-[2rem]">{voice.label}</h2>
-            <p className="text-sm font-medium" style={{ color: `${accent}dd` }}>
+        <div className="flex w-full max-w-sm flex-col items-center justify-center gap-4 sm:gap-6 text-center py-2">
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.34em] text-muted-foreground/50">Ligação por voz</p>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">{voice.label}</h2>
+            <p className="text-xs sm:text-sm font-medium" style={{ color: `${accent}dd` }}>
               {statusText}
             </p>
             {phase === "call" && (
@@ -709,22 +709,22 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
           />
 
           {phase === "ringing" ? (
-            <div className="flex flex-col items-center gap-6">
-              <p className="animate-pulse text-sm text-muted-foreground">Aguarde, chamando {voice.label}...</p>
+            <div className="flex flex-col items-center gap-4 sm:gap-6">
+              <p className="animate-pulse text-xs sm:text-sm text-muted-foreground">Aguarde, chamando {voice.label}...</p>
               <button
                 onClick={() => { endCall(); onClose(); }}
-                className="flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
                 style={{
                   background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.82))",
                   boxShadow: "0 0 32px hsl(var(--destructive) / 0.4)",
                 }}
                 aria-label="Cancelar ligação"
               >
-                <PhoneOff size={28} />
+                <PhoneOff size={24} />
               </button>
             </div>
           ) : phase === "pick" ? (
-            <div className="flex w-full flex-col items-center gap-4">
+            <div className="flex w-full flex-col items-center gap-3 sm:gap-4">
               <div className="flex items-center justify-center gap-2 rounded-full border border-border/15 bg-card/35 p-1 backdrop-blur-sm">
                 {(["female", "male"] as const).map((item) => {
                   const selected = gender === item;
@@ -734,7 +734,7 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
                     <button
                       key={item}
                       onClick={() => setGender(item)}
-                      className="rounded-full px-4 py-2 text-sm font-medium transition-all"
+                      className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all"
                       style={
                         selected
                           ? {
@@ -752,14 +752,14 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
                 })}
               </div>
 
-              <div className="grid w-full grid-cols-3 gap-3">
+              <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">
                 {VOICES[gender].map((item) => {
                   const selected = voice.id === item.id;
                   return (
                     <button
                       key={item.id}
                       onClick={() => setVoice(item)}
-                      className="flex aspect-[0.88] flex-col items-center justify-center gap-2 rounded-3xl border bg-card/35 px-2 py-3 text-center backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-card/55"
+                      className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-2xl sm:rounded-3xl border bg-card/35 px-1.5 sm:px-2 py-2.5 sm:py-3 text-center backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-card/55"
                       style={
                         selected
                           ? {
@@ -773,58 +773,60 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
                       }
                     >
                       <div
-                        className="h-11 w-11 rounded-full"
+                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-full"
                         style={{
                           background: `radial-gradient(circle, ${item.color} 0%, ${item.color}88 55%, ${item.color}33 100%)`,
                           boxShadow: `0 0 18px ${item.color}33`,
                         }}
                       />
-                      <span className="text-xs font-semibold text-foreground">{item.label}</span>
+                      <span className="text-[10px] sm:text-xs font-semibold text-foreground">{item.label}</span>
                     </button>
                   );
                 })}
               </div>
 
-              <button
-                onClick={() => setAdultMode((previous) => !previous)}
-                className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
-                style={
-                  adultMode
-                    ? {
-                        background: "hsl(var(--destructive) / 0.14)",
-                        borderColor: "hsl(var(--destructive) / 0.45)",
-                        color: "hsl(var(--destructive))",
-                      }
-                    : {
-                        background: "hsl(var(--card) / 0.35)",
-                        borderColor: "hsl(var(--border) / 0.18)",
-                        color: "hsl(var(--muted-foreground) / 0.85)",
-                      }
-                }
-              >
-                🔥 +18 {adultMode ? "ON" : "OFF"}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAdultMode((previous) => !previous)}
+                  className="rounded-full border px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-medium transition-all"
+                  style={
+                    adultMode
+                      ? {
+                          background: "hsl(var(--destructive) / 0.14)",
+                          borderColor: "hsl(var(--destructive) / 0.45)",
+                          color: "hsl(var(--destructive))",
+                        }
+                      : {
+                          background: "hsl(var(--card) / 0.35)",
+                          borderColor: "hsl(var(--border) / 0.18)",
+                          color: "hsl(var(--muted-foreground) / 0.85)",
+                        }
+                  }
+                >
+                  🔥 +18 {adultMode ? "ON" : "OFF"}
+                </button>
 
-              <button
-                onClick={startCall}
-                className="mt-1 flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
-                style={{
-                  background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                  boxShadow: `0 0 36px ${accent}44`,
-                }}
-                aria-label="Iniciar ligação"
-              >
-                <Phone size={28} />
-              </button>
+                <button
+                  onClick={startCall}
+                  className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                  style={{
+                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                    boxShadow: `0 0 36px ${accent}44`,
+                  }}
+                  aria-label="Iniciar ligação"
+                >
+                  <Phone size={24} />
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-5 pt-1">
               <button
                 onClick={() => setMuted((previous) => !previous)}
-                className="flex h-14 w-14 items-center justify-center rounded-full border border-border/20 bg-card/55 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card"
+                className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-border/20 bg-card/55 text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-card"
                 aria-label={muted ? "Ativar áudio" : "Silenciar áudio"}
               >
-                {muted ? <MicOff size={20} /> : <Mic size={20} />}
+                {muted ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
 
               <button
@@ -832,14 +834,14 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
                   endCall();
                   onClose();
                 }}
-                className="flex h-20 w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
+                className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full text-primary-foreground shadow-2xl transition-all hover:scale-105 active:scale-95"
                 style={{
                   background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.82))",
                   boxShadow: "0 0 32px hsl(var(--destructive) / 0.4)",
                 }}
                 aria-label="Encerrar ligação"
               >
-                <PhoneOff size={28} />
+                <PhoneOff size={24} />
               </button>
             </div>
           )}
