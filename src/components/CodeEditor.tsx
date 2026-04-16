@@ -249,7 +249,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   return (
     <div className={`flex flex-col h-full bg-background/80 ${isFullscreen ? "fixed inset-0 z-50" : ""}`}>
       {/* Top Toolbar */}
-      <div className="flex items-center justify-between border-b border-border/10 px-2.5 py-1 bg-background/60 backdrop-blur-sm shrink-0">
+      <div className="flex items-center justify-between border-b border-border/10 px-2.5 py-1 bg-background/60  shrink-0">
         {/* Left: View tabs */}
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-0.5 bg-muted/10 rounded-lg p-0.5 border border-border/5">
@@ -418,7 +418,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
       {/* Component Library Panel */}
       {showComponents && (
-        <div className="border-b border-border/10 bg-background/80 backdrop-blur-sm px-3 py-2 shrink-0">
+        <div className="border-b border-border/10 bg-background/80  px-3 py-2 shrink-0">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin pb-1">
             {COMPONENT_SNIPPETS.map((comp) => (
               <button

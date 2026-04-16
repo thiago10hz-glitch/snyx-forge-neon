@@ -1671,7 +1671,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
         <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 pt-2"} safe-bottom`}>
           <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto`}>
             {/* Main input container */}
-            <div className={`relative ${mode === "programmer" ? "rounded-xl" : "rounded-2xl sm:rounded-[20px]"} bg-card/40 backdrop-blur-xl border border-border/10 shadow-xl shadow-black/5 focus-within:border-primary/20 focus-within:shadow-primary/8 transition-all duration-500`}>
+            <div className={`relative ${mode === "programmer" ? "rounded-xl" : "rounded-2xl sm:rounded-[20px]"} bg-card/40  border border-border/10 shadow-xl shadow-black/5 focus-within:border-primary/20 focus-within:shadow-primary/8 transition-all duration-500`}>
               {/* Textarea row */}
               <div className="flex items-end gap-1 px-2 sm:px-3 py-2 sm:py-2.5">
                 <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
@@ -1772,7 +1772,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
       {/* Limit modal */}
       {showLimitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
           <div className="glass-elevated rounded-2xl p-8 max-w-sm w-full text-center animate-enter border border-border/15">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/8 mb-5 animate-float">
               <Clock className="w-7 h-7 text-primary" />
@@ -1810,7 +1810,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
       {/* Site Management Modal */}
       {showDeleteSitesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
           <div className="glass-elevated rounded-2xl p-6 max-w-lg w-full animate-enter border border-border/15 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">

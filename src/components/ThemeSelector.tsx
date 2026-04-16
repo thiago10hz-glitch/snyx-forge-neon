@@ -73,7 +73,7 @@ export function ThemeSelector({ externalOpen, onExternalClose, hideButton }: The
       {isOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+          <div className="absolute inset-0 bg-black/60 " onClick={handleClose} />
 
           {/* Panel */}
           <div className="relative w-full sm:max-w-md max-h-[85dvh] sm:max-h-[80vh] bg-background border border-border/15 rounded-t-3xl sm:rounded-2xl overflow-hidden animate-reveal flex flex-col shadow-2xl">

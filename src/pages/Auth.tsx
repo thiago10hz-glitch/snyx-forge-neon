@@ -359,7 +359,7 @@ export default function Auth() {
                     };
 
                     return (
-                    <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color} backdrop-blur-sm p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
+                    <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color}  p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
                       {plan.popular && (
                         <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-black uppercase tracking-wider">
                           <Star className="h-3 w-3" /> Popular
@@ -428,7 +428,7 @@ export default function Auth() {
 
             {/* Card for auth forms */}
             {view !== "vip-info" && (
-              <div className="overflow-hidden rounded-2xl border border-border/20 bg-card/60 shadow-xl shadow-black/15 backdrop-blur-xl">
+              <div className="overflow-hidden rounded-2xl border border-border/20 bg-card/60 shadow-xl shadow-black/15 ">
                 <div className="p-4 space-y-4">
                   {/* Tabs */}
                   {isAuthForm && (
