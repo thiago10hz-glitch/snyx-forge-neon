@@ -20,7 +20,13 @@ const LOCAL_PORT = 19847;
 // Serve dist/ via local HTTP so BrowserRouter and Supabase work correctly
 function startLocalServer() {
   return new Promise((resolve) => {
-    const distPath = path.join(__dirname, '..', 'dist');
+    // When installed: electron/ and dist/ are siblings under INSTALL_DIR
+    // __dirname = INSTALL_DIR/electron, so go up one level to find dist/
+    let distPath = path.join(__dirname, '..', 'dist');
+    // Fallback: if dist is right next to the app root (dev mode)
+    if (!fs.existsSync(distPath)) {
+      distPath = path.join(process.cwd(), 'dist');
+    }
     const mimeTypes = {
       '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
       '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
