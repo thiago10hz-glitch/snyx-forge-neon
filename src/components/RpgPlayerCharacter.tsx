@@ -19,7 +19,7 @@ interface PlayerCharacter {
 }
 
 const CLASSES = ["Guerreiro", "Mago", "Arqueiro", "Assassino", "Paladino", "Necromante", "Druida", "Bardo", "Monge", "Ladino"];
-const RACES = ["Humano", "Elfo", "Anão", "Orc", "Meio-Elfo", "Tiefling", "Draconato", "Halfling", "Gnomo", "Drow"];
+const RACES = ["Humano", "Elfo", "Anão", "Orc", "Meio-Elfo", "Tiefling", "Draconato", "Halfling", "Gnomo", "Drow", "Emochi"];
 
 interface RpgPlayerCharacterProps {
   onClose: () => void;
