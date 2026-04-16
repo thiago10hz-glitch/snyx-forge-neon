@@ -681,7 +681,7 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
       {phase === "pick" && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-muted/15 text-muted-foreground/70 backdrop-blur-md transition-all hover:bg-muted/30 hover:text-foreground"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-muted/15 text-muted-foreground/70  transition-all hover:bg-muted/30 hover:text-foreground"
           aria-label="Fechar"
         >
           ✕
