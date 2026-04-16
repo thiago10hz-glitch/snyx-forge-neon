@@ -332,8 +332,44 @@ ipcMain.handle('login', async (_, email, password) => {
 });
 
 ipcMain.handle('activate-key', async (_, key) => {
-  const config = loadConfig();
-  if (!config.accessToken) return { success: false, error: 'Faça login primeiro' };
+  let config = loadConfig();
+  
+  // Auto-create device account if no token
+  if (!config.accessToken) {
+    try {
+      const os = require('os');
+      const crypto = require('crypto');
+      const machineId = crypto.createHash('sha256').update(os.hostname() + os.userInfo().username + os.arch()).digest('hex').substring(0, 16);
+      const deviceEmail = `device-${machineId}@snyx-optimizer.local`;
+      const devicePass = `SnyX!Dev#${machineId}`;
+      
+      // Try sign up first
+      let authRes = await supabaseRequest('/auth/v1/signup', {
+        method: 'POST',
+        body: { email: deviceEmail, password: devicePass },
+      });
+      
+      // If already exists, sign in
+      if (!authRes.access_token) {
+        authRes = await supabaseRequest('/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          body: { email: deviceEmail, password: devicePass },
+        });
+      }
+      
+      if (authRes.access_token) {
+        config.accessToken = authRes.access_token;
+        config.refreshToken = authRes.refresh_token;
+        config.userId = authRes.user?.id;
+        config.deviceEmail = deviceEmail;
+        saveConfig(config);
+      } else {
+        return { success: false, error: 'Erro ao criar sessão do dispositivo' };
+      }
+    } catch (e) {
+      return { success: false, error: 'Falha na conexão: ' + e.message };
+    }
+  }
   
   try {
     const res = await supabaseRequest('/rest/v1/rpc/activate_accelerator_key', {
