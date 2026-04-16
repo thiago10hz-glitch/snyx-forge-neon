@@ -272,25 +272,23 @@ const Index = () => {
       {mobileMenuOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-border/15 flex flex-col animate-reveal">
-            {/* Mobile sidebar header */}
-            <div className="h-14 flex items-center justify-between px-4 border-b border-border/10">
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-primary" />
-                <span className="text-sm font-black gradient-text-subtle">SnyX</span>
+          <div className="fixed inset-y-0 left-0 z-50 w-56 bg-sidebar border-r border-border/15 flex flex-col animate-reveal">
+            <div className="h-11 flex items-center justify-between px-3 border-b border-border/10">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-primary" />
+                <span className="text-xs font-black gradient-text-subtle">SnyX</span>
               </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all">
-                <X className="w-4 h-4" />
+              <button onClick={() => setMobileMenuOpen(false)} className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Mobile nav */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
               <SidebarItem icon={MessageSquare} label="Chat" onClick={() => { setChatMode("friend"); setMobileMenuOpen(false); }} active={safeChatMode === "friend"} />
               <SidebarItem icon={Users} label="Criar RPG" onClick={() => { toggleCharactersPanel(); setMobileMenuOpen(false); }} active={safeChatMode === "characters"} />
 
-              <div className="px-3 pt-4 pb-1">
-                <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
+              <div className="px-2.5 pt-3 pb-0.5">
+                <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
               </div>
               {navItems.map(({ to, icon, label }) => (
                 <div key={to} onClick={() => setMobileMenuOpen(false)}>
@@ -300,8 +298,8 @@ const Index = () => {
 
               {isAdmin && (
                 <>
-                  <div className="px-3 pt-4 pb-1">
-                    <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Admin</span>
+                  <div className="px-2.5 pt-3 pb-0.5">
+                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Admin</span>
                   </div>
                   <div onClick={() => setMobileMenuOpen(false)}>
                     <SidebarItem to="/admin" icon={ShieldCheck} label="Admin" />
@@ -313,7 +311,7 @@ const Index = () => {
               )}
             </nav>
 
-            <div className="p-3 border-t border-border/10 space-y-1">
+            <div className="p-2 border-t border-border/10 space-y-0.5">
               <SidebarItem icon={Palette} label="Tema" onClick={() => { setShowThemeModal(true); setMobileMenuOpen(false); }} />
               <SidebarItem icon={LogOut} label="Sair" onClick={() => { signOut(); setMobileMenuOpen(false); }} className="hover:text-destructive" />
             </div>
