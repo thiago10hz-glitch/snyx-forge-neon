@@ -1,0 +1,12 @@
+{
+  "name": "snyx-optimizer",
+  "version": "3.0.0",
+  "description": "SnyX Optimizer - Otimização de PC para Gamers",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^41.2.0"
+  }
+}
