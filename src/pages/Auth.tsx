@@ -65,9 +65,12 @@ function AppleIcon() {
 const VIP_PLANS = [
   {
     icon: Crown,
-    title: "VIP Mensal",
-    price: "R$ 14,90",
-    period: "/mês",
+    title: "VIP",
+    plans: [
+      { label: "Semanal", price: "R$ 25,00" },
+      { label: "Mensal", price: "R$ 50,00" },
+      { label: "Anual", price: "R$ 150,00", badge: "Melhor custo" },
+    ],
     features: ["Chat IA ilimitado", "Personagens RPG", "Prioridade no suporte", "Sem anúncios"],
     popular: true,
     color: "from-amber-500/20 to-orange-600/20",
@@ -76,10 +79,13 @@ const VIP_PLANS = [
   },
   {
     icon: Zap,
-    title: "Accelerator",
-    price: "R$ 29,90",
-    period: "/mês",
-    features: ["Otimizador de PC", "VPN integrada", "Boost de FPS", "Suporte prioritário"],
+    title: "Desenvolvedor",
+    plans: [
+      { label: "Semanal", price: "R$ 100,00" },
+      { label: "Mensal", price: "R$ 150,00" },
+      { label: "Anual", price: "R$ 250,00", badge: "Melhor custo" },
+    ],
+    features: ["Tudo do VIP", "Otimizador de PC", "VPN integrada", "Acesso DEV completo"],
     popular: false,
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/30",
@@ -87,10 +93,13 @@ const VIP_PLANS = [
   },
   {
     icon: Gamepad2,
-    title: "Pack Steam",
-    price: "R$ 19,90",
-    period: "/mês",
-    features: ["Acesso a jogos Steam", "Pack exclusivo", "Atualizações mensais", "Comunidade VIP"],
+    title: "RPG Premium",
+    plans: [
+      { label: "Semanal", price: "R$ 20,00" },
+      { label: "Mensal", price: "R$ 50,00" },
+      { label: "Anual", price: "R$ 120,00", badge: "Melhor custo" },
+    ],
+    features: ["Personagens ilimitados", "Histórias exclusivas", "Itens premium", "Comunidade VIP"],
     popular: false,
     color: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/30",
@@ -296,15 +305,22 @@ export default function Auth() {
                           <Star className="h-3 w-3" /> Popular
                         </div>
                       )}
-                      <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-4">
                         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/40 ${plan.iconColor}`}>
                           <plan.icon className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-foreground">{plan.title}</h3>
-                          <div className="mt-1 flex items-baseline gap-1">
-                            <span className="text-2xl font-black text-foreground">{plan.price}</span>
-                            <span className="text-xs text-muted-foreground">{plan.period}</span>
+                          <h3 className="font-bold text-foreground text-lg">{plan.title}</h3>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {plan.plans.map((p, k) => (
+                              <div key={k} className="relative flex flex-col items-center rounded-xl border border-border/20 bg-background/30 px-3 py-2 min-w-[80px]">
+                                {p.badge && (
+                                  <span className="absolute -top-2 text-[8px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">{p.badge}</span>
+                                )}
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{p.label}</span>
+                                <span className="text-sm font-black text-foreground mt-0.5">{p.price}</span>
+                              </div>
+                            ))}
                           </div>
                           <ul className="mt-3 grid grid-cols-2 gap-1.5">
                             {plan.features.map((f, j) => (
