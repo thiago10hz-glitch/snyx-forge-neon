@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { VipModal } from "@/components/VipModal";
 import {
-  ArrowLeft, Code2, Search, RefreshCw, Play, Tv, X, ChevronDown, Loader2, Radio, List
+  ArrowLeft, Code2, Search, RefreshCw, Play, Tv, X, ChevronDown, Loader2, Radio, List, Zap, Signal
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,7 +17,6 @@ interface Channel {
 
 async function getInvokeErrorMessage(error: unknown) {
   const maybeResponse = (error as { context?: Response } | null)?.context;
-
   if (maybeResponse instanceof Response) {
     try {
       const payload = await maybeResponse.clone().json() as { error?: string; message?: string };
@@ -31,11 +30,7 @@ async function getInvokeErrorMessage(error: unknown) {
       }
     }
   }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
+  if (error instanceof Error) return error.message;
   return "Erro ao sincronizar";
 }
 
@@ -58,7 +53,6 @@ export default function IPTV() {
       setLoading(true);
       const { data } = supabase.storage.from("iptv-cache").getPublicUrl("channels.json");
       const res = await fetch(data.publicUrl + "?t=" + Date.now());
-
       if (res.ok) {
         const json = await res.json();
         setChannels(Array.isArray(json) ? json : []);
@@ -77,12 +71,10 @@ export default function IPTV() {
       toast.error("Faça login para sincronizar os canais.");
       return;
     }
-
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("iptv-sync");
       if (error) throw error;
-
       if (data?.success) {
         toast.success(`${data.channels} canais sincronizados!`);
         await loadChannels();
@@ -100,13 +92,11 @@ export default function IPTV() {
     if (hasAccess) loadChannels();
   }, [hasAccess, loadChannels]);
 
-  // Extract unique groups
   const groups = useMemo(() => {
     const set = new Set(channels.map(c => c.g));
     return ["Todos", ...Array.from(set).sort()];
   }, [channels]);
 
-  // Filter channels
   const filtered = useMemo(() => {
     let list = channels;
     if (selectedGroup !== "Todos") list = list.filter(c => c.g === selectedGroup);
@@ -117,19 +107,15 @@ export default function IPTV() {
     return list;
   }, [channels, selectedGroup, search]);
 
-  // Play channel with HLS
   const playChannel = useCallback(async (ch: Channel) => {
     setPlayingChannel(ch);
-    // Wait for video element to mount
     setTimeout(async () => {
       const video = videoRef.current;
       if (!video) return;
-      // Try native HLS first (Safari)
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = ch.u;
         video.play().catch(() => {});
       } else {
-        // Load HLS.js dynamically
         try {
           const { default: Hls } = await import("hls.js");
           if (Hls.isSupported()) {
@@ -138,7 +124,6 @@ export default function IPTV() {
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
           } else {
-            // Fallback: try direct
             video.src = ch.u;
             video.play().catch(() => {});
           }
@@ -152,20 +137,30 @@ export default function IPTV() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="text-center max-w-sm space-y-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 border border-purple-500/30 flex items-center justify-center mx-auto">
-            <Tv size={28} className="text-purple-400" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="relative text-center max-w-md space-y-6">
+          {/* Glow background */}
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+          
+          <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto shadow-lg shadow-purple-500/10">
+            <Tv size={36} className="text-purple-400" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-background animate-pulse" />
           </div>
-          <h1 className="text-lg font-bold text-foreground">SnyX TV</h1>
-          <p className="text-muted-foreground/50 text-xs">
-            Acesso exclusivo para membros DEV. Assista TV ao vivo com milhares de canais.
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Link to="/" className="px-3 py-1.5 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground hover:bg-muted/20 transition-all text-xs flex items-center gap-1.5">
-              <ArrowLeft size={12} /> Voltar
+          
+          <div>
+            <h1 className="text-2xl font-bold text-foreground font-mono tracking-tight">SnyX TV</h1>
+            <p className="text-muted-foreground/60 text-sm mt-2 leading-relaxed">
+              Acesso exclusivo para membros DEV.<br />
+              Assista TV ao vivo com milhares de canais.
+            </p>
+          </div>
+          
+          <div className="flex gap-3 justify-center">
+            <Link to="/" className="px-4 py-2.5 rounded-xl bg-muted/10 border border-border/10 text-muted-foreground hover:bg-muted/20 transition-all text-sm flex items-center gap-2">
+              <ArrowLeft size={14} /> Voltar
             </Link>
-            <button onClick={() => setShowVipModal(true)} className="px-5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium hover:opacity-90 transition-all text-xs">
+            <button onClick={() => setShowVipModal(true)} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold hover:opacity-90 transition-all text-sm shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 active:scale-95">
+              <Zap size={14} className="inline mr-1.5 -mt-0.5" />
               Obter Acesso
             </button>
           </div>
@@ -178,59 +173,68 @@ export default function IPTV() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 h-11 glass border-b border-border/10">
-        <div className="flex items-center gap-2.5">
-          <Link to="/" className="p-1.5 rounded-md bg-muted/10 hover:bg-muted/20 transition-all text-muted-foreground hover:text-foreground">
-            <ArrowLeft size={14} />
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-500/20 to-pink-600/20 border border-purple-500/30 flex items-center justify-center">
-              <Tv size={13} className="text-purple-400" />
-            </div>
-            <div>
-              <h1 className="text-xs font-bold text-foreground">SnyX TV</h1>
-              <p className="text-[8px] text-muted-foreground/40 hidden sm:block">{channels.length} canais disponíveis</p>
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-background/80 border-b border-border/10">
+        <div className="flex items-center justify-between px-4 sm:px-6 h-14">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="p-2 rounded-xl bg-muted/10 hover:bg-muted/20 transition-all text-muted-foreground hover:text-foreground">
+              <ArrowLeft size={16} />
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <Tv size={16} className="text-white" />
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-background" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold text-foreground font-mono tracking-tight">SnyX TV</h1>
+                <div className="flex items-center gap-1.5">
+                  <Signal size={8} className="text-green-400" />
+                  <p className="text-[10px] text-muted-foreground/50">{channels.length.toLocaleString()} canais ao vivo</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={syncChannels}
-            disabled={syncing}
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/10 border border-border/10 text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all text-[10px] disabled:opacity-50"
-          >
-            <RefreshCw size={10} className={syncing ? "animate-spin" : ""} />
-            {syncing ? "Sincronizando..." : "Sincronizar"}
-          </button>
-          <Link
-            to="/"
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/10 border border-border/10 text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all text-[10px]"
-          >
-            <Code2 size={10} /> SnyX
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={syncChannels}
+              disabled={syncing}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted/10 border border-border/10 text-muted-foreground hover:text-foreground hover:bg-muted/20 hover:border-purple-500/20 transition-all text-xs disabled:opacity-50 group"
+            >
+              <RefreshCw size={12} className={`${syncing ? "animate-spin" : "group-hover:rotate-90"} transition-transform`} />
+              <span className="hidden sm:inline">{syncing ? "Sincronizando..." : "Sincronizar"}</span>
+            </button>
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted/10 border border-border/10 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all text-xs"
+            >
+              <Code2 size={12} />
+              <span className="hidden sm:inline">SnyX</span>
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Player */}
       {playingChannel && (
-        <div className="relative bg-black w-full" style={{ maxHeight: "50vh" }}>
+        <div className="relative bg-black w-full group/player" style={{ maxHeight: "50vh" }}>
           <video
             ref={videoRef}
             controls
             autoPlay
             className="w-full max-h-[50vh] bg-black"
           />
-          <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm">
+          <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between opacity-100 group-hover/player:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/10">
               <Radio size={10} className="text-red-500 animate-pulse" />
-              <span className="text-white text-[10px] font-medium truncate max-w-[200px]">{playingChannel.n}</span>
+              <span className="text-white text-xs font-medium truncate max-w-[200px]">{playingChannel.n}</span>
+              <span className="text-white/40 text-[9px]">•</span>
+              <span className="text-white/40 text-[9px] truncate max-w-[100px]">{playingChannel.g}</span>
             </div>
             <button
               onClick={() => {
                 setPlayingChannel(null);
                 if (videoRef.current) videoRef.current.src = "";
               }}
-              className="p-1.5 rounded-md bg-black/70 backdrop-blur-sm text-white/70 hover:text-white transition-colors"
+              className="p-2 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 text-white/70 hover:text-white hover:bg-red-500/30 hover:border-red-500/30 transition-all"
             >
               <X size={14} />
             </button>
@@ -239,110 +243,169 @@ export default function IPTV() {
       )}
 
       {/* Search & Filters */}
-      <div className="sticky top-11 z-10 px-4 py-2 glass border-b border-border/10 flex gap-2">
-        <div className="relative flex-1">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/30" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar canal..."
-            className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-muted/10 border border-border/10 text-foreground text-xs placeholder:text-muted-foreground/30 focus:outline-none focus:border-purple-500/30"
-          />
+      <div className="sticky top-14 z-10 px-4 sm:px-6 py-3 backdrop-blur-xl bg-background/80 border-b border-border/10">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/30" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar canal ou categoria..."
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-card/50 border border-border/10 text-foreground text-sm placeholder:text-muted-foreground/30 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/30 hover:text-foreground transition-colors">
+                <X size={12} />
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setShowGroups(!showGroups)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card/50 border border-border/10 text-muted-foreground text-sm hover:bg-card hover:border-purple-500/20 transition-all whitespace-nowrap h-full"
+            >
+              <List size={14} />
+              <span className="hidden sm:inline max-w-[120px] truncate">{selectedGroup}</span>
+              <ChevronDown size={12} className={`transition-transform ${showGroups ? "rotate-180" : ""}`} />
+            </button>
+            {showGroups && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowGroups(false)} />
+                <div className="absolute right-0 top-full mt-2 w-64 max-h-72 overflow-y-auto rounded-2xl bg-card border border-border/20 shadow-2xl shadow-black/40 z-50 p-1.5">
+                  {groups.map(g => (
+                    <button
+                      key={g}
+                      onClick={() => { setSelectedGroup(g); setShowGroups(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all ${
+                        g === selectedGroup
+                          ? "text-purple-400 bg-purple-500/10 font-medium"
+                          : "text-foreground/70 hover:bg-muted/20 hover:text-foreground"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        <div className="relative">
-          <button
-            onClick={() => setShowGroups(!showGroups)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground text-xs hover:bg-muted/20 transition-all whitespace-nowrap"
-          >
-            <List size={11} />
-            <span className="hidden sm:inline max-w-[100px] truncate">{selectedGroup}</span>
-            <ChevronDown size={10} />
-          </button>
-          {showGroups && (
-            <div className="absolute right-0 top-full mt-1 w-56 max-h-60 overflow-y-auto rounded-lg bg-card border border-border/20 shadow-xl z-50">
-              {groups.map(g => (
-                <button
-                  key={g}
-                  onClick={() => { setSelectedGroup(g); setShowGroups(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted/20 transition-colors ${g === selectedGroup ? "text-purple-400 bg-purple-500/10" : "text-foreground/70"}`}
-                >
-                  {g}
+        {/* Active filter badge */}
+        {(selectedGroup !== "Todos" || search) && (
+          <div className="flex items-center gap-2 mt-2">
+            {selectedGroup !== "Todos" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-medium">
+                {selectedGroup}
+                <button onClick={() => setSelectedGroup("Todos")} className="hover:text-white transition-colors">
+                  <X size={10} />
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              </span>
+            )}
+            <span className="text-muted-foreground/30 text-[10px]">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+          </div>
+        )}
       </div>
 
       {/* Channel List */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 size={24} className="text-purple-400 animate-spin" />
-            <p className="text-muted-foreground/40 text-xs">Carregando canais...</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                <Loader2 size={28} className="text-purple-400 animate-spin" />
+              </div>
+              <div className="absolute inset-0 rounded-2xl bg-purple-500/5 animate-ping" />
+            </div>
+            <p className="text-muted-foreground/50 text-sm">Carregando canais...</p>
           </div>
         ) : channels.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Tv size={32} className="text-muted-foreground/20" />
-            <p className="text-muted-foreground/40 text-xs">Nenhum canal encontrado</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-5">
+            <div className="w-20 h-20 rounded-2xl bg-muted/10 border border-border/10 flex items-center justify-center">
+              <Tv size={36} className="text-muted-foreground/20" />
+            </div>
+            <div className="text-center">
+              <p className="text-foreground/60 text-sm font-medium">Nenhum canal encontrado</p>
+              <p className="text-muted-foreground/30 text-xs mt-1">Sincronize para carregar a lista de canais</p>
+            </div>
             <button
               onClick={syncChannels}
               disabled={syncing}
-              className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs font-medium hover:opacity-90 transition-all disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-purple-500/25"
             >
-              {syncing ? "Sincronizando..." : "Sincronizar Canais"}
+              {syncing ? (
+                <span className="flex items-center gap-2"><RefreshCw size={14} className="animate-spin" /> Sincronizando...</span>
+              ) : (
+                <span className="flex items-center gap-2"><RefreshCw size={14} /> Sincronizar Canais</span>
+              )}
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Search size={24} className="text-muted-foreground/20" />
-            <p className="text-muted-foreground/40 text-xs">Nenhum canal encontrado para "{search}"</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-muted/10 flex items-center justify-center">
+              <Search size={28} className="text-muted-foreground/20" />
+            </div>
+            <p className="text-muted-foreground/50 text-sm">Nenhum canal para "<span className="text-foreground/70">{search}</span>"</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-            {filtered.slice(0, 200).map((ch, i) => (
-              <button
-                key={`${ch.n}-${i}`}
-                onClick={() => playChannel(ch)}
-                className={`group flex items-center gap-2.5 p-2.5 rounded-xl border transition-all duration-200 text-left hover:scale-[1.01] ${
-                  playingChannel?.u === ch.u
-                    ? "bg-purple-500/10 border-purple-500/30 shadow-lg shadow-purple-500/5"
-                    : "bg-card/30 border-border/10 hover:bg-card/50 hover:border-border/20"
-                }`}
-              >
-                {ch.l ? (
-                  <img
-                    src={ch.l}
-                    alt=""
-                    className="w-8 h-8 rounded-lg object-contain bg-black/20 shrink-0"
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shrink-0">
-                    <Tv size={14} className="text-purple-400/60" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+            {filtered.slice(0, 200).map((ch, i) => {
+              const isPlaying = playingChannel?.u === ch.u;
+              return (
+                <button
+                  key={`${ch.n}-${i}`}
+                  onClick={() => playChannel(ch)}
+                  className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 text-left hover:scale-[1.02] active:scale-[0.98] ${
+                    isPlaying
+                      ? "bg-purple-500/10 border-purple-500/30 shadow-lg shadow-purple-500/10 ring-1 ring-purple-500/20"
+                      : "bg-card/40 border-border/5 hover:bg-card/70 hover:border-border/20 hover:shadow-lg hover:shadow-black/10"
+                  }`}
+                >
+                  {ch.l ? (
+                    <img
+                      src={ch.l}
+                      alt=""
+                      className="w-10 h-10 rounded-xl object-contain bg-black/30 shrink-0 border border-white/5"
+                      onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                      isPlaying
+                        ? "bg-purple-500/20 border-purple-500/30"
+                        : "bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-white/5"
+                    }`}>
+                      <Tv size={16} className={isPlaying ? "text-purple-400" : "text-purple-400/40 group-hover:text-purple-400/60"} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[13px] font-medium truncate transition-colors ${isPlaying ? "text-purple-300" : "text-foreground/90 group-hover:text-foreground"}`}>
+                      {ch.n}
+                    </p>
+                    <p className="text-muted-foreground/30 text-[10px] truncate mt-0.5">{ch.g}</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-foreground text-[12px] font-medium truncate">{ch.n}</p>
-                  <p className="text-muted-foreground/30 text-[9px] truncate">{ch.g}</p>
-                </div>
-                <div className={`p-1 rounded-md transition-all ${
-                  playingChannel?.u === ch.u
-                    ? "bg-purple-500/20 text-purple-400"
-                    : "bg-muted/10 text-muted-foreground/30 opacity-0 group-hover:opacity-100"
-                }`}>
-                  <Play size={10} fill={playingChannel?.u === ch.u ? "currentColor" : "none"} />
-                </div>
-              </button>
-            ))}
+                  <div className={`p-1.5 rounded-lg transition-all duration-200 ${
+                    isPlaying
+                      ? "bg-purple-500/20 text-purple-400 scale-110"
+                      : "bg-transparent text-muted-foreground/20 opacity-0 group-hover:opacity-100 group-hover:text-purple-400/60 group-hover:bg-purple-500/10"
+                  }`}>
+                    {isPlaying ? (
+                      <Radio size={12} className="animate-pulse" />
+                    ) : (
+                      <Play size={12} fill="currentColor" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
 
         {filtered.length > 200 && (
-          <p className="text-center text-muted-foreground/20 text-[10px] mt-4">
-            Mostrando 200 de {filtered.length} canais. Use a busca para filtrar.
-          </p>
+          <div className="text-center mt-6 py-3 px-4 rounded-xl bg-muted/5 border border-border/5">
+            <p className="text-muted-foreground/30 text-xs">
+              Mostrando <span className="text-foreground/50 font-medium">200</span> de <span className="text-foreground/50 font-medium">{filtered.length.toLocaleString()}</span> canais — use a busca para filtrar
+            </p>
+          </div>
         )}
       </div>
 
