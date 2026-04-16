@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import {
-  ArrowLeft, Lock, Cpu, Zap, Monitor, MemoryStick, Settings, CheckCircle2,
-  XCircle, Power, Loader2, RefreshCw, Download, RotateCcw, Gamepad2,
+  ArrowLeft, Lock, Cpu, Zap, Monitor, MemoryStick, CheckCircle2,
+  Power, Loader2, RefreshCw, Download, RotateCcw, Gamepad2,
   Eye, MousePointer, Network, Shield, Key, HardDrive, Wifi, Gauge, Flame,
   ChevronRight, Check, Info, ShieldCheck, Fingerprint, Binary, Trash2,
   Activity, Timer, Ban
