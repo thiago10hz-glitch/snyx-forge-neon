@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
+import OwnerChat from "@/components/OwnerChat";
 import {
   Crown, Users, MessageCircle, ShieldCheck, Globe, TrendingUp,
   ArrowLeft, Zap, Eye, Activity, Server, Database, Wifi,
@@ -72,7 +73,7 @@ function formatRelative(dateStr: string): string {
   return `${days}d`;
 }
 
-type OwnerTab = "overview" | "analytics" | "broadcast" | "actions" | "platform" | "admins";
+type OwnerTab = "overview" | "analytics" | "broadcast" | "actions" | "platform" | "admins" | "aichat";
 
 export default function OwnerPanel() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -175,6 +176,7 @@ export default function OwnerPanel() {
     { key: "broadcast", label: "Broadcast", icon: Megaphone },
     { key: "actions", label: "Ações Rápidas", icon: Zap },
     { key: "platform", label: "Plataforma", icon: Settings },
+    { key: "aichat", label: "IA Chat", icon: Sparkles },
   ];
 
   return (
@@ -253,6 +255,7 @@ export default function OwnerPanel() {
             {activeTab === "broadcast" && <BroadcastTab broadcastMsg={broadcastMsg} setBroadcastMsg={setBroadcastMsg} />}
             {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
             {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
+            {activeTab === "aichat" && <OwnerChat />}
           </>
         )}
       </main>
