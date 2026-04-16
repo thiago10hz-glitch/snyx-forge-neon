@@ -30,7 +30,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
-      setBackgroundUrl((profile as any).background_url || "");
+      setBackgroundUrl(profile.background_url || "");
       setRelationshipStatus(profile.relationship_status || "");
       setGender(profile.gender || "");
       
