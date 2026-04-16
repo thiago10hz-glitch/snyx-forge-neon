@@ -138,18 +138,18 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
         onClick={e => e.stopPropagation()}
       >
         {/* Header with avatar hero */}
-        <div className="relative overflow-hidden">
+        <div className="relative">
           {/* Gradient banner / custom background */}
-          <div className="h-24 sm:h-28 relative group/bg">
+          <div className="h-24 sm:h-28 relative overflow-hidden">
             {backgroundUrl ? (
               <img src={backgroundUrl} alt="Fundo" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/8 to-transparent" />
             )}
             <button
-              onClick={() => bgInputRef.current?.click()}
+              onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
               disabled={uploadingBg}
-              className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-sm text-white/70 text-[10px] opacity-0 group-hover/bg:opacity-100 transition-opacity hover:bg-black/70"
+              className="absolute bottom-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm text-white/80 text-[10px] font-medium hover:bg-black/80 transition-all border border-white/10"
             >
               {uploadingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
               {backgroundUrl ? "Trocar fundo" : "Adicionar fundo"}
