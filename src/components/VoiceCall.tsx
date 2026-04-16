@@ -24,55 +24,57 @@ function VoiceOrb({
   label,
   levels,
   active,
-  compact = false,
+  large = false,
 }: {
   accent: string;
   label: string;
   levels: number[];
   active: boolean;
-  compact?: boolean;
+  large?: boolean;
 }) {
-  const sizeClass = compact ? "h-28 w-28" : "h-[220px] w-[220px] sm:h-[260px] sm:w-[260px]";
-  const ringBase = compact ? 34 : 42;
-  const ringStep = compact ? 14 : 18;
+  const size = large ? "h-[200px] w-[200px] sm:h-[240px] sm:w-[240px]" : "h-24 w-24 sm:h-28 sm:w-28";
+  const innerSize = large ? "h-24 w-24 sm:h-28 sm:w-28 text-3xl sm:text-4xl" : "h-14 w-14 sm:h-16 sm:w-16 text-xl sm:text-2xl";
+  const ringBase = large ? 38 : 40;
+  const ringStep = large ? 16 : 16;
+  const ringScale = large ? 22 : 14;
 
   return (
-    <div className={`relative ${sizeClass}`}>
+    <div className={`relative ${size}`}>
+      {/* Ambient glow */}
       <div
-        className="absolute inset-0 rounded-full blur-3xl"
+        className="absolute inset-0 rounded-full blur-3xl transition-all duration-500"
         style={{
-          background: `radial-gradient(circle, ${accent}44 0%, ${accent}12 45%, transparent 75%)`,
-          opacity: active ? 1 : 0.75,
-          transform: active ? "scale(1.04)" : "scale(1)",
-          transition: "all 200ms ease",
+          background: `radial-gradient(circle, ${accent}55 0%, ${accent}15 50%, transparent 75%)`,
+          opacity: active ? 1 : 0.6,
+          transform: active ? "scale(1.1)" : "scale(0.95)",
         }}
       />
 
+      {/* Animated rings */}
       {levels.map((level, index) => {
-        const alpha = Math.max(0.2, 0.62 - index * 0.1);
+        const alpha = Math.max(0.12, 0.5 - index * 0.09);
         return (
           <div key={index} className="absolute inset-0 flex items-center justify-center">
             <div
-              className="rounded-full border transition-all duration-150 ease-out"
+              className="rounded-full transition-all duration-200 ease-out"
               style={{
-                width: `${ringBase + index * ringStep + level * (compact ? 16 : 26)}%`,
-                height: `${ringBase + index * ringStep + level * (compact ? 16 : 26)}%`,
-                borderColor: `${accent}${Math.round(alpha * 255)
-                  .toString(16)
-                  .padStart(2, "0")}`,
-                boxShadow: active ? `0 0 ${10 + level * 18}px ${accent}55` : "none",
+                width: `${ringBase + index * ringStep + level * ringScale}%`,
+                height: `${ringBase + index * ringStep + level * ringScale}%`,
+                border: `1.5px solid ${accent}${Math.round(alpha * 255).toString(16).padStart(2, "0")}`,
+                boxShadow: active ? `0 0 ${8 + level * 14}px ${accent}44` : "none",
               }}
             />
           </div>
         );
       })}
 
+      {/* Center avatar circle */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div
-          className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold text-primary-foreground shadow-2xl sm:h-24 sm:w-24 sm:text-3xl"
+          className={`flex items-center justify-center rounded-full font-bold text-white shadow-2xl ${innerSize}`}
           style={{
-            background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-            boxShadow: `0 0 36px ${accent}66`,
+            background: `linear-gradient(145deg, ${accent}, ${accent}bb)`,
+            boxShadow: `0 8px 32px ${accent}55, inset 0 1px 0 rgba(255,255,255,0.15)`,
           }}
         >
           {label[0]}
