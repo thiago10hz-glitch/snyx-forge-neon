@@ -6,10 +6,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import {
-  ArrowLeft, Lock, Cpu, Shield, Zap,
+  ArrowLeft, Lock, Cpu, Zap,
   Monitor, MemoryStick, Settings, CheckCircle2,
   XCircle, Power, Loader2, RefreshCw, Download,
   RotateCcw, Gamepad2, Eye, MousePointer, Network,
+  Shield
 } from "lucide-react";
 
 interface KeyInfo {
@@ -20,25 +21,12 @@ interface KeyInfo {
   days_remaining: number | null;
 }
 
-interface AppRelease {
-  id: string;
-  version: string;
-  platform: string;
-  file_url: string;
-  file_size: number | null;
-  changelog: string | null;
-  created_at: string;
-}
-
 const Optimization = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
-  const [releases, setReleases] = useState<AppRelease[]>([]);
-  const [loadingReleases, setLoadingReleases] = useState(false);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   
 
   // Optimization states
