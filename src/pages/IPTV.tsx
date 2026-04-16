@@ -187,18 +187,6 @@ export default function IPTV() {
       hlsRef.current = null;
     }
 
-    if (mpegtsRef.current) {
-      try {
-        mpegtsRef.current.pause?.();
-        mpegtsRef.current.unload?.();
-        mpegtsRef.current.detachMediaElement?.();
-        mpegtsRef.current.destroy();
-      } catch {
-        // ignore cleanup failures
-      }
-      mpegtsRef.current = null;
-    }
-
     const video = videoRef.current;
     if (video) {
       video.pause();
