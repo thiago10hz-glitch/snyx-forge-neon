@@ -18,6 +18,27 @@ interface Channel {
 
 type MainCategory = "home" | "tv" | "filmes" | "series" | "cinema";
 
+// Component that handles image load errors with a proper fallback
+function ChannelLogo({ src, size = "md", className = "", fallbackIcon }: { src?: string; size?: "sm" | "md" | "lg"; className?: string; fallbackIcon?: React.ReactNode }) {
+  const [failed, setFailed] = useState(false);
+  const sizeClasses = size === "lg" ? "w-14 h-14" : size === "md" ? "w-11 h-11" : "w-10 h-10";
+  const imgSizeClasses = size === "lg" ? "w-12 h-12" : size === "md" ? "w-9 h-9" : "w-8 h-8";
+
+  if (!src || failed) {
+    return (
+      <div className={`${sizeClasses} rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/10 flex items-center justify-center shrink-0 border border-white/5 ${className}`}>
+        {fallbackIcon || <Tv size={size === "lg" ? 22 : 16} className="text-purple-400/40" />}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${sizeClasses} rounded-xl overflow-hidden bg-black/30 shrink-0 border border-white/5 flex items-center justify-center ${className}`}>
+      <img src={src} alt="" className={`${imgSizeClasses} object-contain`} loading="lazy" onError={() => setFailed(true)} />
+    </div>
+  );
+}
+
 const CATEGORIES: { id: MainCategory; label: string; desc: string; icon: typeof Tv; gradient: string; shadow: string; keywords: string[] }[] = [
   { id: "tv", label: "TV ao Vivo", desc: "Canais abertos e fechados", icon: Tv, gradient: "from-blue-500 to-cyan-400", shadow: "shadow-blue-500/30", keywords: ["tv", "aberto", "ao vivo", "esporte", "sport", "news", "notícia", "canal", "hd", "fhd", "uhd", "4k", "educativo", "religioso", "infantil", "kids", "music", "adulto"] },
   { id: "filmes", label: "Filmes", desc: "Todos os gêneros", icon: Film, gradient: "from-purple-500 to-violet-400", shadow: "shadow-purple-500/30", keywords: ["filme", "filmes", "movie", "movies", "film"] },
