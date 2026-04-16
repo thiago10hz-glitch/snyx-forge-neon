@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, KeyRound,
   Flame, Crown, Zap, Shield, Gamepad2, MonitorPlay, Sparkles, Star, X,
+  Globe, Users, Music, Image as ImageIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
@@ -71,7 +72,16 @@ const VIP_PLANS = [
       { label: "Mensal", price: "R$ 50,00" },
       { label: "Anual", price: "R$ 150,00", badge: "Melhor custo" },
     ],
-    features: ["Chat IA ilimitado", "Personagens RPG", "Prioridade no suporte", "Sem anúncios"],
+    features: [
+      "Chat IA sem limite de mensagens",
+      "Todos os modos (Amigo, Escola, Programador, Rewrite)",
+      "Geração de imagens com IA",
+      "RPG com personagens ilimitados",
+      "Chamada de voz com IA",
+      "Geração de música com IA",
+      "Prioridade no suporte",
+      "Sem restrição de horário",
+    ],
     popular: true,
     color: "from-amber-500/20 to-orange-600/20",
     borderColor: "border-amber-500/30",
@@ -85,7 +95,16 @@ const VIP_PLANS = [
       { label: "Mensal", price: "R$ 150,00" },
       { label: "Anual", price: "R$ 250,00", badge: "Melhor custo" },
     ],
-    features: ["Tudo do VIP", "Otimizador de PC", "VPN integrada", "Acesso DEV completo"],
+    features: [
+      "Tudo do VIP incluso",
+      "SnyX Optimizer (otimização de PC)",
+      "VPN integrada com WireGuard",
+      "Hospedagem de sites grátis",
+      "Pack Steam com jogos",
+      "Downloads exclusivos",
+      "Acesso antecipado a novidades",
+      "Badge DEV no perfil",
+    ],
     popular: false,
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/30",
@@ -99,7 +118,14 @@ const VIP_PLANS = [
       { label: "Mensal", price: "R$ 50,00" },
       { label: "Anual", price: "R$ 120,00", badge: "Melhor custo" },
     ],
-    features: ["Personagens ilimitados", "Histórias exclusivas", "Itens premium", "Comunidade VIP"],
+    features: [
+      "Personagens ilimitados com backstory",
+      "IA mestre de RPG avançada",
+      "Histórias e aventuras exclusivas",
+      "Itens e equipamentos premium",
+      "Voz de personagem com IA",
+      "Comunidade RPG exclusiva",
+    ],
     popular: false,
     color: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/30",
@@ -107,8 +133,15 @@ const VIP_PLANS = [
   },
 ];
 
+const FREE_FEATURES = [
+  "15 mensagens de chat IA por dia",
+  "Modo Amigo e Escola básicos",
+  "1 personagem RPG",
+  "Suporte por ticket",
+];
+
 const inputClassName =
-  "w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-300 focus:outline-none focus:border-primary/40 focus:bg-card focus:shadow-lg focus:shadow-primary/10";
+  "w-full rounded-xl border border-border/30 bg-muted/15 px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary/40 focus:bg-card/80 focus:shadow-md focus:shadow-primary/5";
 
 export default function Auth() {
   const [view, setView] = useState<AuthView>("login");
@@ -261,43 +294,61 @@ export default function Auth() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Background effects */}
+      {/* Background */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[160px]" />
-        <div className="absolute right-0 bottom-0 h-[400px] w-[400px] rounded-full bg-primary/4 blur-[140px]" />
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[600px] rounded-full bg-primary/3 blur-[200px]" />
+        <div className="absolute -left-32 -top-32 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[140px]" />
+        <div className="absolute right-0 bottom-0 h-[300px] w-[300px] rounded-full bg-primary/3 blur-[120px]" />
       </div>
 
       {/* Main layout */}
       <div className="relative flex min-h-screen flex-col lg:flex-row">
-        {/* Left: Auth form */}
-        <div className="flex flex-1 items-center justify-center px-4 py-8 lg:py-0">
-          <div className="w-full max-w-md">
+        {/* Left: Auth form — compact */}
+        <div className="flex flex-1 items-center justify-center px-4 py-6 lg:py-0">
+          <div className="w-full max-w-[360px]">
             {/* Logo */}
-            <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/10 border border-primary/20 shadow-lg shadow-primary/10">
-                <Flame className="h-6 w-6 text-primary" />
+            <div className="mb-5 flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/15">
+                <Flame className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-black tracking-tight text-foreground">SnyX</h1>
-                <p className="text-xs text-muted-foreground">Plataforma inteligente</p>
+                <h1 className="text-base font-black tracking-tight text-foreground">SnyX</h1>
+                <p className="text-[10px] text-muted-foreground/60">Plataforma IA completa</p>
               </div>
             </div>
 
             {/* VIP Info View */}
             {view === "vip-info" && (
-              <div className="space-y-6 animate-fade-in">
+              <div className="space-y-3 animate-fade-in">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground">Planos Premium</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Escolha o melhor plano para você</p>
+                    <h2 className="text-lg font-bold text-foreground">Planos</h2>
+                    <p className="text-[10px] text-muted-foreground">Escolha o ideal para você</p>
                   </div>
-                  <button onClick={() => setView("login")} className="rounded-xl p-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-                    <X className="h-5 w-5" />
+                  <button onClick={() => setView("login")} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                {/* Free tier */}
+                <div className="rounded-xl border border-border/20 bg-muted/5 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-lg bg-muted/20 flex items-center justify-center">
+                      <Users className="w-3 h-3 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Grátis</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/20 text-muted-foreground">R$ 0</span>
+                  </div>
+                  <ul className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                    {FREE_FEATURES.map((f, j) => (
+                      <li key={j} className="flex items-start gap-1 text-[10px] text-muted-foreground/70">
+                        <Check className="h-2.5 w-2.5 text-muted-foreground/40 shrink-0 mt-0.5" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
                   {VIP_PLANS.map((plan, i) => (
                     <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color} backdrop-blur-sm p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
                       {plan.popular && (
