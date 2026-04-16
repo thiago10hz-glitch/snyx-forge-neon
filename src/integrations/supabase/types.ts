@@ -1117,6 +1117,7 @@ export type Database = {
         Returns: Json
       }
       get_my_vpn_config: { Args: never; Returns: Json }
+      get_partner_user_id: { Args: { _user_id: string }; Returns: string }
       handle_security_violation: {
         Args: { p_reason?: string; p_user_id: string }
         Returns: Json
