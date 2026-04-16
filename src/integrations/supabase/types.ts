@@ -641,6 +641,7 @@ export type Database = {
           is_vip: boolean
           last_free_message_at: string | null
           pack_steam_expires_at: string | null
+          partner_user_id: string | null
           relationship_status: string | null
           rpg_premium_expires_at: string | null
           team_badge: string | null
@@ -665,6 +666,7 @@ export type Database = {
           is_vip?: boolean
           last_free_message_at?: string | null
           pack_steam_expires_at?: string | null
+          partner_user_id?: string | null
           relationship_status?: string | null
           rpg_premium_expires_at?: string | null
           team_badge?: string | null
@@ -689,6 +691,7 @@ export type Database = {
           is_vip?: boolean
           last_free_message_at?: string | null
           pack_steam_expires_at?: string | null
+          partner_user_id?: string | null
           relationship_status?: string | null
           rpg_premium_expires_at?: string | null
           team_badge?: string | null
@@ -1085,6 +1088,10 @@ export type Database = {
         Returns: Json
       }
       admin_revoke_vip: { Args: { p_target_user_id: string }; Returns: Json }
+      admin_set_partner: {
+        Args: { p_user1_id: string; p_user2_id: string }
+        Returns: Json
+      }
       admin_set_team_badge: {
         Args: { p_badge?: string; p_user_id: string }
         Returns: Json
