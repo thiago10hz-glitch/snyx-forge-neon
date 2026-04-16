@@ -3,15 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useNavigate } from "react-router-dom";
 import {
-  Eye,
-  EyeOff,
-  Loader2,
-  ArrowRight,
-  ArrowLeft,
-  Mail,
-  Check,
-  KeyRound,
-  Flame,
+  Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, KeyRound,
+  Flame, Crown, Zap, Shield, Gamepad2, MonitorPlay, Sparkles, Star, X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
@@ -20,27 +13,16 @@ const VIP_LINK = "https://wa.me/554388691650";
 
 const COMMON_PASSWORD_PATTERNS = [/123456/i, /password/i, /qwerty/i, /abc123/i, /admin/i, /letmein/i];
 
-const inputClassName =
-  "w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-300 focus:outline-none focus:border-primary/40 focus:bg-card focus:shadow-lg focus:shadow-primary/10";
-
-const secondaryButtonClassName =
-  "w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/35 hover:border-border/70";
-
 const validateSignupPassword = (password: string, email: string) => {
   const normalizedPassword = password.trim();
   const emailLocalPart = email.split("@")[0]?.toLowerCase() ?? "";
-
   if (normalizedPassword.length < 12) return "Use pelo menos 12 caracteres.";
   if (!/[a-z]/.test(normalizedPassword)) return "Inclua pelo menos uma letra minúscula.";
   if (!/[A-Z]/.test(normalizedPassword)) return "Inclua pelo menos uma letra maiúscula.";
   if (!/[0-9]/.test(normalizedPassword)) return "Inclua pelo menos um número.";
   if (!/[^A-Za-z0-9]/.test(normalizedPassword)) return "Inclua pelo menos um símbolo.";
-  if (emailLocalPart && normalizedPassword.toLowerCase().includes(emailLocalPart)) {
-    return "Não use partes do seu e-mail na senha.";
-  }
-  if (COMMON_PASSWORD_PATTERNS.some((pattern) => pattern.test(normalizedPassword))) {
-    return "Evite senhas comuns ou sequências fáceis.";
-  }
+  if (emailLocalPart && normalizedPassword.toLowerCase().includes(emailLocalPart)) return "Não use partes do seu e-mail na senha.";
+  if (COMMON_PASSWORD_PATTERNS.some((p) => p.test(normalizedPassword))) return "Evite senhas comuns ou sequências fáceis.";
   return null;
 };
 
@@ -52,17 +34,14 @@ const getErrorMessage = async (error: unknown) => {
       if (payload?.message && typeof payload.message === "string") return payload.message;
       if (payload?.error && typeof payload.error === "string") return payload.error;
     } catch {
-      try {
-        const text = await functionError.context.text();
-        if (text) return text;
-      } catch { /* ignore */ }
+      try { const text = await functionError.context.text(); if (text) return text; } catch {}
     }
   }
   if (error instanceof Error) return error.message;
   return "Erro desconhecido";
 };
 
-type AuthView = "login" | "signup" | "forgot" | "forgot-sent";
+type AuthView = "login" | "signup" | "forgot" | "forgot-sent" | "vip-info";
 
 function GoogleIcon() {
   return (
@@ -82,6 +61,45 @@ function AppleIcon() {
     </svg>
   );
 }
+
+const VIP_PLANS = [
+  {
+    icon: Crown,
+    title: "VIP Mensal",
+    price: "R$ 14,90",
+    period: "/mês",
+    features: ["Chat IA ilimitado", "Personagens RPG", "Prioridade no suporte", "Sem anúncios"],
+    popular: true,
+    color: "from-amber-500/20 to-orange-600/20",
+    borderColor: "border-amber-500/30",
+    iconColor: "text-amber-400",
+  },
+  {
+    icon: Zap,
+    title: "Accelerator",
+    price: "R$ 29,90",
+    period: "/mês",
+    features: ["Otimizador de PC", "VPN integrada", "Boost de FPS", "Suporte prioritário"],
+    popular: false,
+    color: "from-blue-500/20 to-cyan-500/20",
+    borderColor: "border-blue-500/30",
+    iconColor: "text-blue-400",
+  },
+  {
+    icon: Gamepad2,
+    title: "Pack Steam",
+    price: "R$ 19,90",
+    period: "/mês",
+    features: ["Acesso a jogos Steam", "Pack exclusivo", "Atualizações mensais", "Comunidade VIP"],
+    popular: false,
+    color: "from-purple-500/20 to-pink-500/20",
+    borderColor: "border-purple-500/30",
+    iconColor: "text-purple-400",
+  },
+];
+
+const inputClassName =
+  "w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-300 focus:outline-none focus:border-primary/40 focus:bg-card focus:shadow-lg focus:shadow-primary/10";
 
 export default function Auth() {
   const [view, setView] = useState<AuthView>("login");
@@ -122,14 +140,8 @@ export default function Auth() {
       if (view === "login") {
         const { data, error } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
         if (error) throw error;
-
         if (data.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("banned_until")
-            .eq("user_id", data.user.id)
-            .single();
-
+          const { data: profile } = await supabase.from("profiles").select("banned_until").eq("user_id", data.user.id).single();
           if (profile?.banned_until && new Date(profile.banned_until) > new Date()) {
             await supabase.auth.signOut();
             const banDate = new Date(profile.banned_until).toLocaleString("pt-BR");
@@ -160,7 +172,6 @@ export default function Auth() {
         const isDeviceRegistered = data.error === "DEVICE_ALREADY_REGISTERED";
         const isWeakPassword = data.error === "WEAK_PASSWORD";
         const isEmailRegistered = data.error === "EMAIL_ALREADY_REGISTERED";
-
         toast({
           title: isDeviceRegistered ? "Dispositivo já registrado" : isWeakPassword ? "Senha fraca" : isEmailRegistered ? "E-mail já cadastrado" : "Erro",
           description: isDeviceRegistered
@@ -221,23 +232,14 @@ export default function Auth() {
         redirect_uri: window.location.origin,
         ...(provider === "google" ? { extraParams: { prompt: "select_account" } } : {}),
       });
-
       if (result.error) {
-        toast({
-          title: "Erro",
-          description: result.error instanceof Error ? result.error.message : `Erro ao conectar com ${provider === "google" ? "Google" : "Apple"}.`,
-          variant: "destructive",
-        });
+        toast({ title: "Erro", description: result.error instanceof Error ? result.error.message : `Erro ao conectar com ${provider === "google" ? "Google" : "Apple"}.`, variant: "destructive" });
         return;
       }
       if (result.redirected) return;
       navigate("/");
     } catch (err: unknown) {
-      toast({
-        title: "Erro",
-        description: err instanceof Error ? err.message : "Erro ao conectar.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro ao conectar.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -248,234 +250,279 @@ export default function Auth() {
     setPassword("");
   };
 
-  const getTitle = () => {
-    switch (view) {
-      case "login": return "Acesse sua conta";
-      case "signup": return "Crie sua conta";
-      case "forgot": return "Recuperar senha";
-      case "forgot-sent": return "E-mail enviado";
-    }
-  };
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background flex items-center justify-center">
-      {/* Ambient glow */}
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Background effects */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/8 blur-[140px]" />
-        <div className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-primary/5 blur-[120px]" />
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[160px]" />
+        <div className="absolute right-0 bottom-0 h-[400px] w-[400px] rounded-full bg-primary/4 blur-[140px]" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[600px] rounded-full bg-primary/3 blur-[200px]" />
       </div>
 
-      <div className="relative w-full max-w-md px-4 py-8">
-        {/* Card */}
-        <div className="overflow-hidden rounded-3xl border border-border/30 bg-card/80 shadow-2xl shadow-black/30 backdrop-blur-xl">
-          {/* Header */}
-          <div className="border-b border-border/20 bg-muted/10 px-6 py-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/15 shadow-lg shadow-primary/10">
+      {/* Main layout */}
+      <div className="relative flex min-h-screen flex-col lg:flex-row">
+        {/* Left: Auth form */}
+        <div className="flex flex-1 items-center justify-center px-4 py-8 lg:py-0">
+          <div className="w-full max-w-md">
+            {/* Logo */}
+            <div className="mb-8 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/10 border border-primary/20 shadow-lg shadow-primary/10">
                 <Flame className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-lg font-black tracking-tight text-foreground">SnyX</h1>
-                <p className="text-xs text-muted-foreground">{getTitle()}</p>
+                <h1 className="text-xl font-black tracking-tight text-foreground">SnyX</h1>
+                <p className="text-xs text-muted-foreground">Plataforma inteligente</p>
               </div>
             </div>
-          </div>
 
-          <div className="p-6">
-            {/* Auth tabs */}
-            {isAuthForm && (
-              <div className="mb-6 grid grid-cols-2 rounded-2xl border border-border/20 bg-muted/15 p-1">
-                <button
-                  type="button"
-                  onClick={() => switchAuthView("login")}
-                  className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-                    view === "login"
-                      ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Entrar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => switchAuthView("signup")}
-                  className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-                    view === "signup"
-                      ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Criar conta
-                </button>
-              </div>
-            )}
-
-            {/* Forgot sent */}
-            {view === "forgot-sent" && (
-              <div className="space-y-5">
-                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                    <Mail className="h-7 w-7 text-primary" />
+            {/* VIP Info View */}
+            {view === "vip-info" && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">Planos Premium</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Escolha o melhor plano para você</p>
                   </div>
-                  <p className="text-base font-semibold text-foreground">Confira seu e-mail</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    Enviamos o link para <span className="font-medium text-foreground">{email}</span>.
-                  </p>
+                  <button onClick={() => setView("login")} className="rounded-xl p-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-                <div className="rounded-2xl border border-border/20 bg-muted/10 p-4 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
-                      <Check className="h-3 w-3 text-primary" />
+
+                <div className="space-y-4">
+                  {VIP_PLANS.map((plan, i) => (
+                    <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color} backdrop-blur-sm p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
+                      {plan.popular && (
+                        <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-black uppercase tracking-wider">
+                          <Star className="h-3 w-3" /> Popular
+                        </div>
+                      )}
+                      <div className="flex items-start gap-4">
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/40 ${plan.iconColor}`}>
+                          <plan.icon className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-foreground">{plan.title}</h3>
+                          <div className="mt-1 flex items-baseline gap-1">
+                            <span className="text-2xl font-black text-foreground">{plan.price}</span>
+                            <span className="text-xs text-muted-foreground">{plan.period}</span>
+                          </div>
+                          <ul className="mt-3 grid grid-cols-2 gap-1.5">
+                            {plan.features.map((f, j) => (
+                              <li key={j} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Check className="h-3 w-3 text-primary shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
                     </div>
-                    <p>Não encontrou? Verifique spam ou promoções.</p>
-                  </div>
+                  ))}
                 </div>
-                <div className="space-y-3">
-                  <button type="button" onClick={() => setView("forgot")} className={secondaryButtonClassName}>
-                    Reenviar e-mail
-                  </button>
-                  <button type="button" onClick={() => { setView("login"); setPassword(""); }}
-                    className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
-                    <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
-                  </button>
-                </div>
-              </div>
-            )}
 
-            {/* Forgot form */}
-            {view === "forgot" && (
-              <div className="space-y-5">
-                <div className="rounded-2xl border border-border/20 bg-muted/10 p-5 text-center">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                    <KeyRound className="h-6 w-6 text-primary" />
-                  </div>
-                  <p className="text-base font-semibold text-foreground">Esqueceu sua senha?</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    Digite seu e-mail para receber o link de recuperação.
-                  </p>
+                <a
+                  href={VIP_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-4 text-sm font-bold text-black transition-all hover:opacity-90 hover:shadow-lg hover:shadow-amber-500/20"
+                >
+                  <Crown className="h-4 w-4" />
+                  Adquirir agora via WhatsApp
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+
+                <div className="flex items-center gap-3 rounded-xl border border-border/20 bg-muted/10 p-3">
+                  <Shield className="h-4 w-4 text-primary shrink-0" />
+                  <p className="text-[11px] text-muted-foreground">Pagamento seguro • Ativação instantânea • Cancele quando quiser</p>
                 </div>
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">E-mail</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu@email.com" required autoFocus className={inputClassName} />
-                  </div>
-                  <button type="submit" disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50">
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                    Enviar link
-                  </button>
-                </form>
-                <button type="button" onClick={() => { setView("login"); setPassword(""); }}
-                  className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
+
+                <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
                   <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
                 </button>
               </div>
             )}
 
-            {/* Login / Signup form */}
-            {isAuthForm && (
-              <div className="space-y-5">
-                {view === "signup" && (
-                  <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-                    Senha: <span className="font-medium text-foreground">12+ caracteres</span>, maiúscula, minúscula, número e símbolo.
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">E-mail</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu@email.com" required className={inputClassName} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Senha</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={password} onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••••••" required
-                        minLength={view === "login" ? 6 : 12}
-                        className={`${inputClassName} pr-11`}
-                      />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors hover:text-foreground">
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {/* Card for auth forms */}
+            {view !== "vip-info" && (
+              <div className="overflow-hidden rounded-3xl border border-border/25 bg-card/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
+                <div className="p-6 space-y-6">
+                  {/* Tabs */}
+                  {isAuthForm && (
+                    <div className="grid grid-cols-2 rounded-2xl border border-border/20 bg-muted/15 p-1">
+                      <button type="button" onClick={() => switchAuthView("login")}
+                        className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${view === "login" ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20" : "text-muted-foreground hover:text-foreground"}`}>
+                        Entrar
                       </button>
-                    </div>
-                  </div>
-
-                  {view === "login" && (
-                    <div className="text-right">
-                      <button type="button" onClick={() => setView("forgot")}
-                        className="text-[11px] font-medium text-primary/80 transition-colors hover:text-primary">
-                        Esqueci minha senha
+                      <button type="button" onClick={() => switchAuthView("signup")}
+                        className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${view === "signup" ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20" : "text-muted-foreground hover:text-foreground"}`}>
+                        Criar conta
                       </button>
                     </div>
                   )}
 
-                  <button type="submit" disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 btn-glow">
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        {view === "login" ? "Entrar agora" : "Criar conta"}
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </form>
+                  {/* Forgot sent */}
+                  {view === "forgot-sent" && (
+                    <div className="space-y-5">
+                      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                          <Mail className="h-7 w-7 text-primary" />
+                        </div>
+                        <p className="text-base font-semibold text-foreground">Confira seu e-mail</p>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                          Enviamos o link para <span className="font-medium text-foreground">{email}</span>.
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-border/20 bg-muted/10 p-4 text-sm text-muted-foreground">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10"><Check className="h-3 w-3 text-primary" /></div>
+                          <p>Não encontrou? Verifique spam ou promoções.</p>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => setView("forgot")} className="w-full rounded-2xl border border-border/40 bg-muted/20 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/35">Reenviar e-mail</button>
+                      <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
+                    </div>
+                  )}
 
-                {/* Divider */}
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-border/30" />
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">ou continue com</span>
-                  <div className="h-px flex-1 bg-border/30" />
+                  {/* Forgot form */}
+                  {view === "forgot" && (
+                    <div className="space-y-5">
+                      <div className="rounded-2xl border border-border/20 bg-muted/10 p-5 text-center">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10"><KeyRound className="h-6 w-6 text-primary" /></div>
+                        <p className="text-base font-semibold text-foreground">Esqueceu sua senha?</p>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Digite seu e-mail para receber o link de recuperação.</p>
+                      </div>
+                      <form onSubmit={handleForgotPassword} className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required autoFocus className={inputClassName} />
+                        </div>
+                        <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50">
+                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} Enviar link
+                        </button>
+                      </form>
+                      <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
+                    </div>
+                  )}
+
+                  {/* Login / Signup form */}
+                  {isAuthForm && (
+                    <div className="space-y-5">
+                      {view === "signup" && (
+                        <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+                          Senha: <span className="font-medium text-foreground">12+ caracteres</span>, maiúscula, minúscula, número e símbolo.
+                        </div>
+                      )}
+
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required className={inputClassName} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">Senha</label>
+                          <div className="relative">
+                            <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                              placeholder="••••••••••••" required minLength={view === "login" ? 6 : 12} className={`${inputClassName} pr-11`} />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors hover:text-foreground">
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {view === "login" && (
+                          <div className="text-right">
+                            <button type="button" onClick={() => setView("forgot")} className="text-[11px] font-medium text-primary/80 transition-colors hover:text-primary">Esqueci minha senha</button>
+                          </div>
+                        )}
+
+                        <button type="submit" disabled={loading}
+                          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 btn-glow">
+                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{view === "login" ? "Entrar agora" : "Criar conta"}<ArrowRight className="h-4 w-4" /></>}
+                        </button>
+                      </form>
+
+                      {/* Social divider */}
+                      <div className="flex items-center gap-3">
+                        <div className="h-px flex-1 bg-border/30" />
+                        <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">ou continue com</span>
+                        <div className="h-px flex-1 bg-border/30" />
+                      </div>
+
+                      {/* Social buttons */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button type="button" onClick={() => handleOAuthSignIn("google")} disabled={loading}
+                          className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50">
+                          <GoogleIcon /> Google
+                        </button>
+                        <button type="button" onClick={() => handleOAuthSignIn("apple")} disabled={loading}
+                          className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50">
+                          <AppleIcon /> Apple
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+            )}
 
-                {/* Social buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleOAuthSignIn("google")}
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50"
-                  >
-                    <GoogleIcon />
-                    Google
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleOAuthSignIn("apple")}
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2.5 rounded-2xl border border-border/30 bg-card/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:bg-muted/25 hover:border-border/50 disabled:opacity-50"
-                  >
-                    <AppleIcon />
-                    Apple
-                  </button>
-                </div>
+            {/* Footer */}
+            {view !== "vip-info" && (
+              <div className="mt-5 text-center space-y-3">
+                <button
+                  onClick={() => setView("vip-info")}
+                  className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-5 py-2.5 text-xs font-semibold text-amber-400 transition-all hover:from-amber-500/20 hover:to-orange-500/20 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 backdrop-blur-sm"
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                  Adquirir acesso VIP
+                  <Sparkles className="h-3.5 w-3.5" />
+                </button>
+                <p className="text-[10px] text-muted-foreground/40 flex items-center justify-center gap-1.5">
+                  <Shield className="h-3 w-3" /> Login seguro com e-mail, Google ou Apple
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-5 text-center space-y-3">
-          <a
-            href={VIP_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/60 px-4 py-2 text-xs font-medium text-muted-foreground transition-all hover:text-primary hover:border-primary/20 backdrop-blur-sm"
-          >
-            <Flame className="h-3.5 w-3.5" />
-            Adquirir acesso VIP
-          </a>
-          <p className="text-[10px] text-muted-foreground/40">
-            Login seguro com e-mail, Google ou Apple
-          </p>
+        {/* Right: Feature showcase (desktop only) */}
+        <div className="hidden lg:flex lg:w-[440px] xl:w-[500px] items-center justify-center border-l border-border/10 bg-gradient-to-br from-muted/5 to-transparent px-8">
+          <div className="w-full max-w-sm space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Tudo em um só lugar</h2>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">Chat IA, otimização de PC, IPTV, hosting e muito mais.</p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { icon: Sparkles, label: "Chat IA Avançado", desc: "Converse com IA em múltiplos modos", color: "text-amber-400", bg: "bg-amber-500/10" },
+                { icon: Zap, label: "Otimizador de PC", desc: "Boost de performance com 1 clique", color: "text-blue-400", bg: "bg-blue-500/10" },
+                { icon: MonitorPlay, label: "IPTV Premium", desc: "Milhares de canais ao vivo", color: "text-green-400", bg: "bg-green-500/10" },
+                { icon: Shield, label: "VPN Integrada", desc: "Navegação segura e anônima", color: "text-purple-400", bg: "bg-purple-500/10" },
+              ].map((item, i) => (
+                <div key={i} className="group flex items-center gap-4 rounded-2xl border border-border/15 bg-card/30 p-4 transition-all duration-300 hover:bg-card/50 hover:border-border/30">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.bg} ${item.color} transition-transform group-hover:scale-110`}>
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
+              <div className="flex -space-x-2">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-background flex items-center justify-center text-[9px] font-bold text-primary/60">
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
+              </div>
+              <span>+500 usuários ativos</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
