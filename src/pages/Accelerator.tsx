@@ -184,59 +184,54 @@ const Accelerator = () => {
 
           {/* Action area */}
           {!user ? (
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm">
-                <Lock className="w-4 h-4" /> Faça login para acessar
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground/50 text-xs">
+                <Lock className="w-3.5 h-3.5" /> Faça login para acessar
               </div>
               <br />
               <Button onClick={() => navigate("/auth")}
-                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] border-0">
+                className="px-8 py-5 text-sm font-bold rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-accent shadow-lg shadow-primary/20 border-0">
                 Fazer Login / Criar Conta
               </Button>
             </div>
           ) : checkingKey ? (
-            <div className="text-white/50">Verificando ativação...</div>
+            <div className="text-muted-foreground/50 text-sm">Verificando ativação...</div>
           ) : hasActiveKey ? (
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-green-500/20 border border-green-500/30 text-green-400 font-bold text-lg">
-                <CheckCircle2 className="w-6 h-6" /> Accelerator Ativado — Chave Válida!
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500/15 border border-green-500/25 text-green-400 font-bold text-sm">
+                <CheckCircle2 className="w-4 h-4" /> Accelerator Ativado — Chave Válida!
               </div>
               <br />
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => navigate("/optimization")}
-                  className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-[0_0_30px_rgba(0,200,255,0.3)] border-0">
-                  <Cpu className="w-5 h-5 mr-2" /> Abrir SnyX Optimizer
-                </Button>
-              </div>
-              <p className="text-white/40 text-sm">Role para baixo para baixar o app e ferramentas</p>
+              <Button onClick={() => navigate("/optimization")}
+                className="px-6 py-4 text-xs font-bold rounded-lg bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-lg shadow-cyan-500/20 border-0">
+                <Cpu className="w-4 h-4 mr-1.5" /> Abrir SnyX Optimizer
+              </Button>
+              <p className="text-muted-foreground/40 text-xs">Role para baixo para baixar o app</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Key activation form */}
-              <div className="max-w-lg mx-auto p-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/5">
-                <Key className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Ativar com Chave</h3>
-                <p className="text-white/50 text-sm mb-6">
-                  Digite a chave de ativação fornecida pelo admin para desbloquear o download.
+            <div className="space-y-4">
+              <div className="max-w-md mx-auto p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                <Key className="w-7 h-7 text-yellow-500 mx-auto mb-3" />
+                <h3 className="text-sm font-bold mb-1">Ativar com Chave</h3>
+                <p className="text-muted-foreground/50 text-xs mb-4">
+                  Digite a chave fornecida pelo admin.
                 </p>
-
-                <div className="flex gap-2 max-w-sm mx-auto mb-4">
+                <div className="flex gap-2 max-w-xs mx-auto mb-3">
                   <input
                     type="text"
                     value={activationKey}
                     onChange={e => setActivationKey(e.target.value.toUpperCase())}
-                    placeholder="SNYX-ACC-XXXX-XXXX-XXXX"
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-red-500/50"
+                    placeholder="SNYX-ACC-XXXX-XXXX"
+                    className="flex-1 px-3 py-2 rounded-lg bg-muted/10 border border-border/15 text-foreground font-mono text-xs placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/50"
                     onKeyDown={e => e.key === "Enter" && handleActivateKey()}
                   />
                   <Button onClick={handleActivateKey} disabled={activating}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-orange-500 border-0 font-bold">
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-orange-500 border-0 font-bold text-xs">
                     {activating ? "..." : "Ativar"}
                   </Button>
                 </div>
-
-                <p className="text-white/30 text-xs">
-                  Não tem uma chave? Entre em contato com o admin pelo suporte.
+                <p className="text-muted-foreground/30 text-[10px]">
+                  Não tem uma chave? Contate o admin pelo suporte.
                 </p>
               </div>
             </div>
@@ -244,12 +239,12 @@ const Accelerator = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-10">
           {features.map((f, i) => (
-            <div key={i} className="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-red-500/20 transition-all duration-300">
-              <f.icon className="w-8 h-8 text-red-500 mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{f.desc}</p>
+            <div key={i} className="group p-4 rounded-xl border border-border/8 bg-card/30 hover:bg-card/50 hover:border-primary/15 transition-all duration-300">
+              <f.icon className="w-5 h-5 text-primary mb-2.5 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xs mb-1">{f.title}</h3>
+              <p className="text-muted-foreground/40 text-[11px] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
