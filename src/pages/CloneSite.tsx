@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Globe, Sparkles, Palette, Code, Rocket, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
@@ -56,6 +56,7 @@ async function getUserIP(): Promise<string | null> {
 
 export default function CloneSite() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
   const [siteName, setSiteName] = useState("");
   const [siteDescription, setSiteDescription] = useState("");
@@ -174,21 +175,9 @@ export default function CloneSite() {
       if (error) throw new Error(error.message || "Erro ao criar demonstração");
       if (!data?.success) throw new Error(data?.error || "Falha ao criar demonstração");
 
-      // Open the real site in a new tab
-      if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Site de demonstração criado! Aberto em nova aba. Você tem 1 hora!", { duration: 10000 });
-      }
 
-      // Refresh demo status
-      setActiveDemo({
-        ...data,
-        site_name: siteName.trim(),
-        primary_color: primaryColor,
-        expires_at: data.expiresAt,
-        hosted_url: data.url,
-      });
-      setDemoStatus("active");
+      // Navigate to demo page
+      navigate("/demo");
     } catch (err: any) {
       toast.error(err?.message || "Erro ao criar demonstração");
       if (err?.message?.includes("já utilizou") || err?.message?.includes("não disponível")) {
@@ -422,22 +411,14 @@ export default function CloneSite() {
                 <span className="text-xs font-mono">{demoTimeLeft} restantes</span>
               </div>
 
-              {activeDemo.hosted_url ? (
-                <a
-                  href={activeDemo.hosted_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500/20 text-green-400 
-                    border border-green-500/30 hover:bg-green-500/30 transition-all text-sm font-black"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Abrir meu site — {activeDemo.site_name || "Demo"}
-                </a>
-              ) : (
-                <p className="text-xs text-muted-foreground/40">
-                  Seu site está sendo preparado...
-                </p>
-              )}
+              <button
+                onClick={() => navigate("/demo")}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500/20 text-green-400 
+                  border border-green-500/30 hover:bg-green-500/30 transition-all text-sm font-black"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Abrir meu site — {activeDemo.site_name || "Demo"}
+              </button>
 
               <p className="text-[10px] text-muted-foreground/30">
                 O site será removido automaticamente após expirar

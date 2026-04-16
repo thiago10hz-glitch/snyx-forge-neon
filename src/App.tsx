@@ -25,6 +25,7 @@ const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
 const Accelerator = lazy(() => import("./pages/Accelerator"));
 const Optimization = lazy(() => import("./pages/Optimization"));
 const CloneSite = lazy(() => import("./pages/CloneSite"));
+const Demo = lazy(() => import("./pages/Demo"));
 const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 const queryClient = new QueryClient({
@@ -158,6 +159,7 @@ const App = () => {
                   <Route path="/accelerator" element={<Accelerator />} />
                   <Route path="/optimization" element={<Optimization />} />
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
+                  <Route path="/demo" element={<ProtectedRoute><Demo /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
