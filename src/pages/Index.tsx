@@ -1,22 +1,30 @@
-import { useState, useEffect } from "react";
-import { ChatPanel } from "@/components/ChatPanel";
-import { CodeEditor } from "@/components/CodeEditor";
-import { MusicPanel } from "@/components/MusicPanel";
-import { CharactersPanel } from "@/components/CharactersPanel";
-import { UserProfile } from "@/components/UserProfile";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
-import { SupportChat } from "@/components/SupportChat";
-import { ThemeSelector } from "@/components/ThemeSelector";
-import { VipModal } from "@/components/VipModal";
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
   Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
-  ChevronRight, Flame, X, Globe,
+  ChevronRight, Flame, X, Globe, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Lazy load heavy components
+const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
+const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
+const MusicPanel = lazy(() => import("@/components/MusicPanel").then(m => ({ default: m.MusicPanel })));
+const CharactersPanel = lazy(() => import("@/components/CharactersPanel").then(m => ({ default: m.CharactersPanel })));
+const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
+const SupportChat = lazy(() => import("@/components/SupportChat").then(m => ({ default: m.SupportChat })));
+const ThemeSelector = lazy(() => import("@/components/ThemeSelector").then(m => ({ default: m.ThemeSelector })));
+const VipModal = lazy(() => import("@/components/VipModal").then(m => ({ default: m.VipModal })));
+
+const PanelLoader = () => (
+  <div className="flex items-center justify-center h-full">
+    <Loader2 className="w-5 h-5 animate-spin text-primary/40" />
+  </div>
+);
 
 const Index = () => {
   const [code, setCode] = useState("");
