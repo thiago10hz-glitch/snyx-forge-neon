@@ -233,16 +233,26 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
   useEffect(() => {
-    if (!activeConversationId) { setMessages([]); return; }
+    if (!activeConversationId) { setMessages([]); setConversationSummary(""); return; }
     (async () => {
-      const { data } = await supabase
-        .from("chat_messages")
-        .select("role, content")
-        .eq("conversation_id", activeConversationId)
-        .order("created_at", { ascending: true });
-      if (data) setMessages(data as Message[]);
+      const [msgsRes, sumRes] = await Promise.all([
+        supabase.from("chat_messages").select("role, content").eq("conversation_id", activeConversationId).order("created_at", { ascending: true }),
+        supabase.from("conversation_summaries").select("summary").eq("conversation_id", activeConversationId).maybeSingle(),
+      ]);
+      if (msgsRes.data) setMessages(msgsRes.data as Message[]);
+      setConversationSummary((sumRes.data as any)?.summary || "");
     })();
   }, [activeConversationId]);
+
+  // Auto-resumo a cada 30 mensagens em RPG (memória de longo prazo)
+  useEffect(() => {
+    if (!activeConversationId || !activeCharacter) return;
+    if (messages.length > 0 && messages.length % 30 === 0) {
+      supabase.functions.invoke("summarize-conversation", { body: { conversation_id: activeConversationId } })
+        .then(({ data }: any) => { if (data?.success && data.summary) setConversationSummary(data.summary); })
+        .catch(() => {});
+    }
+  }, [messages.length, activeConversationId, activeCharacter]);
 
   const createConversation = async (): Promise<string | null> => {
     if (!user) return null;
