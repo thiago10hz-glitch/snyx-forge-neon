@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity, Cpu, Gamepad2, RotateCcw, Loader2, Star, Monitor, Package } from "lucide-react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity, Cpu, Gamepad2, RotateCcw } from "lucide-react";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
