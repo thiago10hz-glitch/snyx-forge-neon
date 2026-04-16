@@ -148,7 +148,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
@@ -600,7 +600,7 @@ export default function Auth() {
 
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
               <p className="text-[10px] font-semibold text-foreground mb-1">Plano Grátis inclui:</p>
-              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">15 mensagens/dia • 1 personagem RPG • Suporte por ticket • Sem cartão</p>
+              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">15 mensagens/dia • Modo Amigo e Escola • Suporte por ticket • Sem cartão</p>
             </div>
           </div>
         </div>
