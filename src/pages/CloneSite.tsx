@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowLeft, Globe, Sparkles, Palette, Code, Rocket, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
@@ -56,7 +56,6 @@ async function getUserIP(): Promise<string | null> {
 
 export default function CloneSite() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
   const [siteName, setSiteName] = useState("");
   const [siteDescription, setSiteDescription] = useState("");
