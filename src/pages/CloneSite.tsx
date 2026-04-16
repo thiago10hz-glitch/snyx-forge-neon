@@ -75,12 +75,12 @@ export default function CloneSite() {
     }
 
     try {
-      const { data: demos } = await supabase
-        .from("clone_demos")
+      const { data: demos } = await (supabase
+        .from("clone_demos" as any)
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(1);
+        .limit(1) as any);
 
       if (demos && demos.length > 0) {
         const demo = demos[0];
@@ -422,17 +422,21 @@ export default function CloneSite() {
                 <span className="text-xs font-mono">{demoTimeLeft} restantes</span>
               </div>
 
-              {activeDemo.hosted_url && (
+              {activeDemo.hosted_url ? (
                 <a
                   href={activeDemo.hosted_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/20 text-green-400 
-                    border border-green-500/30 hover:bg-green-500/30 transition-all text-xs font-bold"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500/20 text-green-400 
+                    border border-green-500/30 hover:bg-green-500/30 transition-all text-sm font-black"
                 >
-                  <ExternalLink className="w-3 h-3" />
-                  Abrir {activeDemo.site_name || "site"}
+                  <ExternalLink className="w-4 h-4" />
+                  Abrir meu site — {activeDemo.site_name || "Demo"}
                 </a>
+              ) : (
+                <p className="text-xs text-muted-foreground/40">
+                  Seu site está sendo preparado...
+                </p>
               )}
 
               <p className="text-[10px] text-muted-foreground/30">
