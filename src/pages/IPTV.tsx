@@ -135,7 +135,7 @@ export default function IPTV() {
   const [visibleCount, setVisibleCount] = useState(60);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<any>(null);
-  const mpegtsRef = useRef<MpegtsPlayer | null>(null);
+  
 
   const hasAccess = profile?.is_dev;
 
