@@ -1116,6 +1116,7 @@ export type Database = {
         Args: { p_expires_months?: number }
         Returns: Json
       }
+      get_my_vpn_config: { Args: never; Returns: Json }
       handle_security_violation: {
         Args: { p_reason?: string; p_user_id: string }
         Returns: Json
