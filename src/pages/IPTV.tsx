@@ -277,90 +277,44 @@ export default function IPTV() {
     setPlayingChannel(ch);
 
     const streamUrl = proxyUrl(ch.u);
-
-    try {
-      const probeController = new AbortController();
-      const probeTimeout = setTimeout(() => probeController.abort(), 8000);
-      const probe = await fetch(streamUrl, {
-        method: "GET",
-        headers: { Range: "bytes=0-2047" },
-        signal: probeController.signal,
-      });
-      clearTimeout(probeTimeout);
-
-      if (!probe.ok && probe.status !== 206) {
-        throw new Error(`Canal indisponível (${probe.status})`);
-      }
-    } catch (error) {
-      setPlayingChannel(null);
-      toast.error(error instanceof Error ? error.message : "Canal indisponível no momento.");
-      return;
-    }
-
     const video = videoRef.current;
     if (!video) return;
 
     try {
-      if (isHlsStream(ch.u)) {
-        if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = streamUrl;
-          await video.play().catch(() => {});
-          return;
-        }
-
-        const { default: Hls } = await import("hls.js");
-        if (Hls.isSupported()) {
-          const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-          hlsRef.current = hls;
-          hls.loadSource(streamUrl);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(() => {});
-          });
-          hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean }) => {
-            if (data?.fatal) {
-              toast.error("Erro ao carregar o canal. Tente outro.");
-              cleanupPlayers();
-              setPlayingChannel(null);
-            }
-          });
-          return;
-        }
-      }
-
-      if (isMpegTsStream(ch.u) || !isHlsStream(ch.u)) {
-        const mpegtsModule = await import("mpegts.js");
-        const mpegts = ((mpegtsModule as any).default ?? mpegtsModule) as {
-          createPlayer: (config: { type: string; isLive: boolean; url: string }) => MpegtsPlayer;
-          getFeatureList?: () => { mseLivePlayback?: boolean };
-          isSupported?: () => boolean;
-        };
-        const supported = Boolean(mpegts.getFeatureList?.()?.mseLivePlayback || mpegts.isSupported?.());
-
-        if (!supported) {
-          throw new Error("Seu navegador não suporta este stream ao vivo.");
-        }
-
-        const player = mpegts.createPlayer({
-          type: "mpegts",
-          isLive: true,
-          url: streamUrl,
-        });
-
-        mpegtsRef.current = player;
-        player.attachMediaElement(video);
-        player.load();
-        player.play?.();
-        video.play().catch(() => {});
+      // Safari native HLS
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = streamUrl;
+        await video.play().catch(() => {});
         return;
       }
 
+      // hls.js for all streams (most IPTV links are m3u8 or handled via proxy)
+      const { default: Hls } = await import("hls.js");
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hlsRef.current = hls;
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(() => {});
+        });
+        hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean }) => {
+          if (data?.fatal) {
+            toast.error("Canal indisponível. Tente outro.");
+            cleanupPlayers();
+            setPlayingChannel(null);
+          }
+        });
+        return;
+      }
+
+      // Fallback: direct src
       video.src = streamUrl;
       await video.play().catch(() => {});
     } catch (error) {
       cleanupPlayers();
       setPlayingChannel(null);
-      toast.error(error instanceof Error ? error.message : "Erro ao abrir o canal.");
+      toast.error("Erro ao abrir o canal.");
     }
   }, [cleanupPlayers]);
 
