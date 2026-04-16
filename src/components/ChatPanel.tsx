@@ -1335,7 +1335,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             </div>
           ) : (
             <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto px-3 sm:px-4 md:px-6 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
-              {messages.map((msg, i) => (
+              {messages.map((rawMsg, i) => {
+                const msg = { ...rawMsg, content: rawMsg.content ?? "" };
+                return (
                 <div key={i} className="group animate-in fade-in-0 slide-in-from-bottom-3 duration-400">
                   {msg.role === "user" ? (
                     <div className="flex gap-3 justify-end relative">
