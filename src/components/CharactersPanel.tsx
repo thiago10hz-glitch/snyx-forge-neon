@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Wand2, Lock, X, Flame } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Wand2, Lock, X, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
