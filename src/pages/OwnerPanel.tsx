@@ -635,6 +635,35 @@ function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
         toast.success("Planos expirados verificados");
       },
     },
+    {
+      label: "Revogar todas as demos",
+      desc: "Remove todos os sites de demonstração e limpa os dados",
+      icon: Globe,
+      color: "text-pink-400",
+      bgColor: "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/20",
+      action: async () => {
+        try {
+          // Call cleanup on the edge function
+          const { data, error } = await supabase.functions.invoke("deploy-demo-site", {
+            body: { action: "cleanup" },
+          });
+          
+          // Also force-expire all active demos via service role
+          const { error: updateErr } = await supabase
+            .from("clone_demos" as any)
+            .update({ status: "expired" } as any)
+            .eq("status", "active");
+
+          if (error) throw error;
+          if (updateErr) throw updateErr;
+
+          const cleaned = data?.cleaned || 0;
+          toast.success(`${cleaned} demo(s) removida(s) com sucesso! Todos os sites de teste foram excluídos.`);
+        } catch (err: any) {
+          toast.error("Erro ao revogar demos: " + (err?.message || "Tente novamente"));
+        }
+      },
+    },
   ];
 
   return (
