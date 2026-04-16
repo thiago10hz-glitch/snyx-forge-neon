@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { VipModal } from "@/components/VipModal";
@@ -18,26 +18,42 @@ interface Channel {
 
 type MainCategory = "home" | "tv" | "filmes" | "series" | "cinema";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+// Proxy HTTP URLs through edge function to avoid mixed content blocking
+function proxyUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("https://")) return url;
+  return `${SUPABASE_URL}/functions/v1/iptv-stream-proxy?url=${encodeURIComponent(url)}`;
+}
+
+// Get channel initials for fallback
+function getInitials(name: string): string {
+  return name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
+}
+
 // Component that handles image load errors with a proper fallback
-function ChannelLogo({ src, size = "md", className = "", fallbackIcon }: { src?: string; size?: "sm" | "md" | "lg"; className?: string; fallbackIcon?: React.ReactNode }) {
+const ChannelLogo = memo(function ChannelLogo({ src, name, size = "md", className = "" }: { src?: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const [failed, setFailed] = useState(false);
   const sizeClasses = size === "lg" ? "w-14 h-14" : size === "md" ? "w-11 h-11" : "w-10 h-10";
   const imgSizeClasses = size === "lg" ? "w-12 h-12" : size === "md" ? "w-9 h-9" : "w-8 h-8";
+  const textSize = size === "lg" ? "text-sm" : "text-[10px]";
+  const proxiedSrc = src ? proxyUrl(src) : "";
 
   if (!src || failed) {
     return (
-      <div className={`${sizeClasses} rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/10 flex items-center justify-center shrink-0 border border-white/5 ${className}`}>
-        {fallbackIcon || <Tv size={size === "lg" ? 22 : 16} className="text-purple-400/40" />}
+      <div className={`${sizeClasses} rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/15 flex items-center justify-center shrink-0 border border-white/5 ${className}`}>
+        <span className={`${textSize} font-bold text-purple-300/60`}>{name ? getInitials(name) : <Tv size={size === "lg" ? 22 : 16} className="text-purple-400/40" />}</span>
       </div>
     );
   }
 
   return (
     <div className={`${sizeClasses} rounded-xl overflow-hidden bg-black/30 shrink-0 border border-white/5 flex items-center justify-center ${className}`}>
-      <img src={src} alt="" className={`${imgSizeClasses} object-contain`} loading="lazy" onError={() => setFailed(true)} />
+      <img src={proxiedSrc} alt="" className={`${imgSizeClasses} object-contain`} loading="lazy" decoding="async" onError={() => setFailed(true)} />
     </div>
   );
-}
+});
 
 const CATEGORIES: { id: MainCategory; label: string; desc: string; icon: typeof Tv; gradient: string; shadow: string; keywords: string[] }[] = [
   { id: "tv", label: "TV ao Vivo", desc: "Canais abertos e fechados", icon: Tv, gradient: "from-blue-500 to-cyan-400", shadow: "shadow-blue-500/30", keywords: ["tv", "aberto", "ao vivo", "esporte", "sport", "news", "notícia", "canal", "hd", "fhd", "uhd", "4k", "educativo", "religioso", "infantil", "kids", "music", "adulto"] },
@@ -68,6 +84,38 @@ async function getInvokeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Erro ao sincronizar";
 }
 
+// Memoized channel card to avoid unnecessary re-renders
+const ChannelCard = memo(function ChannelCard({ ch, isPlaying, onPlay }: { ch: Channel; isPlaying: boolean; onPlay: (ch: Channel) => void }) {
+  return (
+    <button
+      onClick={() => onPlay(ch)}
+      className={`group flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 text-left hover:scale-[1.02] active:scale-[0.98] ${
+        isPlaying
+          ? "bg-purple-500/10 border-purple-500/20 shadow-xl shadow-purple-500/10 ring-1 ring-purple-500/15"
+          : "bg-card/25 border-border/5 hover:bg-card/60 hover:border-border/10 hover:shadow-xl hover:shadow-black/10"
+      }`}
+    >
+      <ChannelLogo
+        src={ch.l}
+        name={ch.n}
+        size="md"
+        className={isPlaying ? "border-purple-500/30" : ""}
+      />
+      <div className="flex-1 min-w-0">
+        <p className={`text-[13px] font-semibold truncate transition-colors ${isPlaying ? "text-purple-300" : "text-foreground/80 group-hover:text-foreground"}`}>{ch.n}</p>
+        <p className="text-muted-foreground/25 text-[10px] truncate mt-0.5">{ch.g}</p>
+      </div>
+      <div className={`p-2 rounded-xl transition-all duration-300 ${
+        isPlaying
+          ? "bg-purple-500/20 text-purple-400"
+          : "bg-transparent text-transparent group-hover:text-purple-400/50 group-hover:bg-purple-500/5"
+      }`}>
+        {isPlaying ? <Radio size={12} className="animate-pulse" /> : <Play size={12} fill="currentColor" />}
+      </div>
+    </button>
+  );
+});
+
 export default function IPTV() {
   const { profile, session } = useAuth();
   const [showVipModal, setShowVipModal] = useState(false);
@@ -79,7 +127,9 @@ export default function IPTV() {
   const [selectedGroup, setSelectedGroup] = useState("Todos");
   const [showGroups, setShowGroups] = useState(false);
   const [playingChannel, setPlayingChannel] = useState<Channel | null>(null);
+  const [visibleCount, setVisibleCount] = useState(60);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<any>(null);
 
   const hasAccess = profile?.is_dev;
 
@@ -108,6 +158,9 @@ export default function IPTV() {
   }, [session?.access_token, loadChannels]);
 
   useEffect(() => { if (hasAccess) loadChannels(); }, [hasAccess, loadChannels]);
+
+  // Reset visible count when category/filter changes
+  useEffect(() => { setVisibleCount(60); }, [activeCategory, selectedGroup, search]);
 
   const channelsByCategory = useMemo(() => {
     const map: Record<MainCategory, Channel[]> = { home: [], tv: [], filmes: [], series: [], cinema: [] };
@@ -146,23 +199,47 @@ export default function IPTV() {
   }, [categoryChannels, selectedGroup, search]);
 
   const playChannel = useCallback(async (ch: Channel) => {
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
     setPlayingChannel(ch);
+
+    // Proxy the stream URL through our edge function
+    const streamUrl = proxyUrl(ch.u);
+
     setTimeout(async () => {
       const video = videoRef.current;
       if (!video) return;
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = ch.u; video.play().catch(() => {});
+        video.src = streamUrl; video.play().catch(() => {});
       } else {
         try {
           const { default: Hls } = await import("hls.js");
           if (Hls.isSupported()) {
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-            hls.loadSource(ch.u); hls.attachMedia(video);
+            hlsRef.current = hls;
+            hls.loadSource(streamUrl); hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-          } else { video.src = ch.u; video.play().catch(() => {}); }
-        } catch { video.src = ch.u; video.play().catch(() => {}); }
+            hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+              if (data.fatal) {
+                toast.error("Erro ao carregar stream. Tente outro canal.");
+                hls.destroy();
+                hlsRef.current = null;
+              }
+            });
+          } else { video.src = streamUrl; video.play().catch(() => {}); }
+        } catch { video.src = streamUrl; video.play().catch(() => {}); }
       }
     }, 100);
+  }, []);
+
+  const stopPlaying = useCallback(() => {
+    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    setPlayingChannel(null);
+    if (videoRef.current) videoRef.current.src = "";
   }, []);
 
   const goBack = () => {
@@ -172,6 +249,10 @@ export default function IPTV() {
       setSearch("");
     }
   };
+
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + 60);
+  }, []);
 
   const homePreviews = useMemo(() => {
     return CATEGORIES.map(cat => ({
@@ -281,7 +362,7 @@ export default function IPTV() {
               <span className="text-white/20">|</span>
               <span className="text-white/40 text-[10px] truncate max-w-[120px]">{playingChannel.g}</span>
             </div>
-            <button onClick={() => { setPlayingChannel(null); if (videoRef.current) videoRef.current.src = ""; }} className="p-2.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 text-white/60 hover:text-white hover:bg-red-500/40 transition-all">
+            <button onClick={stopPlaying} className="p-2.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 text-white/60 hover:text-white hover:bg-red-500/40 transition-all">
               <X size={14} />
             </button>
           </div>
@@ -354,7 +435,7 @@ export default function IPTV() {
                       <button
                         key={cat.id}
                         onClick={() => { setActiveCategory(cat.id); setSelectedGroup("Todos"); setSearch(""); }}
-                        className={`group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 backdrop-blur-sm hover:bg-card/60 ${cat.shadow.replace('/', '/10 hover:')}`}
+                        className={`group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 backdrop-blur-sm hover:bg-card/60`}
                       >
                         <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-[0.04] group-hover:opacity-[0.12] transition-opacity duration-500`} />
                         <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${cat.gradient} opacity-[0.06] group-hover:opacity-[0.15] blur-2xl transition-opacity duration-500`} />
@@ -404,7 +485,7 @@ export default function IPTV() {
                           onClick={() => playChannel(ch)}
                           className="group flex flex-col items-center gap-2.5 p-3 rounded-2xl bg-card/30 border border-border/5 hover:bg-card/70 hover:border-border/15 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 hover:scale-[1.04] active:scale-[0.96] shrink-0 w-[110px]"
                         >
-                          <ChannelLogo src={ch.l} size="lg" fallbackIcon={<Icon size={22} className="text-foreground/30" />} />
+                          <ChannelLogo src={ch.l} name={ch.n} size="lg" />
                           <p className="text-foreground/70 text-[10px] font-medium truncate w-full text-center group-hover:text-foreground transition-colors">{ch.n}</p>
                         </button>
                       ))}
@@ -479,47 +560,31 @@ export default function IPTV() {
                 <p className="text-muted-foreground/40 text-sm">Nenhum canal encontrado</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                {filtered.slice(0, 200).map((ch, i) => {
-                  const isPlaying = playingChannel?.u === ch.u;
-                  return (
-                    <button
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+                  {filtered.slice(0, visibleCount).map((ch, i) => (
+                    <ChannelCard
                       key={`${ch.n}-${i}`}
-                      onClick={() => playChannel(ch)}
-                      className={`group flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 text-left hover:scale-[1.02] active:scale-[0.98] ${
-                        isPlaying
-                          ? "bg-purple-500/10 border-purple-500/20 shadow-xl shadow-purple-500/10 ring-1 ring-purple-500/15"
-                          : "bg-card/25 border-border/5 hover:bg-card/60 hover:border-border/10 hover:shadow-xl hover:shadow-black/10"
-                      }`}
+                      ch={ch}
+                      isPlaying={playingChannel?.u === ch.u}
+                      onPlay={playChannel}
+                    />
+                  ))}
+                </div>
+                {filtered.length > visibleCount && (
+                  <div className="text-center mt-6">
+                    <button
+                      onClick={loadMore}
+                      className="px-8 py-3 rounded-2xl bg-card/40 border border-border/5 text-foreground/60 hover:text-foreground hover:bg-card/70 transition-all text-sm font-medium"
                     >
-                      <ChannelLogo 
-                        src={ch.l} 
-                        size="md" 
-                        className={isPlaying ? "border-purple-500/30" : ""}
-                        fallbackIcon={<Tv size={16} className={isPlaying ? "text-purple-400" : "text-muted-foreground/20 group-hover:text-muted-foreground/40"} />}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[13px] font-semibold truncate transition-colors ${isPlaying ? "text-purple-300" : "text-foreground/80 group-hover:text-foreground"}`}>{ch.n}</p>
-                        <p className="text-muted-foreground/25 text-[10px] truncate mt-0.5">{ch.g}</p>
-                      </div>
-                      <div className={`p-2 rounded-xl transition-all duration-300 ${
-                        isPlaying
-                          ? "bg-purple-500/20 text-purple-400"
-                          : "bg-transparent text-transparent group-hover:text-purple-400/50 group-hover:bg-purple-500/5"
-                      }`}>
-                        {isPlaying ? <Radio size={12} className="animate-pulse" /> : <Play size={12} fill="currentColor" />}
-                      </div>
+                      Carregar mais ({Math.min(60, filtered.length - visibleCount)} canais)
                     </button>
-                  );
-                })}
-              </div>
-            )}
-            {filtered.length > 200 && (
-              <div className="text-center mt-8 py-4 px-6 rounded-2xl bg-card/20 border border-border/5">
-                <p className="text-muted-foreground/25 text-xs">
-                  Mostrando <span className="text-foreground/40 font-semibold">200</span> de <span className="text-foreground/40 font-semibold">{filtered.length.toLocaleString()}</span> canais — use a busca para filtrar
-                </p>
-              </div>
+                    <p className="text-muted-foreground/25 text-[10px] mt-2">
+                      Mostrando {visibleCount.toLocaleString()} de {filtered.length.toLocaleString()} canais
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </>
