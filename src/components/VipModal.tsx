@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2, Ban } from "lucide-react";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
-
+import { toast } from "sonner";
 
 interface VipModalProps {
   open: boolean;
@@ -45,31 +45,101 @@ const programmerFeatures = [
   { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido" },
 ];
 
-const PLAN_CONFIG: Record<string, { title: string; price: number }> = {
-  vip: { title: "SnyX VIP", price: 50 },
-  rpg: { title: "SnyX RPG Premium", price: 80 },
-  programmer: { title: "SnyX Programador DEV", price: 120 },
+type Period = "weekly" | "monthly" | "yearly";
+
+const PLAN_PRICES: Record<string, Record<Period, number>> = {
+  vip:        { weekly: 25,  monthly: 50,  yearly: 150 },
+  rpg:        { weekly: 20,  monthly: 50,  yearly: 120 },
+  programmer: { weekly: 100, monthly: 150, yearly: 250 },
 };
 
+const PERIOD_LABELS: Record<Period, string> = {
+  weekly: "Semanal",
+  monthly: "Mensal",
+  yearly: "Anual",
+};
+
+const PERIOD_SUFFIX: Record<Period, string> = {
+  weekly: "/sem",
+  monthly: "/mês",
+  yearly: "/ano",
+};
+
+
 export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps) {
-  const { openCheckout, isLoading, error } = useMercadoPagoCheckout();
-  const { user } = useAuth();
+  const { openCheckout, error } = useMercadoPagoCheckout();
+  const { user, profile } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [period, setPeriod] = useState<Period>("monthly");
+  const [isBanned, setIsBanned] = useState(false);
+
+  // Check ban status on open
+  useEffect(() => {
+    if (!open || !user) return;
+    if (profile?.banned_until) {
+      const bannedUntil = new Date(profile.banned_until);
+      if (bannedUntil > new Date()) {
+        setIsBanned(true);
+        return;
+      }
+    }
+    setIsBanned(false);
+  }, [open, user, profile?.banned_until]);
 
   if (!open) return null;
 
-  const handleSubscribe = (plan: "vip" | "rpg" | "programmer") => {
+  const handleSubscribe = async (plan: "vip" | "rpg" | "programmer") => {
+    if (isBanned) {
+      toast.error("Sua conta está temporariamente suspensa por tentativa de fraude.");
+      return;
+    }
+
     setLoadingPlan(plan);
-    const config = PLAN_CONFIG[plan];
+    const price = PLAN_PRICES[plan][period];
+    const periodLabel = PERIOD_LABELS[period].toLowerCase();
+    const planNames: Record<string, string> = {
+      vip: "SnyX VIP",
+      rpg: "SnyX RPG Premium",
+      programmer: "SnyX Programador DEV",
+    };
+
     openCheckout({
-      title: config.title,
-      description: `Assinatura mensal ${config.title}`,
-      price: config.price,
+      title: planNames[plan],
+      description: `Assinatura ${periodLabel} ${planNames[plan]}`,
+      price,
       quantity: 1,
       userEmail: user?.email || undefined,
       userId: user?.id || "",
     });
   };
+
+  if (isBanned) {
+    const bannedUntil = profile?.banned_until ? new Date(profile.banned_until) : null;
+    const minutesLeft = bannedUntil ? Math.max(1, Math.ceil((bannedUntil.getTime() - Date.now()) / 60000)) : 0;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div className="glass-elevated rounded-2xl max-w-md w-full p-8 text-center border border-red-500/30 animate-enter">
+          <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-4">
+            <Ban className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-red-400 mb-2">Conta Suspensa</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Sua conta foi temporariamente suspensa por tentativa de fraude no sistema de pagamento.
+          </p>
+          <p className="text-xs text-muted-foreground/60 mb-6">
+            Tempo restante: <span className="text-red-400 font-bold">{minutesLeft} min</span>
+          </p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 rounded-xl bg-muted/20 text-foreground text-sm font-medium hover:bg-muted/30 transition-all"
+          >
+            Entendi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
@@ -83,7 +153,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
           >
             <X size={18} />
           </button>
-          <div className="relative flex items-center gap-3 mb-2">
+          <div className="relative flex items-center gap-3 mb-3">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/10">
               <Zap className="w-5 h-5 text-primary" />
             </div>
@@ -91,6 +161,26 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               <h2 className="text-lg font-bold text-foreground">SnyX Premium</h2>
               <p className="text-xs text-muted-foreground/50">Escolha o plano ideal para você</p>
             </div>
+          </div>
+
+          {/* Period Selector */}
+          <div className="relative flex gap-1 bg-muted/10 rounded-xl p-1 border border-border/10">
+            {(["weekly", "monthly", "yearly"] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all duration-300 ${
+                  period === p
+                    ? "bg-primary/15 text-primary border border-primary/20 shadow-md shadow-primary/5"
+                    : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/10"
+                }`}
+              >
+                {PERIOD_LABELS[p]}
+                {p === "yearly" && (
+                  <span className="ml-1 text-[8px] text-emerald-400 font-bold">ECONOMIA</span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -115,8 +205,8 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-bold border border-yellow-500/20">👑 VIP</span>
               </div>
-              <span className="text-3xl font-black text-foreground">R$50</span>
-              <span className="text-xs text-muted-foreground/40">/mês</span>
+              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.vip[period]}</span>
+              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
             </div>
 
             <div className="space-y-2.5 flex-1">
@@ -135,7 +225,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
             <button
               onClick={() => handleSubscribe("vip")}
-              disabled={loadingPlan === "vip"}
+              disabled={!!loadingPlan}
               className="mt-4 flex items-center justify-center gap-2 w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-yellow-500/15 hover:shadow-lg hover:shadow-yellow-500/5 disabled:opacity-50"
             >
               {loadingPlan === "vip" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
@@ -165,8 +255,8 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/20">⚔️ RPG Premium</span>
               </div>
-              <span className="text-3xl font-black text-foreground">R$80</span>
-              <span className="text-xs text-muted-foreground/40">/mês</span>
+              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.rpg[period]}</span>
+              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
             </div>
 
             <div className="space-y-2.5 flex-1">
@@ -185,7 +275,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
             <button
               onClick={() => handleSubscribe("rpg")}
-              disabled={loadingPlan === "rpg"}
+              disabled={!!loadingPlan}
               className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-purple-500/15 hover:shadow-lg hover:shadow-purple-500/10 disabled:opacity-50"
             >
               {loadingPlan === "rpg" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
@@ -215,8 +305,8 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/20">💻 DEV</span>
               </div>
-              <span className="text-3xl font-black text-foreground">R$120</span>
-              <span className="text-xs text-muted-foreground/40">/mês</span>
+              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.programmer[period]}</span>
+              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
             </div>
 
             <div className="space-y-2.5 flex-1">
@@ -235,7 +325,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
             <button
               onClick={() => handleSubscribe("programmer")}
-              disabled={loadingPlan === "programmer"}
+              disabled={!!loadingPlan}
               className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold rounded-xl py-3 transition-all duration-300 text-sm shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25 disabled:opacity-50"
             >
               {loadingPlan === "programmer" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
