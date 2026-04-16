@@ -16,11 +16,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const { messages, display_name, user_gender } = body;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    let userCtx = "";
+    if (display_name) {
+      userCtx = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente quando fizer sentido.`;
+      if (user_gender === "masculino") userCtx += " Trate no masculino.";
+      else if (user_gender === "feminino") userCtx += " Trate no feminino.";
     }
 
     const systemPrompt = `Você é um REESCRITOR DE TEXTOS profissional. Sua missão é pegar qualquer texto e transformá-lo em algo LINDO, CLARO e NATURAL.
@@ -56,7 +64,7 @@ IDIOMA: Sempre responda no mesmo idioma do texto enviado. Se for português, use
 Use markdown (negrito, itálico, títulos) para organizar a resposta.`;
 
     const aiMessages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt + userCtx },
       ...messages.slice(-20).map((m: any) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,

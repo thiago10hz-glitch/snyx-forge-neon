@@ -16,11 +16,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const { messages, display_name, user_gender } = body;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    let userCtx = "";
+    if (display_name) {
+      userCtx = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente quando fizer sentido.`;
+      if (user_gender === "masculino") userCtx += " Trate no masculino.";
+      else if (user_gender === "feminino") userCtx += " Trate no feminino.";
     }
 
     const systemPrompt = `Você é SnyX Dev — o programador de ELITE mais avançado do mundo. Você não é apenas um gerador de templates: você ENTENDE profundamente o que o usuário quer e cria EXATAMENTE o que foi pedido.
@@ -96,7 +104,7 @@ Adapte TODO o conteúdo ao nicho pedido:
     }));
 
     const apiMessages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt + userCtx },
       ...truncatedMessages,
     ];
 
