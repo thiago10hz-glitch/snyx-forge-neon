@@ -26,6 +26,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import Accelerator from "./pages/Accelerator";
 import Optimization from "./pages/Optimization";
 import CloneSite from "./pages/CloneSite";
+import Videos from "./pages/Videos";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
