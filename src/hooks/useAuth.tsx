@@ -25,6 +25,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   profile: null,
   loading: true,
+  isAdmin: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const initializedRef = useRef(false);
 
@@ -54,13 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const doFetch = async (): Promise<Profile | null> => {
       try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge, gender, partner_user_id, background_url")
-          .eq("user_id", userId)
-          .single();
+        const [{ data }, { data: roleData }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge, gender, partner_user_id, background_url")
+            .eq("user_id", userId)
+            .single(),
+          supabase.rpc("has_role", { _user_id: userId, _role: "admin" as const }),
+        ]);
         const p = data as Profile | null;
         if (p) setProfile(p);
+        setIsAdmin(!!roleData);
         return p;
       } catch {
         return null;
@@ -115,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, isAdmin, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
