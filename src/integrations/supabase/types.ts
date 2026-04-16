@@ -277,6 +277,35 @@ export type Database = {
         }
         Relationships: []
       }
+      character_favorites: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_favorites_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "ai_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       character_likes: {
         Row: {
           character_id: string
@@ -574,6 +603,38 @@ export type Database = {
           vercel_project_id?: string | null
         }
         Relationships: []
+      }
+      conversation_summaries: {
+        Row: {
+          conversation_id: string
+          id: string
+          message_count_at_summary: number
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          message_count_at_summary?: number
+          summary?: string
+          updated_at?: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          message_count_at_summary?: number
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_summaries_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fraud_attempts: {
         Row: {
