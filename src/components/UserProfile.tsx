@@ -82,6 +82,32 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
     }
   };
 
+  const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Envie apenas imagens"); return; }
+
+    setUploadingBg(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${user.id}/background.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setBackgroundUrl(newUrl);
+      await (supabase as any).from("profiles").update({ background_url: newUrl }).eq("user_id", user.id);
+      toast.success("Fundo atualizado!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar imagem de fundo");
+    } finally {
+      setUploadingBg(false);
+      e.target.value = "";
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
