@@ -129,11 +129,70 @@ function saveConfig(data) {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2));
 }
 
+function getDeviceCredentials() {
+  const os = require('os');
+  const crypto = require('crypto');
+  const machineId = crypto
+    .createHash('sha256')
+    .update(os.hostname() + os.userInfo().username + os.arch())
+    .digest('hex')
+    .substring(0, 16);
+
+  return {
+    machineId,
+    deviceEmail: `device-${machineId}@snyx-optimizer.local`,
+    devicePass: `SnyX!Dev#${machineId}`,
+    displayName: `device-${machineId}`,
+  };
+}
+
+async function ensureDeviceSession(force = false) {
+  const currentConfig = loadConfig();
+  if (!force && currentConfig.accessToken) {
+    return { success: true, config: currentConfig };
+  }
+
+  try {
+    const { machineId, deviceEmail, devicePass, displayName } = getDeviceCredentials();
+    const authRes = await supabaseRequest('/functions/v1/optimizer-device-auth', {
+      method: 'POST',
+      body: {
+        email: deviceEmail,
+        password: devicePass,
+        machine_id: machineId,
+        display_name: displayName,
+      },
+    });
+
+    if (!authRes?.access_token) {
+      return { success: false, error: authRes?.error || 'Erro ao criar sessão do dispositivo' };
+    }
+
+    const nextConfig = {
+      ...currentConfig,
+      accessToken: authRes.access_token,
+      refreshToken: authRes.refresh_token,
+      userId: authRes.user?.id,
+      deviceEmail,
+    };
+    saveConfig(nextConfig);
+    return { success: true, config: nextConfig };
+  } catch (e) {
+    return { success: false, error: 'Falha na conexão: ' + e.message };
+  }
+}
+
 // ========== LICENSE CHECK ==========
 async function checkLicense() {
-  const config = loadConfig();
-  if (!config.accessToken || !config.activationKey) return { valid: false, reason: 'no_key' };
-  
+  let config = loadConfig();
+  if (!config.activationKey) return { valid: false, reason: 'no_key' };
+
+  if (!config.accessToken) {
+    const sessionResult = await ensureDeviceSession();
+    if (!sessionResult.success) return { valid: false, reason: 'no_session' };
+    config = sessionResult.config;
+  }
+
   try {
     const res = await supabaseRequest(
       `/rest/v1/accelerator_keys?activation_key=eq.${encodeURIComponent(config.activationKey)}&select=*`,
