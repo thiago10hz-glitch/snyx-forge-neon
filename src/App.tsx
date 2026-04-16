@@ -25,6 +25,7 @@ const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
 const Accelerator = lazy(() => import("./pages/Accelerator"));
 const Optimization = lazy(() => import("./pages/Optimization"));
 const CloneSite = lazy(() => import("./pages/CloneSite"));
+const Demo = lazy(() => import("./pages/Demo"));
 const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 const queryClient = new QueryClient({
