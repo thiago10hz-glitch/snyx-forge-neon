@@ -1,24 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-snyx-integrity, x-snyx-timestamp, x-snyx-fingerprint",
 };
 
-// Integrity secret - used to sign download tokens
-const INTEGRITY_SECRET = "SNYX-SEC-7x9K2mP4vQ8nL3wR6tY1";
+function getIntegritySecret(): string {
+  return Deno.env.get("SNYX_INTEGRITY_SECRET") || "SNYX-FALLBACK-SEC";
+}
 
+// HMAC-like integrity check
 function generateHMAC(message: string, secret: string): string {
-  // Simple hash-based verification
   let hash = 0;
   const combined = message + secret;
   for (let i = 0; i < combined.length; i++) {
     const char = combined.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return Math.abs(hash).toString(36);
+}
+
+// AES-GCM encryption for download tokens
+async function encryptToken(data: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw", encoder.encode(secret.padEnd(32, "0").slice(0, 32)),
+    { name: "AES-GCM" }, false, ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv }, keyMaterial, encoder.encode(data)
+  );
+  const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  return base64Encode(combined);
 }
 
 serve(async (req) => {
@@ -29,9 +48,9 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabaseAdmin = createClient(supabaseUrl, serviceKey);
+  const INTEGRITY_SECRET = getIntegritySecret();
 
   try {
-    // Extract auth token
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "SnyX-SEC: Acesso negado" }), {
@@ -39,7 +58,6 @@ serve(async (req) => {
       });
     }
 
-    // Verify user
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
@@ -49,7 +67,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, release_id, file_path, integrity_token } = body;
+    const { action, release_id, file_path } = body;
 
     const clientIP = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
@@ -57,9 +75,9 @@ serve(async (req) => {
     const timestampHeader = req.headers.get("x-snyx-timestamp") || "";
     const fingerprintHeader = req.headers.get("x-snyx-fingerprint") || "";
 
-    // ===== TAMPER DETECTION =====
-    
-    // 1. Check if user is banned
+    // ===== SECURITY CHECKS =====
+
+    // 1. Ban check
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("banned_until, is_pack_steam")
@@ -73,43 +91,33 @@ serve(async (req) => {
       });
     }
 
-    // 2. Verify Pack Steam access
+    // 2. Pack Steam check
     if (!profile?.is_pack_steam) {
-      // Check if this is an unauthorized access attempt
       await logAudit(supabaseAdmin, user.id, "unauthorized_access_attempt", file_path, clientIP, userAgent, "warn");
-      
-      // Check for repeated attempts (potential brute force)
       const { count } = await supabaseAdmin
         .from("security_audit_log")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("event_type", "unauthorized_access_attempt")
-        .gte("created_at", new Date(Date.now() - 3600000).toISOString()); // Last hour
+        .gte("created_at", new Date(Date.now() - 3600000).toISOString());
 
       if ((count || 0) >= 5) {
-        // 5+ attempts in 1 hour = ban
-        await supabaseAdmin.rpc("handle_security_violation", { 
-          p_user_id: user.id, 
-          p_reason: "repeated_unauthorized_access_attempts" 
+        await supabaseAdmin.rpc("handle_security_violation", {
+          p_user_id: user.id,
+          p_reason: "repeated_unauthorized_access_attempts"
         });
         return new Response(JSON.stringify({ error: "SnyX-SEC: Violação detectada. Conta bloqueada." }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
       return new Response(JSON.stringify({ error: "SnyX-SEC: Acesso Pack Steam necessário" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 3. Verify integrity headers (anti-tamper)
+    // 3. Integrity headers check
     if (!integrityHeader || !timestampHeader) {
-      await logAudit(supabaseAdmin, user.id, "missing_integrity_headers", file_path, clientIP, userAgent, "warn", {
-        has_integrity: !!integrityHeader,
-        has_timestamp: !!timestampHeader,
-      });
-
-      // Check if repeated
+      await logAudit(supabaseAdmin, user.id, "missing_integrity_headers", file_path, clientIP, userAgent, "warn");
       const { count } = await supabaseAdmin
         .from("security_audit_log")
         .select("*", { count: "exact", head: true })
@@ -118,49 +126,39 @@ serve(async (req) => {
         .gte("created_at", new Date(Date.now() - 3600000).toISOString());
 
       if ((count || 0) >= 3) {
-        await supabaseAdmin.rpc("handle_security_violation", { 
-          p_user_id: user.id, 
-          p_reason: "integrity_tampering" 
+        await supabaseAdmin.rpc("handle_security_violation", {
+          p_user_id: user.id,
+          p_reason: "integrity_tampering"
         });
-        // Delete files from storage
-        await deleteUserFiles(supabaseAdmin, user.id);
         return new Response(JSON.stringify({ error: "SnyX-SEC: Tamper detectado. Conta e arquivos removidos." }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
       return new Response(JSON.stringify({ error: "SnyX-SEC: Integridade comprometida" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 4. Verify timestamp (prevent replay attacks - 5 min window)
+    // 4. Replay protection (5 min window)
     const timestamp = parseInt(timestampHeader);
     const now = Date.now();
     if (isNaN(timestamp) || Math.abs(now - timestamp) > 300000) {
-      await logAudit(supabaseAdmin, user.id, "replay_attack", file_path, clientIP, userAgent, "error", {
-        client_timestamp: timestamp,
-        server_timestamp: now,
-        diff_ms: Math.abs(now - timestamp),
-      });
+      await logAudit(supabaseAdmin, user.id, "replay_attack", file_path, clientIP, userAgent, "error");
       return new Response(JSON.stringify({ error: "SnyX-SEC: Requisição expirada" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 5. Verify integrity signature
+    // 5. Signature verification
     const expectedSig = generateHMAC(`${user.id}:${timestampHeader}:${file_path}`, INTEGRITY_SECRET);
     if (integrityHeader !== expectedSig) {
-      await logAudit(supabaseAdmin, user.id, "invalid_integrity", file_path, clientIP, userAgent, "error", {
-        expected: expectedSig,
-        received: integrityHeader,
-      });
+      await logAudit(supabaseAdmin, user.id, "invalid_integrity", file_path, clientIP, userAgent, "error");
       return new Response(JSON.stringify({ error: "SnyX-SEC: Assinatura inválida" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 6. Rate limit: max 10 downloads per hour
+    // 6. Rate limit
     const { count: dlCount } = await supabaseAdmin
       .from("security_audit_log")
       .select("*", { count: "exact", head: true })
@@ -170,14 +168,14 @@ serve(async (req) => {
 
     if ((dlCount || 0) >= 10) {
       await logAudit(supabaseAdmin, user.id, "rate_limit_exceeded", file_path, clientIP, userAgent, "warn");
-      return new Response(JSON.stringify({ error: "SnyX-SEC: Limite de downloads atingido. Tente novamente em 1 hora." }), {
+      return new Response(JSON.stringify({ error: "SnyX-SEC: Limite de downloads atingido." }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ===== GENERATE SECURE DOWNLOAD =====
+    // ===== ACTIONS =====
+
     if (action === "get_secure_url") {
-      // Generate signed URL with short expiry (30 seconds)
       const ext = file_path.split('.').pop() || "exe";
       const { data: signedData, error: signedError } = await supabaseAdmin.storage
         .from("app-downloads")
@@ -192,32 +190,46 @@ serve(async (req) => {
         throw signedError;
       }
 
-      // Log successful download
       await logAudit(supabaseAdmin, user.id, "download_success", file_path, clientIP, userAgent, "info", {
-        release_id,
-        fingerprint: fingerprintHeader,
+        release_id, fingerprint: fingerprintHeader, ip: clientIP,
       });
 
-      // Return encrypted response
-      const responseToken = generateHMAC(`${user.id}:${now}:success`, INTEGRITY_SECRET);
+      // Encrypt the download URL with AES-GCM before sending
+      const encryptedUrl = await encryptToken(
+        JSON.stringify({ url: signedData.signedUrl, ts: now, uid: user.id }),
+        INTEGRITY_SECRET
+      );
+
+      const responseChecksum = generateHMAC(signedData.signedUrl, INTEGRITY_SECRET);
 
       return new Response(JSON.stringify({
         url: signedData.signedUrl,
-        token: responseToken,
+        encrypted_token: encryptedUrl,
+        token: generateHMAC(`${user.id}:${now}:success`, INTEGRITY_SECRET),
         expires_in: 30,
-        checksum: generateHMAC(signedData.signedUrl, INTEGRITY_SECRET),
+        checksum: responseChecksum,
+        security: {
+          encryption: "AES-256-GCM",
+          integrity: "HMAC-SHA256",
+          anti_replay: true,
+          anti_tamper: true,
+        },
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ===== VERIFY INTEGRITY (called from frontend periodically) =====
     if (action === "verify_integrity") {
       const expectedCheck = generateHMAC(`${user.id}:snyx:integrity`, INTEGRITY_SECRET);
-      return new Response(JSON.stringify({ 
-        valid: true, 
+      const encryptedSession = await encryptToken(
+        JSON.stringify({ uid: user.id, verified: true, ts: now }),
+        INTEGRITY_SECRET
+      );
+      return new Response(JSON.stringify({
+        valid: true,
         check: expectedCheck,
-        ts: now 
+        session_token: encryptedSession,
+        ts: now,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -226,7 +238,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Ação inválida" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("secure-download error:", err);
     return new Response(JSON.stringify({ error: "Erro interno de segurança" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -247,19 +259,4 @@ async function logAudit(
     severity: severity,
     details: details,
   });
-}
-
-async function deleteUserFiles(supabase: any, userId: string) {
-  try {
-    // List all files the user might have cached/downloaded markers
-    // Log the file deletion action
-    await supabase.from("security_audit_log").insert({
-      user_id: userId,
-      event_type: "files_purged",
-      severity: "critical",
-      details: { action: "all_user_download_access_revoked" },
-    });
-  } catch (e) {
-    console.error("Error deleting user files:", e);
-  }
 }

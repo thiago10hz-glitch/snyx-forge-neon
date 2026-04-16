@@ -1,69 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-
-// ===== SnyX Security Layer =====
-const SNYX_INTEGRITY_SECRET = "SNYX-SEC-7x9K2mP4vQ8nL3wR6tY1";
-
-function snyxHMAC(message: string, secret: string): string {
-  let hash = 0;
-  const combined = message + secret;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-function getDeviceFingerprint(): string {
-  const nav = navigator;
-  const screen = window.screen;
-  const raw = [
-    nav.userAgent,
-    nav.language,
-    screen.width, screen.height, screen.colorDepth,
-    new Date().getTimezoneOffset(),
-    nav.hardwareConcurrency || 0,
-  ].join("|");
-  let hash = 0;
-  for (let i = 0; i < raw.length; i++) {
-    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-// Anti-tamper: detect DevTools and code modification
-function initSecurityGuards() {
-  // Detect rapid console open/close
-  let devtoolsOpen = false;
-  const threshold = 160;
-  const check = () => {
-    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-    if (widthThreshold || heightThreshold) {
-      if (!devtoolsOpen) {
-        devtoolsOpen = true;
-        console.warn("%c⚠️ SnyX Security: Monitoramento ativo", "color: red; font-size: 20px; font-weight: bold;");
-      }
-    } else {
-      devtoolsOpen = false;
-    }
-  };
-  setInterval(check, 1000);
-
-  // Disable right-click on download buttons
-  document.addEventListener("contextmenu", (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest("[data-snyx-protected]")) {
-      e.preventDefault();
-    }
-  });
-}
+import { generateIntegrityToken } from "@/lib/snyxSecurity";
 
 interface AppRelease {
   id: string;
@@ -85,40 +26,27 @@ export default function Downloads() {
 
   const hasAccess = !!profile?.is_pack_steam;
 
-  // Initialize security guards
-  useEffect(() => {
-    initSecurityGuards();
-  }, []);
-
   // Verify integrity on mount
   useEffect(() => {
     if (!user || !session) return;
-    verifyIntegrity();
-  }, [user, session]);
-
-  const verifyIntegrity = useCallback(async () => {
-    try {
-      const timestamp = Date.now().toString();
-      const sig = snyxHMAC(`${user!.id}:${timestamp}:verify`, SNYX_INTEGRITY_SECRET);
-      
-      const { data, error } = await supabase.functions.invoke("secure-download", {
-        body: { action: "verify_integrity" },
-        headers: {
-          "x-snyx-integrity": sig,
-          "x-snyx-timestamp": timestamp,
-          "x-snyx-fingerprint": getDeviceFingerprint(),
-        },
-      });
-
-      if (error) {
+    const verify = async () => {
+      try {
+        const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, "verify");
+        const { error } = await supabase.functions.invoke("secure-download", {
+          body: { action: "verify_integrity" },
+          headers: {
+            "x-snyx-integrity": signature,
+            "x-snyx-timestamp": timestamp,
+            "x-snyx-fingerprint": fingerprint,
+          },
+        });
+        setSecurityStatus(error ? "failed" : "verified");
+      } catch {
         setSecurityStatus("failed");
-      } else {
-        setSecurityStatus("verified");
       }
-    } catch {
-      setSecurityStatus("failed");
-    }
-  }, [user]);
+    };
+    verify();
+  }, [user, session]);
 
   useEffect(() => {
     if (!user || !hasAccess) {
@@ -144,14 +72,7 @@ export default function Downloads() {
     
     setDownloadingId(rel.id);
     try {
-      const timestamp = Date.now().toString();
-      const fingerprint = getDeviceFingerprint();
-      
-      // Generate integrity signature
-      const integritySignature = snyxHMAC(
-        `${user.id}:${timestamp}:${rel.file_url}`,
-        SNYX_INTEGRITY_SECRET
-      );
+      const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, rel.file_url);
 
       toast.info("🔐 Verificando integridade...", { duration: 2000 });
 
@@ -162,7 +83,7 @@ export default function Downloads() {
           file_path: rel.file_url,
         },
         headers: {
-          "x-snyx-integrity": integritySignature,
+          "x-snyx-integrity": signature,
           "x-snyx-timestamp": timestamp,
           "x-snyx-fingerprint": fingerprint,
         },
@@ -175,18 +96,10 @@ export default function Downloads() {
       if (data?.error) {
         if (data.error.includes("Violação") || data.error.includes("bloqueada")) {
           toast.error("🚫 " + data.error, { duration: 10000 });
-          // Force logout on violation
           setTimeout(() => supabase.auth.signOut(), 3000);
           return;
         }
         throw new Error(data.error);
-      }
-
-      // Verify response checksum
-      const expectedChecksum = snyxHMAC(data.url, SNYX_INTEGRITY_SECRET);
-      if (data.checksum !== expectedChecksum) {
-        toast.error("🚫 SnyX-SEC: Resposta corrompida. Download cancelado.");
-        return;
       }
 
       // Start download
