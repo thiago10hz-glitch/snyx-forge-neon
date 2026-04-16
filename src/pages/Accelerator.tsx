@@ -65,6 +65,50 @@ const Accelerator = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch app releases when user has active key
+  useEffect(() => {
+    if (!user || !hasActiveKey) return;
+    setLoadingReleases(true);
+    supabase
+      .from("app_releases")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        if (data) setReleases(data as AppRelease[]);
+        setLoadingReleases(false);
+      });
+  }, [user, hasActiveKey]);
+
+  const handleDownloadApp = async (rel: AppRelease) => {
+    setDownloadingId(rel.id);
+    try {
+      const ext = rel.file_url.split('.').pop() || (rel.platform === "windows" ? "exe" : "apk");
+      const { data, error } = await supabase.storage
+        .from("app-downloads")
+        .createSignedUrl(rel.file_url, 60, {
+          download: `SnyX-v${rel.version}.${ext}`,
+        });
+      if (error) throw error;
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Download iniciado!");
+    } catch (err: any) {
+      toast.error("Erro no download: " + (err.message || "tente novamente"));
+    }
+    setDownloadingId(null);
+  };
+
+  const formatSize = (bytes: number | null) => {
+    if (!bytes) return "";
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const runSpeedTest = async () => {
     setTesting(true);
     setTestResults(null);
