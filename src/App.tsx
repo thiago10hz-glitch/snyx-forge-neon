@@ -159,6 +159,7 @@ const App = () => {
                   <Route path="/accelerator" element={<Accelerator />} />
                   <Route path="/optimization" element={<Optimization />} />
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
+                  <Route path="/demo" element={<ProtectedRoute><Demo /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
