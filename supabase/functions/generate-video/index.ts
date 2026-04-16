@@ -108,8 +108,15 @@ Deno.serve(async (req: Request) => {
         headers: { accept: "application/json", "x-api-key": HEYGEN_API_KEY },
       });
       const avatarData = await avatarRes.json();
-      if (!avatarRes.ok) return json({ error: "Erro ao buscar avatares" }, 500);
-      return json({ avatars: avatarData.data?.avatars || [] });
+      console.log("HeyGen avatars response status:", avatarRes.status, "keys:", JSON.stringify(Object.keys(avatarData)));
+      if (!avatarRes.ok) {
+        console.error("HeyGen avatars error:", JSON.stringify(avatarData));
+        return json({ error: "Erro ao buscar avatares", details: avatarData }, 500);
+      }
+      // Handle different response structures
+      const avatarList = avatarData.data?.avatars || avatarData.avatars || avatarData.data || [];
+      console.log("Avatar list length:", Array.isArray(avatarList) ? avatarList.length : "not array", "sample:", JSON.stringify(avatarList[0] || {}).substring(0, 200));
+      return json({ avatars: Array.isArray(avatarList) ? avatarList : [] });
     }
 
     // ===== ACTION: list_voices =====
@@ -118,8 +125,15 @@ Deno.serve(async (req: Request) => {
         headers: { accept: "application/json", "x-api-key": HEYGEN_API_KEY },
       });
       const voiceData = await voiceRes.json();
-      if (!voiceRes.ok) return json({ error: "Erro ao buscar vozes" }, 500);
-      return json({ voices: voiceData.data?.voices || [] });
+      console.log("HeyGen voices response status:", voiceRes.status, "keys:", JSON.stringify(Object.keys(voiceData)));
+      if (!voiceRes.ok) {
+        console.error("HeyGen voices error:", JSON.stringify(voiceData));
+        return json({ error: "Erro ao buscar vozes", details: voiceData }, 500);
+      }
+      // Handle different response structures
+      const voiceList = voiceData.data?.voices || voiceData.voices || voiceData.data || [];
+      console.log("Voice list length:", Array.isArray(voiceList) ? voiceList.length : "not array");
+      return json({ voices: Array.isArray(voiceList) ? voiceList : [] });
     }
 
     // ===== ACTION: generate (default) =====
