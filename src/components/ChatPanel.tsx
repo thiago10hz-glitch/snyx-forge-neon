@@ -154,6 +154,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
+  const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
   const [showPlayerCharPanel, setShowPlayerCharPanel] = useState(false);
   const playerCharacter = useActivePlayerCharacter();
 
