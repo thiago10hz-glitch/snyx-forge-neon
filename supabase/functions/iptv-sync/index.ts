@@ -26,10 +26,24 @@ interface Channel {
 
 const IPTV_USERNAME = Deno.env.get("IPTV_USERNAME") || "";
 const IPTV_PASSWORD = Deno.env.get("IPTV_PASSWORD") || "";
-const rawHost = Deno.env.get("IPTV_HOST") || "megga.tv.br";
-// Strip protocol and path if user pasted full URL
-const IPTV_HOST = rawHost.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-const PLAYLIST_URL = `http://${IPTV_HOST}/get.php?username=${IPTV_USERNAME}&password=${IPTV_PASSWORD}&type=m3u_plus&output=mpegts`;
+const rawHost = (Deno.env.get("IPTV_HOST") || "megga.tv.br").trim();
+
+function buildPlaylistUrl(input: string, username: string, password: string) {
+  const trimmed = input.trim();
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.includes("get.php?")) {
+    return `http://${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  const host = trimmed.replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+  return `http://${host}/get.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&type=m3u_plus&output=mpegts`;
+}
+
+const PLAYLIST_URL = buildPlaylistUrl(rawHost, IPTV_USERNAME, IPTV_PASSWORD);
 
 const MAX_CHANNELS = 5000;
 
@@ -115,7 +129,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log("IPTV URL:", PLAYLIST_URL);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
 
@@ -126,7 +139,11 @@ Deno.serve(async (req) => {
     clearTimeout(timeout);
 
     if (!upstream.ok || !upstream.body) {
-      return new Response(JSON.stringify({ error: `IPTV respondeu ${upstream.status}` }), {
+      const providerError = upstream.status === 404
+        ? "Link M3U não encontrado no provedor IPTV"
+        : `Servidor IPTV respondeu ${upstream.status}`;
+
+      return new Response(JSON.stringify({ error: providerError }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

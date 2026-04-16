@@ -3,16 +3,40 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { VipModal } from "@/components/VipModal";
 import {
-  ArrowLeft, MonitorPlay, Code2, Search, RefreshCw, Play, Tv, X, ChevronDown, Loader2, Radio, List
+  ArrowLeft, Code2, Search, RefreshCw, Play, Tv, X, ChevronDown, Loader2, Radio, List
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 interface Channel {
-  n: string; // name
-  u: string; // url
-  l: string; // logo
-  g: string; // group
+  n: string;
+  u: string;
+  l: string;
+  g: string;
+}
+
+async function getInvokeErrorMessage(error: unknown) {
+  const maybeResponse = (error as { context?: Response } | null)?.context;
+
+  if (maybeResponse instanceof Response) {
+    try {
+      const payload = await maybeResponse.clone().json() as { error?: string; message?: string };
+      return payload.error || payload.message || `Erro ${maybeResponse.status} ao sincronizar`;
+    } catch {
+      try {
+        const text = await maybeResponse.clone().text();
+        return text || `Erro ${maybeResponse.status} ao sincronizar`;
+      } catch {
+        return `Erro ${maybeResponse.status} ao sincronizar`;
+      }
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Erro ao sincronizar";
 }
 
 export default function IPTV() {
@@ -34,35 +58,43 @@ export default function IPTV() {
       setLoading(true);
       const { data } = supabase.storage.from("iptv-cache").getPublicUrl("channels.json");
       const res = await fetch(data.publicUrl + "?t=" + Date.now());
+
       if (res.ok) {
         const json = await res.json();
-        setChannels(json);
+        setChannels(Array.isArray(json) ? json : []);
+      } else {
+        setChannels([]);
       }
     } catch {
-      // silent
+      setChannels([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const syncChannels = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      toast.error("Faça login para sincronizar os canais.");
+      return;
+    }
+
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("iptv-sync");
       if (error) throw error;
+
       if (data?.success) {
         toast.success(`${data.channels} canais sincronizados!`);
         await loadChannels();
       } else {
         toast.error(data?.error || "Erro ao sincronizar");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao sincronizar");
+    } catch (error) {
+      toast.error(await getInvokeErrorMessage(error));
     } finally {
       setSyncing(false);
     }
-  }, [session, loadChannels]);
+  }, [session?.access_token, loadChannels]);
 
   useEffect(() => {
     if (hasAccess) loadChannels();
