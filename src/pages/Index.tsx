@@ -82,18 +82,18 @@ const Index = () => {
         <TooltipTrigger asChild>
           <div
             onClick={onClick}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 group
               ${active
-                ? "bg-primary/15 text-primary border border-primary/20"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
+                ? "bg-primary/12 text-primary border border-primary/15"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
               } ${className || ""}`}
           >
-            <Icon className={`w-5 h-5 shrink-0 transition-colors ${active ? "text-primary" : "group-hover:text-primary"}`} />
-            {sidebarOpen && <span className="text-sm font-medium truncate">{label}</span>}
+            <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? "text-primary" : "group-hover:text-primary"}`} />
+            {sidebarOpen && <span className="text-[13px] font-medium truncate">{label}</span>}
           </div>
         </TooltipTrigger>
         {!sidebarOpen && (
-          <TooltipContent side="right" className="glass-elevated border-border/20">
+          <TooltipContent side="right" className="glass-elevated border-border/20 text-xs">
             {label}
           </TooltipContent>
         )}
@@ -116,22 +116,22 @@ const Index = () => {
 
       {/* === SIDEBAR (desktop) === */}
       <aside className={`hidden md:flex flex-col shrink-0 border-r border-border/15 bg-sidebar transition-all duration-300 z-20 relative
-        ${sidebarOpen ? "w-56" : "w-16"}`}>
+        ${sidebarOpen ? "w-48" : "w-14"}`}>
         {/* Logo */}
-        <div className={`h-16 flex items-center shrink-0 border-b border-border/10 ${sidebarOpen ? "px-4 gap-3" : "justify-center"}`}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10">
-            <Flame className="w-5 h-5 text-primary" />
+        <div className={`h-12 flex items-center shrink-0 border-b border-border/10 ${sidebarOpen ? "px-3 gap-2.5" : "justify-center"}`}>
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10">
+            <Flame className="w-4 h-4 text-primary" />
           </div>
           {sidebarOpen && (
             <div className="leading-none">
-              <h1 className="text-sm font-black tracking-wide gradient-text-subtle">SnyX</h1>
-              <p className="text-[8px] text-muted-foreground/40 font-semibold tracking-[0.25em] uppercase">AI Platform</p>
+              <h1 className="text-xs font-black tracking-wide gradient-text-subtle">SnyX</h1>
+              <p className="text-[7px] text-muted-foreground/40 font-semibold tracking-[0.25em] uppercase">AI Platform</p>
             </div>
           )}
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 p-1.5 space-y-0.5 overflow-y-auto scrollbar-thin">
           <SidebarItem icon={MessageSquare} label="Chat" onClick={() => setChatMode("friend")} active={safeChatMode === "friend" || safeChatMode === "programmer"} />
           <SidebarItem icon={Users} label="Criar RPG" onClick={toggleCharactersPanel} active={safeChatMode === "characters"} />
 
@@ -163,7 +163,7 @@ const Index = () => {
         </nav>
 
         {/* Bottom: theme + user */}
-        <div className="p-2 border-t border-border/10 space-y-1">
+        <div className="p-1.5 border-t border-border/10 space-y-0.5">
           <SidebarItem icon={Palette} label="Tema" onClick={() => setShowThemeModal(true)} />
           <SidebarItem icon={LogOut} label="Sair" onClick={signOut} className="hover:text-destructive" />
         </div>
@@ -171,55 +171,54 @@ const Index = () => {
         {/* Collapse toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all z-30 shadow-md"
+          className="absolute -right-2.5 top-16 w-5 h-5 rounded-full bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all z-30 shadow-md"
         >
-          {sidebarOpen ? <ChevronLeft className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          {sidebarOpen ? <ChevronLeft className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
         </button>
       </aside>
 
       {/* === MAIN AREA === */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header (top bar) */}
-        <header className="h-14 flex items-center justify-between px-3 sm:px-5 shrink-0 border-b border-border/10 glass">
-          {/* Mobile menu + logo */}
+        <header className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-border/10 glass">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all"
+              className="md:hidden w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
-            <div className="md:hidden flex items-center gap-2">
-              <Flame className="w-5 h-5 text-primary" />
-              <span className="text-sm font-bold gradient-text-subtle">SnyX</span>
+            <div className="md:hidden flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold gradient-text-subtle">SnyX</span>
             </div>
             <AdminPresenceIndicator />
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Tier badge */}
             {profile?.is_dev ? (
-              <span className="badge-dev flex items-center gap-1 text-[9px]">
-                <Code size={9} /> DEV
+              <span className="badge-dev flex items-center gap-1 text-[8px]">
+                <Code size={8} /> DEV
               </span>
             ) : (profile as any)?.is_rpg_premium ? (
-              <span className="flex items-center gap-1 text-[9px] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold shadow-lg shadow-purple-500/10">
+              <span className="flex items-center gap-1 text-[8px] px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold">
                 🎭 RPG
               </span>
             ) : profile?.is_pack_steam ? (
-              <span className="badge-pack-steam flex items-center gap-1 text-[9px]">
+              <span className="badge-pack-steam flex items-center gap-1 text-[8px]">
                 🎮 Steam
               </span>
             ) : profile?.is_vip ? (
-              <span className="badge-vip text-[9px]">⭐ VIP</span>
+              <span className="badge-vip text-[8px]">⭐ VIP</span>
             ) : (
-              <span className="badge-free text-[9px]">Free</span>
+              <span className="badge-free text-[8px]">Free</span>
             )}
 
             {/* Owner badge */}
             {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-              <span className="hidden sm:flex items-center gap-1 text-[9px] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
+              <span className="hidden sm:flex items-center gap-1 text-[8px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
                 👑 {profile.team_badge}
               </span>
             )}
@@ -227,13 +226,13 @@ const Index = () => {
             {/* Avatar */}
             <button
               onClick={() => setShowProfile(true)}
-              className="w-9 h-9 rounded-xl overflow-hidden border border-border/20 hover:border-primary/30 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 group"
+              className="w-7 h-7 rounded-lg overflow-hidden border border-border/20 hover:border-primary/30 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 group"
               title="Minha conta"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <User className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+                <User className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-foreground transition-colors" />
               )}
             </button>
           </div>
@@ -273,25 +272,23 @@ const Index = () => {
       {mobileMenuOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-border/15 flex flex-col animate-reveal">
-            {/* Mobile sidebar header */}
-            <div className="h-14 flex items-center justify-between px-4 border-b border-border/10">
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-primary" />
-                <span className="text-sm font-black gradient-text-subtle">SnyX</span>
+          <div className="fixed inset-y-0 left-0 z-50 w-56 bg-sidebar border-r border-border/15 flex flex-col animate-reveal">
+            <div className="h-11 flex items-center justify-between px-3 border-b border-border/10">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-primary" />
+                <span className="text-xs font-black gradient-text-subtle">SnyX</span>
               </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all">
-                <X className="w-4 h-4" />
+              <button onClick={() => setMobileMenuOpen(false)} className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Mobile nav */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
               <SidebarItem icon={MessageSquare} label="Chat" onClick={() => { setChatMode("friend"); setMobileMenuOpen(false); }} active={safeChatMode === "friend"} />
               <SidebarItem icon={Users} label="Criar RPG" onClick={() => { toggleCharactersPanel(); setMobileMenuOpen(false); }} active={safeChatMode === "characters"} />
 
-              <div className="px-3 pt-4 pb-1">
-                <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
+              <div className="px-2.5 pt-3 pb-0.5">
+                <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
               </div>
               {navItems.map(({ to, icon, label }) => (
                 <div key={to} onClick={() => setMobileMenuOpen(false)}>
@@ -301,8 +298,8 @@ const Index = () => {
 
               {isAdmin && (
                 <>
-                  <div className="px-3 pt-4 pb-1">
-                    <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Admin</span>
+                  <div className="px-2.5 pt-3 pb-0.5">
+                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Admin</span>
                   </div>
                   <div onClick={() => setMobileMenuOpen(false)}>
                     <SidebarItem to="/admin" icon={ShieldCheck} label="Admin" />
@@ -314,7 +311,7 @@ const Index = () => {
               )}
             </nav>
 
-            <div className="p-3 border-t border-border/10 space-y-1">
+            <div className="p-2 border-t border-border/10 space-y-0.5">
               <SidebarItem icon={Palette} label="Tema" onClick={() => { setShowThemeModal(true); setMobileMenuOpen(false); }} />
               <SidebarItem icon={LogOut} label="Sair" onClick={() => { signOut(); setMobileMenuOpen(false); }} className="hover:text-destructive" />
             </div>

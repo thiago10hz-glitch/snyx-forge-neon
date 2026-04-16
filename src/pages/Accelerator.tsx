@@ -126,119 +126,112 @@ const Accelerator = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#07070f] text-white overflow-hidden relative">
-      <div className="fixed inset-0 opacity-10">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
+      <div className="fixed inset-0 opacity-5">
         <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(220,38,38,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(220,38,38,0.3) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }} />
       </div>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-red-600/20 rounded-full blur-[150px] pointer-events-none" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-white/50 hover:text-white transition mb-8">
-          <ArrowLeft className="w-4 h-4" /> Voltar
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-6">
+        <button onClick={() => navigate("/")} className="flex items-center gap-1.5 text-muted-foreground/50 hover:text-foreground transition mb-6 text-xs">
+          <ArrowLeft className="w-3.5 h-3.5" /> Voltar
         </button>
 
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm mb-6">
-            <Zap className="w-4 h-4" /> Ativação por Chave — Exclusivo DEV
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs mb-4">
+            <Zap className="w-3 h-3" /> Ativação por Chave — Exclusivo DEV
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
             SnyX{" "}
-            <span className="bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
               Accelerator
             </span>
           </h1>
 
-          <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
+          <p className="text-sm text-muted-foreground/60 max-w-lg mx-auto mb-6">
             Baixe o aplicativo e ative com sua chave exclusiva para transformar sua conexão.
-            Peça sua chave ao admin no painel de suporte.
           </p>
 
-          {/* Speed meter */}
-          <div className="flex items-center justify-center gap-4 mb-10">
-            <div className="relative w-48 h-48">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="relative w-36 h-36">
               <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-                <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
-                <circle cx="100" cy="100" r="85" fill="none" stroke="url(#speedGradient)" strokeWidth="12"
+                <circle cx="100" cy="100" r="85" fill="none" stroke="hsl(var(--muted) / 0.15)" strokeWidth="10" />
+                <circle cx="100" cy="100" r="85" fill="none" stroke="url(#speedGradient)" strokeWidth="10"
                   strokeLinecap="round" strokeDasharray={`${(speed / 1000) * 534} 534`} className="transition-all duration-100" />
                 <defs>
                   <linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#dc2626" /><stop offset="100%" stopColor="#f97316" />
+                    <stop offset="0%" stopColor="hsl(var(--primary))" /><stop offset="100%" stopColor="hsl(var(--accent))" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-black tabular-nums">{speed}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Mb/s</span>
+                <span className="text-3xl font-black tabular-nums">{speed}</span>
+                <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest">Mb/s</span>
               </div>
             </div>
             <div className="text-left">
-              <div className="text-sm text-white/40 mb-1">Sem Accelerator</div>
-              <div className="text-red-400 text-lg font-bold line-through opacity-50">~50 Mb/s</div>
-              <div className="text-sm text-white/40 mt-3 mb-1">Com Accelerator</div>
-              <div className="text-green-400 text-lg font-bold">~847 Mb/s</div>
-              <div className="text-xs text-white/30 mt-1">17x mais rápido</div>
+              <div className="text-[10px] text-muted-foreground/40 mb-0.5">Sem Accelerator</div>
+              <div className="text-destructive text-sm font-bold line-through opacity-50">~50 Mb/s</div>
+              <div className="text-[10px] text-muted-foreground/40 mt-2 mb-0.5">Com Accelerator</div>
+              <div className="text-green-400 text-sm font-bold">~847 Mb/s</div>
+              <div className="text-[9px] text-muted-foreground/30 mt-0.5">17x mais rápido</div>
             </div>
           </div>
 
           {/* Action area */}
           {!user ? (
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm">
-                <Lock className="w-4 h-4" /> Faça login para acessar
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground/50 text-xs">
+                <Lock className="w-3.5 h-3.5" /> Faça login para acessar
               </div>
               <br />
               <Button onClick={() => navigate("/auth")}
-                className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 shadow-[0_0_40px_rgba(220,38,38,0.4)] border-0">
+                className="px-8 py-5 text-sm font-bold rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-accent shadow-lg shadow-primary/20 border-0">
                 Fazer Login / Criar Conta
               </Button>
             </div>
           ) : checkingKey ? (
-            <div className="text-white/50">Verificando ativação...</div>
+            <div className="text-muted-foreground/50 text-sm">Verificando ativação...</div>
           ) : hasActiveKey ? (
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-green-500/20 border border-green-500/30 text-green-400 font-bold text-lg">
-                <CheckCircle2 className="w-6 h-6" /> Accelerator Ativado — Chave Válida!
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500/15 border border-green-500/25 text-green-400 font-bold text-sm">
+                <CheckCircle2 className="w-4 h-4" /> Accelerator Ativado — Chave Válida!
               </div>
               <br />
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => navigate("/optimization")}
-                  className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-[0_0_30px_rgba(0,200,255,0.3)] border-0">
-                  <Cpu className="w-5 h-5 mr-2" /> Abrir SnyX Optimizer
-                </Button>
-              </div>
-              <p className="text-white/40 text-sm">Role para baixo para baixar o app e ferramentas</p>
+              <Button onClick={() => navigate("/optimization")}
+                className="px-6 py-4 text-xs font-bold rounded-lg bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-lg shadow-cyan-500/20 border-0">
+                <Cpu className="w-4 h-4 mr-1.5" /> Abrir SnyX Optimizer
+              </Button>
+              <p className="text-muted-foreground/40 text-xs">Role para baixo para baixar o app</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Key activation form */}
-              <div className="max-w-lg mx-auto p-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/5">
-                <Key className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Ativar com Chave</h3>
-                <p className="text-white/50 text-sm mb-6">
-                  Digite a chave de ativação fornecida pelo admin para desbloquear o download.
+            <div className="space-y-4">
+              <div className="max-w-md mx-auto p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                <Key className="w-7 h-7 text-yellow-500 mx-auto mb-3" />
+                <h3 className="text-sm font-bold mb-1">Ativar com Chave</h3>
+                <p className="text-muted-foreground/50 text-xs mb-4">
+                  Digite a chave fornecida pelo admin.
                 </p>
-
-                <div className="flex gap-2 max-w-sm mx-auto mb-4">
+                <div className="flex gap-2 max-w-xs mx-auto mb-3">
                   <input
                     type="text"
                     value={activationKey}
                     onChange={e => setActivationKey(e.target.value.toUpperCase())}
-                    placeholder="SNYX-ACC-XXXX-XXXX-XXXX"
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-red-500/50"
+                    placeholder="SNYX-ACC-XXXX-XXXX"
+                    className="flex-1 px-3 py-2 rounded-lg bg-muted/10 border border-border/15 text-foreground font-mono text-xs placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/50"
                     onKeyDown={e => e.key === "Enter" && handleActivateKey()}
                   />
                   <Button onClick={handleActivateKey} disabled={activating}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-orange-500 border-0 font-bold">
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-orange-500 border-0 font-bold text-xs">
                     {activating ? "..." : "Ativar"}
                   </Button>
                 </div>
-
-                <p className="text-white/30 text-xs">
-                  Não tem uma chave? Entre em contato com o admin pelo suporte.
+                <p className="text-muted-foreground/30 text-[10px]">
+                  Não tem uma chave? Contate o admin pelo suporte.
                 </p>
               </div>
             </div>
@@ -246,132 +239,106 @@ const Accelerator = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-10">
           {features.map((f, i) => (
-            <div key={i} className="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-red-500/20 transition-all duration-300">
-              <f.icon className="w-8 h-8 text-red-500 mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{f.desc}</p>
+            <div key={i} className="group p-4 rounded-xl border border-border/8 bg-card/30 hover:bg-card/50 hover:border-primary/15 transition-all duration-300">
+              <f.icon className="w-5 h-5 text-primary mb-2.5 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xs mb-1">{f.title}</h3>
+              <p className="text-muted-foreground/40 text-[11px] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
 
-        {/* Speed Test Section - only for activated users */}
+        {/* Speed Test Section */}
         {hasActiveKey && user && (
-          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
-                <Activity className="w-6 h-6 text-red-500" />
-                Teste de Velocidade SnyX
+          <div className="mb-10 p-4 md:p-6 rounded-xl border border-border/10 bg-card/30">
+            <div className="text-center mb-4">
+              <h2 className="text-base font-bold mb-1 flex items-center justify-center gap-1.5">
+                <Activity className="w-4 h-4 text-primary" />
+                Teste de Velocidade
               </h2>
-              <p className="text-white/40 text-sm">Meça a velocidade real da sua conexão otimizada pelo Accelerator</p>
+              <p className="text-muted-foreground/40 text-xs">Meça a velocidade da sua conexão otimizada</p>
             </div>
 
-            {/* Gauge visual */}
-            <div className="flex justify-center mb-6">
-              <div className="relative w-48 h-48">
+            <div className="flex justify-center mb-4">
+              <div className="relative w-36 h-36">
                 <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-                  <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
-                  <circle
-                    cx="100" cy="100" r="85" fill="none"
-                    stroke="url(#speedGrad)" strokeWidth="12" strokeLinecap="round"
+                  <circle cx="100" cy="100" r="85" fill="none" stroke="hsl(var(--muted) / 0.15)" strokeWidth="10" />
+                  <circle cx="100" cy="100" r="85" fill="none"
+                    stroke="url(#speedGrad)" strokeWidth="10" strokeLinecap="round"
                     strokeDasharray={`${testResults ? Math.min((testResults.downloadAccel / 1000) * 534, 534) : 0} 534`}
-                    className="transition-all duration-1000"
-                  />
+                    className="transition-all duration-1000" />
                   <defs>
                     <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#dc2626" />
-                      <stop offset="50%" stopColor="#f97316" />
+                      <stop offset="0%" stopColor="hsl(var(--primary))" />
+                      <stop offset="50%" stopColor="hsl(var(--accent))" />
                       <stop offset="100%" stopColor="#22c55e" />
                     </linearGradient>
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-4xl font-black tabular-nums">
+                  <div className="text-2xl font-black tabular-nums">
                     {testing ? "..." : testResults ? testResults.downloadAccel : "---"}
                   </div>
-                  <div className="text-[10px] text-white/30 uppercase tracking-[3px]">Mb/s</div>
+                  <div className="text-[9px] text-muted-foreground/30 uppercase tracking-[2px]">Mb/s</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-              <Button
-                onClick={runSpeedTest}
-                disabled={testing}
-                className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 border-0 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
-              >
-                <Gauge className="w-5 h-5 mr-2" />
-                {testing ? testPhase || "Testando..." : "Iniciar Teste SnyX"}
+            <div className="flex flex-col sm:flex-row gap-2 justify-center mb-4">
+              <Button onClick={runSpeedTest} disabled={testing}
+                className="px-5 py-3 text-xs font-bold rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 border-0 shadow-md shadow-primary/20">
+                <Gauge className="w-3.5 h-3.5 mr-1.5" />
+                {testing ? testPhase || "Testando..." : "Iniciar Teste"}
               </Button>
-              <Button
-                onClick={() => window.open("https://www.speedtest.net", "_blank")}
-                variant="outline"
-                className="px-6 py-6 text-base font-bold rounded-xl border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/5"
-              >
-                <Wifi className="w-5 h-5 mr-2 text-cyan-400" />
-                Abrir Speedtest.net
+              <Button onClick={() => window.open("https://www.speedtest.net", "_blank")} variant="outline"
+                className="px-4 py-3 text-xs font-bold rounded-lg border-border/15 hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                <Wifi className="w-3.5 h-3.5 mr-1.5 text-cyan-400" /> Speedtest.net
               </Button>
             </div>
 
             {testResults && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* Ping */}
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center">
-                  <span className="text-white/40 text-sm">Latência (Ping)</span>
-                  <div className="text-3xl font-black text-cyan-400">{testResults.ping}<span className="text-sm text-white/40 ml-1">ms</span></div>
+                  <span className="text-muted-foreground/40 text-xs">Ping</span>
+                  <div className="text-xl font-black text-cyan-400">{testResults.ping}<span className="text-xs text-muted-foreground/40 ml-1">ms</span></div>
                 </div>
-
-                {/* Download comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⬇️ Download Normal</div>
-                    <div className="text-3xl font-black text-red-400">{testResults.downloadNormal}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border/10 bg-card/30 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⬇️ Normal</div>
+                    <div className="text-xl font-black text-destructive">{testResults.downloadNormal}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
-                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
-                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold animate-pulse">
+                  <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
+                    <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[8px] font-bold animate-pulse">
                       +{testResults.boost}%
                     </div>
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⚡ Com Accelerator</div>
-                    <div className="text-3xl font-black text-green-400">{testResults.downloadAccel}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⚡ Accel</div>
+                    <div className="text-xl font-black text-green-400">{testResults.downloadAccel}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
                 </div>
-
-                {/* Upload comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⬆️ Upload Normal</div>
-                    <div className="text-3xl font-black text-red-400">{testResults.uploadNormal}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border/10 bg-card/30 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⬆️ Upload</div>
+                    <div className="text-xl font-black text-destructive">{testResults.uploadNormal}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
-                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⚡ Com Accelerator</div>
-                    <div className="text-3xl font-black text-green-400">{testResults.uploadAccel}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                  <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⚡ Accel</div>
+                    <div className="text-xl font-black text-green-400">{testResults.uploadAccel}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
                 </div>
-
-                {/* Boost bar */}
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
-                  <div className="text-white/40 text-xs uppercase tracking-wider mb-2">🚀 Velocidade Aumentada</div>
-                  <div className="w-full bg-white/5 rounded-full h-4 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-green-500 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }}
-                    />
+                <div className="p-3 rounded-lg border border-primary/15 bg-primary/5 text-center">
+                  <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">🚀 Boost</div>
+                  <div className="w-full bg-muted/10 rounded-full h-2.5 overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-green-500 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }} />
                   </div>
-                  <div className="text-2xl font-black text-orange-400 mt-2">
+                  <div className="text-lg font-black text-primary mt-1">
                     {(testResults.downloadAccel / testResults.downloadNormal).toFixed(1)}x mais rápido
                   </div>
-                </div>
-
-                {/* External verification tip */}
-                <div className="p-4 rounded-xl border border-cyan-500/10 bg-cyan-500/5 text-center">
-                  <p className="text-white/50 text-sm">
-                    💡 <strong className="text-cyan-400">Dica:</strong> Abra o <button onClick={() => window.open("https://www.speedtest.net", "_blank")} className="text-cyan-400 underline hover:text-cyan-300 font-bold">Speedtest.net</button> ou o <button onClick={() => window.open("https://fast.com", "_blank")} className="text-cyan-400 underline hover:text-cyan-300 font-bold">Fast.com</button> para comparar a velocidade com o Accelerator ativo no seu PC!
-                  </p>
                 </div>
               </div>
             )}
