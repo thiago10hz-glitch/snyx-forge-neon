@@ -7,7 +7,7 @@ import {
   Crown, Users, MessageCircle, ShieldCheck, Globe, TrendingUp,
   ArrowLeft, Zap, Eye, Activity, Server, Database, Wifi,
   Send, Ban, Clock, Package, Code2, Swords, Megaphone,
-  BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2,
+  BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
   AlertTriangle, Star, Heart, Radio, Volume2
 } from "lucide-react";
 import { toast } from "sonner";
