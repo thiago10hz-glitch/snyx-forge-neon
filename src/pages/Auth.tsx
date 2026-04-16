@@ -65,9 +65,12 @@ function AppleIcon() {
 const VIP_PLANS = [
   {
     icon: Crown,
-    title: "VIP Mensal",
-    price: "R$ 14,90",
-    period: "/mês",
+    title: "VIP",
+    plans: [
+      { label: "Semanal", price: "R$ 25,00" },
+      { label: "Mensal", price: "R$ 50,00" },
+      { label: "Anual", price: "R$ 150,00", badge: "Melhor custo" },
+    ],
     features: ["Chat IA ilimitado", "Personagens RPG", "Prioridade no suporte", "Sem anúncios"],
     popular: true,
     color: "from-amber-500/20 to-orange-600/20",
@@ -76,10 +79,13 @@ const VIP_PLANS = [
   },
   {
     icon: Zap,
-    title: "Accelerator",
-    price: "R$ 29,90",
-    period: "/mês",
-    features: ["Otimizador de PC", "VPN integrada", "Boost de FPS", "Suporte prioritário"],
+    title: "Desenvolvedor",
+    plans: [
+      { label: "Semanal", price: "R$ 100,00" },
+      { label: "Mensal", price: "R$ 150,00" },
+      { label: "Anual", price: "R$ 250,00", badge: "Melhor custo" },
+    ],
+    features: ["Tudo do VIP", "Otimizador de PC", "VPN integrada", "Acesso DEV completo"],
     popular: false,
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/30",
@@ -87,10 +93,13 @@ const VIP_PLANS = [
   },
   {
     icon: Gamepad2,
-    title: "Pack Steam",
-    price: "R$ 19,90",
-    period: "/mês",
-    features: ["Acesso a jogos Steam", "Pack exclusivo", "Atualizações mensais", "Comunidade VIP"],
+    title: "RPG Premium",
+    plans: [
+      { label: "Semanal", price: "R$ 20,00" },
+      { label: "Mensal", price: "R$ 50,00" },
+      { label: "Anual", price: "R$ 120,00", badge: "Melhor custo" },
+    ],
+    features: ["Personagens ilimitados", "Histórias exclusivas", "Itens premium", "Comunidade VIP"],
     popular: false,
     color: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/30",
