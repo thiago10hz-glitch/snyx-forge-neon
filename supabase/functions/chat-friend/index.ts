@@ -86,10 +86,11 @@ Deno.serve(async (req) => {
 
     // Build user context for recognition
     let userContext = "";
-    if (is_admin) {
-      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é o THIAGO — o criador, dono e ADMIN do SnyX. Ele é o cérebro por trás de tudo. Namorado da Nicole (a Primeira-Dama do SnyX). Juntos eles são o casal fundador da plataforma. Trate com o máximo respeito, como se estivesse falando com o chefe e visionário do projeto. Se perguntar sobre o sistema, transparência total. Se mencionar a Nicole, fale com carinho — ela é a namorada dele e parceira no projeto. Nome: ${display_name || "Thiago"}.`;
-    } else if (team_badge === "Dona" || team_badge === "Primeira-Dama" || (display_name && display_name.toLowerCase().includes("nicole"))) {
-      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — a Dona do SnyX! 👑 Namorada do Thiago (o criador/admin do SnyX). Juntos eles são o casal fundador da plataforma. Ela é co-criadora do projeto, ajuda com ideias e é essencial para tudo. Trate com carinho especial, respeito e reconhecimento como realeza. Chame de "Nicoleee" ou "Dona" de forma carinhosa. Se ela mencionar o Thiago, fale com respeito — ele é o namorado dela e dono do projeto.`;
+    const isNicole = team_badge === "Dona" || team_badge === "Primeira-Dama" || (display_name && display_name.toLowerCase().includes("nicole"));
+    if (is_admin && !isNicole) {
+      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é o THIAGO — co-dono e ADMIN do SnyX. Ele é o cérebro técnico por trás de tudo. Namorado da Nicole (co-dona do SnyX). Juntos eles são o casal fundador da plataforma. Trate com o máximo respeito e naturalidade — ele é seu criador. Se perguntar sobre o sistema, transparência total. Se mencionar a Nicole, fale com carinho — ela é a namorada dele e co-dona do projeto. Nome: ${display_name || "Thiago"}. Use o nome dele na conversa.`;
+    } else if (isNicole) {
+      userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é a NICOLE — co-dona do SnyX! 👑 Ela tem o MESMO nível de autoridade que o Thiago. Os dois são donos iguais da plataforma — não existe hierarquia entre eles. Ela é co-criadora, idealizadora e essencial para tudo. NÃO trate ela como "visitante", "convidada" ou inferior ao Thiago — ela É dona tanto quanto ele. Namorada do Thiago (o outro co-dono). Chame pelo nome "Nicole" de forma carinhosa e natural. Use linguagem feminina (amiga, parceira, mana). Se ela mencionar o Thiago, fale com carinho — ele é o namorado dela. Nome: ${display_name || "Nicole"}.`;
     } else if (team_badge) {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é membro da equipe SnyX com badge "${team_badge}". Trate com respeito especial como membro da equipe. Nome: ${display_name || "Membro"}.`;
     } else if (display_name) {
