@@ -12,6 +12,7 @@ import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AdminAcceleratorPanel } from "@/components/AdminAcceleratorPanel";
+import { AdminHealthPanel } from "@/components/AdminHealthPanel";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,
@@ -42,7 +43,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases" | "accelerator";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases" | "accelerator" | "health";
 
 interface ChatMessage {
   id: string;
