@@ -75,12 +75,12 @@ export default function CloneSite() {
     }
 
     try {
-      const { data: demos } = await supabase
-        .from("clone_demos")
+      const { data: demos } = await (supabase
+        .from("clone_demos" as any)
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(1);
+        .limit(1) as any);
 
       if (demos && demos.length > 0) {
         const demo = demos[0];
