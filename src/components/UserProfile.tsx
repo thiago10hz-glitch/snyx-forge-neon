@@ -174,10 +174,44 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           </div>
         </div>
 
-        {/* Form content */}
-        <div className="px-5 pb-6 space-y-4">
-          {/* Display Name */}
-          <div>
+          {/* Partner / Relationship display */}
+          {partnerName && profile?.relationship_status === "namorando" && (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-pink-500/8 border border-pink-500/15">
+              <div className="flex items-center -space-x-3">
+                {/* My avatar */}
+                <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/30 bg-card z-10">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Eu" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-muted/15 flex items-center justify-center">
+                      <User className="w-4 h-4 text-muted-foreground/25" />
+                    </div>
+                  )}
+                </div>
+                {/* Partner avatar */}
+                <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/30 bg-card">
+                  {partnerAvatar ? (
+                    <img src={partnerAvatar} alt={partnerName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-pink-500/10 flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-pink-400/50" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-pink-400 flex items-center gap-1">
+                  💕 Namorando
+                </p>
+                <p className="text-[10px] text-pink-400/60 truncate">
+                  com <span className="font-semibold text-pink-400/80">{partnerName}</span>
+                </p>
+              </div>
+              <Heart className="w-4 h-4 text-pink-400/40 animate-pulse shrink-0" />
+            </div>
+          )}
+
+
             <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block">Nome</label>
             <input
               value={displayName}
