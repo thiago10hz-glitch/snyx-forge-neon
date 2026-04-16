@@ -3,7 +3,7 @@ import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPre
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
   Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
-  ChevronRight, Flame, X, Globe, Loader2,
+  ChevronRight, Flame, X, Globe, Loader2, Film,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
