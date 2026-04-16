@@ -24,10 +24,6 @@ const steps = [
   { num: "03", title: "Está online!", desc: "Seu site é publicado e você pode editar quando quiser" },
 ];
 
-// Excluded sections in demo mode (no downloads, no tags, etc.)
-const DEMO_EXCLUDED_SECTIONS = [
-  "Downloads", "PackSteam", "Accelerator", "IPTV", "Optimization"
-];
 
 async function getFingerprint(): Promise<string> {
   const canvas = document.createElement("canvas");
@@ -60,7 +56,7 @@ async function getUserIP(): Promise<string | null> {
 }
 
 export default function CloneSite() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
   const [siteName, setSiteName] = useState("");
   const [siteDescription, setSiteDescription] = useState("");
