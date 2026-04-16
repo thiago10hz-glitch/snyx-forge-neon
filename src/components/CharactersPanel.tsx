@@ -108,6 +108,9 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [favIds, setFavIds] = useState<Set<string>>(new Set());
+  const [showOnlyFavs, setShowOnlyFavs] = useState(false);
+  const [hideNsfw, setHideNsfw] = useState(true);
   const [tab, setTab] = useState<"explore" | "mine" | "create">("explore");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
