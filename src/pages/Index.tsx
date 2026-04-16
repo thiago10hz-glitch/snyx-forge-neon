@@ -52,6 +52,7 @@ const Index = () => {
   const navItems = [
     { to: "/iptv", icon: MonitorPlay, label: "TV" },
     { to: "/hosting", icon: Server, label: "Hosting" },
+    { to: "/clone-site", icon: Globe, label: "Clone Site" },
     { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
     { to: "/downloads", icon: Download, label: "App" },
     { to: "/accelerator", icon: Zap, label: "Accelerator" },
