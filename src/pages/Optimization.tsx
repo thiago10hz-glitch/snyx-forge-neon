@@ -419,18 +419,7 @@ const Optimization = () => {
               ))}
             </div>
 
-            {/* Download App Section */}
-            <div className="max-w-2xl mx-auto mb-10">
-              <div className="p-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-500">
-                    <Download className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Baixar SnyX Optimizer</h3>
-                    <p className="text-xs text-white/40">Aplicativo desktop para otimização automática</p>
-                  </div>
-                </div>
+
 
                 {loadingReleases ? (
                   <div className="flex justify-center py-6">
