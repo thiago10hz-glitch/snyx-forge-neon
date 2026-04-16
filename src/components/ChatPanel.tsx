@@ -1651,99 +1651,99 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
         {/* Input area */}
         {mode !== "music" && (
-        <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "p-2 sm:p-3 md:p-4"} safe-bottom`}>
+        <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 pt-2"} safe-bottom`}>
           <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto`}>
-            <div className={`flex items-end gap-1 sm:gap-1.5 glass-elevated ${mode === "programmer" ? "rounded-xl px-2 py-1.5 sm:py-2" : "rounded-2xl px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3"} border border-border/6 focus-within:border-primary/15 focus-within:shadow-2xl focus-within:shadow-primary/5 transition-all duration-500`}>
-              <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-              {/* School photo button - hidden on mobile */}
-              <button
-                onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
-                  pendingAction === "school" 
-                    ? "text-green-400 bg-green-500/10" 
-                    : "text-muted-foreground/30 hover:text-green-400 hover:bg-green-500/10"
-                }`}
-                title="📚 Foto do exercício (Escola IA)"
-              >
-                <Camera size={18} />
-              </button>
-              {/* Image generation button - hidden on mobile */}
-              <button
-                onClick={() => {
-                  setPendingAction(prev => prev === "imagegen" ? null : "imagegen");
-                }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
-                  pendingAction === "imagegen"
-                    ? "text-purple-400 bg-purple-500/10"
-                    : "text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/10"
-                }`}
-                title="🎨 Criar imagem com IA"
-              >
-                <ImagePlus size={18} />
-              </button>
-              {/* Rewrite button - hidden on mobile */}
-              <button
-                onClick={() => {
-                  setPendingAction(prev => prev === "rewrite" ? null : "rewrite");
-                }}
-                className={`p-2 rounded-xl transition-all duration-300 shrink-0 mb-0.5 hidden sm:block ${
-                  pendingAction === "rewrite"
-                    ? "text-sky-400 bg-sky-500/10"
-                    : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/10"
-                }`}
-                title="✍️ Reescrever texto"
-              >
-                <PenLine size={18} />
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10 transition-all duration-300 shrink-0 mb-0.5"
-              >
-                <Paperclip size={16} className="sm:hidden" />
-                <Paperclip size={18} className="hidden sm:block" />
-              </button>
-              <button
-                onClick={toggleRecording}
-                className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
-                  isRecording
-                    ? "bg-destructive/10 text-destructive animate-pulse"
-                    : "text-muted-foreground/30 hover:text-foreground/70 hover:bg-muted/10"
-                }`}
-                title={isRecording ? "Parar gravação" : "Gravar áudio"}
-              >
-                {isRecording ? <MicOff size={16} className="sm:hidden" /> : <Mic size={16} className="sm:hidden" />}
-                {isRecording ? <MicOff size={18} className="hidden sm:block" /> : <Mic size={18} className="hidden sm:block" />}
-              </button>
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder={inputPlaceholder}
-                rows={1}
-                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-[12px] sm:text-[13px] md:text-sm outline-none placeholder:text-muted-foreground/20 resize-none max-h-[200px] leading-relaxed"
-              />
-              <button
-                onClick={handleSend}
-                disabled={isLoading || (!input.trim() && !attachment)}
-                className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 shrink-0 mb-0.5 ${
-                  input.trim() || attachment
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:scale-105 btn-glow'
-                    : 'bg-muted/10 text-muted-foreground/15'
-                } disabled:opacity-40 disabled:hover:scale-100`}
-              >
-                <Send size={14} className="sm:hidden" />
-                <Send size={16} className="hidden sm:block" />
-              </button>
+            {/* Main input container */}
+            <div className={`relative ${mode === "programmer" ? "rounded-xl" : "rounded-2xl sm:rounded-[20px]"} bg-card/40 backdrop-blur-xl border border-border/10 shadow-xl shadow-black/5 focus-within:border-primary/20 focus-within:shadow-primary/8 transition-all duration-500`}>
+              {/* Textarea row */}
+              <div className="flex items-end gap-1 px-2 sm:px-3 py-2 sm:py-2.5">
+                <input type="file" accept={acceptedFileTypes} ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder={inputPlaceholder}
+                  rows={1}
+                  className="flex-1 min-w-0 bg-transparent py-1 sm:py-1.5 text-[13px] sm:text-sm outline-none placeholder:text-muted-foreground/25 resize-none max-h-[200px] leading-relaxed text-foreground"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={isLoading || (!input.trim() && !attachment)}
+                  className={`p-2.5 rounded-xl transition-all duration-300 shrink-0 ${
+                    input.trim() || attachment
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:scale-105'
+                      : 'bg-muted/8 text-muted-foreground/20'
+                  } disabled:opacity-30 disabled:hover:scale-100`}
+                >
+                  <Send size={15} />
+                </button>
+              </div>
+
+              {/* Bottom toolbar */}
+              <div className="flex items-center gap-0.5 px-2 sm:px-3 pb-2 pt-0">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 rounded-lg text-muted-foreground/30 hover:text-foreground/60 hover:bg-muted/10 transition-all duration-200"
+                  title="Anexar arquivo"
+                >
+                  <Paperclip size={15} />
+                </button>
+                <button
+                  onClick={toggleRecording}
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
+                    isRecording
+                      ? "bg-destructive/15 text-destructive animate-pulse"
+                      : "text-muted-foreground/30 hover:text-foreground/60 hover:bg-muted/10"
+                  }`}
+                  title={isRecording ? "Parar gravação" : "Gravar áudio"}
+                >
+                  {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
+                </button>
+                {/* Desktop-only action buttons */}
+                <button
+                  onClick={() => { setPendingAction("school"); fileInputRef.current?.click(); }}
+                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                    pendingAction === "school"
+                      ? "text-green-400 bg-green-500/10"
+                      : "text-muted-foreground/30 hover:text-green-400 hover:bg-green-500/8"
+                  }`}
+                  title="📚 Escola IA"
+                >
+                  <Camera size={15} />
+                </button>
+                <button
+                  onClick={() => setPendingAction(prev => prev === "imagegen" ? null : "imagegen")}
+                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                    pendingAction === "imagegen"
+                      ? "text-purple-400 bg-purple-500/10"
+                      : "text-muted-foreground/30 hover:text-purple-400 hover:bg-purple-500/8"
+                  }`}
+                  title="🎨 Criar imagem"
+                >
+                  <ImagePlus size={15} />
+                </button>
+                <button
+                  onClick={() => setPendingAction(prev => prev === "rewrite" ? null : "rewrite")}
+                  className={`p-1.5 rounded-lg transition-all duration-200 hidden sm:block ${
+                    pendingAction === "rewrite"
+                      ? "text-sky-400 bg-sky-500/10"
+                      : "text-muted-foreground/30 hover:text-sky-400 hover:bg-sky-500/8"
+                  }`}
+                  title="✍️ Reescrever"
+                >
+                  <PenLine size={15} />
+                </button>
+
+                <div className="flex-1" />
+                <span className="text-[9px] text-muted-foreground/15 hidden sm:block select-none">SnyX AI</span>
+              </div>
             </div>
-            <p className="text-[10px] text-muted-foreground/15 text-center mt-1.5 sm:mt-2 hidden sm:block">
-              SnyX pode cometer erros. Verifique informações importantes.
-            </p>
           </div>
         </div>
         )}
