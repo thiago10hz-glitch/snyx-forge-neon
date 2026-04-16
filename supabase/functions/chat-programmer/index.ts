@@ -24,6 +24,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    let userCtx = "";
+    if (display_name) {
+      userCtx = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente quando fizer sentido.`;
+      if (user_gender === "masculino") userCtx += " Trate no masculino.";
+      else if (user_gender === "feminino") userCtx += " Trate no feminino.";
+    }
+
     const systemPrompt = `Você é SnyX Dev — o programador de ELITE mais avançado do mundo. Você não é apenas um gerador de templates: você ENTENDE profundamente o que o usuário quer e cria EXATAMENTE o que foi pedido.
 
 ## COMO VOCÊ FUNCIONA:

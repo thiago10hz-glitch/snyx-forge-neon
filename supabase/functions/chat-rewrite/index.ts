@@ -24,6 +24,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    let userCtx = "";
+    if (display_name) {
+      userCtx = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente quando fizer sentido.`;
+      if (user_gender === "masculino") userCtx += " Trate no masculino.";
+      else if (user_gender === "feminino") userCtx += " Trate no feminino.";
+    }
+
     const systemPrompt = `Você é um REESCRITOR DE TEXTOS profissional. Sua missão é pegar qualquer texto e transformá-lo em algo LINDO, CLARO e NATURAL.
 
 COMO VOCÊ FUNCIONA:
