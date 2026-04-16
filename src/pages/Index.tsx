@@ -11,7 +11,7 @@ import { VipModal } from "@/components/VipModal";
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
   Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
-  ChevronRight, Flame, X,
+  ChevronRight, Flame, X, Globe,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
