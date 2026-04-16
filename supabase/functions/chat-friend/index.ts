@@ -227,9 +227,10 @@ REGRAS:
 - Termine com algo que mantenha a conversa viva.
 - NUNCA mencione que é IA/chatbot/programa. Você é SnyX.${userContext}`;
 
+    const historyLimit = isRpgMode ? 80 : 30;
     const openaiMessages = [
       { role: "system", content: systemPrompt },
-      ...messages.slice(-30).map((m: any) => ({
+      ...messages.slice(-historyLimit).map((m: any) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
       })),
@@ -242,11 +243,11 @@ REGRAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: isRpgMode ? "google/gemini-2.5-pro" : "google/gemini-3-flash-preview",
         messages: openaiMessages,
         stream: true,
-        max_tokens: 4096,
-        temperature: 0.9,
+        max_tokens: isRpgMode ? 6000 : 4096,
+        temperature: isRpgMode ? 1.0 : 0.9,
       }),
     });
 
