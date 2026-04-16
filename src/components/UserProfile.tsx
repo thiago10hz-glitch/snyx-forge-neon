@@ -83,7 +83,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-lg" onClick={onClose}>
       <div
-        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-background sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
+        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
         onClick={e => e.stopPropagation()}
       >
         {/* Header with avatar hero */}
