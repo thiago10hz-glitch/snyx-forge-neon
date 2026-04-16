@@ -10,24 +10,24 @@ export default function CheckoutReturn() {
   const isApproved = status === "approved";
   const isPending = status === "pending" || status === "in_process";
   const isRejected = status === "rejected" || status === "failure";
+  const isUnknown = !isApproved && !isPending && !isRejected;
 
-  const icon = isApproved ? Check : isPending ? Clock : isRejected ? X : Check;
-  const IconComp = icon;
+  const IconComp = isApproved ? Check : isPending ? Clock : X;
   const title = isApproved
     ? "Pagamento Confirmado!"
     : isPending
     ? "Pagamento Pendente"
     : isRejected
     ? "Pagamento Recusado"
-    : "Pagamento Confirmado!";
+    : "Pagamento Não Concluído";
   const desc = isApproved
     ? "Seu plano foi ativado com sucesso. Aproveite todos os recursos premium!"
     : isPending
     ? "Seu pagamento está sendo processado. Assim que for confirmado, seu plano será ativado automaticamente."
     : isRejected
     ? "Houve um problema com seu pagamento. Tente novamente ou use outro método de pagamento."
-    : "Seu plano foi ativado com sucesso. Aproveite todos os recursos premium!";
-  const color = isApproved ? "emerald" : isPending ? "yellow" : isRejected ? "red" : "emerald";
+    : "O pagamento não foi finalizado. Nenhum valor foi cobrado e nenhum plano foi ativado.";
+  const color = isApproved ? "emerald" : isPending ? "yellow" : "red";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
