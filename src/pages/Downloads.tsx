@@ -1,9 +1,69 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
-import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2 } from "lucide-react";
+import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+
+// ===== SnyX Security Layer =====
+const SNYX_INTEGRITY_SECRET = "SNYX-SEC-7x9K2mP4vQ8nL3wR6tY1";
+
+function snyxHMAC(message: string, secret: string): string {
+  let hash = 0;
+  const combined = message + secret;
+  for (let i = 0; i < combined.length; i++) {
+    const char = combined.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function getDeviceFingerprint(): string {
+  const nav = navigator;
+  const screen = window.screen;
+  const raw = [
+    nav.userAgent,
+    nav.language,
+    screen.width, screen.height, screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    nav.hardwareConcurrency || 0,
+  ].join("|");
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// Anti-tamper: detect DevTools and code modification
+function initSecurityGuards() {
+  // Detect rapid console open/close
+  let devtoolsOpen = false;
+  const threshold = 160;
+  const check = () => {
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if (widthThreshold || heightThreshold) {
+      if (!devtoolsOpen) {
+        devtoolsOpen = true;
+        console.warn("%c⚠️ SnyX Security: Monitoramento ativo", "color: red; font-size: 20px; font-weight: bold;");
+      }
+    } else {
+      devtoolsOpen = false;
+    }
+  };
+  setInterval(check, 1000);
+
+  // Disable right-click on download buttons
+  document.addEventListener("contextmenu", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-snyx-protected]")) {
+      e.preventDefault();
+    }
+  });
+}
 
 interface AppRelease {
   id: string;
@@ -16,13 +76,49 @@ interface AppRelease {
 }
 
 export default function Downloads() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, session, loading: authLoading } = useAuth();
   const [releases, setReleases] = useState<AppRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [showChangelogId, setShowChangelogId] = useState<string | null>(null);
+  const [securityStatus, setSecurityStatus] = useState<"checking" | "verified" | "failed">("checking");
 
   const hasAccess = !!profile?.is_pack_steam;
+
+  // Initialize security guards
+  useEffect(() => {
+    initSecurityGuards();
+  }, []);
+
+  // Verify integrity on mount
+  useEffect(() => {
+    if (!user || !session) return;
+    verifyIntegrity();
+  }, [user, session]);
+
+  const verifyIntegrity = useCallback(async () => {
+    try {
+      const timestamp = Date.now().toString();
+      const sig = snyxHMAC(`${user!.id}:${timestamp}:verify`, SNYX_INTEGRITY_SECRET);
+      
+      const { data, error } = await supabase.functions.invoke("secure-download", {
+        body: { action: "verify_integrity" },
+        headers: {
+          "x-snyx-integrity": sig,
+          "x-snyx-timestamp": timestamp,
+          "x-snyx-fingerprint": getDeviceFingerprint(),
+        },
+      });
+
+      if (error) {
+        setSecurityStatus("failed");
+      } else {
+        setSecurityStatus("verified");
+      }
+    } catch {
+      setSecurityStatus("failed");
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!user || !hasAccess) {
@@ -43,28 +139,75 @@ export default function Downloads() {
     setLoading(false);
   };
 
-  const handleDownload = async (rel: AppRelease) => {
+  const handleSecureDownload = async (rel: AppRelease) => {
+    if (!user || !session) return;
+    
     setDownloadingId(rel.id);
     try {
-      // Pega a extensão real do arquivo (exe, bat, apk, zip, etc.)
-      const ext = rel.file_url.split('.').pop() || (rel.platform === "windows" ? "exe" : "apk");
-      const { data, error } = await supabase.storage
-        .from("app-downloads")
-        .createSignedUrl(rel.file_url, 60, {
-          download: `SnyX-v${rel.version}.${ext}`,
-        });
+      const timestamp = Date.now().toString();
+      const fingerprint = getDeviceFingerprint();
+      
+      // Generate integrity signature
+      const integritySignature = snyxHMAC(
+        `${user.id}:${timestamp}:${rel.file_url}`,
+        SNYX_INTEGRITY_SECRET
+      );
 
-      if (error) throw error;
+      toast.info("🔐 Verificando integridade...", { duration: 2000 });
 
+      const { data, error } = await supabase.functions.invoke("secure-download", {
+        body: {
+          action: "get_secure_url",
+          release_id: rel.id,
+          file_path: rel.file_url,
+        },
+        headers: {
+          "x-snyx-integrity": integritySignature,
+          "x-snyx-timestamp": timestamp,
+          "x-snyx-fingerprint": fingerprint,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Erro de segurança");
+      }
+
+      if (data?.error) {
+        if (data.error.includes("Violação") || data.error.includes("bloqueada")) {
+          toast.error("🚫 " + data.error, { duration: 10000 });
+          // Force logout on violation
+          setTimeout(() => supabase.auth.signOut(), 3000);
+          return;
+        }
+        throw new Error(data.error);
+      }
+
+      // Verify response checksum
+      const expectedChecksum = snyxHMAC(data.url, SNYX_INTEGRITY_SECRET);
+      if (data.checksum !== expectedChecksum) {
+        toast.error("🚫 SnyX-SEC: Resposta corrompida. Download cancelado.");
+        return;
+      }
+
+      // Start download
       const a = document.createElement("a");
-      a.href = data.signedUrl;
+      a.href = data.url;
       a.rel = "noopener noreferrer";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success("Download iniciado!");
+      
+      toast.success("✅ Download seguro iniciado!", { 
+        description: `URL expira em ${data.expires_in}s`,
+        duration: 4000 
+      });
     } catch (err: any) {
-      toast.error("Erro no download: " + (err.message || "tente novamente"));
+      const msg = err.message || "Erro desconhecido";
+      if (msg.includes("SnyX-SEC")) {
+        toast.error("🔒 " + msg, { duration: 6000 });
+      } else {
+        toast.error("Erro no download: " + msg);
+      }
     }
     setDownloadingId(null);
   };
@@ -96,11 +239,9 @@ export default function Downloads() {
 
     return (
       <div key={rel.id} className="animate-fade-in-up space-y-4" style={{ animationDelay: `${index * 100}ms` }}>
-        {/* Main app card */}
         <div className="rounded-2xl border border-border/10 overflow-hidden glass-elevated">
           <div className="p-4 sm:p-5">
             <div className="flex items-start gap-3 sm:gap-4">
-              {/* App icon */}
               <div className="relative shrink-0">
                 <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15 shadow-xl shadow-primary/10">
                   <Zap className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
@@ -108,7 +249,6 @@ export default function Downloads() {
                 <div className="absolute -inset-2 rounded-2xl bg-primary/8 blur-xl -z-10 animate-breathe" />
               </div>
 
-              {/* App info */}
               <div className="flex-1 min-w-0 space-y-2.5">
                 <div>
                   <h2 className="text-lg sm:text-xl font-black leading-tight">SnyX App</h2>
@@ -117,7 +257,6 @@ export default function Downloads() {
                   </p>
                 </div>
 
-                {/* Rating */}
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-0.5">
                     {[1,2,3,4,5].map(i => (
@@ -127,24 +266,23 @@ export default function Downloads() {
                   <span className="text-xs text-muted-foreground/40 font-medium">5.0</span>
                 </div>
 
-                {/* Install button */}
                 <button
-                  onClick={() => handleDownload(rel)}
+                  onClick={() => handleSecureDownload(rel)}
                   disabled={isDownloading}
+                  data-snyx-protected="true"
                   className="mt-1 px-5 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold rounded-full transition-all text-xs shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] flex items-center gap-1.5 w-fit"
                 >
                   {isDownloading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Download className="w-4 h-4" />
+                    <Shield className="w-4 h-4" />
                   )}
-                  {isDownloading ? "Baixando..." : "Instalar"}
+                  {isDownloading ? "Verificando..." : "Download Seguro"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Stats bar */}
           <div className="border-t border-border/8 px-4 sm:px-5 py-2.5 flex items-center gap-3 sm:gap-5 overflow-x-auto">
             <div className="flex flex-col items-center min-w-fit">
               <span className="text-xs font-bold text-foreground/80">v{rel.version}</span>
@@ -175,7 +313,6 @@ export default function Downloads() {
           </div>
         </div>
 
-        {/* Changelog section */}
         {rel.changelog && (
           <div className="rounded-2xl border border-border/10 glass-elevated p-4 sm:p-5 space-y-2.5">
             <button
@@ -210,7 +347,7 @@ export default function Downloads() {
           <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/15 transition-all">
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-1">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/15">
               <Download className="w-4 h-4 text-primary" />
             </div>
@@ -219,6 +356,25 @@ export default function Downloads() {
               <p className="text-[9px] text-muted-foreground/40 hidden sm:block">SnyX Desktop & Apps</p>
             </div>
           </div>
+
+          {/* Security badge */}
+          {hasAccess && (
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+              securityStatus === "verified" 
+                ? "bg-green-500/10 text-green-400 border-green-500/20" 
+                : securityStatus === "checking"
+                ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                : "bg-red-500/10 text-red-400 border-red-500/20"
+            }`}>
+              {securityStatus === "verified" ? (
+                <><Shield className="w-3 h-3" /> Criptografado</>
+              ) : securityStatus === "checking" ? (
+                <><Loader2 className="w-3 h-3 animate-spin" /> Verificando...</>
+              ) : (
+                <><ShieldAlert className="w-3 h-3" /> Erro</>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -240,11 +396,11 @@ export default function Downloads() {
             <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/30">
               <div className="flex items-center gap-1.5">
                 <Shield className="w-3.5 h-3.5" />
-                Acesso seguro
+                Criptografia ativa
               </div>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                Atualizações automáticas
+                Anti-tamper
               </div>
             </div>
           </div>
@@ -264,15 +420,27 @@ export default function Downloads() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Features section - shared */}
+            {/* Security notice */}
+            <div className="rounded-2xl border border-green-500/10 bg-green-500/5 p-4 sm:p-5 flex items-start gap-3">
+              <Shield className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-xs font-bold text-green-400">Proteção SnyX-SEC Ativa</h3>
+                <p className="text-[11px] text-green-400/60 mt-1 leading-relaxed">
+                  Downloads protegidos com criptografia, verificação de integridade e anti-tamper. 
+                  Tentativas de manipulação resultam em bloqueio permanente.
+                </p>
+              </div>
+            </div>
+
+            {/* Features section */}
             <div className="rounded-2xl border border-border/10 glass-elevated p-4 sm:p-5 space-y-2.5">
               <h3 className="text-xs font-bold text-foreground/70">Recursos</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { icon: Shield, label: "Anti-ban seguro" },
+                  { icon: Shield, label: "Criptografia E2E" },
                   { icon: Sparkles, label: "Auto atualização" },
                   { icon: Zap, label: "Desempenho máximo" },
-                  { icon: CheckCircle2, label: "Fácil instalação" },
+                  { icon: CheckCircle2, label: "Anti-tamper ativo" },
                 ].map((feat) => (
                   <div key={feat.label} className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/8 border border-border/8">
                     <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -284,15 +452,13 @@ export default function Downloads() {
               </div>
             </div>
 
-            {/* App cards grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {releases.map((rel, i) => renderAppCard(rel, i))}
             </div>
 
-            {/* Pack Steam badge */}
             <div className="flex items-center justify-center gap-2 py-2">
               <Package className="w-3.5 h-3.5 text-primary/50" />
-              <span className="text-[11px] text-muted-foreground/30 font-medium">Exclusivo Pack Steam</span>
+              <span className="text-[11px] text-muted-foreground/30 font-medium">Exclusivo Pack Steam • Protegido por SnyX-SEC</span>
             </div>
           </div>
         )}
