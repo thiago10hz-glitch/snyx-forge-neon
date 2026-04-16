@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from "react";
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,24 +9,24 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { Loader2 } from "lucide-react";
 import { initSnyxSecurity } from "@/lib/snyxSecurity";
 
-// Lazy load all pages for code splitting
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Admin = lazy(() => import("./pages/Admin"));
-const OwnerPanel = lazy(() => import("./pages/OwnerPanel"));
-const IPTV = lazy(() => import("./pages/IPTV"));
-const Hosting = lazy(() => import("./pages/Hosting"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Downloads = lazy(() => import("./pages/Downloads"));
-const PackSteam = lazy(() => import("./pages/PackSteam"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const SiteManage = lazy(() => import("./pages/SiteManage"));
-const Characters = lazy(() => import("./pages/Characters"));
-const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
-const Accelerator = lazy(() => import("./pages/Accelerator"));
-const Optimization = lazy(() => import("./pages/Optimization"));
-const CloneSite = lazy(() => import("./pages/CloneSite"));
-const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
+// Eager imports — all pages loaded upfront for instant navigation
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
+import OwnerPanel from "./pages/OwnerPanel";
+import IPTV from "./pages/IPTV";
+import Hosting from "./pages/Hosting";
+import ResetPassword from "./pages/ResetPassword";
+import Downloads from "./pages/Downloads";
+import PackSteam from "./pages/PackSteam";
+import NotFound from "./pages/NotFound";
+import SiteManage from "./pages/SiteManage";
+import Characters from "./pages/Characters";
+import CheckoutReturn from "./pages/CheckoutReturn";
+import Accelerator from "./pages/Accelerator";
+import Optimization from "./pages/Optimization";
+import CloneSite from "./pages/CloneSite";
+import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,12 +143,9 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <CopyProtection />
-            <Suspense fallback={null}>
-              <CommandPalette />
-            </Suspense>
+            <CommandPalette />
             <ThemeProvider>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
+              <Routes>
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
                   <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
@@ -166,7 +163,6 @@ const App = () => {
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Suspense>
             </ThemeProvider>
           </AuthProvider>
         </BrowserRouter>
