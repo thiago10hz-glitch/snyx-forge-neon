@@ -238,7 +238,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               placeholder="Ex: Gosto de games, música, tenho 20 anos..."
               maxLength={500}
               rows={3}
-              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200 resize-none"
+              className="w-full bg-background/40 border border-border/8 rounded-xl px-3.5 py-2.5 text-sm text-foreground/80 placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/20 focus:bg-background/60 transition-all duration-200 resize-none"
             />
             <p className="text-[9px] text-muted-foreground/20 text-right mt-0.5 tabular-nums">{bio.length}/500</p>
           </div>
