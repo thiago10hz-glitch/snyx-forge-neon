@@ -70,41 +70,31 @@ function ServiceCard({ service }: { service: StreamingService }) {
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+      className="group relative rounded-xl overflow-hidden border border-border/10 bg-card/30 hover:bg-card/50 hover:border-border/20 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl"
     >
-      {/* Gradient top bar */}
-      <div className={`h-1.5 w-full bg-gradient-to-r ${service.color}`} />
-
-      <div className="p-5 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${service.color} flex items-center justify-center text-2xl shadow-lg`}>
-              {service.logo}
-            </div>
-            <div>
-              <h3 className="text-white font-bold text-base group-hover:text-white/90 transition-colors">
-                {service.name}
-              </h3>
+      <div className={`h-1 w-full bg-gradient-to-r ${service.color}`} />
+      <div className="p-3.5 space-y-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${service.color} flex items-center justify-center text-lg shadow-md`}>
+            {service.logo}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-foreground font-bold text-[13px] truncate">{service.name}</h3>
               {service.tag && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60 border border-white/10">
+                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-muted/30 text-muted-foreground/60 border border-border/10 shrink-0">
                   {service.tag}
                 </span>
               )}
             </div>
+            <p className="text-muted-foreground/40 text-[11px] line-clamp-1 mt-0.5">{service.description}</p>
           </div>
-          <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100">
-            <ExternalLink size={14} className="text-white/50" />
+          <div className="p-1.5 rounded-md bg-muted/10 group-hover:bg-muted/20 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+            <ExternalLink size={11} className="text-muted-foreground/50" />
           </div>
         </div>
-
-        <p className="text-white/40 text-xs leading-relaxed line-clamp-2">
-          {service.description}
-        </p>
-
-        <div className="flex items-center gap-2 pt-1">
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r ${service.color} text-white text-xs font-medium opacity-90 group-hover:opacity-100 transition-opacity`}>
-            <Play size={12} fill="currentColor" /> Assistir Grátis
-          </div>
+        <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gradient-to-r ${service.color} text-white text-[10px] font-medium opacity-90 group-hover:opacity-100 transition-opacity`}>
+          <Play size={9} fill="currentColor" /> Assistir Grátis
         </div>
       </div>
     </a>
@@ -119,20 +109,20 @@ export default function IPTV() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-4">
-        <div className="text-center max-w-md space-y-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 flex items-center justify-center mx-auto">
-            <MonitorPlay size={40} className="text-amber-400" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="text-center max-w-sm space-y-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 flex items-center justify-center mx-auto">
+            <MonitorPlay size={28} className="text-amber-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Streaming Hub</h1>
-          <p className="text-white/50 text-sm">
+          <h1 className="text-lg font-bold text-foreground">Streaming Hub</h1>
+          <p className="text-muted-foreground/50 text-xs">
             Acesso exclusivo para membros DEV. Assista filmes e séries gratuitamente.
           </p>
-          <div className="flex gap-3 justify-center">
-            <Link to="/" className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all text-sm flex items-center gap-2">
-              <ArrowLeft size={14} /> Voltar
+          <div className="flex gap-2 justify-center">
+            <Link to="/" className="px-3 py-1.5 rounded-lg bg-muted/10 border border-border/10 text-muted-foreground hover:bg-muted/20 transition-all text-xs flex items-center gap-1.5">
+              <ArrowLeft size={12} /> Voltar
             </Link>
-            <button onClick={() => setShowVipModal(true)} className="px-6 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium hover:opacity-90 transition-all text-sm">
+            <button onClick={() => setShowVipModal(true)} className="px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium hover:opacity-90 transition-all text-xs">
               Obter Acesso
             </button>
           </div>
@@ -143,55 +133,54 @@ export default function IPTV() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-white/70 hover:text-white">
-            <ArrowLeft size={16} />
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 h-11 glass border-b border-border/10">
+        <div className="flex items-center gap-2.5">
+          <Link to="/" className="p-1.5 rounded-md bg-muted/10 hover:bg-muted/20 transition-all text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={14} />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 flex items-center justify-center">
-              <MonitorPlay size={16} className="text-amber-400" />
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 flex items-center justify-center">
+              <MonitorPlay size={13} className="text-amber-400" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white">Streaming Hub</h1>
-              <p className="text-[10px] text-white/40">Filmes e séries gratuitos</p>
+              <h1 className="text-xs font-bold text-foreground">Streaming Hub</h1>
+              <p className="text-[8px] text-muted-foreground/40 hidden sm:block">Filmes e séries gratuitos</p>
             </div>
           </div>
         </div>
         <Link
           to="/"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all text-xs"
+          className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/10 border border-border/10 text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all text-[10px]"
         >
-          <Code2 size={12} /> SnyX
+          <Code2 size={10} /> SnyX
         </Link>
       </div>
 
       {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
-        <div className="relative px-6 py-12 max-w-5xl mx-auto text-center space-y-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+        <div className="relative px-4 py-8 max-w-4xl mx-auto text-center space-y-2">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">
             Assista <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Grátis</span>
           </h2>
-          <p className="text-white/40 text-sm max-w-lg mx-auto">
-            Filmes, séries e TV ao vivo sem pagar nada. Escolha um serviço abaixo e comece a assistir agora.
+          <p className="text-muted-foreground/40 text-xs max-w-md mx-auto">
+            Filmes, séries e TV ao vivo. Escolha um serviço e comece a assistir agora.
           </p>
         </div>
       </div>
 
       {/* Services Grid */}
-      <div className="px-6 pb-12 max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="px-4 pb-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {SERVICES.map((service) => (
             <ServiceCard key={service.name} service={service} />
           ))}
         </div>
 
-        {/* Footer info */}
-        <div className="mt-8 text-center">
-          <p className="text-white/20 text-xs">
+        <div className="mt-6 text-center">
+          <p className="text-muted-foreground/20 text-[10px]">
             Todos os serviços são 100% gratuitos e legais. Os links abrem em nova aba.
           </p>
         </div>
