@@ -23,6 +23,7 @@ const ALLOWED_HOSTS = new Set([
   "tvzplay.xyz",
   "gestorx.uk",
   "e.dns.acesse.digital",
+  "megga.tv.br",
 ]);
 
 function validatePlaylistUrl(input: unknown) {
