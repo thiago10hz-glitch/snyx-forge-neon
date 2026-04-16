@@ -14,13 +14,16 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [backgroundUrl, setBackgroundUrl] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [gender, setGender] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
   const [saving, setSaving] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && profile) {
