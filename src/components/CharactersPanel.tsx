@@ -133,12 +133,25 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
 
   const fetchLikes = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("character_likes")
-      .select("character_id")
-      .eq("user_id", user.id);
-    setLikedIds(new Set((data || []).map((l) => l.character_id)));
+    const [likesRes, favsRes] = await Promise.all([
+      supabase.from("character_likes").select("character_id").eq("user_id", user.id),
+      supabase.from("character_favorites").select("character_id").eq("user_id", user.id),
+    ]);
+    setLikedIds(new Set((likesRes.data || []).map((l: any) => l.character_id)));
+    setFavIds(new Set((favsRes.data || []).map((l: any) => l.character_id)));
   }, [user]);
+
+  const toggleFav = async (charId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) return;
+    if (favIds.has(charId)) {
+      await supabase.from("character_favorites").delete().eq("character_id", charId).eq("user_id", user.id);
+      setFavIds((p) => { const s = new Set(p); s.delete(charId); return s; });
+    } else {
+      await supabase.from("character_favorites").insert({ character_id: charId, user_id: user.id });
+      setFavIds((p) => new Set(p).add(charId));
+    }
+  };
 
   const fetchVip = useCallback(async () => {
     if (!user) return;
