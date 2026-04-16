@@ -715,41 +715,17 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
             </div>
           ) : phase === "pick" ? (
             <div className="flex w-full flex-col items-center gap-3 sm:gap-4">
-              <div className="flex items-center justify-center gap-2 rounded-full border border-border/15 bg-card/35 p-1 backdrop-blur-sm">
-                {(["female", "male"] as const).map((item) => {
-                  const selected = gender === item;
-                  const itemAccent = item === "female" ? "#f472b6" : "#60a5fa";
-
-                  return (
-                    <button
-                      key={item}
-                      onClick={() => setGender(item)}
-                      className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all"
-                      style={
-                        selected
-                          ? {
-                              background: `${itemAccent}2a`,
-                              color: itemAccent,
-                              border: `1px solid ${itemAccent}66`,
-                              boxShadow: `0 0 18px ${itemAccent}22`,
-                            }
-                          : undefined
-                      }
-                    >
-                      {item === "female" ? "♀ Feminino" : "♂ Masculino"}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">
-                {VOICES[gender].map((item) => {
+              <div className="flex items-center justify-center gap-3">
+                {([VOICES.female[0], VOICES.male[0]]).map((item) => {
                   const selected = voice.id === item.id;
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setVoice(item)}
-                      className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-2xl sm:rounded-3xl border bg-card/35 px-1.5 sm:px-2 py-2.5 sm:py-3 text-center backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-card/55"
+                      onClick={() => {
+                        setVoice(item);
+                        setGender(item.id === VOICES.female[0].id ? "female" : "male");
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl sm:rounded-3xl border bg-card/35 px-5 sm:px-6 py-3 sm:py-4 text-center backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-card/55"
                       style={
                         selected
                           ? {
@@ -763,13 +739,13 @@ REGRAS — SOAR COMO PESSOA DE VERDADE:
                       }
                     >
                       <div
-                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-full"
+                        className="h-12 w-12 sm:h-14 sm:w-14 rounded-full"
                         style={{
                           background: `radial-gradient(circle, ${item.color} 0%, ${item.color}88 55%, ${item.color}33 100%)`,
                           boxShadow: `0 0 18px ${item.color}33`,
                         }}
                       />
-                      <span className="text-[10px] sm:text-xs font-semibold text-foreground">{item.label}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-foreground">{item.label}</span>
                     </button>
                   );
                 })}
