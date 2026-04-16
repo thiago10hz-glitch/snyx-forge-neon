@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2, AlertTriangle, Ban } from "lucide-react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2, Ban } from "lucide-react";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface VipModalProps {
@@ -66,18 +65,12 @@ const PERIOD_SUFFIX: Record<Period, string> = {
   yearly: "/ano",
 };
 
-const PERIOD_DAYS: Record<Period, number> = {
-  weekly: 7,
-  monthly: 30,
-  yearly: 365,
-};
 
 export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps) {
-  const { openCheckout, isLoading, error } = useMercadoPagoCheckout();
+  const { openCheckout, error } = useMercadoPagoCheckout();
   const { user, profile } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [period, setPeriod] = useState<Period>("monthly");
-  const [fraudWarning, setFraudWarning] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
 
   // Check ban status on open
