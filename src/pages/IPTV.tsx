@@ -21,6 +21,20 @@ type MainCategory = "home" | "tv" | "filmes" | "series" | "cinema";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
+function proxyUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("https://")) return url;
+  return `${SUPABASE_URL}/functions/v1/iptv-stream-proxy?url=${encodeURIComponent(url)}`;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || "")
+    .join("");
+}
+
 const ChannelLogo = memo(function ChannelLogo({ src, name, size = "md", className = "" }: { src?: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const [failed, setFailed] = useState(false);
   const sizeClasses = size === "lg" ? "w-14 h-14" : size === "md" ? "w-11 h-11" : "w-10 h-10";
