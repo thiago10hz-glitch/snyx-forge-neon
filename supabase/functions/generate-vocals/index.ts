@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
-    if (!ELEVENLABS_API_KEY) {
+    const DEEPGRAM_API_KEY = Deno.env.get("DEEPGRAM_API_KEY");
+    if (!DEEPGRAM_API_KEY) {
       return new Response(
         JSON.stringify({ success: false, error: "API de voz não configurada" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { text, voiceId = "EXAVITQu4vr4xnSDxMaL" } = body;
+    const { text, voiceId = "aura-2-thalia-en" } = body;
 
     if (!text || typeof text !== "string" || text.length < 3) {
       return new Response(
@@ -61,32 +61,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Generating vocal with ElevenLabs TTS:", text.slice(0, 100));
+    console.log("Generating vocal with Deepgram Aura:", text.slice(0, 100));
 
     const ttsRes = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      `https://api.deepgram.com/v1/speak?model=${encodeURIComponent(voiceId)}&encoding=mp3`,
       {
         method: "POST",
         headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
+          "Authorization": `Token ${DEEPGRAM_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: text.slice(0, 5000),
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.4,
-            similarity_boost: 0.75,
-            style: 0.5,
-            use_speaker_boost: true,
-          },
         }),
       }
     );
 
     if (!ttsRes.ok) {
       const errText = await ttsRes.text();
-      console.error("ElevenLabs TTS error:", ttsRes.status, errText);
+      console.error("Deepgram TTS error:", ttsRes.status, errText);
 
       if (ttsRes.status === 429) {
         return new Response(
