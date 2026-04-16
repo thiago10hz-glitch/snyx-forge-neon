@@ -175,11 +175,7 @@ export default function CloneSite() {
       if (error) throw new Error(error.message || "Erro ao criar demonstração");
       if (!data?.success) throw new Error(data?.error || "Falha ao criar demonstração");
 
-      toast.success("Demonstração ativada! Você tem 1 hora com acesso completo!", { duration: 8000 });
 
-      // Refresh profile to get new VIP status
-      const { refreshProfile } = await import("@/hooks/useAuth").then(m => ({ refreshProfile: null }));
-      
       // Navigate to demo page
       navigate("/demo");
     } catch (err: any) {
