@@ -88,7 +88,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       >
         {/* Header */}
         <div className="relative p-5 pb-4">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all"
