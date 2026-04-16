@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity, Cpu, Gamepad2, RotateCcw } from "lucide-react";
+import { Zap, Download, Wifi, Shield, Gauge, Rocket, CheckCircle2, ArrowLeft, Lock, Key, Activity, Cpu, Gamepad2, RotateCcw, Loader2, Star, Monitor, Package } from "lucide-react";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+interface AppRelease {
+  id: string;
+  version: string;
+  platform: string;
+  file_url: string;
+  file_size: number | null;
+  changelog: string | null;
+  created_at: string;
+}
 
 const Accelerator = () => {
   const navigate = useNavigate();
@@ -16,6 +26,9 @@ const Accelerator = () => {
   const [activating, setActivating] = useState(false);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [checkingKey, setCheckingKey] = useState(true);
+  const [releases, setReleases] = useState<AppRelease[]>([]);
+  const [loadingReleases, setLoadingReleases] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Speed test state
   const [testing, setTesting] = useState(false);
@@ -51,6 +64,50 @@ const Accelerator = () => {
     }, 50);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch app releases when user has active key
+  useEffect(() => {
+    if (!user || !hasActiveKey) return;
+    setLoadingReleases(true);
+    supabase
+      .from("app_releases")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        if (data) setReleases(data as AppRelease[]);
+        setLoadingReleases(false);
+      });
+  }, [user, hasActiveKey]);
+
+  const handleDownloadApp = async (rel: AppRelease) => {
+    setDownloadingId(rel.id);
+    try {
+      const ext = rel.file_url.split('.').pop() || (rel.platform === "windows" ? "exe" : "apk");
+      const { data, error } = await supabase.storage
+        .from("app-downloads")
+        .createSignedUrl(rel.file_url, 60, {
+          download: `SnyX-v${rel.version}.${ext}`,
+        });
+      if (error) throw error;
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Download iniciado!");
+    } catch (err: any) {
+      toast.error("Erro no download: " + (err.message || "tente novamente"));
+    }
+    setDownloadingId(null);
+  };
+
+  const formatSize = (bytes: number | null) => {
+    if (!bytes) return "";
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const runSpeedTest = async () => {
     setTesting(true);
@@ -210,7 +267,7 @@ const Accelerator = () => {
                   <Cpu className="w-5 h-5 mr-2" /> Abrir SnyX Optimizer
                 </Button>
               </div>
-              <p className="text-white/40 text-sm">Role para baixo para baixar o app VPN</p>
+              <p className="text-white/40 text-sm">Role para baixo para baixar o app e ferramentas</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -378,6 +435,63 @@ const Accelerator = () => {
           </div>
         )}
 
+        {/* Download SnyX App Section */}
+        {hasActiveKey && user && (
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-red-500/20 bg-red-500/[0.03]">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm mb-4">
+                <Download className="w-4 h-4" /> Download do App
+              </div>
+              <h2 className="text-2xl font-bold mb-2">SnyX App — Baixe Agora</h2>
+              <p className="text-white/40 text-sm mb-6 max-w-lg mx-auto">
+                Baixe o aplicativo SnyX exclusivo para PC. Todas as ferramentas em um só lugar.
+              </p>
+
+              {loadingReleases ? (
+                <div className="py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-red-400 mx-auto" />
+                </div>
+              ) : releases.length === 0 ? (
+                <div className="py-6">
+                  <Package className="w-10 h-10 text-white/20 mx-auto mb-3" />
+                  <p className="text-white/40 text-sm">Nenhuma versão disponível ainda. Volte em breve!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                  {releases.map((rel) => (
+                    <div key={rel.id} className="p-5 rounded-xl border border-white/10 bg-white/[0.03] hover:border-red-500/30 transition-all group">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                          <Monitor className="w-6 h-6 text-red-400" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-white">SnyX v{rel.version}</h3>
+                          <p className="text-xs text-white/40 capitalize">{rel.platform} {rel.file_size ? `• ${formatSize(rel.file_size)}` : ""}</p>
+                        </div>
+                      </div>
+                      {rel.changelog && (
+                        <p className="text-xs text-white/30 mb-3 text-left line-clamp-2">{rel.changelog}</p>
+                      )}
+                      <Button
+                        onClick={() => handleDownloadApp(rel)}
+                        disabled={downloadingId === rel.id}
+                        className="w-full py-5 text-sm font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 border-0 shadow-[0_0_20px_rgba(220,38,38,0.2)]"
+                      >
+                        {downloadingId === rel.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Download className="w-4 h-4 mr-2" />
+                        )}
+                        {downloadingId === rel.id ? "Baixando..." : "Baixar"}
+                      </Button>
+                      <p className="text-[10px] text-white/20 mt-2">{new Date(rel.created_at).toLocaleDateString("pt-BR")}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
 
         {/* Download VPN App Section */}
