@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status, player_character } = await req.json();
+    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status, player_character, character_meta } = await req.json();
+    const isRpgMode = mode === "rpg" || !!character_system_prompt || !!player_character;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
