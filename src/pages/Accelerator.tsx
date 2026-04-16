@@ -26,6 +26,9 @@ const Accelerator = () => {
   const [activating, setActivating] = useState(false);
   const [hasActiveKey, setHasActiveKey] = useState(false);
   const [checkingKey, setCheckingKey] = useState(true);
+  const [releases, setReleases] = useState<AppRelease[]>([]);
+  const [loadingReleases, setLoadingReleases] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Speed test state
   const [testing, setTesting] = useState(false);
