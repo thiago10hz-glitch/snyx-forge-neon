@@ -8,9 +8,8 @@ import {
   Globe, Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-
-const VIP_LINK = "https://wa.me/554388691650";
 
 const COMMON_PASSWORD_PATTERNS = [/123456/i, /password/i, /qwerty/i, /abc123/i, /admin/i, /letmein/i];
 
@@ -135,8 +134,7 @@ const VIP_PLANS = [
 
 const FREE_FEATURES = [
   "15 mensagens de chat IA por dia",
-  "Modo Amigo e Escola básicos",
-  "1 personagem RPG",
+  "Modo Amigo e Escola",
   "Suporte por ticket",
 ];
 
