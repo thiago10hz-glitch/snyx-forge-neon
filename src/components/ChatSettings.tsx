@@ -58,7 +58,7 @@ export const getBubblePreviewClass = (style: string, themeColor?: string): strin
     case "sharp": return "rounded-sm px-2 py-1 bg-muted/20 border border-border/20";
     case "bubble": return "rounded-3xl px-3 py-2 bg-muted/20 border border-border/15";
     case "neon": return `rounded-2xl px-2 py-1 bg-muted/10 border border-border/20 shadow-[0_0_8px_${themeColor || '#8b5cf6'}40]`;
-    case "glass": return "rounded-2xl px-2 py-1 bg-white/5 backdrop-blur-md border border-white/10";
+    case "glass": return "rounded-2xl px-2 py-1 bg-white/5  border border-white/10";
     case "retro": return "rounded-none px-2 py-1 bg-muted/30 border-2 border-border/30 font-mono shadow-[3px_3px_0px_rgba(255,255,255,0.1)]";
     case "cat": return "bubble-cat rounded-2xl px-2 py-1 bg-muted/20 border border-border/15";
     case "cloud": return "bubble-cloud px-2 py-1";
@@ -74,7 +74,7 @@ export const getBubbleClass = (style: string, themeColor?: string): string => {
     case "sharp": return "rounded-md rounded-bl-none";
     case "bubble": return "rounded-3xl";
     case "neon": return `rounded-2xl rounded-bl-md shadow-[0_0_12px_${themeColor || '#8b5cf6'}30,0_0_4px_${themeColor || '#8b5cf6'}20] border border-[${themeColor || '#8b5cf6'}30]`;
-    case "glass": return "rounded-2xl rounded-bl-md bg-white/5 backdrop-blur-md border border-white/10";
+    case "glass": return "rounded-2xl rounded-bl-md bg-white/5  border border-white/10";
     case "retro": return "rounded-none border-2 border-border/30 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
     case "cat": return "bubble-cat rounded-2xl rounded-bl-md";
     case "cloud": return "bubble-cloud";
@@ -90,7 +90,7 @@ export const getUserBubbleClass = (style: string): string => {
     case "sharp": return "rounded-md rounded-br-none";
     case "bubble": return "rounded-3xl";
     case "neon": return "rounded-2xl rounded-br-md shadow-[0_0_12px_rgba(239,68,68,0.3)]";
-    case "glass": return "rounded-2xl rounded-br-md bg-white/10 backdrop-blur-md border border-white/15";
+    case "glass": return "rounded-2xl rounded-br-md bg-white/10  border border-white/15";
     case "retro": return "rounded-none border-2 border-primary/40 font-mono shadow-[4px_4px_0px_rgba(255,255,255,0.08)]";
     case "cat": return "bubble-cat-user rounded-2xl rounded-br-md";
     case "cloud": return "bubble-cloud-user";
@@ -201,7 +201,7 @@ export function ChatSettings({ open, onClose, onSaved }: ChatSettingsProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4" onClick={onClose}>
       <div
         className="glass-elevated rounded-2xl max-w-lg w-full overflow-hidden animate-enter border border-border/20 max-h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}

@@ -154,17 +154,17 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-background/80  flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-background/80  flex items-center justify-center p-4">
       <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-background border border-border/20 rounded-2xl shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/10 px-5 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-background/95  border-b border-border/10 px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center border border-purple-500/20">
               <Swords className="w-5 h-5 text-purple-400" />

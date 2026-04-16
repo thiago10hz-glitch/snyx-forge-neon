@@ -118,7 +118,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
     const minutesLeft = bannedUntil ? Math.max(1, Math.ceil((bannedUntil.getTime() - Date.now()) / 60000)) : 0;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80  p-4">
         <div className="glass-elevated rounded-2xl max-w-md w-full p-8 text-center border border-red-500/30 animate-enter">
           <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-4">
             <Ban className="w-8 h-8 text-red-400" />
@@ -142,7 +142,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70  p-0 sm:p-4">
       <div className="glass-elevated rounded-t-2xl sm:rounded-2xl max-w-5xl w-full overflow-hidden animate-enter border border-border/20 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 shrink-0">

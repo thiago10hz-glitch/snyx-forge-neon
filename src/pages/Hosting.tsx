@@ -521,7 +521,7 @@ const Hosting = () => {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Top Header Bar */}
-      <header className="h-11 flex items-center justify-between px-4 shrink-0 border-b border-border/10 bg-background/80 backdrop-blur-xl z-10">
+      <header className="h-11 flex items-center justify-between px-4 shrink-0 border-b border-border/10 bg-background/80  z-10">
         <div className="flex items-center gap-3">
           <Link to="/" className="p-1.5 rounded-md hover:bg-muted/15 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={15} />
@@ -878,7 +878,7 @@ const Hosting = () => {
           {previewHtml ? (
             <>
               {/* Preview toolbar */}
-              <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-border/5 bg-background/50 backdrop-blur-sm">
+              <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-border/5 bg-background/50 ">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 p-0.5 rounded-md bg-muted/8 border border-border/5">
                     <button onClick={() => setPreviewDevice("desktop")} className={`p-1 rounded-sm transition-all ${previewDevice === "desktop" ? "bg-muted/20 text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-muted-foreground"}`}>

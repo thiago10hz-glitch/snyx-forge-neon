@@ -249,7 +249,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
           else if (phase === "playing") { setPhase("menu"); }
           else { setPhase("menu"); }
         }}
-        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-muted/15 text-muted-foreground/70 backdrop-blur-md transition-all hover:bg-muted/30 hover:text-foreground"
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-muted/15 text-muted-foreground/70  transition-all hover:bg-muted/30 hover:text-foreground"
       >
         <ArrowLeft size={18} />
       </button>
@@ -258,7 +258,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
       {phase !== "library" && phase !== "generating" && tracks.length > 0 && (
         <button
           onClick={() => setPhase("library")}
-          className="absolute right-4 top-4 z-20 flex h-10 items-center gap-1.5 px-3 rounded-full bg-muted/15 text-muted-foreground/70 backdrop-blur-md transition-all hover:bg-muted/30 hover:text-foreground text-xs font-medium"
+          className="absolute right-4 top-4 z-20 flex h-10 items-center gap-1.5 px-3 rounded-full bg-muted/15 text-muted-foreground/70  transition-all hover:bg-muted/30 hover:text-foreground text-xs font-medium"
         >
           <ListMusic size={14} />
           {tracks.length}
@@ -333,7 +333,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
               placeholder="Ex: Funk animado pra festa com batida pesada..."
-              className="w-full h-28 bg-muted/10 border border-border/15 rounded-2xl p-4 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none resize-none focus:border-purple-500/30 transition-colors backdrop-blur-sm"
+              className="w-full h-28 bg-muted/10 border border-border/15 rounded-2xl p-4 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none resize-none focus:border-purple-500/30 transition-colors "
             />
 
             {/* Quick tags */}
@@ -391,7 +391,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
               value={vocalText}
               onChange={e => setVocalText(e.target.value)}
               placeholder="Escreva a letra ou texto que a voz vai cantar/falar..."
-              className="w-full h-28 bg-muted/10 border border-border/15 rounded-2xl p-4 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none resize-none focus:border-pink-500/30 transition-colors backdrop-blur-sm"
+              className="w-full h-28 bg-muted/10 border border-border/15 rounded-2xl p-4 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none resize-none focus:border-pink-500/30 transition-colors "
             />
 
             <button

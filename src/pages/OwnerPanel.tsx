@@ -314,7 +314,7 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
         ].map((s, i) => (
           <div
             key={s.label}
-            className="rounded-xl border border-border/15 bg-card/30 backdrop-blur-sm p-3 animate-fade-in"
+            className="rounded-xl border border-border/15 bg-card/30 p-3 animate-fade-in"
             style={{ animationDelay: `${300 + i * 40}ms`, animationFillMode: "both" }}
           >
             <div className="flex items-center gap-2 mb-1">
@@ -332,7 +332,7 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
       {/* Recent + Top */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Signups */}
-        <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-4">
+        <div className="rounded-2xl border border-border/20 bg-card/30 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-semibold">Cadastros Recentes</span>
@@ -370,7 +370,7 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
         </div>
 
         {/* Top Messagers */}
-        <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-4">
+        <div className="rounded-2xl border border-border/20 bg-card/30 p-4">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-4 h-4 text-purple-400" />
             <span className="text-xs font-semibold">Top Mensageiros (24h)</span>
@@ -422,7 +422,7 @@ function AnalyticsTab({ stats }: { stats: PlatformStats }) {
   return (
     <div className="space-y-5">
       {/* User Breakdown */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-amber-400" />
           Distribuição de Usuários
@@ -458,7 +458,7 @@ function AnalyticsTab({ stats }: { stats: PlatformStats }) {
         {platformMetrics.map((m, i) => (
           <div
             key={m.label}
-            className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-4 animate-fade-in"
+            className="rounded-2xl border border-border/20 bg-card/30 p-4 animate-fade-in"
             style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
           >
             <m.icon className={`w-5 h-5 ${m.color} mb-2`} />
@@ -470,7 +470,7 @@ function AnalyticsTab({ stats }: { stats: PlatformStats }) {
       </div>
 
       {/* Growth indicators */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-emerald-400" />
           Crescimento
@@ -545,7 +545,7 @@ function BroadcastTab({ broadcastMsg, setBroadcastMsg }: { broadcastMsg: string;
       </div>
 
       {/* Templates */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <h3 className="text-sm font-bold mb-3">Templates Rápidos</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {[
@@ -995,7 +995,7 @@ function AdminsTab() {
       </div>
 
       {/* Current Admins List */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Crown className="w-4 h-4 text-amber-400" />
@@ -1090,7 +1090,7 @@ function PlatformTab({ stats }: { stats: PlatformStats }) {
       </div>
 
       {/* System Info */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
           <Database className="w-4 h-4 text-blue-400" />
           Informações do Sistema
@@ -1115,7 +1115,7 @@ function PlatformTab({ stats }: { stats: PlatformStats }) {
       </div>
 
       {/* Uptime */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-5">
+      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
         <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
           <Wifi className="w-4 h-4 text-cyan-400" />
           Uptime

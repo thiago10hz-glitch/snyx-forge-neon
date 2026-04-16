@@ -84,31 +84,23 @@
 }
 
 @layer components {
-  /* === Glass effects === */
+  /* === Glass effects (opaque bg, no backdrop-blur for performance) === */
   .glass {
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(10, 10, 15, 0.85);
     border-color: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
   }
   .glass-elevated {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(10, 10, 15, 0.92);
     border-color: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(32px) saturate(1.6);
-    -webkit-backdrop-filter: blur(32px) saturate(1.6);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .glass-subtle {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(10, 10, 15, 0.75);
     border-color: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
   .glass-input {
     background: rgba(255, 255, 255, 0.035);
     border-color: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
 
   /* === Neon effects === */
@@ -534,8 +526,8 @@
   50% { transform: translateY(-6px); }
 }
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.25; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -600,14 +592,6 @@
 .stagger-3 { animation-delay: 0.15s; opacity: 0; }
 .stagger-4 { animation-delay: 0.2s; opacity: 0; }
 .stagger-5 { animation-delay: 0.25s; opacity: 0; }
-
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  .glass-elevated {
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  }
-}
 
 /* Desktop enhancements */
 @media (min-width: 1024px) {

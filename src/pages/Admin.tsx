@@ -1104,7 +1104,7 @@ export default function Admin() {
       )}
 
       {vipModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
           <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-yellow-500/10 mb-4">
               <Crown className="w-6 h-6 text-yellow-400" />
@@ -1147,7 +1147,7 @@ export default function Admin() {
 
       {/* DEV Duration Modal */}
       {devModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
           <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 mb-4">
               <Code2 className="w-6 h-6 text-cyan-400" />
@@ -1190,7 +1190,7 @@ export default function Admin() {
 
       {/* RPG Duration Modal */}
       {rpgModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
           <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-purple-500/10 mb-4">
               <span className="text-2xl">⚔️</span>

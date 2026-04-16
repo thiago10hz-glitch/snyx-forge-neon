@@ -222,7 +222,7 @@ export default function CloneSite() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border/15 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/15 bg-background/80 ">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link to="/" className="p-2 rounded-lg hover:bg-muted/30 transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -272,7 +272,7 @@ export default function CloneSite() {
         <h3 className="text-lg font-black text-center mb-8">O que você recebe</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
-            <TiltCard key={i} className="p-5 rounded-xl border border-border/15 bg-card/30 backdrop-blur-sm">
+            <TiltCard key={i} className="p-5 rounded-xl border border-border/15 bg-card/30 ">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 border border-primary/15">
                 <f.icon className="w-5 h-5 text-primary" />
               </div>
@@ -302,7 +302,7 @@ export default function CloneSite() {
 
       {/* Customization Form + CTA */}
       <section className="max-w-xl mx-auto px-4 pb-8">
-        <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-6 md:p-8 space-y-5">
+        <div className="rounded-2xl border border-border/20 bg-card/30  p-6 md:p-8 space-y-5">
           <div className="text-center mb-2">
             <h3 className="text-lg font-black mb-1">Monte seu site</h3>
             <p className="text-xs text-muted-foreground/50">Preencha e a IA faz o resto</p>
@@ -368,7 +368,7 @@ export default function CloneSite() {
 
       {/* Demo Section */}
       <section className="max-w-xl mx-auto px-4 pb-20">
-        <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 backdrop-blur-sm p-6 text-center space-y-4">
+        <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5  p-6 text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-bold">
             <Eye className="w-3 h-3" />
             Teste grátis

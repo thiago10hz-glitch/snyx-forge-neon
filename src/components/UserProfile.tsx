@@ -132,9 +132,9 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-lg" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 " onClick={onClose}>
       <div
-        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
+        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-card/95  sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
         onClick={e => e.stopPropagation()}
       >
         {/* Header with avatar hero */}
@@ -149,7 +149,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             <button
               onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
               disabled={uploadingBg}
-              className="absolute bottom-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm text-white/80 text-[10px] font-medium hover:bg-black/80 transition-all border border-white/10"
+              className="absolute bottom-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/60  text-white/80 text-[10px] font-medium hover:bg-black/80 transition-all border border-white/10"
             >
               {uploadingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
               {backgroundUrl ? "Trocar fundo" : "Adicionar fundo"}
@@ -160,7 +160,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           {/* Close button */}
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/60 backdrop-blur-md text-muted-foreground/60 hover:text-foreground hover:bg-background/80 transition-all border border-border/10"
+            className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/60  text-muted-foreground/60 hover:text-foreground hover:bg-background/80 transition-all border border-border/10"
           >
             <X size={16} />
           </button>

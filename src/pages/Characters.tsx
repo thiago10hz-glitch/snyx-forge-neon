@@ -343,13 +343,13 @@ const Characters = () => {
 
                 <button
                   onClick={(e) => toggleLike(char.id, e)}
-                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all"
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40  flex items-center justify-center hover:bg-black/60 transition-all"
                 >
                   <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
                 </button>
 
                 {char.likes_count > 0 && (
-                  <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white/80">
+                  <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40  text-[10px] text-white/80">
                     <Heart className="w-3 h-3 fill-red-500 text-red-500" />
                     {char.likes_count >= 1000 ? (char.likes_count / 1000).toFixed(1) + "k" : char.likes_count}
                   </div>

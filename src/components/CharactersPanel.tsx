@@ -307,7 +307,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                     <Sparkles className="w-8 h-8 text-muted-foreground/20" />
                   )}
                   {uploadingAvatar && (
-                    <div className="absolute inset-0 bg-background/70 flex items-center justify-center backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-background/70 flex items-center justify-center ">
                       <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
                   )}
@@ -494,11 +494,11 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                   <button key={char.id} onClick={() => startChat(char.id)} className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
                     <CharacterImg src={char.avatar_url ?? ""} alt={char.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <button onClick={(e) => toggleLike(char.id, e)} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all">
+                    <button onClick={(e) => toggleLike(char.id, e)} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40  flex items-center justify-center hover:bg-black/60 transition-all">
                       <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
                     </button>
                     {char.likes_count > 0 && (
-                      <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white/80">
+                      <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40  text-[10px] text-white/80">
                         <Heart className="w-3 h-3 fill-red-500 text-red-500" />
                         {char.likes_count >= 1000 ? (char.likes_count / 1000).toFixed(1) + "k" : char.likes_count}
                       </div>

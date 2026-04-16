@@ -652,7 +652,7 @@ const SiteManage = () => {
 
       {/* Footer */}
       {isOwner && (
-        <div className="border-t border-border/10 px-4 md:px-8 py-3 flex items-center justify-between bg-background/80 backdrop-blur-sm shrink-0">
+        <div className="border-t border-border/10 px-4 md:px-8 py-3 flex items-center justify-between bg-background/80  shrink-0">
           <div className="text-[10px] text-muted-foreground/50">
             Criado em {new Date(site.created_at).toLocaleDateString("pt-BR")}
             {site.updated_at !== site.created_at && ` • Editado em ${new Date(site.updated_at).toLocaleDateString("pt-BR")}`}

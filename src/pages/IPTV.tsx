@@ -331,7 +331,7 @@ export default function IPTV() {
             <p className="text-muted-foreground/60 text-sm mt-3 leading-relaxed max-w-xs mx-auto">Acesso exclusivo para membros DEV. Milhares de canais ao vivo, filmes e séries.</p>
           </div>
           <div className="flex gap-3 justify-center">
-            <Link to="/" className="px-5 py-3 rounded-2xl bg-card/50 border border-border/10 text-muted-foreground hover:bg-card hover:text-foreground transition-all text-sm flex items-center gap-2 backdrop-blur-sm"><ArrowLeft size={14} /> Voltar</Link>
+            <Link to="/" className="px-5 py-3 rounded-2xl bg-card/50 border border-border/10 text-muted-foreground hover:bg-card hover:text-foreground transition-all text-sm flex items-center gap-2"><ArrowLeft size={14} /> Voltar</Link>
             <button onClick={() => setShowVipModal(true)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold hover:opacity-90 transition-all text-sm shadow-xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95 flex items-center gap-2">
               <Zap size={16} /> Obter Acesso
             </button>
@@ -344,7 +344,7 @@ export default function IPTV() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="sticky top-0 z-30 backdrop-blur-2xl bg-background/70 border-b border-border/5">
+      <div className="sticky top-0 z-30 bg-background/70 border-b border-border/5">
         <div className="flex items-center justify-between px-4 sm:px-6 h-14">
           <div className="flex items-center gap-3">
             {activeCategory !== "home" ? (
@@ -409,13 +409,13 @@ export default function IPTV() {
         <div className="relative bg-black w-full" style={{ maxHeight: "50vh" }}>
           <video ref={videoRef} controls autoPlay playsInline className="w-full max-h-[50vh] bg-black" />
           <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/90 via-black/40 to-transparent flex items-center justify-between">
-            <div className="flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-black/40 border border-white/10">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <span className="text-white text-xs font-semibold truncate max-w-[200px]">{playingChannel.n}</span>
               <span className="text-white/20">|</span>
               <span className="text-white/40 text-[10px] truncate max-w-[120px]">{playingChannel.g}</span>
             </div>
-            <button onClick={stopPlaying} className="p-2.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 text-white/60 hover:text-white hover:bg-red-500/40 transition-all">
+            <button onClick={stopPlaying} className="p-2.5 rounded-xl bg-black/40 border border-white/10 text-white/60 hover:text-white hover:bg-red-500/40 transition-all">
               <X size={14} />
             </button>
           </div>
@@ -427,7 +427,7 @@ export default function IPTV() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <div className="relative">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center backdrop-blur-sm border border-purple-500/10">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/10">
                   <Loader2 size={32} className="text-purple-400 animate-spin" />
                 </div>
                 <div className="absolute -inset-4 rounded-[28px] bg-purple-500/5 animate-pulse" />
@@ -439,7 +439,7 @@ export default function IPTV() {
             </div>
           ) : channels.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 gap-6">
-              <div className="w-24 h-24 rounded-3xl bg-card/50 border border-border/10 flex items-center justify-center backdrop-blur-sm">
+              <div className="w-24 h-24 rounded-3xl bg-card/50 border border-border/10 flex items-center justify-center">
                 <Tv size={40} className="text-muted-foreground/15" />
               </div>
               <div className="text-center">
@@ -489,7 +489,7 @@ export default function IPTV() {
                           setSelectedGroup("Todos");
                           setSearch("");
                         }}
-                        className="group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 backdrop-blur-sm hover:bg-card/60"
+                        className="group relative overflow-hidden rounded-2xl border border-border/5 p-5 sm:p-6 text-left transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] hover:shadow-2xl bg-card/30 hover:bg-card/60"
                       >
                         <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-[0.04] group-hover:opacity-[0.12] transition-opacity duration-500`} />
                         <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${cat.gradient} opacity-[0.06] group-hover:opacity-[0.15] blur-2xl transition-opacity duration-500`} />
@@ -557,7 +557,7 @@ export default function IPTV() {
 
       {activeCategory !== "home" && (
         <>
-          <div className="sticky top-14 z-20 px-4 sm:px-6 py-3 backdrop-blur-2xl bg-background/70 border-b border-border/5">
+          <div className="sticky top-14 z-20 px-4 sm:px-6 py-3 bg-background/70 border-b border-border/5">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/25" />
@@ -566,7 +566,7 @@ export default function IPTV() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar canal ou categoria..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card/40 border border-border/5 text-foreground text-sm placeholder:text-muted-foreground/25 focus:outline-none focus:border-purple-500/30 focus:ring-2 focus:ring-purple-500/10 focus:bg-card/60 transition-all backdrop-blur-sm"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card/40 border border-border/5 text-foreground text-sm placeholder:text-muted-foreground/25 focus:outline-none focus:border-purple-500/30 focus:ring-2 focus:ring-purple-500/10 focus:bg-card/60 transition-all"
                 />
                 {search && (
                   <button onClick={() => setSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/30 hover:text-foreground transition-colors">
@@ -575,7 +575,7 @@ export default function IPTV() {
                 )}
               </div>
               <div className="relative">
-                <button onClick={() => setShowGroups(!showGroups)} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-card/40 border border-border/5 text-muted-foreground text-sm hover:bg-card/70 transition-all whitespace-nowrap h-full backdrop-blur-sm">
+                <button onClick={() => setShowGroups(!showGroups)} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-card/40 border border-border/5 text-muted-foreground text-sm hover:bg-card/70 transition-all whitespace-nowrap h-full">
                   <List size={14} />
                   <span className="hidden sm:inline max-w-[120px] truncate">{selectedGroup}</span>
                   <ChevronDown size={12} className={`transition-transform duration-300 ${showGroups ? "rotate-180" : ""}`} />
@@ -583,7 +583,7 @@ export default function IPTV() {
                 {showGroups && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowGroups(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-72 max-h-80 overflow-y-auto rounded-2xl bg-card/95 backdrop-blur-xl border border-border/10 shadow-2xl shadow-black/50 z-50 p-2">
+                    <div className="absolute right-0 top-full mt-2 w-72 max-h-80 overflow-y-auto rounded-2xl bg-card/95 border border-border/10 shadow-2xl shadow-black/50 z-50 p-2">
                       {subGroups.map((g) => (
                         <button key={g} onClick={() => { setSelectedGroup(g); setShowGroups(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs transition-all ${g === selectedGroup ? "text-purple-400 bg-purple-500/10 font-semibold" : "text-foreground/60 hover:bg-card hover:text-foreground"}`}>
                           {g}
@@ -610,7 +610,7 @@ export default function IPTV() {
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-28 gap-4">
-                <div className="w-20 h-20 rounded-3xl bg-card/30 border border-border/5 flex items-center justify-center backdrop-blur-sm">
+                <div className="w-20 h-20 rounded-3xl bg-card/30 border border-border/5 flex items-center justify-center">
                   <Search size={32} className="text-muted-foreground/15" />
                 </div>
                 <p className="text-muted-foreground/40 text-sm">Nenhum canal encontrado</p>

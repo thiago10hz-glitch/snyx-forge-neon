@@ -86,7 +86,7 @@ export default function OwnerChat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] max-h-[700px] rounded-2xl border border-amber-500/20 bg-card/30 backdrop-blur-sm overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-200px)] max-h-[700px] rounded-2xl border border-amber-500/20 bg-card/30  overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-amber-500/15 bg-gradient-to-r from-amber-950/20 to-transparent">
         <div className="flex items-center gap-2.5">
