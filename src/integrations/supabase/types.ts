@@ -506,6 +506,33 @@ export type Database = {
           },
         ]
       }
+      fraud_attempts: {
+        Row: {
+          attempt_type: string
+          created_at: string
+          details: string | null
+          id: string
+          user_id: string
+          warning_shown: boolean
+        }
+        Insert: {
+          attempt_type?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          user_id: string
+          warning_shown?: boolean
+        }
+        Update: {
+          attempt_type?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          user_id?: string
+          warning_shown?: boolean
+        }
+        Relationships: []
+      }
       hosted_sites: {
         Row: {
           created_at: string
