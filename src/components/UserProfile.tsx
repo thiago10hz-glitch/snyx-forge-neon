@@ -115,6 +115,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         avatar_url: avatarUrl || null,
+        background_url: backgroundUrl || null,
         relationship_status: relationshipStatus || null,
         gender: gender || null,
       }).eq("user_id", user.id);
