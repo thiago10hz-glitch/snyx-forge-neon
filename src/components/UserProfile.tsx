@@ -18,6 +18,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const [gender, setGender] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
