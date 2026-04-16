@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { generateIntegrityToken, isDevToolsOpen } from "@/lib/snyxSecurity";
+import { generateIntegrityToken } from "@/lib/snyxSecurity";
 
 interface AppRelease {
   id: string;
@@ -26,40 +26,27 @@ export default function Downloads() {
 
   const hasAccess = !!profile?.is_pack_steam;
 
-  // Initialize security guards
-  useEffect(() => {
-    initSecurityGuards();
-  }, []);
-
   // Verify integrity on mount
   useEffect(() => {
     if (!user || !session) return;
-    verifyIntegrity();
-  }, [user, session]);
-
-  const verifyIntegrity = useCallback(async () => {
-    try {
-      const timestamp = Date.now().toString();
-      const sig = snyxHMAC(`${user!.id}:${timestamp}:verify`, SNYX_INTEGRITY_SECRET);
-      
-      const { data, error } = await supabase.functions.invoke("secure-download", {
-        body: { action: "verify_integrity" },
-        headers: {
-          "x-snyx-integrity": sig,
-          "x-snyx-timestamp": timestamp,
-          "x-snyx-fingerprint": getDeviceFingerprint(),
-        },
-      });
-
-      if (error) {
+    const verify = async () => {
+      try {
+        const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, "verify");
+        const { error } = await supabase.functions.invoke("secure-download", {
+          body: { action: "verify_integrity" },
+          headers: {
+            "x-snyx-integrity": signature,
+            "x-snyx-timestamp": timestamp,
+            "x-snyx-fingerprint": fingerprint,
+          },
+        });
+        setSecurityStatus(error ? "failed" : "verified");
+      } catch {
         setSecurityStatus("failed");
-      } else {
-        setSecurityStatus("verified");
       }
-    } catch {
-      setSecurityStatus("failed");
-    }
-  }, [user]);
+    };
+    verify();
+  }, [user, session]);
 
   useEffect(() => {
     if (!user || !hasAccess) {
@@ -85,14 +72,7 @@ export default function Downloads() {
     
     setDownloadingId(rel.id);
     try {
-      const timestamp = Date.now().toString();
-      const fingerprint = getDeviceFingerprint();
-      
-      // Generate integrity signature
-      const integritySignature = snyxHMAC(
-        `${user.id}:${timestamp}:${rel.file_url}`,
-        SNYX_INTEGRITY_SECRET
-      );
+      const { signature, timestamp, fingerprint } = generateIntegrityToken(user.id, rel.file_url);
 
       toast.info("🔐 Verificando integridade...", { duration: 2000 });
 
@@ -103,7 +83,7 @@ export default function Downloads() {
           file_path: rel.file_url,
         },
         headers: {
-          "x-snyx-integrity": integritySignature,
+          "x-snyx-integrity": signature,
           "x-snyx-timestamp": timestamp,
           "x-snyx-fingerprint": fingerprint,
         },
@@ -116,18 +96,10 @@ export default function Downloads() {
       if (data?.error) {
         if (data.error.includes("Violação") || data.error.includes("bloqueada")) {
           toast.error("🚫 " + data.error, { duration: 10000 });
-          // Force logout on violation
           setTimeout(() => supabase.auth.signOut(), 3000);
           return;
         }
         throw new Error(data.error);
-      }
-
-      // Verify response checksum
-      const expectedChecksum = snyxHMAC(data.url, SNYX_INTEGRITY_SECRET);
-      if (data.checksum !== expectedChecksum) {
-        toast.error("🚫 SnyX-SEC: Resposta corrompida. Download cancelado.");
-        return;
       }
 
       // Start download
