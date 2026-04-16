@@ -637,7 +637,7 @@ function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
       color: "text-amber-400",
       bgColor: "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20",
       action: async () => {
-        const { error, count } = await supabase
+        const { error } = await supabase
           .from("support_tickets")
           .update({ status: "closed" })
           .eq("status", "resolved");
