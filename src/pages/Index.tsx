@@ -251,25 +251,33 @@ const Index = () => {
         <div className="flex-1 flex overflow-hidden">
           {safeChatMode === "music" ? (
             <div className="flex-1 overflow-hidden">
-              <MusicPanel onBack={() => setChatMode("friend")} />
+              <Suspense fallback={<PanelLoader />}>
+                <MusicPanel onBack={() => setChatMode("friend")} />
+              </Suspense>
             </div>
           ) : safeChatMode === "characters" ? (
             <div className="flex-1 overflow-hidden">
-              <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
+              <Suspense fallback={<PanelLoader />}>
+                <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
+              </Suspense>
             </div>
           ) : (
             <>
               <div className={`w-full ${safeChatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
-                <ChatPanel
-                  onCodeGenerated={setCode}
-                  onModeChange={(mode) => setChatMode(mode)}
-                  activeCharacter={hasRpgAccess ? activeCharacter : null}
-                  onClearCharacter={() => setActiveCharacter(null)}
-                />
+                <Suspense fallback={<PanelLoader />}>
+                  <ChatPanel
+                    onCodeGenerated={setCode}
+                    onModeChange={(mode) => setChatMode(mode)}
+                    activeCharacter={hasRpgAccess ? activeCharacter : null}
+                    onClearCharacter={() => setActiveCharacter(null)}
+                  />
+                </Suspense>
               </div>
               {safeChatMode === "programmer" && (
                 <div className="hidden md:block flex-1 min-w-0">
-                  <CodeEditor code={code} onCodeChange={setCode} />
+                  <Suspense fallback={<PanelLoader />}>
+                    <CodeEditor code={code} onCodeChange={setCode} />
+                  </Suspense>
                 </div>
               )}
             </>
