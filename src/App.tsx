@@ -63,22 +63,32 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function CopyProtection() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
+  const isOwner = isAdmin || profile?.team_badge === "Dona" || profile?.team_badge === "Primeira-Dama";
 
   React.useEffect(() => {
-    if (isAdmin) {
+    // Set owner mode in security module
+    setSnyxOwnerMode(!!isOwner);
+
+    if (isOwner) {
       document.documentElement.style.userSelect = '';
+      document.documentElement.style.webkitUserSelect = '';
       return;
     }
 
-    // Block copy/cut/select for non-admins
+    // Block copy/cut/select for non-owners
     document.documentElement.style.userSelect = 'none';
+    (document.documentElement.style as any).webkitUserSelect = 'none';
 
     const blockCopy = (e: ClipboardEvent) => {
-      if (!isAdmin) e.preventDefault();
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      e.preventDefault();
     };
     const blockSelect = (e: Event) => {
-      if (!isAdmin) e.preventDefault();
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || (target as HTMLElement).isContentEditable) return;
+      e.preventDefault();
     };
 
     document.addEventListener('copy', blockCopy);
@@ -87,11 +97,12 @@ function CopyProtection() {
 
     return () => {
       document.documentElement.style.userSelect = '';
+      (document.documentElement.style as any).webkitUserSelect = '';
       document.removeEventListener('copy', blockCopy);
       document.removeEventListener('cut', blockCopy);
       document.removeEventListener('selectstart', blockSelect);
     };
-  }, [isAdmin]);
+  }, [isOwner]);
 
   return null;
 }
