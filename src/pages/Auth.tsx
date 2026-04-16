@@ -356,27 +356,27 @@ export default function Auth() {
                           <Star className="h-3 w-3" /> Popular
                         </div>
                       )}
-                    <div className="flex items-start gap-4">
-                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/40 ${plan.iconColor}`}>
-                          <plan.icon className="h-6 w-6" />
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/40 ${plan.iconColor}`}>
+                          <plan.icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-foreground text-lg">{plan.title}</h3>
-                          <div className="mt-2 flex flex-wrap gap-2">
+                          <h3 className="font-bold text-foreground text-sm">{plan.title}</h3>
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
                             {plan.plans.map((p, k) => (
-                              <div key={k} className="relative flex flex-col items-center rounded-xl border border-border/20 bg-background/30 px-3 py-2 min-w-[80px]">
+                              <div key={k} className="relative flex flex-col items-center rounded-lg border border-border/15 bg-background/25 px-2 py-1 min-w-[60px]">
                                 {p.badge && (
-                                  <span className="absolute -top-2 text-[8px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">{p.badge}</span>
+                                  <span className="absolute -top-1.5 text-[7px] font-bold bg-primary text-primary-foreground px-1 py-0 rounded-full">{p.badge}</span>
                                 )}
-                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{p.label}</span>
-                                <span className="text-sm font-black text-foreground mt-0.5">{p.price}</span>
+                                <span className="text-[8px] text-muted-foreground/60 uppercase">{p.label}</span>
+                                <span className="text-[11px] font-black text-foreground">{p.price}</span>
                               </div>
                             ))}
                           </div>
-                          <ul className="mt-3 grid grid-cols-2 gap-1.5">
+                          <ul className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5">
                             {plan.features.map((f, j) => (
-                              <li key={j} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Check className="h-3 w-3 text-primary shrink-0" />
+                              <li key={j} className="flex items-start gap-1 text-[9px] text-muted-foreground/80">
+                                <Check className="h-2.5 w-2.5 text-primary shrink-0 mt-0.5" />
                                 {f}
                               </li>
                             ))}
@@ -391,37 +391,37 @@ export default function Auth() {
                   href={VIP_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-4 text-sm font-bold text-black transition-all hover:opacity-90 hover:shadow-lg hover:shadow-amber-500/20"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2.5 text-xs font-bold text-black transition-all hover:opacity-90 hover:shadow-lg hover:shadow-amber-500/20"
                 >
                   <Crown className="h-4 w-4" />
                   Adquirir agora via WhatsApp
                   <ArrowRight className="h-4 w-4" />
                 </a>
 
-                <div className="flex items-center gap-3 rounded-xl border border-border/20 bg-muted/10 p-3">
-                  <Shield className="h-4 w-4 text-primary shrink-0" />
-                  <p className="text-[11px] text-muted-foreground">Pagamento seguro • Ativação instantânea • Cancele quando quiser</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border/15 bg-muted/5 p-2">
+                  <Shield className="h-3 w-3 text-primary shrink-0" />
+                  <p className="text-[9px] text-muted-foreground/60">Pagamento seguro • Ativação instantânea • Cancele quando quiser</p>
                 </div>
 
-                <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
-                  <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
+                <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-1.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground">
+                  <ArrowLeft className="h-3 w-3" /> Voltar ao login
                 </button>
               </div>
             )}
 
             {/* Card for auth forms */}
             {view !== "vip-info" && (
-              <div className="overflow-hidden rounded-3xl border border-border/25 bg-card/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
-                <div className="p-6 space-y-6">
+              <div className="overflow-hidden rounded-2xl border border-border/20 bg-card/60 shadow-xl shadow-black/15 backdrop-blur-xl">
+                <div className="p-4 space-y-4">
                   {/* Tabs */}
                   {isAuthForm && (
-                    <div className="grid grid-cols-2 rounded-2xl border border-border/20 bg-muted/15 p-1">
+                    <div className="grid grid-cols-2 rounded-xl border border-border/15 bg-muted/10 p-0.5">
                       <button type="button" onClick={() => switchAuthView("login")}
-                        className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${view === "login" ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20" : "text-muted-foreground hover:text-foreground"}`}>
+                        className={`rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${view === "login" ? "bg-card text-foreground shadow-sm border border-border/15" : "text-muted-foreground hover:text-foreground"}`}>
                         Entrar
                       </button>
                       <button type="button" onClick={() => switchAuthView("signup")}
-                        className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${view === "signup" ? "bg-card text-foreground shadow-lg shadow-primary/5 border border-border/20" : "text-muted-foreground hover:text-foreground"}`}>
+                        className={`rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${view === "signup" ? "bg-card text-foreground shadow-sm border border-border/15" : "text-muted-foreground hover:text-foreground"}`}>
                         Criar conta
                       </button>
                     </div>
