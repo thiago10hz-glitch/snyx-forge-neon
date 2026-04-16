@@ -82,10 +82,7 @@ serve(async (req) => {
         issues.push({ type: "expired_keys", severity: "high", count: expiredKeys.length, message: `${expiredKeys.length} chave(s) Accelerator expiradas mas ainda ativas` });
       }
 
-      // 3. Check orphan conversations (no messages)
-      const { data: orphanConvos } = await supabase.rpc("check_orphan_conversations").catch(() => ({ data: null }));
-
-      // 4. Check profiles without display_name
+      // 3. Check profiles without display_name
       const { data: noName, count: noNameCount } = await supabase.from("profiles")
         .select("user_id", { count: "exact" })
         .is("display_name", null);
