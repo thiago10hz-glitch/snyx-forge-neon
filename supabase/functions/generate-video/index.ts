@@ -113,6 +113,8 @@ Deno.serve(async (req: Request) => {
         error_message: errorMessage,
       });
     }
+
+    // ===== ACTION: list_avatars =====
     if (action === "list_avatars") {
       const avatarRes = await fetch(`${HEYGEN_API}/v2/avatars`, {
         headers: { accept: "application/json", "x-api-key": HEYGEN_API_KEY },
