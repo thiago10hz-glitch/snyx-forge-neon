@@ -121,8 +121,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
 
-            <h3 className="text-base font-bold text-foreground mt-2">{profile?.display_name || "Usuário"}</h3>
-            <p className="text-[11px] text-muted-foreground/40 truncate max-w-[200px]">{user.email}</p>
+            <h3 className="text-base font-bold text-foreground/85 mt-2">{profile?.display_name || "Usuário"}</h3>
+            <p className="text-[11px] text-muted-foreground/30 truncate max-w-[200px]">{user.email}</p>
 
             {/* Badges */}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
