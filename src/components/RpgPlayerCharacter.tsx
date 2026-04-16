@@ -152,6 +152,16 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
     fetchCharacters();
   };
 
+  const handleStartAdventure = async (id: string, isAlreadyActive: boolean) => {
+    if (!user) return;
+    if (!isAlreadyActive) {
+      await supabase.from("rpg_player_characters").update({ is_active: false }).eq("user_id", user.id);
+      await supabase.from("rpg_player_characters").update({ is_active: true }).eq("id", id);
+    }
+    toast.success("Aventura iniciada! Converse no chat 🗡️");
+    onClose();
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80  flex items-center justify-center">
@@ -338,7 +348,13 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/10">
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/10 flex-wrap">
+                        <button
+                          onClick={() => handleStartAdventure(char.id, char.is_active)}
+                          className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg bg-purple-500 text-white font-bold hover:bg-purple-600 transition-all shadow-md shadow-purple-500/20"
+                        >
+                          <Swords size={12} /> Iniciar Aventura
+                        </button>
                         {!char.is_active && (
                           <button
                             onClick={() => handleSetActive(char.id)}
