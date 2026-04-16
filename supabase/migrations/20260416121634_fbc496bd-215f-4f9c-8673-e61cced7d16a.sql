@@ -1,0 +1,1 @@
+UPDATE profiles SET relationship_status = 'Namorando o Thiago-SnyX' WHERE user_id = 'd8865349-3889-41da-a82c-fc8be301d69f';
