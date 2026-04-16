@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
-import { UniversalEdgeTTS } from "https://esm.sh/edge-tts-universal@1.4.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,21 +27,57 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: false, error: "Recurso exclusivo VIP/DEV" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+    if (!ELEVENLABS_API_KEY) {
+      return new Response(JSON.stringify({ success: false, error: "API de voz não configurada" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const body = await req.json();
-    const { text, voiceId = "pt-BR-FranciscaNeural" } = body;
+    const { text, voiceId = "EXAVITQu4vr4xnSDxMaL" } = body;
 
     if (!text || typeof text !== "string" || text.length < 3) {
       return new Response(JSON.stringify({ success: false, error: "Texto inválido" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Resolve voice - accept Neural names directly or map defaults
-    const voice = voiceId.includes("Neural") ? voiceId : "pt-BR-FranciscaNeural";
+    console.log("Generating vocal with ElevenLabs TTS:", voiceId, text.slice(0, 100));
 
-    console.log("Generating vocal with Edge TTS Universal:", voice, text.slice(0, 100));
+    const ttsRes = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text.slice(0, 5000),
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.4,
+            similarity_boost: 0.8,
+            style: 0.6,
+            use_speaker_boost: true,
+            speed: 1.0,
+          },
+        }),
+      }
+    );
 
-    const tts = new UniversalEdgeTTS(text.slice(0, 5000), voice);
-    const result = await tts.synthesize();
-    const audioBuffer = await result.audio.arrayBuffer();
+    if (!ttsRes.ok) {
+      const errText = await ttsRes.text();
+      console.error("ElevenLabs TTS error:", ttsRes.status, errText);
+
+      if (ttsRes.status === 429) {
+        return new Response(JSON.stringify({ success: false, error: "⚠️ Limite atingido. Tente em alguns minutos." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (ttsRes.status === 402) {
+        return new Response(JSON.stringify({ success: false, error: "⚠️ Créditos de voz esgotados." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      return new Response(JSON.stringify({ success: false, error: "Erro ao gerar vocal. Tente novamente." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const audioBuffer = await ttsRes.arrayBuffer();
     const base64Audio = base64Encode(new Uint8Array(audioBuffer));
 
     return new Response(JSON.stringify({ success: true, audioBase64: base64Audio, title: "SnyX Vocal" }), {
