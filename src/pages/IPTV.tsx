@@ -18,39 +18,8 @@ interface Channel {
 
 type MainCategory = "home" | "tv" | "filmes" | "series" | "cinema";
 
-type MpegtsPlayer = {
-  attachMediaElement: (mediaElement: HTMLMediaElement) => void;
-  detachMediaElement?: () => void;
-  load: () => void;
-  play?: () => Promise<void> | void;
-  pause?: () => void;
-  unload?: () => void;
-  destroy: () => void;
-};
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-
-function proxyUrl(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("https://")) return url;
-  return `${SUPABASE_URL}/functions/v1/iptv-stream-proxy?url=${encodeURIComponent(url)}`;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() || "")
-    .join("");
-}
-
-function isHlsStream(url: string): boolean {
-  return /\.m3u8($|[?#&])/i.test(url);
-}
-
-function isMpegTsStream(url: string): boolean {
-  return /\/play\//i.test(url) || /\.ts($|[?#&])/i.test(url) || /output=mpegts/i.test(url);
-}
 
 const ChannelLogo = memo(function ChannelLogo({ src, name, size = "md", className = "" }: { src?: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const [failed, setFailed] = useState(false);
