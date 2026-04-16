@@ -21,7 +21,7 @@ interface Generation {
 }
 
 export default function Videos() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const [mode, setMode] = useState<VideoMode>("text");
   const [prompt, setPrompt] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
