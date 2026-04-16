@@ -22,9 +22,15 @@ const normalizeCharacterName = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+const fallbackAvatarFor = (name: string) => {
+  const seed = encodeURIComponent(normalizeCharacterName(name) || name);
+  // DiceBear "adventurer" – consistent, colorful, no API key, served via CDN
+  return `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+};
+
 export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string | null) => {
   const trimmedAvatarUrl = avatarUrl?.trim();
   if (trimmedAvatarUrl) return trimmedAvatarUrl;
   if (!name) return null;
-  return DEFAULT_CHARACTER_AVATARS[normalizeCharacterName(name)] ?? null;
+  return DEFAULT_CHARACTER_AVATARS[normalizeCharacterName(name)] ?? fallbackAvatarFor(name);
 };
