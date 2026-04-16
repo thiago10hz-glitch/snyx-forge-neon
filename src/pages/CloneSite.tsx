@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Globe, Sparkles, Palette, Code, Rocket, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, Lock } from "lucide-react";
+import { ArrowLeft, Globe, Sparkles, Palette, Code, Rocket, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,6 @@ const steps = [
   { num: "02", title: "IA cria tudo", desc: "Nossa IA gera um clone completo personalizado pra você" },
   { num: "03", title: "Está online!", desc: "Seu site é publicado e você pode editar quando quiser" },
 ];
-
 
 async function getFingerprint(): Promise<string> {
   const canvas = document.createElement("canvas");
@@ -61,13 +60,12 @@ export default function CloneSite() {
   const [siteName, setSiteName] = useState("");
   const [siteDescription, setSiteDescription] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#ff0000");
-  
+
   // Demo state
   const [demoStatus, setDemoStatus] = useState<"loading" | "available" | "active" | "expired" | "blocked">("loading");
   const [activeDemo, setActiveDemo] = useState<any>(null);
   const [demoTimeLeft, setDemoTimeLeft] = useState("");
   const [demoLoading, setDemoLoading] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
 
   // Check demo eligibility
   const checkDemoStatus = useCallback(async () => {
@@ -75,9 +73,8 @@ export default function CloneSite() {
       setDemoStatus("available");
       return;
     }
-    
+
     try {
-      // Check for active demo
       const { data: demos } = await supabase
         .from("clone_demos")
         .select("*")
@@ -88,27 +85,20 @@ export default function CloneSite() {
       if (demos && demos.length > 0) {
         const demo = demos[0];
         const expiresAt = new Date(demo.expires_at);
-        
+
         if (demo.status === "active" && expiresAt > new Date()) {
           setActiveDemo(demo);
           setDemoStatus("active");
-          setShowDemo(true);
           return;
         } else {
-          // Expired
-          if (demo.status === "active") {
-            // Mark as expired
-            await supabase.rpc("cleanup_expired_demos");
-          }
           setDemoStatus("expired");
           return;
         }
       }
 
-      // Check eligibility via fingerprint/IP
       const fingerprint = await getFingerprint();
       const ip = await getUserIP();
-      
+
       const { data: canUse } = await supabase.rpc("can_use_demo", {
         p_fingerprint: fingerprint,
         p_ip: ip,
@@ -119,7 +109,6 @@ export default function CloneSite() {
           setDemoStatus("available");
         } else {
           setDemoStatus("blocked");
-          toast.error(String((canUse as any).message || "Demonstração não disponível"));
         }
       }
     } catch {
@@ -139,17 +128,15 @@ export default function CloneSite() {
       const expiresAt = new Date(activeDemo.expires_at);
       const now = new Date();
       const diff = expiresAt.getTime() - now.getTime();
-      
+
       if (diff <= 0) {
         setDemoStatus("expired");
-        setShowDemo(false);
         setActiveDemo(null);
-        toast.info("Sua demonstração expirou! Assine para ter acesso completo.", { duration: 10000 });
-        supabase.rpc("cleanup_expired_demos");
+        toast.info("Sua demonstração expirou! O site foi removido. Assine para ter acesso permanente.", { duration: 10000 });
         clearInterval(interval);
         return;
       }
-      
+
       const mins = Math.floor(diff / 60000);
       const secs = Math.floor((diff % 60000) / 1000);
       setDemoTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
@@ -158,7 +145,7 @@ export default function CloneSite() {
     return () => clearInterval(interval);
   }, [demoStatus, activeDemo]);
 
-  // Start demo
+  // Start demo - deploys real site
   const handleStartDemo = async () => {
     if (!user) {
       toast.error("Faça login para testar a demonstração");
@@ -168,47 +155,45 @@ export default function CloneSite() {
       toast.error("Digite o nome do seu site para a demonstração");
       return;
     }
-    
+
     setDemoLoading(true);
     try {
       const fingerprint = await getFingerprint();
       const ip = await getUserIP();
-      
-      // Double-check eligibility
-      const { data: canUse } = await supabase.rpc("can_use_demo", {
-        p_fingerprint: fingerprint,
-        p_ip: ip,
+
+      const { data, error } = await supabase.functions.invoke("deploy-demo-site", {
+        body: {
+          siteName: siteName.trim(),
+          primaryColor,
+          description: siteDescription || null,
+          fingerprint,
+          ip,
+        },
       });
 
-      if (!canUse || !(canUse as any).allowed) {
-        toast.error(String((canUse as any)?.message || "Você já usou sua demonstração gratuita"));
-        setDemoStatus("blocked");
-        return;
+      if (error) throw new Error(error.message || "Erro ao criar demonstração");
+      if (!data?.success) throw new Error(data?.error || "Falha ao criar demonstração");
+
+      // Open the real site in a new tab
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.success("Site de demonstração criado! Aberto em nova aba. Você tem 1 hora!", { duration: 10000 });
       }
-      
-      // Create demo
-      const { data: demo, error } = await supabase
-        .from("clone_demos")
-        .insert({
-          user_id: user.id,
-          site_name: siteName.trim(),
-          primary_color: primaryColor,
-          description: siteDescription || null,
-          device_fingerprint: fingerprint,
-          ip_address: ip,
-          demo_url: `demo-${siteName.trim().toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
-        })
-        .select()
-        .single();
 
-      if (error) throw error;
-
-      setActiveDemo(demo);
+      // Refresh demo status
+      setActiveDemo({
+        ...data,
+        site_name: siteName.trim(),
+        primary_color: primaryColor,
+        expires_at: data.expiresAt,
+        hosted_url: data.url,
+      });
       setDemoStatus("active");
-      setShowDemo(true);
-      toast.success("Demonstração ativada! Você tem 1 hora para testar.", { duration: 8000 });
     } catch (err: any) {
-      toast.error("Erro ao criar demonstração: " + (err?.message || "Tente novamente"));
+      toast.error(err?.message || "Erro ao criar demonstração");
+      if (err?.message?.includes("já utilizou") || err?.message?.includes("não disponível")) {
+        setDemoStatus("blocked");
+      }
     } finally {
       setDemoLoading(false);
     }
@@ -233,176 +218,6 @@ export default function CloneSite() {
       userId: user.id,
     });
   };
-
-  // Demo preview
-  if (showDemo && activeDemo && demoStatus === "active") {
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        {/* Demo Banner */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-600/90 backdrop-blur-md text-black py-2 px-4 flex items-center justify-between text-xs font-bold">
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            <span>DEMONSTRAÇÃO — {activeDemo.site_name}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span className="font-mono">{demoTimeLeft}</span>
-            </div>
-            <button
-              onClick={() => { setShowDemo(false); }}
-              className="px-3 py-1 bg-black/20 rounded-md hover:bg-black/30 transition-colors"
-            >
-              Voltar
-            </button>
-          </div>
-        </div>
-
-        {/* Demo Site Content */}
-        <div className="pt-10">
-          <header className="sticky top-10 z-30 border-b border-border/15 bg-background/80 backdrop-blur-xl">
-            <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center border font-black text-sm"
-                  style={{ 
-                    backgroundColor: activeDemo.primary_color + "20", 
-                    borderColor: activeDemo.primary_color + "40",
-                    color: activeDemo.primary_color
-                  }}
-                >
-                  {activeDemo.site_name.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm font-black">{activeDemo.site_name}</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground/40">
-                <Lock className="w-3 h-3" />
-                Acesso privado
-              </div>
-            </div>
-          </header>
-
-          {/* Demo Hero */}
-          <section className="relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[120px]" 
-                style={{ backgroundColor: activeDemo.primary_color + "15" }} />
-            </div>
-            <div className="max-w-6xl mx-auto px-4 py-16 text-center relative z-10">
-              <h1 className="text-3xl md:text-5xl font-black mb-4">
-                Bem-vindo ao{" "}
-                <span style={{ color: activeDemo.primary_color }}>{activeDemo.site_name}</span>
-              </h1>
-              <p className="text-muted-foreground/60 text-sm max-w-lg mx-auto mb-6">
-                {activeDemo.description || `Plataforma ${activeDemo.site_name} — sua versão personalizada do SnyX com todas as funcionalidades.`}
-              </p>
-            </div>
-          </section>
-
-          {/* Demo Features - Show available modules (excluding blocked ones) */}
-          <section className="max-w-6xl mx-auto px-4 pb-12">
-            <h3 className="text-lg font-black text-center mb-6">Funcionalidades do seu site</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { icon: "💬", title: "Chat IA", desc: "Chat inteligente com múltiplos modos" },
-                { icon: "🎭", title: "Personagens IA", desc: "Crie e converse com personagens únicos" },
-                { icon: "🎵", title: "Gerador de Música", desc: "Crie músicas com inteligência artificial" },
-                { icon: "📞", title: "Chamada de Voz", desc: "Converse por voz com a IA" },
-                { icon: "🌐", title: "Hospedagem de Sites", desc: "Hospede sites dos seus usuários" },
-                { icon: "🛡️", title: "Painel Admin", desc: "Gerencie tudo do seu site" },
-                { icon: "🎮", title: "RPG Interativo", desc: "Sistema de RPG com personagens" },
-                { icon: "🔗", title: "Conexões", desc: "Sistema de amizades e chat compartilhado" },
-                { icon: "🎨", title: "Temas", desc: "Personalização visual completa" },
-              ].map((f, i) => (
-                <div key={i} className="p-4 rounded-xl border border-border/15 bg-card/30 backdrop-blur-sm">
-                  <div className="text-2xl mb-2">{f.icon}</div>
-                  <h4 className="text-sm font-bold mb-1">{f.title}</h4>
-                  <p className="text-xs text-muted-foreground/50">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Demo Chat Preview */}
-          <section className="max-w-xl mx-auto px-4 pb-12">
-            <div className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-sm p-6">
-              <h3 className="text-sm font-black mb-4 flex items-center gap-2">
-                <span className="text-lg">💬</span> Chat IA do {activeDemo.site_name}
-              </h3>
-              <div className="space-y-3 mb-4">
-                <div className="flex gap-2">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ backgroundColor: activeDemo.primary_color + "20", color: activeDemo.primary_color }}>
-                    IA
-                  </div>
-                  <div className="bg-muted/20 rounded-xl rounded-tl-none px-3 py-2 text-xs max-w-[80%]">
-                    Olá! Eu sou a IA do {activeDemo.site_name}. Como posso te ajudar? 🚀
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <div className="rounded-xl rounded-tr-none px-3 py-2 text-xs max-w-[80%]"
-                    style={{ backgroundColor: activeDemo.primary_color + "20" }}>
-                    Que legal! Esse é meu site?
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ backgroundColor: activeDemo.primary_color + "20", color: activeDemo.primary_color }}>
-                    IA
-                  </div>
-                  <div className="bg-muted/20 rounded-xl rounded-tl-none px-3 py-2 text-xs max-w-[80%]">
-                    Sim! Essa é uma demonstração do seu {activeDemo.site_name}. Na versão completa, você terá 
-                    chat IA ilimitado, personagens, músicas, hospedagem e muito mais! ✨
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 border border-border/15">
-                <input 
-                  className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/30" 
-                  placeholder="Digite uma mensagem..." 
-                  disabled
-                />
-                <button className="p-1.5 rounded-md text-xs opacity-50" style={{ backgroundColor: activeDemo.primary_color + "20" }} disabled>
-                  Enviar
-                </button>
-              </div>
-              <p className="text-[10px] text-center text-muted-foreground/30 mt-2">
-                Chat de demonstração — Na versão completa, a IA responde de verdade
-              </p>
-            </div>
-          </section>
-
-          {/* CTA to buy */}
-          <section className="max-w-xl mx-auto px-4 pb-20">
-            <div className="rounded-2xl border-2 p-6 text-center space-y-4"
-              style={{ borderColor: activeDemo.primary_color + "40", backgroundColor: activeDemo.primary_color + "05" }}>
-              <AlertTriangle className="w-8 h-8 mx-auto" style={{ color: activeDemo.primary_color }} />
-              <h3 className="text-lg font-black">Gostou do {activeDemo.site_name}?</h3>
-              <p className="text-xs text-muted-foreground/60">
-                Sua demonstração expira em <span className="font-bold text-foreground">{demoTimeLeft}</span>. 
-                Assine agora para ter acesso completo e permanente!
-              </p>
-              <button
-                onClick={handleBuy}
-                disabled={checkoutLoading}
-                className="w-full py-3 rounded-xl font-black text-sm text-white hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                style={{ backgroundColor: activeDemo.primary_color }}
-              >
-                {checkoutLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    Assinar por R$350/mês
-                  </>
-                )}
-              </button>
-            </div>
-          </section>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -440,7 +255,7 @@ export default function CloneSite() {
           </h2>
 
           <p className="text-muted-foreground/60 text-sm md:text-base max-w-lg mx-auto mb-8">
-            Nossa IA cria um clone completo da plataforma SnyX com seu nome, suas cores e sua marca. 
+            Nossa IA cria um clone completo da plataforma SnyX com seu nome, suas cores e sua marca.
             Totalmente funcional e hospedado nos nossos servidores.
           </p>
 
@@ -531,7 +346,7 @@ export default function CloneSite() {
           <button
             onClick={handleBuy}
             disabled={checkoutLoading || !siteName.trim()}
-            className="w-full py-3.5 rounded-xl font-black text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground 
+            className="w-full py-3.5 rounded-xl font-black text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground
               hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
               flex items-center justify-center gap-2"
           >
@@ -558,11 +373,12 @@ export default function CloneSite() {
             <Eye className="w-3 h-3" />
             Teste grátis
           </div>
-          
+
           <h3 className="text-base font-black">Quer ver antes de comprar?</h3>
           <p className="text-xs text-muted-foreground/50">
-            Teste uma demonstração completa do seu site por <span className="text-yellow-500 font-bold">1 hora grátis</span>. 
-            Sem compromisso. Funciona tudo, menos downloads e aplicativos.
+            Crie uma demonstração real do seu site — hospedado de verdade por{" "}
+            <span className="text-yellow-500 font-bold">1 hora grátis</span>.
+            O site abre no Google, funciona tudo. Depois de 1 hora, é removido automaticamente.
           </p>
 
           {demoStatus === "loading" && (
@@ -581,24 +397,58 @@ export default function CloneSite() {
                 flex items-center justify-center gap-2"
             >
               {demoLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Criando seu site...
+                </>
               ) : (
                 <>
                   <Eye className="w-4 h-4" />
-                  Iniciar demonstração gratuita
+                  Criar demonstração gratuita
                 </>
               )}
             </button>
+          )}
+
+          {demoStatus === "active" && activeDemo && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 text-green-400">
+                <Globe className="w-4 h-4" />
+                <span className="text-xs font-bold">Seu site está no ar!</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 text-muted-foreground/60">
+                <Clock className="w-3 h-3" />
+                <span className="text-xs font-mono">{demoTimeLeft} restantes</span>
+              </div>
+
+              {activeDemo.hosted_url && (
+                <a
+                  href={activeDemo.hosted_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/20 text-green-400 
+                    border border-green-500/30 hover:bg-green-500/30 transition-all text-xs font-bold"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Abrir {activeDemo.site_name || "site"}
+                </a>
+              )}
+
+              <p className="text-[10px] text-muted-foreground/30">
+                O site será removido automaticamente após expirar
+              </p>
+            </div>
           )}
 
           {demoStatus === "expired" && (
             <div className="space-y-2">
               <div className="flex items-center justify-center gap-2 text-muted-foreground/50">
                 <Clock className="w-4 h-4" />
-                <span className="text-xs font-bold">Sua demonstração já expirou</span>
+                <span className="text-xs font-bold">Sua demonstração expirou</span>
               </div>
               <p className="text-[10px] text-muted-foreground/30">
-                Assine o plano acima para ter acesso completo e permanente
+                O site foi removido. Assine o plano acima para ter acesso permanente!
               </p>
             </div>
           )}
@@ -616,7 +466,7 @@ export default function CloneSite() {
           )}
 
           <p className="text-[10px] text-muted-foreground/20">
-            Apenas 1 demonstração por pessoa • Acesso privado • Dados removidos após expirar
+            1 demonstração por pessoa • Site real hospedado por 1h • Removido automaticamente
           </p>
         </div>
       </section>
