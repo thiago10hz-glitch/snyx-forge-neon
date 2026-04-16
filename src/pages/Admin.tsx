@@ -56,8 +56,8 @@ interface ChatMessage {
 }
 
 export default function Admin() {
-  const { user, loading: authLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { user, loading: authLoading, isAdmin: cachedIsAdmin } = useAuth();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(cachedIsAdmin || null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -138,8 +138,17 @@ export default function Admin() {
 
   useEffect(() => {
     if (!user) return;
-    checkAdmin();
-  }, [user]);
+    // Use cached admin status for instant render, then verify
+    if (cachedIsAdmin) {
+      setIsAdmin(true);
+      fetchUsers();
+      supabase.from("chat_messages").select("id", { count: "exact", head: true }).then(({ count }) => {
+        if (count !== null) setTotalMessagesCount(count);
+      });
+    } else {
+      checkAdmin();
+    }
+  }, [user, cachedIsAdmin]);
 
   // Realtime subscription for messages
   useEffect(() => {
