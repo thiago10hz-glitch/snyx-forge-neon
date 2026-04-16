@@ -175,21 +175,13 @@ export default function CloneSite() {
       if (error) throw new Error(error.message || "Erro ao criar demonstração");
       if (!data?.success) throw new Error(data?.error || "Falha ao criar demonstração");
 
-      // Open the real site in a new tab
-      if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Site de demonstração criado! Aberto em nova aba. Você tem 1 hora!", { duration: 10000 });
-      }
+      toast.success("Demonstração ativada! Você tem 1 hora com acesso completo!", { duration: 8000 });
 
-      // Refresh demo status
-      setActiveDemo({
-        ...data,
-        site_name: siteName.trim(),
-        primary_color: primaryColor,
-        expires_at: data.expiresAt,
-        hosted_url: data.url,
-      });
-      setDemoStatus("active");
+      // Refresh profile to get new VIP status
+      const { refreshProfile } = await import("@/hooks/useAuth").then(m => ({ refreshProfile: null }));
+      
+      // Navigate to demo page
+      navigate("/demo");
     } catch (err: any) {
       toast.error(err?.message || "Erro ao criar demonstração");
       if (err?.message?.includes("já utilizou") || err?.message?.includes("não disponível")) {
