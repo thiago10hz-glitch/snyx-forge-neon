@@ -11,6 +11,7 @@ const VALID_PRICES: Record<string, number[]> = {
   vip: [25, 50, 150],
   rpg: [20, 50, 120],
   dev: [100, 150, 250],
+  clone: [350],
 };
 
 serve(async (req) => {
@@ -36,7 +37,8 @@ serve(async (req) => {
     // ===== SERVER-SIDE PRICE VALIDATION =====
     const titleLower = title.toLowerCase();
     let plan = "";
-    if (titleLower.includes("vip")) plan = "vip";
+    if (titleLower.includes("clone")) plan = "clone";
+    else if (titleLower.includes("vip")) plan = "vip";
     else if (titleLower.includes("rpg")) plan = "rpg";
     else if (titleLower.includes("dev") || titleLower.includes("programador")) plan = "dev";
 
