@@ -1589,7 +1589,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
 
               {isLoading && (
                 <div className="flex gap-3 animate-slide-up-fade">
