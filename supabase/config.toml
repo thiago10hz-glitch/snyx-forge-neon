@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.deploy-demo-site]
 verify_jwt = false
+
+[functions.optimizer-device-auth]
+verify_jwt = false
