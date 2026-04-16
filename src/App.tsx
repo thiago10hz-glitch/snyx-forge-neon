@@ -26,6 +26,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import Accelerator from "./pages/Accelerator";
 import Optimization from "./pages/Optimization";
 import CloneSite from "./pages/CloneSite";
+import Videos from "./pages/Videos";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -151,6 +152,7 @@ const App = () => {
                   <Route path="/accelerator" element={<Accelerator />} />
                   <Route path="/optimization" element={<Optimization />} />
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
+                  <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </ThemeProvider>

@@ -3,7 +3,7 @@ import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPre
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
   Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
-  ChevronRight, Flame, X, Globe, Loader2,
+  ChevronRight, Flame, X, Globe, Loader2, Film,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +61,7 @@ const Index = () => {
     { to: "/iptv", icon: MonitorPlay, label: "TV" },
     { to: "/hosting", icon: Server, label: "Hosting" },
     { to: "/clone-site", icon: Globe, label: "Clone Site" },
+    { to: "/videos", icon: Film, label: "Vídeos AI" },
     { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
     { to: "/downloads", icon: Download, label: "App" },
     { to: "/accelerator", icon: Zap, label: "Accelerator" },
