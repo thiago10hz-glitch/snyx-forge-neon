@@ -17,10 +17,22 @@ export async function createMercadoPagoCheckout(options: CheckoutOptions): Promi
     },
   });
 
-  if (error || !data?.init_point) {
-    throw new Error(error?.message || "Falha ao criar checkout do Mercado Pago");
+  // Handle fraud/ban responses
+  if (error) {
+    throw new Error(error.message || "Falha ao criar checkout do Mercado Pago");
   }
 
-  // Use sandbox_init_point for testing, init_point for production
+  if (data?.error === "fraud_warning") {
+    throw new Error(data.message || "Tentativa de manipulação detectada");
+  }
+
+  if (data?.error === "banned") {
+    throw new Error(data.message || "Conta suspensa temporariamente");
+  }
+
+  if (!data?.init_point) {
+    throw new Error("Falha ao criar checkout do Mercado Pago");
+  }
+
   return data.sandbox_init_point || data.init_point;
 }
