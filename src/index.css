@@ -118,7 +118,7 @@
   }
   .neon-text {
     color: hsl(var(--primary));
-    text-shadow: 0 0 8px hsl(0 100% 55% / 0.4);
+    text-shadow: 0 0 8px hsl(16 82% 57% / 0.4);
   }
   .neon-glow-strong {
     box-shadow: var(--neon-glow-strong);
@@ -126,14 +126,14 @@
 
   /* === Cards === */
   .card-premium {
-    background: linear-gradient(145deg, hsl(240 12% 7%) 0%, hsl(240 15% 4%) 100%);
+    background: linear-gradient(145deg, hsl(0 0% 14%) 0%, hsl(0 0% 9%) 100%);
     border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   /* === Gradients === */
   .gradient-text-primary {
-    background: linear-gradient(135deg, hsl(0 100% 62%), hsl(0 100% 45%));
+    background: linear-gradient(135deg, hsl(16 82% 65%), hsl(16 82% 45%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -204,7 +204,7 @@
   /* === Chat bubbles === */
   .chat-bubble-user {
     @apply rounded-2xl rounded-br-md;
-    box-shadow: 0 2px 16px hsl(0 100% 55% / 0.15);
+    box-shadow: 0 2px 16px hsl(16 82% 57% / 0.15);
   }
   .chat-bubble-ai {
     @apply rounded-2xl rounded-bl-md;
@@ -455,7 +455,7 @@
 
   /* === Button glow === */
   .btn-glow:hover {
-    box-shadow: 0 0 24px hsl(0 100% 55% / 0.25), 0 4px 20px hsl(0 100% 55% / 0.18);
+    box-shadow: 0 0 24px hsl(16 82% 57% / 0.25), 0 4px 20px hsl(16 82% 57% / 0.18);
   }
 
   /* === Header nav link === */
