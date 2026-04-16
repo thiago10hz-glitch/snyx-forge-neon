@@ -208,20 +208,19 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // ── CLEANUP all active demos (admin revoke all) ──
-    if (action === "cleanup") {
+    // ── CLEANUP CRON: only expired demos ──
+    if (action === "cleanup_cron") {
       const VERCEL_TOKEN = Deno.env.get("VERCEL_TOKEN");
       
-      // Get ALL active demos (not just expired)
-      const { data: activeDemos } = await adminClient
+      const { data: expiredDemos } = await adminClient
         .from("clone_demos")
         .select("*")
-        .eq("status", "active");
+        .eq("status", "active")
+        .lt("expires_at", new Date().toISOString());
 
       let cleaned = 0;
-      if (activeDemos) {
-        for (const demo of activeDemos) {
-          // Delete from Vercel
+      if (expiredDemos) {
+        for (const demo of expiredDemos) {
           if (demo.vercel_project_id && VERCEL_TOKEN) {
             try {
               await fetch(`https://api.vercel.com/v9/projects/${demo.vercel_project_id}`, {
@@ -232,17 +231,45 @@ Deno.serve(async (req) => {
               console.error("Failed to delete Vercel project:", e);
             }
           }
-          
-          // Mark as expired
           await adminClient
             .from("clone_demos")
             .update({ status: "expired" })
             .eq("id", demo.id);
-          
           cleaned++;
         }
       }
+      return jsonResponse({ success: true, cleaned });
+    }
 
+    // ── CLEANUP all active demos (admin revoke all) ──
+    if (action === "cleanup") {
+      const VERCEL_TOKEN = Deno.env.get("VERCEL_TOKEN");
+      
+      const { data: activeDemos } = await adminClient
+        .from("clone_demos")
+        .select("*")
+        .eq("status", "active");
+
+      let cleaned = 0;
+      if (activeDemos) {
+        for (const demo of activeDemos) {
+          if (demo.vercel_project_id && VERCEL_TOKEN) {
+            try {
+              await fetch(`https://api.vercel.com/v9/projects/${demo.vercel_project_id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
+              });
+            } catch (e) {
+              console.error("Failed to delete Vercel project:", e);
+            }
+          }
+          await adminClient
+            .from("clone_demos")
+            .update({ status: "expired" })
+            .eq("id", demo.id);
+          cleaned++;
+        }
+      }
       return jsonResponse({ success: true, cleaned });
     }
 
