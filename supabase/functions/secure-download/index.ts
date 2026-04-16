@@ -11,16 +11,14 @@ function getIntegritySecret(): string {
   return Deno.env.get("SNYX_INTEGRITY_SECRET") || "SNYX-FALLBACK-SEC";
 }
 
-// HMAC-like integrity check
-function generateHMAC(message: string, secret: string): string {
-  let hash = 0;
-  const combined = message + secret;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
+// HMAC-SHA256 integrity check
+async function generateHMAC(message: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 // AES-GCM encryption for download tokens
