@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Globe, Sparkles, Palette, Crown, Server, Code, Rocket, Check, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, Lock } from "lucide-react";
+import { ArrowLeft, Globe, Sparkles, Palette, Code, Rocket, Loader2, Wand2, Shield, Zap, Clock, Eye, AlertTriangle, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { supabase } from "@/integrations/supabase/client";
