@@ -506,6 +506,48 @@ export type Database = {
           },
         ]
       }
+      clone_demos: {
+        Row: {
+          created_at: string
+          demo_url: string | null
+          description: string | null
+          device_fingerprint: string | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          primary_color: string
+          site_name: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          demo_url?: string | null
+          description?: string | null
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          primary_color?: string
+          site_name: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          demo_url?: string | null
+          description?: string | null
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          primary_color?: string
+          site_name?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fraud_attempts: {
         Row: {
           attempt_type: string
@@ -1003,12 +1045,17 @@ export type Database = {
         Returns: Json
       }
       can_send_message: { Args: never; Returns: Json }
+      can_use_demo: {
+        Args: { p_fingerprint?: string; p_ip?: string }
+        Returns: Json
+      }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
       check_hosting_limit: { Args: never; Returns: Json }
       check_ip_duplicate: {
         Args: { p_ip: string; p_user_id?: string }
         Returns: Json
       }
+      cleanup_expired_demos: { Args: never; Returns: number }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
       generate_accelerator_key: {
         Args: { p_expires_months?: number }
