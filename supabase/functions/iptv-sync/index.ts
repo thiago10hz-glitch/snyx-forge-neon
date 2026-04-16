@@ -31,6 +31,8 @@ const rawHost = Deno.env.get("IPTV_HOST") || "megga.tv.br";
 const IPTV_HOST = rawHost.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 const PLAYLIST_URL = `http://${IPTV_HOST}/get.php?username=${IPTV_USERNAME}&password=${IPTV_PASSWORD}&type=m3u_plus&output=mpegts`;
 
+const MAX_CHANNELS = 5000;
+
 async function streamParseM3U(response: Response): Promise<Channel[]> {
   const channels: Channel[] = [];
   const reader = response.body!.getReader();
@@ -38,37 +40,45 @@ async function streamParseM3U(response: Response): Promise<Channel[]> {
   let buffer = "";
   let lastExtinf = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    // Keep last incomplete line in buffer
-    buffer = lines.pop() || "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (line.startsWith("#EXTINF:")) {
-        lastExtinf = line;
-      } else if (lastExtinf && line && !line.startsWith("#")) {
-        const nameMatch = lastExtinf.match(/,(.+)$/);
-        const logoMatch = lastExtinf.match(/tvg-logo="([^"]*)"/);
-        const groupMatch = lastExtinf.match(/group-title="([^"]*)"/);
-        if (nameMatch) {
-          const g = (groupMatch?.[1] || "").toLowerCase();
-          if (!g.includes("xxx") && !g.includes("adulto")) {
-            channels.push({
-              n: nameMatch[1].trim(),
-              u: line,
-              l: logoMatch?.[1] || "",
-              g: groupMatch?.[1] || "Outros",
-            });
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (line.startsWith("#EXTINF:")) {
+          lastExtinf = line;
+        } else if (lastExtinf && line && !line.startsWith("#")) {
+          const nameMatch = lastExtinf.match(/,(.+)$/);
+          const groupMatch = lastExtinf.match(/group-title="([^"]*)"/);
+          if (nameMatch) {
+            const g = (groupMatch?.[1] || "").toLowerCase();
+            if (!g.includes("xxx") && !g.includes("adulto")) {
+              const logoMatch = lastExtinf.match(/tvg-logo="([^"]*)"/);
+              channels.push({
+                n: nameMatch[1].trim(),
+                u: line,
+                l: logoMatch?.[1] || "",
+                g: groupMatch?.[1] || "Outros",
+              });
+              if (channels.length >= MAX_CHANNELS) {
+                reader.cancel();
+                return channels;
+              }
+            }
           }
+          lastExtinf = "";
         }
-        lastExtinf = "";
       }
+      if (buffer.length > 500000) buffer = "";
     }
+  } catch {
+    // Stream cancelled - return what we have
   }
 
   return channels;
@@ -105,6 +115,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log("IPTV URL:", PLAYLIST_URL);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
 
