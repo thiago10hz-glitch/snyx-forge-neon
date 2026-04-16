@@ -146,6 +146,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [conversationSummary, setConversationSummary] = useState<string>("");
   const [showSidebar, setShowSidebar] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [thinkingText, setThinkingText] = useState("");
@@ -883,6 +884,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             },
           } : {}),
           ...(playerCharacter ? { player_character: { name: playerCharacter.name, class: playerCharacter.class, race: playerCharacter.race, backstory: playerCharacter.backstory, personality: playerCharacter.personality, level: playerCharacter.level } } : {}),
+          ...(conversationSummary ? { conversation_summary: conversationSummary } : {}),
         };
       }
 
