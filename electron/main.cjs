@@ -194,17 +194,27 @@ async function checkLicense() {
   }
 
   try {
-    const res = await supabaseRequest(
+    const fetchLicense = async (token) => supabaseRequest(
       `/rest/v1/accelerator_keys?activation_key=eq.${encodeURIComponent(config.activationKey)}&select=*`,
-      { authToken: config.accessToken }
+      { authToken: token }
     );
+
+    let res = await fetchLicense(config.accessToken);
+
+    if (!Array.isArray(res)) {
+      const refreshedSession = await ensureDeviceSession(true);
+      if (!refreshedSession.success) return { valid: false, reason: 'no_session' };
+      config = refreshedSession.config;
+      res = await fetchLicense(config.accessToken);
+    }
+
     if (!Array.isArray(res) || res.length === 0) return { valid: false, reason: 'key_not_found' };
     const key = res[0];
     if (key.status !== 'active') return { valid: false, reason: 'key_revoked' };
     if (key.expires_at && new Date(key.expires_at) < new Date()) return { valid: false, reason: 'key_expired' };
     return { valid: true, key };
   } catch {
-    return { valid: true }; // Offline grace
+    return { valid: true };
   }
 }
 
@@ -397,57 +407,32 @@ ipcMain.handle('login', async (_, email, password) => {
 });
 
 ipcMain.handle('activate-key', async (_, key) => {
-  let config = loadConfig();
-  
-  // Auto-create device account if no token
-  if (!config.accessToken) {
-    try {
-      const os = require('os');
-      const crypto = require('crypto');
-      const machineId = crypto.createHash('sha256').update(os.hostname() + os.userInfo().username + os.arch()).digest('hex').substring(0, 16);
-      const deviceEmail = `device-${machineId}@snyx-optimizer.local`;
-      const devicePass = `SnyX!Dev#${machineId}`;
-      
-      // Try sign up first
-      let authRes = await supabaseRequest('/auth/v1/signup', {
-        method: 'POST',
-        body: { email: deviceEmail, password: devicePass },
-      });
-      
-      // If already exists, sign in
-      if (!authRes.access_token) {
-        authRes = await supabaseRequest('/auth/v1/token?grant_type=password', {
-          method: 'POST',
-          body: { email: deviceEmail, password: devicePass },
-        });
-      }
-      
-      if (authRes.access_token) {
-        config.accessToken = authRes.access_token;
-        config.refreshToken = authRes.refresh_token;
-        config.userId = authRes.user?.id;
-        config.deviceEmail = deviceEmail;
-        saveConfig(config);
-      } else {
-        return { success: false, error: 'Erro ao criar sessão do dispositivo' };
-      }
-    } catch (e) {
-      return { success: false, error: 'Falha na conexão: ' + e.message };
-    }
+  const normalizedKey = String(key || '').trim().toUpperCase();
+  if (!normalizedKey) {
+    return { success: false, error: 'Digite uma chave válida' };
   }
-  
+
+  const sessionResult = await ensureDeviceSession(true);
+  if (!sessionResult.success) {
+    return { success: false, error: sessionResult.error };
+  }
+
+  const config = sessionResult.config;
+
   try {
     const res = await supabaseRequest('/rest/v1/rpc/activate_accelerator_key', {
       method: 'POST',
       authToken: config.accessToken,
-      body: { p_key: key },
+      body: { p_key: normalizedKey },
     });
-    if (res.success) {
-      config.activationKey = key;
-      saveConfig(config);
-      return { success: true, message: res.message };
+
+    if (res?.success) {
+      const nextConfig = { ...config, activationKey: normalizedKey };
+      saveConfig(nextConfig);
+      return { success: true, message: res.message || 'Chave ativada!' };
     }
-    return { success: false, error: res.error || 'Falha na ativação' };
+
+    return { success: false, error: res?.error || 'Falha na ativação' };
   } catch (e) {
     return { success: false, error: e.message };
   }
