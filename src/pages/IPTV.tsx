@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VipModal } from "@/components/VipModal";
 import {
   ArrowLeft, Code2, Search, RefreshCw, Play, Tv, X, ChevronDown, Loader2, Radio,
-  List, Zap, Signal, Film, Clapperboard, MonitorPlay, Popcorn
+  List, Zap, Signal, Film, Clapperboard, MonitorPlay
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
