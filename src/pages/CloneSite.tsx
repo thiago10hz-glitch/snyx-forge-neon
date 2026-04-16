@@ -56,6 +56,7 @@ async function getUserIP(): Promise<string | null> {
 
 export default function CloneSite() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
   const [siteName, setSiteName] = useState("");
   const [siteDescription, setSiteDescription] = useState("");
