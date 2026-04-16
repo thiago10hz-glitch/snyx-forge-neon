@@ -174,11 +174,12 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           </div>
         </div>
 
+        {/* Form content */}
+        <div className="px-5 pb-6 space-y-4">
           {/* Partner / Relationship display */}
           {partnerName && profile?.relationship_status === "namorando" && (
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-pink-500/8 border border-pink-500/15">
               <div className="flex items-center -space-x-3">
-                {/* My avatar */}
                 <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/30 bg-card z-10">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Eu" className="w-full h-full object-cover" />
@@ -188,7 +189,6 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                     </div>
                   )}
                 </div>
-                {/* Partner avatar */}
                 <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/30 bg-card">
                   {partnerAvatar ? (
                     <img src={partnerAvatar} alt={partnerName} className="w-full h-full object-cover" />
@@ -211,8 +211,6 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             </div>
           )}
 
-        {/* Form content */}
-        <div className="px-5 pb-6 space-y-4">
           {/* Display Name */}
           <div>
             <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block">Nome</label>
