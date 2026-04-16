@@ -10,7 +10,6 @@ import {
   Monitor, MemoryStick, Settings, CheckCircle2,
   XCircle, Power, Loader2, RefreshCw, Download,
   RotateCcw, Gamepad2, Eye, MousePointer, Network,
-  Star, Package
 } from "lucide-react";
 
 interface KeyInfo {
