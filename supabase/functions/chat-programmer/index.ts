@@ -104,7 +104,7 @@ Adapte TODO o conteúdo ao nicho pedido:
     }));
 
     const apiMessages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt + userCtx },
       ...truncatedMessages,
     ];
 

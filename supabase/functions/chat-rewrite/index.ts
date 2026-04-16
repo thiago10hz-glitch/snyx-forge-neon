@@ -64,7 +64,7 @@ IDIOMA: Sempre responda no mesmo idioma do texto enviado. Se for português, use
 Use markdown (negrito, itálico, títulos) para organizar a resposta.`;
 
     const aiMessages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt + userCtx },
       ...messages.slice(-20).map((m: any) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
