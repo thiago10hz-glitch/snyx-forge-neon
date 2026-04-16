@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     // Service role client for privileged operations
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const { action, target_user_id, vip_months, ban_hours } = await req.json();
+    const { action, target_user_id, vip_months, ban_hours, new_password } = await req.json();
 
     let result: Record<string, unknown> = {};
 
@@ -157,6 +157,14 @@ Deno.serve(async (req) => {
           .from("profiles")
           .update({ is_rpg_premium: false, rpg_premium_expires_at: null })
           .eq("user_id", target_user_id);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case "reset_password": {
+        if (!new_password || new_password.length < 6) throw new Error("Senha deve ter pelo menos 6 caracteres");
+        const { error } = await adminClient.auth.admin.updateUserById(target_user_id, { password: new_password });
         if (error) throw error;
         result = { success: true };
         break;
