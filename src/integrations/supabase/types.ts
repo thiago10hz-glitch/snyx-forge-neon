@@ -513,12 +513,15 @@ export type Database = {
           description: string | null
           device_fingerprint: string | null
           expires_at: string
+          hosted_url: string | null
           id: string
           ip_address: string | null
           primary_color: string
           site_name: string
           status: string
           user_id: string
+          vercel_deployment_id: string | null
+          vercel_project_id: string | null
         }
         Insert: {
           created_at?: string
@@ -526,12 +529,15 @@ export type Database = {
           description?: string | null
           device_fingerprint?: string | null
           expires_at?: string
+          hosted_url?: string | null
           id?: string
           ip_address?: string | null
           primary_color?: string
           site_name: string
           status?: string
           user_id: string
+          vercel_deployment_id?: string | null
+          vercel_project_id?: string | null
         }
         Update: {
           created_at?: string
@@ -539,12 +545,15 @@ export type Database = {
           description?: string | null
           device_fingerprint?: string | null
           expires_at?: string
+          hosted_url?: string | null
           id?: string
           ip_address?: string | null
           primary_color?: string
           site_name?: string
           status?: string
           user_id?: string
+          vercel_deployment_id?: string | null
+          vercel_project_id?: string | null
         }
         Relationships: []
       }
