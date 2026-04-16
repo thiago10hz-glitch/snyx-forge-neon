@@ -593,14 +593,6 @@
 .stagger-4 { animation-delay: 0.2s; opacity: 0; }
 .stagger-5 { animation-delay: 0.25s; opacity: 0; }
 
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  .glass-elevated {
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  }
-}
-
 /* Desktop enhancements */
 @media (min-width: 1024px) {
   .glass-elevated {
