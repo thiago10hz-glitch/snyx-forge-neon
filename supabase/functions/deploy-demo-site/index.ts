@@ -555,7 +555,7 @@ Deno.serve(async (req) => {
         for (const demo of expiredDemos) {
           if (demo.vercel_project_id && VERCEL_TOKEN) {
             try {
-              await fetch(\`https://api.vercel.com/v9/projects/\${demo.vercel_project_id}\`, {
+              await fetch(`https://api.vercel.com/v9/projects/${demo.vercel_project_id}`, {
                 method: "DELETE",
                 headers: { Authorization: \`Bearer \${VERCEL_TOKEN}\` },
               });
