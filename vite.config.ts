@@ -21,44 +21,31 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: "esnext",
-    minify: "terser",
+    minify: "esbuild",
     cssMinify: true,
     sourcemap: false,
     cssCodeSplit: true,
     modulePreload: {
       polyfill: false,
     },
-    terserOptions: {
-      compress: {
-        drop_console: mode === "production",
-        drop_debugger: true,
-        passes: 2,
-        dead_code: true,
-        conditionals: true,
-        evaluate: true,
-        booleans: true,
-      },
-      mangle: {
-        toplevel: true,
-        properties: {
-          regex: /^_snyx_/,
-        },
-      },
-      format: {
-        comments: false,
-        ascii_only: true,
-      },
-    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-ui": ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-popover"],
-          "vendor-query": ["@tanstack/react-query"],
-          "vendor-supabase": ["@supabase/supabase-js"],
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("react-dom")) return "vendor-react";
+            if (id.includes("react-router")) return "vendor-react";
+            if (id.includes("react/")) return "vendor-react";
+            if (id.includes("@radix-ui")) return "vendor-ui";
+            if (id.includes("@tanstack")) return "vendor-query";
+            if (id.includes("@supabase")) return "vendor-supabase";
+            if (id.includes("lucide-react")) return "vendor-icons";
+            if (id.includes("hls.js")) return "vendor-hls";
+            if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
+            if (id.includes("@stripe")) return "vendor-stripe";
+            if (id.includes("react-markdown") || id.includes("remark") || id.includes("rehype") || id.includes("unified") || id.includes("mdast") || id.includes("micromark")) return "vendor-markdown";
+          }
         },
         compact: true,
-        // Obfuscate chunk names
         chunkFileNames: "assets/s-[hash].js",
         entryFileNames: "assets/s-[hash].js",
         assetFileNames: "assets/s-[hash][extname]",
