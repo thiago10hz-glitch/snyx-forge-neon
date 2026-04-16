@@ -78,6 +78,17 @@ Deno.serve(async (req: Request) => {
 
       const videoData = statusData.data;
       const status = videoData?.status;
+      const heygenError = videoData?.error;
+
+      // Friendly error message
+      let errorMessage: string | null = null;
+      if (status === "failed" && heygenError) {
+        if (heygenError.code === "MOVIO_PAYMENT_INSUFFICIENT_CREDIT") {
+          errorMessage = "⚠️ A conta HeyGen está sem créditos de API. O administrador precisa recarregar em heygen.com.";
+        } else {
+          errorMessage = `Falha no HeyGen: ${heygenError.message || heygenError.detail || heygenError.code}`;
+        }
+      }
 
       // If completed, update DB
       if (status === "completed" && videoData?.video_url) {
@@ -99,6 +110,7 @@ Deno.serve(async (req: Request) => {
         video_url: videoData?.video_url || null,
         thumbnail_url: videoData?.thumbnail_url || null,
         duration: videoData?.duration || null,
+        error_message: errorMessage,
       });
     }
 
@@ -192,7 +204,12 @@ Deno.serve(async (req: Request) => {
 
     if (!heygenRes.ok || heygenData.error) {
       console.error("HeyGen error:", JSON.stringify(heygenData));
-      return json({ error: heygenData.error?.message || "Erro ao gerar vídeo no HeyGen" }, 500);
+      const errCode = heygenData.error?.code || "";
+      const errMsg = heygenData.error?.message || heygenData.error?.detail || "";
+      if (errCode.includes("PAYMENT") || errCode.includes("CREDIT") || errMsg.toLowerCase().includes("credit")) {
+        return json({ error: "⚠️ A conta HeyGen está sem créditos de API. Avise o administrador para recarregar em heygen.com." }, 402);
+      }
+      return json({ error: errMsg || "Erro ao gerar vídeo no HeyGen" }, 500);
     }
 
     const videoId = heygenData.data?.video_id;

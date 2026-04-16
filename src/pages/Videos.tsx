@@ -127,7 +127,7 @@ export default function Videos() {
           pollRef.current = null;
           setProcessingVideoId(null);
           setLoading(false);
-          toast.error("Falha na geração do vídeo");
+          toast.error(data?.error_message || "Falha na geração do vídeo", { duration: 8000 });
           fetchHistory();
         } else {
           const statusMap: Record<string, string> = {
