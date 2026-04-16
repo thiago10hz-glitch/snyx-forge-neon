@@ -81,101 +81,97 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-2 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-lg" onClick={onClose}>
       <div
-        className="glass-elevated rounded-2xl max-w-md w-full max-h-[95vh] overflow-y-auto animate-enter border border-border/20"
+        className="w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-background sm:rounded-3xl rounded-t-3xl border border-border/10 shadow-2xl animate-enter"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="relative p-5 pb-4">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-xl text-muted-foreground/50 hover:text-foreground hover:bg-muted/20 transition-all"
-          >
-            <X size={18} />
-          </button>
-          <div className="relative">
-            <h2 className="text-base font-bold text-foreground">Minha Conta</h2>
-            <p className="text-xs text-muted-foreground/50 mt-0.5">Edite seu perfil e preferências</p>
-          </div>
-        </div>
+        {/* Header with avatar hero */}
+        <div className="relative overflow-hidden">
+          {/* Gradient banner */}
+          <div className="h-24 sm:h-28 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent" />
 
-        <div className="p-5 pt-2 space-y-5">
-          {/* Avatar */}
-          <div className="flex items-center gap-4">
+          {/* Close button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/60 backdrop-blur-md text-muted-foreground/60 hover:text-foreground hover:bg-background/80 transition-all border border-border/10"
+          >
+            <X size={16} />
+          </button>
+
+          {/* Avatar - overlapping banner */}
+          <div className="flex flex-col items-center -mt-12 relative z-10 pb-3">
             <div className="relative group">
-              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-muted/10 border border-border/20 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-background border-4 border-background shadow-xl flex items-center justify-center">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-7 h-7 text-muted-foreground/20" />
+                  <div className="w-full h-full bg-muted/15 flex items-center justify-center">
+                    <User className="w-8 h-8 text-muted-foreground/25" />
+                  </div>
                 )}
               </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
                 {uploading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white" />}
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || user.email}</p>
-              <p className="text-xs text-muted-foreground/50 truncate">{user.email}</p>
-              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                {profile?.is_dev ? (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/20">
-                    <Code size={8} /> DEV
-                  </span>
-                ) : profile?.is_rpg_premium ? (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/20">
-                    ⚔️ RPG
-                  </span>
-                ) : profile?.is_vip ? (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-bold border border-yellow-500/20">
-                    <Crown size={8} /> VIP
-                  </span>
-                ) : (
-                  <span className="badge-free !text-[9px] !px-1.5 !py-0.5">Free</span>
-                )}
-                {profile?.team_badge && (profile.team_badge === "Dono" || profile.team_badge === "Dona") ? (
-                  <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 text-amber-300 font-black border border-amber-400/30 shadow-lg shadow-amber-500/15 animate-pulse" style={{ animationDuration: '3s' }}>
-                    <span className="text-[10px]">👑</span> {profile.team_badge}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="ml-0.5">
-                      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="rgba(251,191,36,0.15)"/>
-                    </svg>
-                  </span>
-                ) : profile?.team_badge ? (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
-                    🛡️ {profile.team_badge}
-                  </span>
-                ) : null}
-              </div>
+
+            <h3 className="text-base font-bold text-foreground mt-2">{profile?.display_name || "Usuário"}</h3>
+            <p className="text-[11px] text-muted-foreground/40 truncate max-w-[200px]">{user.email}</p>
+
+            {/* Badges */}
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
+              {profile?.is_dev ? (
+                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/12 text-cyan-400 font-bold border border-cyan-500/15">
+                  <Code size={8} /> DEV
+                </span>
+              ) : profile?.is_rpg_premium ? (
+                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-purple-500/12 text-purple-400 font-bold border border-purple-500/15">
+                  ⚔️ RPG
+                </span>
+              ) : profile?.is_vip ? (
+                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-yellow-500/12 text-yellow-400 font-bold border border-yellow-500/15">
+                  <Crown size={8} /> VIP
+                </span>
+              ) : (
+                <span className="badge-free !text-[9px] !px-2 !py-0.5">Free</span>
+              )}
+              {profile?.team_badge && (profile.team_badge === "Dono" || profile.team_badge === "Dona") ? (
+                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 text-amber-300 font-black border border-amber-400/20 animate-pulse" style={{ animationDuration: '3s' }}>
+                  👑 {profile.team_badge}
+                </span>
+              ) : profile?.team_badge ? (
+                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-primary/12 text-primary font-bold border border-primary/15">
+                  🛡️ {profile.team_badge}
+                </span>
+              ) : null}
             </div>
           </div>
+        </div>
 
+        {/* Form content */}
+        <div className="px-5 pb-6 space-y-4">
           {/* Display Name */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Nome de exibição</label>
+            <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block">Nome</label>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Como quer ser chamado?"
               maxLength={50}
-              className="w-full glass-input border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/20 focus:shadow-lg focus:shadow-primary/5 transition-all duration-300"
+              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200"
             />
           </div>
 
           {/* Gender */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block flex items-center gap-1">
-              <User size={10} className="text-cyan-400/50" />
-              Gênero
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block">Gênero</label>
+            <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "Masculino", value: "masculino", emoji: "👨" },
                 { label: "Feminino", value: "feminino", emoji: "👩" },
@@ -186,10 +182,10 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                   key={opt.value}
                   type="button"
                   onClick={() => setGender(opt.value)}
-                  className={`text-[11px] px-2 py-2 rounded-xl border transition-all duration-200 ${
+                  className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 ${
                     gender === opt.value
-                      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 font-medium"
-                      : "border-border/15 text-muted-foreground/50 hover:border-border/30 hover:text-foreground"
+                      ? "border-primary/30 bg-primary/10 text-primary font-medium shadow-sm shadow-primary/5"
+                      : "border-border/10 bg-muted/5 text-muted-foreground/45 hover:border-border/25 hover:text-foreground/70"
                   }`}
                 >
                   {opt.emoji} {opt.label}
@@ -200,11 +196,10 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
 
           {/* Relationship Status */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block flex items-center gap-1">
-              <Heart size={10} className="text-pink-400/50" />
-              Status de relacionamento
+            <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
+              <Heart size={9} className="text-pink-400/40" /> Relacionamento
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "Solteiro(a)", value: "solteiro", emoji: "💔" },
                 { label: "Namorando", value: "namorando", emoji: "💕" },
@@ -217,10 +212,10 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                   key={opt.value}
                   type="button"
                   onClick={() => setRelationshipStatus(opt.value)}
-                  className={`text-[11px] px-2 py-2 rounded-xl border transition-all duration-200 ${
+                  className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 ${
                     relationshipStatus === opt.value
-                      ? "border-pink-500/40 bg-pink-500/10 text-pink-400 font-medium"
-                      : "border-border/15 text-muted-foreground/50 hover:border-border/30 hover:text-foreground"
+                      ? "border-pink-500/30 bg-pink-500/10 text-pink-400 font-medium shadow-sm shadow-pink-500/5"
+                      : "border-border/10 bg-muted/5 text-muted-foreground/45 hover:border-border/25 hover:text-foreground/70"
                   }`}
                 >
                   {opt.emoji} {opt.label}
@@ -231,54 +226,54 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
 
           {/* Bio */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">
-              <Sparkles size={10} className="inline mr-1 text-primary/50" />
-              Sobre você & interesses
+            <label className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1 block flex items-center gap-1">
+              <Sparkles size={9} className="text-primary/40" /> Sobre você
             </label>
-            <p className="text-[10px] text-muted-foreground/30 mb-1.5">
-              A IA vai usar isso pra te conhecer melhor e personalizar as respostas
+            <p className="text-[10px] text-muted-foreground/25 mb-1.5">
+              A IA usa isso pra te conhecer melhor
             </p>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Ex: Gosto de programação, games, música eletrônica. Tenho 20 anos, sou de SP..."
+              placeholder="Ex: Gosto de games, música, tenho 20 anos..."
               maxLength={500}
-              rows={4}
-              className="w-full glass-input border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/20 focus:shadow-lg focus:shadow-primary/5 transition-all duration-300 resize-none"
+              rows={3}
+              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200 resize-none"
             />
-            <p className="text-[10px] text-muted-foreground/20 text-right mt-0.5 tabular-nums">{bio.length}/500</p>
+            <p className="text-[9px] text-muted-foreground/20 text-right mt-0.5 tabular-nums">{bio.length}/500</p>
           </div>
 
-          {/* Save */}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl py-3 transition-all duration-300 text-sm disabled:opacity-50 shadow-lg shadow-primary/15 hover:shadow-primary/25"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar
-          </button>
+          {/* Actions */}
+          <div className="space-y-2 pt-1">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl py-3 transition-all duration-200 text-sm disabled:opacity-50 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Salvar
+            </button>
 
-          {/* Reset Password */}
-          <button
-            type="button"
-            onClick={async () => {
-              if (!user?.email) return;
-              try {
-                const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-                  redirectTo: `${window.location.origin}/reset-password`,
-                });
-                if (error) throw error;
-                toast.success("E-mail de redefinição enviado! Verifique sua caixa de entrada.");
-              } catch (err: unknown) {
-                toast.error(err instanceof Error ? err.message : "Erro ao enviar e-mail.");
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 bg-muted/10 hover:bg-muted/20 text-muted-foreground/70 hover:text-foreground font-medium rounded-xl py-3 transition-all duration-300 text-sm border border-border/15"
-          >
-            <KeyRound className="w-4 h-4" />
-            Redefinir senha
-          </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!user?.email) return;
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success("E-mail de redefinição enviado!");
+                } catch (err: unknown) {
+                  toast.error(err instanceof Error ? err.message : "Erro ao enviar e-mail.");
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-transparent hover:bg-muted/10 text-muted-foreground/50 hover:text-foreground/70 font-medium rounded-xl py-2.5 transition-all duration-200 text-xs"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              Redefinir senha
+            </button>
+          </div>
         </div>
       </div>
     </div>
