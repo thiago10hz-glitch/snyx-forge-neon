@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { Download, ArrowLeft, Loader2, Lock, Package, Zap, Shield, Sparkles, Star, Monitor, CheckCircle2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { generateIntegrityToken } from "@/lib/snyxSecurity";
+import { generateIntegrityToken, isDevToolsOpen } from "@/lib/snyxSecurity";
 
 interface AppRelease {
   id: string;
