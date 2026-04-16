@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, Video, Sparkles, Loader2, Download,
-  X, Film, Crown, Play, RefreshCw, CheckCircle, AlertCircle,
+  Film, Crown, Play, RefreshCw, CheckCircle, AlertCircle,
   User as UserIcon, Mic,
 } from "lucide-react";
 import { toast } from "sonner";
