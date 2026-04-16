@@ -106,6 +106,11 @@ function CopyProtection() {
 }
 
 const App = () => {
+  // Initialize SnyX-SEC protection layer
+  React.useEffect(() => {
+    initSnyxSecurity();
+  }, []);
+
   React.useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
