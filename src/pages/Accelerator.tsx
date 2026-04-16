@@ -267,7 +267,7 @@ const Accelerator = () => {
                   <Cpu className="w-5 h-5 mr-2" /> Abrir SnyX Optimizer
                 </Button>
               </div>
-              <p className="text-white/40 text-sm">Role para baixo para baixar o app VPN</p>
+              <p className="text-white/40 text-sm">Role para baixo para baixar o app e ferramentas</p>
             </div>
           ) : (
             <div className="space-y-6">
