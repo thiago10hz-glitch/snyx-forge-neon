@@ -29,6 +29,24 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       setAvatarUrl(profile.avatar_url || "");
       setRelationshipStatus(profile.relationship_status || "");
       setGender(profile.gender || "");
+      
+      // Fetch partner info
+      if (profile.partner_user_id) {
+        supabase
+          .from("profiles")
+          .select("display_name, avatar_url")
+          .eq("user_id", profile.partner_user_id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setPartnerName((data as any).display_name || "Parceiro(a)");
+              setPartnerAvatar((data as any).avatar_url || null);
+            }
+          });
+      } else {
+        setPartnerName(null);
+        setPartnerAvatar(null);
+      }
     }
   }, [open, profile]);
 
