@@ -34,6 +34,7 @@ node --version
 set "INSTALL_DIR=%USERPROFILE%\SnyX-Optimizer"
 set "DESKTOP=%USERPROFILE%\Desktop"
 set "SOURCE_DIR=%~dp0"
+set "ELECTRON_EXE=%INSTALL_DIR%\node_modules\electron\dist\electron.exe"
 
 echo.
 echo [1/5] Criando pasta de instalacao...
@@ -58,14 +59,28 @@ if %errorlevel% neq 0 (
     echo    [AVISO] Tentando instalar novamente...
     call npm install electron --save 2>&1
 )
+if not exist "%ELECTRON_EXE%" (
+    echo    [ERRO] Electron nao foi instalado corretamente.
+    echo    Verifique sua internet e execute o instalador novamente.
+    echo.
+    pause
+    exit /b 1
+)
 echo    [OK] Electron instalado
 
 echo [4/5] Criando atalho na area de trabalho...
 :: Create launcher bat
 (
 echo @echo off
-echo cd /d "%INSTALL_DIR%"
-echo start "" /min cmd /c "npx electron . 2>nul"
+echo setlocal
+echo set "APP_DIR=%%~dp0"
+echo set "ELECTRON_EXE=%%APP_DIR%%node_modules\electron\dist\electron.exe"
+echo if not exist "%%ELECTRON_EXE%%" ^(
+echo   echo [ERRO] Electron nao encontrado em %%APP_DIR%%node_modules
+echo   pause
+echo   exit /b 1
+echo ^)
+echo start "" /d "%%APP_DIR%%" "%%ELECTRON_EXE%%" "%%APP_DIR%%electron\main.cjs"
 ) > "%INSTALL_DIR%\SnyX-Optimizer.bat"
 
 :: Create desktop shortcut
@@ -98,7 +113,10 @@ echo  Local: %INSTALL_DIR%
 echo  Atalho: Area de Trabalho
 echo.
 echo  Abrindo SnyX Optimizer...
-cd /d "%INSTALL_DIR%"
-start "" cmd /c "npx electron ."
+if exist "%ELECTRON_EXE%" (
+    start "" /d "%INSTALL_DIR%" "%ELECTRON_EXE%" "%INSTALL_DIR%\electron\main.cjs"
+) else (
+    echo [AVISO] Electron nao foi encontrado para iniciar automaticamente.
+)
 echo.
 pause
