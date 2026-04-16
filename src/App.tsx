@@ -113,28 +113,11 @@ const App = () => {
     initSnyxSecurity();
   }, []);
 
+  // Drag protection (all users)
   React.useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && ['U', 'S', 'C', 'A'].includes(e.key.toUpperCase()))
-      ) {
-        e.preventDefault();
-      }
-    };
     const handleDragStart = (e: DragEvent) => e.preventDefault();
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('dragstart', handleDragStart);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('dragstart', handleDragStart);
-    };
+    return () => document.removeEventListener('dragstart', handleDragStart);
   }, []);
 
   return (
