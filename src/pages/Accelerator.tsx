@@ -126,61 +126,59 @@ const Accelerator = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#07070f] text-white overflow-hidden relative">
-      <div className="fixed inset-0 opacity-10">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
+      <div className="fixed inset-0 opacity-5">
         <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(220,38,38,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(220,38,38,0.3) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }} />
       </div>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-red-600/20 rounded-full blur-[150px] pointer-events-none" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-white/50 hover:text-white transition mb-8">
-          <ArrowLeft className="w-4 h-4" /> Voltar
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-6">
+        <button onClick={() => navigate("/")} className="flex items-center gap-1.5 text-muted-foreground/50 hover:text-foreground transition mb-6 text-xs">
+          <ArrowLeft className="w-3.5 h-3.5" /> Voltar
         </button>
 
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm mb-6">
-            <Zap className="w-4 h-4" /> Ativação por Chave — Exclusivo DEV
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs mb-4">
+            <Zap className="w-3 h-3" /> Ativação por Chave — Exclusivo DEV
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
             SnyX{" "}
-            <span className="bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
               Accelerator
             </span>
           </h1>
 
-          <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
+          <p className="text-sm text-muted-foreground/60 max-w-lg mx-auto mb-6">
             Baixe o aplicativo e ative com sua chave exclusiva para transformar sua conexão.
-            Peça sua chave ao admin no painel de suporte.
           </p>
 
-          {/* Speed meter */}
-          <div className="flex items-center justify-center gap-4 mb-10">
-            <div className="relative w-48 h-48">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="relative w-36 h-36">
               <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-                <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
-                <circle cx="100" cy="100" r="85" fill="none" stroke="url(#speedGradient)" strokeWidth="12"
+                <circle cx="100" cy="100" r="85" fill="none" stroke="hsl(var(--muted) / 0.15)" strokeWidth="10" />
+                <circle cx="100" cy="100" r="85" fill="none" stroke="url(#speedGradient)" strokeWidth="10"
                   strokeLinecap="round" strokeDasharray={`${(speed / 1000) * 534} 534`} className="transition-all duration-100" />
                 <defs>
                   <linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#dc2626" /><stop offset="100%" stopColor="#f97316" />
+                    <stop offset="0%" stopColor="hsl(var(--primary))" /><stop offset="100%" stopColor="hsl(var(--accent))" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-black tabular-nums">{speed}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Mb/s</span>
+                <span className="text-3xl font-black tabular-nums">{speed}</span>
+                <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest">Mb/s</span>
               </div>
             </div>
             <div className="text-left">
-              <div className="text-sm text-white/40 mb-1">Sem Accelerator</div>
-              <div className="text-red-400 text-lg font-bold line-through opacity-50">~50 Mb/s</div>
-              <div className="text-sm text-white/40 mt-3 mb-1">Com Accelerator</div>
-              <div className="text-green-400 text-lg font-bold">~847 Mb/s</div>
-              <div className="text-xs text-white/30 mt-1">17x mais rápido</div>
+              <div className="text-[10px] text-muted-foreground/40 mb-0.5">Sem Accelerator</div>
+              <div className="text-destructive text-sm font-bold line-through opacity-50">~50 Mb/s</div>
+              <div className="text-[10px] text-muted-foreground/40 mt-2 mb-0.5">Com Accelerator</div>
+              <div className="text-green-400 text-sm font-bold">~847 Mb/s</div>
+              <div className="text-[9px] text-muted-foreground/30 mt-0.5">17x mais rápido</div>
             </div>
           </div>
 
