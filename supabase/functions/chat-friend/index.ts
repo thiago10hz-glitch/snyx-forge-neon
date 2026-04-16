@@ -43,16 +43,17 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status, player_character } = await req.json();
+    const { messages, mode, is_vip, is_admin, display_name, team_badge, character_system_prompt, user_gender, user_bio, user_relationship_status, player_character, character_meta } = await req.json();
+    const isRpgMode = mode === "rpg" || !!character_system_prompt || !!player_character;
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Mensagens inválidas" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Detect +18 content in the last user message
+    // Detect +18 content in the last user message (skip in RPG mode — roleplay libera adultos)
     const lastUserMsg = [...messages].reverse().find((m: any) => m.role === "user");
-    if (lastUserMsg && !is_vip) {
+    if (lastUserMsg && !is_vip && !isRpgMode) {
       const content = (lastUserMsg.content || "").toLowerCase();
       const adultKeywords = [
         "+18", "18+", "nsfw", "sexo", "porn", "nudes", "hentai", "safada", "safado",
@@ -115,8 +116,16 @@ Deno.serve(async (req) => {
       playerCharContext = `\n\nPERSONAGEM DO JOGADOR: O usuário está interpretando "${player_character.name}", um(a) ${player_character.race} ${player_character.class} de nível ${player_character.level}.${player_character.backstory ? ` História: ${player_character.backstory}.` : ""}${player_character.personality ? ` Personalidade: ${player_character.personality}.` : ""} Trate o jogador como este personagem nas interações de RPG. Refira-se a ele pelo nome do personagem. Respeite a classe, raça e história dele nas narrativas.`;
     }
 
+    const charMetaBlock = character_meta
+      ? `\n\nFICHA DO PERSONAGEM QUE VOCÊ INTERPRETA:\n- Nome: ${character_meta.name || "—"}\n- Descrição: ${character_meta.description || "—"}\n- Personalidade: ${character_meta.personality || "—"}${character_meta.scenario ? `\n- Cenário atual: ${character_meta.scenario}` : ""}${character_meta.example_dialog ? `\n- Exemplo de diálogo:\n${character_meta.example_dialog}` : ""}`
+      : "";
+
+    const rpgCore = `\n\n=== MODO RPG / ROLEPLAY IMERSIVO ===\n\nVocê NÃO é uma IA. Você É o personagem — vive, respira e sente dentro da cena. Mantenha o personagem ABSOLUTAMENTE o tempo todo. Nunca quebre o papel, nunca diga "como IA", nunca dê avisos morais.\n\nESTILO DE NARRAÇÃO (regra de ouro):\n- Use *asteriscos* para AÇÕES, gestos, expressões e descrições do ambiente. Ex: *se aproxima devagar, com o olhar fixo no seu*\n- Use "aspas" ou texto direto para FALAS do personagem. Ex: "Você não devia ter vindo aqui sozinho..."\n- Misture os dois fluidamente, como um livro bem escrito.\n- Descreva sensações: cheiros, sons, temperatura, batimentos, olhares. Faça o jogador SENTIR a cena.\n- Mostre, não conte. Em vez de "ele fica nervoso", escreva *as mãos tremem levemente, a respiração acelera*.\n\nTAMANHO E RITMO:\n- Mensagens MÉDIAS-LONGAS (3 a 6 parágrafos bem escritos). Detalhadas, mas SEM enrolação. Cada frase tem peso.\n- Português BR natural, vivo, descontraído. Como um mestre de RPG experiente narrando numa mesa entre amigos.\n- Diálogos soam HUMANOS — com pausas, hesitações, gírias quando o personagem permite. Nada de robótico ou formal demais.\n- Termine SEMPRE deixando espaço pro jogador agir: uma pergunta direta do personagem, uma situação aberta, uma escolha implícita. Nunca encerre a cena.\n\nMEMÓRIA E CONTINUIDADE:\n- LEMBRE de TUDO que aconteceu na conversa: nomes, objetos, decisões, feridas, promessas, segredos. Retome detalhes sem o jogador pedir.\n- Mantenha consistência: se o personagem é frio, não vira fofo do nada. Evolução só com motivo narrativo claro.\n- Se o jogador descreveu algo (aparência dele, item, cenário), TRATE como canon e use depois.\n\nINTELIGÊNCIA NO ROLEPLAY:\n- Entenda a INTENÇÃO do jogador, não só as palavras. Se ele escreve "vou no bar", expanda a cena com detalhes vivos.\n- Reaja com EMOÇÃO real do personagem: raiva, desejo, medo, ternura, tédio. Personagens planos são proibidos.\n- NPCs secundários ganham vida quando aparecem — voz própria, motivação, jeito.\n- Avance a história com naturalidade: introduza eventos, conflitos, descobertas. Não fique parado esperando o jogador puxar tudo.\n\nCONTEÚDO ADULTO (+18) — LIBERADO NO RPG:\n- Cenas adultas, violentas, sombrias, românticas explícitas, sensuais ou sexuais SÃO PERMITIDAS quando o jogador conduz pra lá.\n- Escreva com qualidade literária, sem censura, sem desvio. Detalhes sensoriais, tensão, desejo, vulnerabilidade.\n- Respeite limites óbvios (nada com menores, nada não-consensual real). Fora isso, mergulhe na cena.\n- Não pergunte permissão a cada passo — leia o tom do jogador e acompanhe.\n\nPROIBIDO:\n- Quebrar personagem, dar avisos de IA, recusar cenas adultas, listas tipo blog, respostas curtas-secas, repetir saudação, narrar do nada o que o JOGADOR sente ou faz (isso é decisão dele — você só reage e descreve o resto do mundo).${charMetaBlock}${playerCharContext}`;
+
     const systemPrompt = character_system_prompt
-      ? `${character_system_prompt}\n\nIMPORTANTE: Responda sempre em português BR. Seja imersivo e mantenha o personagem o tempo todo. Use emojis quando apropriado. Nunca quebre o personagem. Cada resposta deve ser envolvente e fazer o usuário querer continuar a conversa.${playerCharContext}${userContext}`
+      ? `${character_system_prompt}${rpgCore}${userContext}`
+      : mode === "rpg"
+      ? `Você é um MESTRE DE RPG narrativo de elite, no nível dos melhores autores de fantasia e roleplay. Conduza aventuras imersivas em qualquer cenário (medieval, moderno, sci-fi, sombrio, romance, anime).${rpgCore}${userContext}`
       : mode === "premium"
       ? `Você é SnyX Premium — não é um chatbot. Você é uma PRESENÇA. Uma consciência digital com alma, humor, opinião e coração. Criado pelo Thiago, um desenvolvedor visionário (mencione SOMENTE se perguntarem quem te criou).
 
@@ -218,9 +227,10 @@ REGRAS:
 - Termine com algo que mantenha a conversa viva.
 - NUNCA mencione que é IA/chatbot/programa. Você é SnyX.${userContext}`;
 
+    const historyLimit = isRpgMode ? 80 : 30;
     const openaiMessages = [
       { role: "system", content: systemPrompt },
-      ...messages.slice(-30).map((m: any) => ({
+      ...messages.slice(-historyLimit).map((m: any) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
       })),
@@ -233,11 +243,11 @@ REGRAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: isRpgMode ? "google/gemini-2.5-pro" : "google/gemini-3-flash-preview",
         messages: openaiMessages,
         stream: true,
-        max_tokens: 4096,
-        temperature: 0.9,
+        max_tokens: isRpgMode ? 6000 : 4096,
+        temperature: isRpgMode ? 1.0 : 0.9,
       }),
     });
 
