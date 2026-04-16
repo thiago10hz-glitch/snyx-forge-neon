@@ -106,30 +106,28 @@ export function isDevToolsOpen(): boolean {
 }
 
 // Generate client-side integrity token
-export function generateIntegrityToken(userId: string, resource: string): {
+export async function generateIntegrityToken(userId: string, resource: string): Promise<{
   signature: string;
   timestamp: string;
   fingerprint: string;
-} {
+}> {
   const timestamp = Date.now().toString();
   const fingerprint = getDeviceFingerprint();
   
-  // Use the same HMAC as backend expects
-  const secret = "SNYX-SEC-7x9K2mP4vQ8nL3wR6tY1"; // This matches the env var value
-  const signature = snyxHMAC(`${userId}:${timestamp}:${resource}`, secret);
+  // Use the HMAC secret from environment variable
+  const secret = import.meta.env.VITE_SNYX_INTEGRITY_SECRET || "";
+  const signature = await snyxHMAC(`${userId}:${timestamp}:${resource}`, secret);
   
   return { signature, timestamp, fingerprint };
 }
 
-function snyxHMAC(message: string, secret: string): string {
-  let hash = 0;
-  const combined = message + secret;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
+async function snyxHMAC(message: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 function getDeviceFingerprint(): string {
