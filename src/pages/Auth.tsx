@@ -349,7 +349,16 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-3">
-                  {VIP_PLANS.map((plan, i) => (
+                  {VIP_PLANS.map((plan, i) => {
+                    const planKey = plan.title === "VIP" ? "vip" : plan.title === "RPG Premium" ? "rpg" : "programmer";
+                    const planNameMap: Record<string, string> = { vip: "SnyX VIP", rpg: "SnyX RPG Premium", programmer: "SnyX Programador DEV" };
+                    const priceMap: Record<string, Record<string, number>> = {
+                      vip: { Semanal: 25, Mensal: 50, Anual: 150 },
+                      rpg: { Semanal: 20, Mensal: 50, Anual: 120 },
+                      programmer: { Semanal: 100, Mensal: 150, Anual: 250 },
+                    };
+
+                    return (
                     <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color} backdrop-blur-sm p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
                       {plan.popular && (
                         <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-black uppercase tracking-wider">
@@ -364,13 +373,27 @@ export default function Auth() {
                           <h3 className="font-bold text-foreground text-sm">{plan.title}</h3>
                           <div className="mt-1.5 flex flex-wrap gap-1.5">
                             {plan.plans.map((p, k) => (
-                              <div key={k} className="relative flex flex-col items-center rounded-lg border border-border/15 bg-background/25 px-2 py-1 min-w-[60px]">
+                              <button
+                                key={k}
+                                disabled={checkoutLoading}
+                                onClick={() => {
+                                  const price = priceMap[planKey][p.label];
+                                  const periodLabel = p.label.toLowerCase();
+                                  openCheckout({
+                                    title: planNameMap[planKey],
+                                    description: `Assinatura ${periodLabel} ${planNameMap[planKey]}`,
+                                    price,
+                                    quantity: 1,
+                                  });
+                                }}
+                                className="relative flex flex-col items-center rounded-lg border border-border/15 bg-background/25 px-2 py-1 min-w-[60px] hover:bg-primary/15 hover:border-primary/30 transition-all cursor-pointer disabled:opacity-50"
+                              >
                                 {p.badge && (
                                   <span className="absolute -top-1.5 text-[7px] font-bold bg-primary text-primary-foreground px-1 py-0 rounded-full">{p.badge}</span>
                                 )}
                                 <span className="text-[8px] text-muted-foreground/60 uppercase">{p.label}</span>
                                 <span className="text-[11px] font-black text-foreground">{p.price}</span>
-                              </div>
+                              </button>
                             ))}
                           </div>
                           <ul className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5">
@@ -384,23 +407,17 @@ export default function Auth() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <a
-                  href={VIP_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2.5 text-xs font-bold text-black transition-all hover:opacity-90 hover:shadow-lg hover:shadow-amber-500/20"
-                >
-                  <Crown className="h-4 w-4" />
-                  Adquirir agora via WhatsApp
-                  <ArrowRight className="h-4 w-4" />
-                </a>
+                <p className="text-[10px] text-center text-muted-foreground/40">
+                  Clique no período desejado para ir ao pagamento
+                </p>
 
                 <div className="flex items-center gap-2 rounded-lg border border-border/15 bg-muted/5 p-2">
                   <Shield className="h-3 w-3 text-primary shrink-0" />
-                  <p className="text-[9px] text-muted-foreground/60">Pagamento seguro • Ativação instantânea • Cancele quando quiser</p>
+                  <p className="text-[9px] text-muted-foreground/60">Pagamento seguro via Mercado Pago • Ativação instantânea • Cancele quando quiser</p>
                 </div>
 
                 <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-1.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground">
