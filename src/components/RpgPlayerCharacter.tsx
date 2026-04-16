@@ -152,6 +152,16 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
     fetchCharacters();
   };
 
+  const handleStartAdventure = async (id: string, isAlreadyActive: boolean) => {
+    if (!user) return;
+    if (!isAlreadyActive) {
+      await supabase.from("rpg_player_characters").update({ is_active: false }).eq("user_id", user.id);
+      await supabase.from("rpg_player_characters").update({ is_active: true }).eq("id", id);
+    }
+    toast.success("Aventura iniciada! Converse no chat 🗡️");
+    onClose();
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80  flex items-center justify-center">
