@@ -24,26 +24,16 @@ interface Channel {
   g: string;
 }
 
-const IPTV_USERNAME = Deno.env.get("IPTV_USERNAME") || "";
-const IPTV_PASSWORD = Deno.env.get("IPTV_PASSWORD") || "";
-const rawHost = (Deno.env.get("IPTV_HOST") || "megga.tv.br").trim();
+// Prefer IPTV_M3U_URL (full link). Fallback: build from host+user+pass.
+const PLAYLIST_URL = (() => {
+  const fullUrl = (Deno.env.get("IPTV_M3U_URL") || "").trim();
+  if (fullUrl) return fullUrl;
 
-function buildPlaylistUrl(input: string, username: string, password: string) {
-  const trimmed = input.trim();
-
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-
-  if (trimmed.includes("get.php?")) {
-    return `http://${trimmed.replace(/^\/+/, "")}`;
-  }
-
-  const host = trimmed.replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+  const username = Deno.env.get("IPTV_USERNAME") || "";
+  const password = Deno.env.get("IPTV_PASSWORD") || "";
+  const host = (Deno.env.get("IPTV_HOST") || "megga.tv.br").trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
   return `http://${host}/get.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&type=m3u_plus&output=mpegts`;
-}
-
-const PLAYLIST_URL = buildPlaylistUrl(rawHost, IPTV_USERNAME, IPTV_PASSWORD);
+})();
 
 const MAX_CHANNELS = 5000;
 
