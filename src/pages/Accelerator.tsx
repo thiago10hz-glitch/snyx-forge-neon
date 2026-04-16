@@ -249,122 +249,96 @@ const Accelerator = () => {
           ))}
         </div>
 
-        {/* Speed Test Section - only for activated users */}
+        {/* Speed Test Section */}
         {hasActiveKey && user && (
-          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
-                <Activity className="w-6 h-6 text-red-500" />
-                Teste de Velocidade SnyX
+          <div className="mb-10 p-4 md:p-6 rounded-xl border border-border/10 bg-card/30">
+            <div className="text-center mb-4">
+              <h2 className="text-base font-bold mb-1 flex items-center justify-center gap-1.5">
+                <Activity className="w-4 h-4 text-primary" />
+                Teste de Velocidade
               </h2>
-              <p className="text-white/40 text-sm">Meça a velocidade real da sua conexão otimizada pelo Accelerator</p>
+              <p className="text-muted-foreground/40 text-xs">Meça a velocidade da sua conexão otimizada</p>
             </div>
 
-            {/* Gauge visual */}
-            <div className="flex justify-center mb-6">
-              <div className="relative w-48 h-48">
+            <div className="flex justify-center mb-4">
+              <div className="relative w-36 h-36">
                 <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-                  <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
-                  <circle
-                    cx="100" cy="100" r="85" fill="none"
-                    stroke="url(#speedGrad)" strokeWidth="12" strokeLinecap="round"
+                  <circle cx="100" cy="100" r="85" fill="none" stroke="hsl(var(--muted) / 0.15)" strokeWidth="10" />
+                  <circle cx="100" cy="100" r="85" fill="none"
+                    stroke="url(#speedGrad)" strokeWidth="10" strokeLinecap="round"
                     strokeDasharray={`${testResults ? Math.min((testResults.downloadAccel / 1000) * 534, 534) : 0} 534`}
-                    className="transition-all duration-1000"
-                  />
+                    className="transition-all duration-1000" />
                   <defs>
                     <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#dc2626" />
-                      <stop offset="50%" stopColor="#f97316" />
+                      <stop offset="0%" stopColor="hsl(var(--primary))" />
+                      <stop offset="50%" stopColor="hsl(var(--accent))" />
                       <stop offset="100%" stopColor="#22c55e" />
                     </linearGradient>
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-4xl font-black tabular-nums">
+                  <div className="text-2xl font-black tabular-nums">
                     {testing ? "..." : testResults ? testResults.downloadAccel : "---"}
                   </div>
-                  <div className="text-[10px] text-white/30 uppercase tracking-[3px]">Mb/s</div>
+                  <div className="text-[9px] text-muted-foreground/30 uppercase tracking-[2px]">Mb/s</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-              <Button
-                onClick={runSpeedTest}
-                disabled={testing}
-                className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 border-0 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
-              >
-                <Gauge className="w-5 h-5 mr-2" />
-                {testing ? testPhase || "Testando..." : "Iniciar Teste SnyX"}
+            <div className="flex flex-col sm:flex-row gap-2 justify-center mb-4">
+              <Button onClick={runSpeedTest} disabled={testing}
+                className="px-5 py-3 text-xs font-bold rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 border-0 shadow-md shadow-primary/20">
+                <Gauge className="w-3.5 h-3.5 mr-1.5" />
+                {testing ? testPhase || "Testando..." : "Iniciar Teste"}
               </Button>
-              <Button
-                onClick={() => window.open("https://www.speedtest.net", "_blank")}
-                variant="outline"
-                className="px-6 py-6 text-base font-bold rounded-xl border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/5"
-              >
-                <Wifi className="w-5 h-5 mr-2 text-cyan-400" />
-                Abrir Speedtest.net
+              <Button onClick={() => window.open("https://www.speedtest.net", "_blank")} variant="outline"
+                className="px-4 py-3 text-xs font-bold rounded-lg border-border/15 hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                <Wifi className="w-3.5 h-3.5 mr-1.5 text-cyan-400" /> Speedtest.net
               </Button>
             </div>
 
             {testResults && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* Ping */}
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center">
-                  <span className="text-white/40 text-sm">Latência (Ping)</span>
-                  <div className="text-3xl font-black text-cyan-400">{testResults.ping}<span className="text-sm text-white/40 ml-1">ms</span></div>
+                  <span className="text-muted-foreground/40 text-xs">Ping</span>
+                  <div className="text-xl font-black text-cyan-400">{testResults.ping}<span className="text-xs text-muted-foreground/40 ml-1">ms</span></div>
                 </div>
-
-                {/* Download comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⬇️ Download Normal</div>
-                    <div className="text-3xl font-black text-red-400">{testResults.downloadNormal}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border/10 bg-card/30 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⬇️ Normal</div>
+                    <div className="text-xl font-black text-destructive">{testResults.downloadNormal}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
-                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
-                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold animate-pulse">
+                  <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5 text-center relative overflow-hidden">
+                    <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[8px] font-bold animate-pulse">
                       +{testResults.boost}%
                     </div>
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⚡ Com Accelerator</div>
-                    <div className="text-3xl font-black text-green-400">{testResults.downloadAccel}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⚡ Accel</div>
+                    <div className="text-xl font-black text-green-400">{testResults.downloadAccel}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
                 </div>
-
-                {/* Upload comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03] text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⬆️ Upload Normal</div>
-                    <div className="text-3xl font-black text-red-400">{testResults.uploadNormal}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border/10 bg-card/30 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⬆️ Upload</div>
+                    <div className="text-xl font-black text-destructive">{testResults.uploadNormal}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
-                  <div className="p-5 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
-                    <div className="text-white/40 text-xs uppercase tracking-wider mb-2">⚡ Com Accelerator</div>
-                    <div className="text-3xl font-black text-green-400">{testResults.uploadAccel}</div>
-                    <div className="text-xs text-white/30">Mb/s</div>
+                  <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5 text-center">
+                    <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">⚡ Accel</div>
+                    <div className="text-xl font-black text-green-400">{testResults.uploadAccel}</div>
+                    <div className="text-[10px] text-muted-foreground/30">Mb/s</div>
                   </div>
                 </div>
-
-                {/* Boost bar */}
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
-                  <div className="text-white/40 text-xs uppercase tracking-wider mb-2">🚀 Velocidade Aumentada</div>
-                  <div className="w-full bg-white/5 rounded-full h-4 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-green-500 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }}
-                    />
+                <div className="p-3 rounded-lg border border-primary/15 bg-primary/5 text-center">
+                  <div className="text-muted-foreground/40 text-[10px] uppercase tracking-wider mb-1">🚀 Boost</div>
+                  <div className="w-full bg-muted/10 rounded-full h-2.5 overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-green-500 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, testResults.boost / 20)}%` }} />
                   </div>
-                  <div className="text-2xl font-black text-orange-400 mt-2">
+                  <div className="text-lg font-black text-primary mt-1">
                     {(testResults.downloadAccel / testResults.downloadNormal).toFixed(1)}x mais rápido
                   </div>
-                </div>
-
-                {/* External verification tip */}
-                <div className="p-4 rounded-xl border border-cyan-500/10 bg-cyan-500/5 text-center">
-                  <p className="text-white/50 text-sm">
-                    💡 <strong className="text-cyan-400">Dica:</strong> Abra o <button onClick={() => window.open("https://www.speedtest.net", "_blank")} className="text-cyan-400 underline hover:text-cyan-300 font-bold">Speedtest.net</button> ou o <button onClick={() => window.open("https://fast.com", "_blank")} className="text-cyan-400 underline hover:text-cyan-300 font-bold">Fast.com</button> para comparar a velocidade com o Accelerator ativo no seu PC!
-                  </p>
                 </div>
               </div>
             )}
