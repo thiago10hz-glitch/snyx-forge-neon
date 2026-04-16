@@ -164,7 +164,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Como quer ser chamado?"
               maxLength={50}
-              className="w-full bg-muted/8 border border-border/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/25 focus:outline-none focus:border-primary/25 focus:bg-muted/12 transition-all duration-200"
+              className="w-full bg-background/40 border border-border/8 rounded-xl px-3.5 py-2.5 text-sm text-foreground/80 placeholder:text-muted-foreground/20 focus:outline-none focus:border-primary/20 focus:bg-background/60 transition-all duration-200"
             />
           </div>
 
