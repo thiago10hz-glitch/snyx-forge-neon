@@ -82,7 +82,7 @@ export function MusicPanel({ onBack }: MusicPanelProps) {
   const [prompt, setPrompt] = useState("");
   const [vocalText, setVocalText] = useState("");
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0]);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [_isGenerating, setIsGenerating] = useState(false);
   const [generatingPhase, setGeneratingPhase] = useState("");
   const [generatingType, setGeneratingType] = useState<"music" | "vocal">("music");
   const [tracks, setTracks] = useState<GeneratedTrack[]>([]);
