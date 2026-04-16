@@ -62,17 +62,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function CopyProtection() {
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!user) return;
-    import("@/integrations/supabase/client").then(({ supabase }) => {
-      supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-        setIsAdmin(!!data);
-      });
-    });
-  }, [user]);
+  const { isAdmin } = useAuth();
 
   React.useEffect(() => {
     if (isAdmin) {
