@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Detect +18 content in the last user message
+    // Detect +18 content in the last user message (skip in RPG mode — roleplay libera adultos)
     const lastUserMsg = [...messages].reverse().find((m: any) => m.role === "user");
-    if (lastUserMsg && !is_vip) {
+    if (lastUserMsg && !is_vip && !isRpgMode) {
       const content = (lastUserMsg.content || "").toLowerCase();
       const adultKeywords = [
         "+18", "18+", "nsfw", "sexo", "porn", "nudes", "hentai", "safada", "safado",
