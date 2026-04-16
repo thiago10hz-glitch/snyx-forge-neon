@@ -148,8 +148,10 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
 
   const isAuthForm = view === "login" || view === "signup";
 
