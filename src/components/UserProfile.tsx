@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Camera, Loader2, Save, User, Crown, Code, Sparkles, KeyRound, Heart } from "lucide-react";
+import { X, Camera, Loader2, Save, User, Crown, Code, Sparkles, KeyRound, Heart, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserProfileProps {
@@ -14,19 +14,23 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [backgroundUrl, setBackgroundUrl] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [gender, setGender] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
   const [saving, setSaving] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && profile) {
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
+      setBackgroundUrl((profile as any).background_url || "");
       setRelationshipStatus(profile.relationship_status || "");
       setGender(profile.gender || "");
       
@@ -78,6 +82,32 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
     }
   };
 
+  const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Envie apenas imagens"); return; }
+
+    setUploadingBg(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${user.id}/background.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setBackgroundUrl(newUrl);
+      await (supabase as any).from("profiles").update({ background_url: newUrl }).eq("user_id", user.id);
+      toast.success("Fundo atualizado!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar imagem de fundo");
+    } finally {
+      setUploadingBg(false);
+      e.target.value = "";
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -85,6 +115,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         avatar_url: avatarUrl || null,
+        background_url: backgroundUrl || null,
         relationship_status: relationshipStatus || null,
         gender: gender || null,
       }).eq("user_id", user.id);
@@ -108,8 +139,23 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
       >
         {/* Header with avatar hero */}
         <div className="relative overflow-hidden">
-          {/* Gradient banner */}
-          <div className="h-24 sm:h-28 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent" />
+          {/* Gradient banner / custom background */}
+          <div className="h-24 sm:h-28 relative group/bg">
+            {backgroundUrl ? (
+              <img src={backgroundUrl} alt="Fundo" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/8 to-transparent" />
+            )}
+            <button
+              onClick={() => bgInputRef.current?.click()}
+              disabled={uploadingBg}
+              className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-sm text-white/70 text-[10px] opacity-0 group-hover/bg:opacity-100 transition-opacity hover:bg-black/70"
+            >
+              {uploadingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
+              {backgroundUrl ? "Trocar fundo" : "Adicionar fundo"}
+            </button>
+            <input ref={bgInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
+          </div>
 
           {/* Close button */}
           <button
