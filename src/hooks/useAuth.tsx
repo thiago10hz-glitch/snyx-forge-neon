@@ -111,7 +111,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      setProfile(null);
+      setIsAdmin(false);
+      setUser(null);
+      setSession(null);
+      profileFetchPromise = null;
+      await supabase.auth.signOut();
+    } catch {
+      // Force clear even if signOut fails
+    } finally {
+      window.location.href = "/auth";
+    }
   }, []);
 
   const refreshProfile = useCallback(async () => {
