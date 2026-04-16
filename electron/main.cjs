@@ -63,7 +63,7 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-  mainWindow.loadURL(`http://127.0.0.1:${LOCAL_PORT}`);
+  mainWindow.loadURL(`http://127.0.0.1:${LOCAL_PORT}/optimization`);
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 

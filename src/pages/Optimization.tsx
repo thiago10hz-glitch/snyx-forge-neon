@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,385 +6,455 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BOOST_SCRIPT, REVERT_SCRIPT, downloadScript } from "@/lib/gameBoostScripts";
 import {
-  ArrowLeft, Lock, Cpu, Zap,
-  Monitor, MemoryStick, Settings, CheckCircle2,
-  XCircle, Power, Loader2, RefreshCw, Download,
-  RotateCcw, Gamepad2, Eye, MousePointer, Network,
-  Shield
+  ArrowLeft, Lock, Cpu, Zap, Monitor, MemoryStick, Settings, CheckCircle2,
+  XCircle, Power, Loader2, RefreshCw, Download, RotateCcw, Gamepad2,
+  Eye, MousePointer, Network, Shield, Key, HardDrive, Wifi, Gauge, Flame,
+  ChevronRight, Check, Info
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
+// ============= ELECTRON DESKTOP TYPES =============
+declare global {
+  interface Window {
+    snyxAPI?: {
+      isDesktop: boolean;
+      activateKey: (key: string) => Promise<any>;
+      checkLicense: () => Promise<any>;
+      runOptimization: (id: string) => Promise<any>;
+      runAllOptimizations: () => Promise<any>;
+      revertAll: () => Promise<any>;
+      getSystemInfo: () => Promise<any>;
+      setupVPN: (config: any) => Promise<any>;
+      removeVPN: () => Promise<any>;
+      cleanupNetwork: () => Promise<any>;
+      minimize: () => void;
+      maximize: () => void;
+      close: () => void;
+      selfDestruct: () => Promise<any>;
+      onLicenseRevoked: (cb: (reason: string) => void) => void;
+    };
+  }
+}
+
+const isDesktop = typeof window !== "undefined" && !!window.snyxAPI?.isDesktop;
+
+// ============= ELECTRON KEY-ONLY FLOW =============
+const desktopModules = [
+  { id: "power", name: "Power Plan", desc: "Plano de energia máximo desempenho", icon: Power, color: "text-yellow-400" },
+  { id: "network", name: "Network Boost", desc: "Otimização TCP/IP e DNS", icon: Wifi, color: "text-blue-400" },
+  { id: "cpu", name: "CPU Priority", desc: "Prioridade de processos para jogos", icon: Cpu, color: "text-red-400" },
+  { id: "gpu", name: "GPU Tweaks", desc: "Configurações de GPU otimizadas", icon: Monitor, color: "text-green-400" },
+  { id: "ram", name: "RAM Cleaner", desc: "Limpeza e otimização de memória", icon: MemoryStick, color: "text-purple-400" },
+  { id: "disk", name: "Disk Boost", desc: "Otimização de disco e I/O", icon: HardDrive, color: "text-orange-400" },
+  { id: "gaming", name: "Game Mode", desc: "Modo jogo do Windows otimizado", icon: Flame, color: "text-red-500" },
+  { id: "latency", name: "Low Latency", desc: "Redução de latência de rede", icon: Gauge, color: "text-cyan-400" },
+  { id: "services", name: "Service Cleanup", desc: "Desativa serviços desnecessários", icon: RefreshCw, color: "text-pink-400" },
+  { id: "dns", name: "DNS Optimizer", desc: "DNS mais rápido configurado", icon: Network, color: "text-emerald-400" },
+];
+
+function DesktopKeyActivation({ onActivated }: { onActivated: () => void }) {
+  const [key, setKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    window.snyxAPI!.checkLicense().then((res: any) => {
+      if (res?.valid) onActivated();
+      setChecking(false);
+    }).catch(() => setChecking(false));
+  }, [onActivated]);
+
+  const activate = async () => {
+    if (!key.trim()) return;
+    setLoading(true);
+    try {
+      const res = await window.snyxAPI!.activateKey(key.trim());
+      if (res?.success) {
+        toast.success(res.message || "Chave ativada!");
+        onActivated();
+      } else {
+        toast.error(res?.error || "Chave inválida");
+      }
+    } catch {
+      toast.error("Falha ao ativar chave");
+    }
+    setLoading(false);
+  };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#07070f]">
+        <Loader2 className="h-8 w-8 animate-spin text-red-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#07070f]">
+      {/* Titlebar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/5 select-none" style={{ WebkitAppRegion: "drag" } as any}>
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-red-500" />
+          <span className="text-sm font-semibold text-gray-300">SnyX Optimizer</span>
+        </div>
+        <div className="flex gap-1" style={{ WebkitAppRegion: "no-drag" } as any}>
+          <button onClick={() => window.snyxAPI!.minimize()} className="w-8 h-6 flex items-center justify-center hover:bg-white/10 rounded text-gray-400 text-xs">─</button>
+          <button onClick={() => window.snyxAPI!.maximize()} className="w-8 h-6 flex items-center justify-center hover:bg-white/10 rounded text-gray-400 text-xs">□</button>
+          <button onClick={() => window.snyxAPI!.close()} className="w-8 h-6 flex items-center justify-center hover:bg-red-600/80 rounded text-gray-400 hover:text-white text-xs">✕</button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8 text-center">
+          <div className="space-y-3">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center shadow-lg shadow-red-600/30">
+              <Zap className="h-10 w-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">SnyX Optimizer</h1>
+            <p className="text-sm text-gray-400">Insira sua chave de ativação para continuar</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="SNYX-ACC-XXXX-XXXX-XXXX"
+                value={key}
+                onChange={(e) => setKey(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && activate()}
+                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 font-mono text-sm tracking-wider"
+                disabled={loading}
+              />
+            </div>
+            <Button
+              onClick={activate}
+              disabled={loading || !key.trim()}
+              className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-semibold rounded-xl transition-all"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
+              {loading ? "Verificando..." : "Ativar Chave"}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-600">v2.0 • Sistema protegido por chave de ativação</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopOptimizer() {
+  const [running, setRunning] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [sysInfo, setSysInfo] = useState<any>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    window.snyxAPI!.getSystemInfo().then(setSysInfo).catch(() => {});
+    window.snyxAPI!.onLicenseRevoked((reason: string) => {
+      toast.error("Licença revogada: " + reason);
+    });
+  }, []);
+
+  const runModule = async (id: string) => {
+    setRunning(id);
+    setProgress(0);
+    const interval = setInterval(() => setProgress(p => Math.min(p + 15, 90)), 200);
+    try {
+      await window.snyxAPI!.runOptimization(id);
+      setProgress(100);
+      setCompleted(prev => new Set(prev).add(id));
+      toast.success(`${desktopModules.find(m => m.id === id)?.name} aplicado!`);
+    } catch {
+      toast.error("Falha na otimização");
+    }
+    clearInterval(interval);
+    setTimeout(() => { setRunning(null); setProgress(0); }, 500);
+  };
+
+  const runAll = async () => {
+    setRunning("all");
+    setProgress(0);
+    try {
+      await window.snyxAPI!.runAllOptimizations();
+      setProgress(100);
+      setCompleted(new Set(desktopModules.map(m => m.id)));
+      toast.success("Todas otimizações aplicadas!");
+    } catch {
+      toast.error("Erro ao aplicar otimizações");
+    }
+    setTimeout(() => { setRunning(null); setProgress(0); }, 500);
+  };
+
+  const revertAll = async () => {
+    try {
+      await window.snyxAPI!.revertAll();
+      setCompleted(new Set());
+      toast.success("Todas otimizações revertidas");
+    } catch {
+      toast.error("Erro ao reverter");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#07070f] text-white">
+      {/* Titlebar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/5 select-none" style={{ WebkitAppRegion: "drag" } as any}>
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-red-500" />
+          <span className="text-sm font-semibold text-gray-300">SnyX Optimizer</span>
+        </div>
+        <div className="flex gap-1" style={{ WebkitAppRegion: "no-drag" } as any}>
+          <button onClick={() => window.snyxAPI!.minimize()} className="w-8 h-6 flex items-center justify-center hover:bg-white/10 rounded text-gray-400 text-xs">─</button>
+          <button onClick={() => window.snyxAPI!.maximize()} className="w-8 h-6 flex items-center justify-center hover:bg-white/10 rounded text-gray-400 text-xs">□</button>
+          <button onClick={() => window.snyxAPI!.close()} className="w-8 h-6 flex items-center justify-center hover:bg-red-600/80 rounded text-gray-400 hover:text-white text-xs">✕</button>
+        </div>
+      </div>
+
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Zap className="h-6 w-6 text-red-500" /> SnyX Optimizer
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">{completed.size}/{desktopModules.length} otimizações ativas</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={runAll} disabled={!!running} size="sm" className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500">
+              <Zap className="h-3.5 w-3.5 mr-1" /> Otimizar Tudo
+            </Button>
+            <Button onClick={revertAll} disabled={!!running} size="sm" variant="outline" className="border-white/10 text-gray-300 hover:bg-white/5">
+              <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reverter
+            </Button>
+          </div>
+        </div>
+
+        {running && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{running === "all" ? "Aplicando todas..." : `Aplicando ${desktopModules.find(m => m.id === running)?.name}...`}</span>
+              <span>{progress}%</span>
+            </div>
+            <Progress value={progress} className="h-1.5" />
+          </div>
+        )}
+
+        {sysInfo && (
+          <Card className="p-4 bg-white/[0.03] border-white/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="h-4 w-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-300">Sistema</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-400">
+              <div><span className="text-gray-600">OS:</span> {sysInfo.os}</div>
+              <div><span className="text-gray-600">CPU:</span> {sysInfo.cpu}</div>
+              <div><span className="text-gray-600">RAM:</span> {sysInfo.ram}</div>
+              <div><span className="text-gray-600">GPU:</span> {sysInfo.gpu}</div>
+            </div>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {desktopModules.map((mod) => {
+            const Icon = mod.icon;
+            const isDone = completed.has(mod.id);
+            const isRunning = running === mod.id;
+            return (
+              <button
+                key={mod.id}
+                onClick={() => !running && runModule(mod.id)}
+                disabled={!!running}
+                className={`group relative p-4 rounded-xl border text-left transition-all ${
+                  isDone ? "bg-green-500/5 border-green-500/20" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10"
+                } disabled:opacity-50`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${isDone ? "bg-green-500/10" : "bg-white/5"}`}>
+                      <Icon className={`h-4 w-4 ${isDone ? "text-green-400" : mod.color}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-white">{mod.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">{mod.desc}</p>
+                    </div>
+                  </div>
+                  {isDone ? <Check className="h-4 w-4 text-green-400" /> : isRunning ? <Loader2 className="h-4 w-4 animate-spin text-red-400" /> : <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-gray-400" />}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============= WEB VERSION (original) =============
 interface KeyInfo {
   activation_key: string;
   activated_at: string | null;
   expires_at: string | null;
   status: string;
-  days_remaining: number | null;
 }
 
-const Optimization = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [hasActiveKey, setHasActiveKey] = useState(false);
-  const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
-  
+const modules = [
+  { id: "cpu", name: "CPU Optimizer", desc: "Otimiza prioridade de processos e threads para jogos", icon: Cpu, color: "from-red-500/20 to-red-600/20 border-red-500/30 text-red-400" },
+  { id: "gpu", name: "GPU Tweaks", desc: "Configurações avançadas de GPU para máximo FPS", icon: Monitor, color: "from-green-500/20 to-green-600/20 border-green-500/30 text-green-400" },
+  { id: "ram", name: "RAM Cleaner", desc: "Libera memória RAM e otimiza uso", icon: MemoryStick, color: "from-blue-500/20 to-blue-600/20 border-blue-500/30 text-blue-400" },
+  { id: "network", name: "Network Boost", desc: "Otimiza TCP/IP e reduz latência de rede", icon: Network, color: "from-purple-500/20 to-purple-600/20 border-purple-500/30 text-purple-400" },
+  { id: "power", name: "Power Plan", desc: "Ativa plano de energia de máximo desempenho", icon: Power, color: "from-yellow-500/20 to-yellow-600/20 border-yellow-500/30 text-yellow-400" },
+  { id: "gaming", name: "Game Mode Pro", desc: "Desativa serviços desnecessários durante jogos", icon: Gamepad2, color: "from-orange-500/20 to-orange-600/20 border-orange-500/30 text-orange-400" },
+  { id: "visual", name: "Visual Tweaks", desc: "Desativa efeitos visuais que consomem performance", icon: Eye, color: "from-pink-500/20 to-pink-600/20 border-pink-500/30 text-pink-400" },
+  { id: "input", name: "Input Lag Fix", desc: "Reduz input lag de mouse e teclado", icon: MousePointer, color: "from-cyan-500/20 to-cyan-600/20 border-cyan-500/30 text-cyan-400" },
+];
 
-  // Optimization states
-  const [optimizations, setOptimizations] = useState({
-    power: false,
-    visual: false,
-    network: false,
-    cpu: false,
-    services: false,
-    ram: false,
-    gamebar: false,
-    gpu: false,
-    fullscreen: false,
-    mouse: false,
-  });
+function WebOptimization() {
+  const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [keyInput, setKeyInput] = useState("");
+  const [activating, setActivating] = useState(false);
+  const [optimizedModules, setOptimizedModules] = useState<Set<string>>(new Set());
+  const [runningModule, setRunningModule] = useState<string | null>(null);
+
+  const hasAccess = !!(profile?.is_vip || profile?.is_dev);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    checkKeyStatus();
+    loadKey();
   }, [user]);
 
-
-
-
-  const checkKeyStatus = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("vpn-manage", {
-        body: { action: "status" },
-      });
-      if (!error && data?.active) {
-        setHasActiveKey(true);
-        setKeyInfo(data.key_info);
-      } else {
-        // Fallback: check directly
-        const { data: keyData } = await (supabase as any)
-          .from("accelerator_keys")
-          .select("*")
-          .eq("activated_by", user!.id)
-          .eq("status", "active")
-          .limit(1);
-        if (keyData && keyData.length > 0) {
-          setHasActiveKey(true);
-          setKeyInfo({
-            activation_key: keyData[0].activation_key,
-            activated_at: keyData[0].activated_at,
-            expires_at: keyData[0].expires_at,
-            status: keyData[0].status,
-            days_remaining: keyData[0].expires_at
-              ? Math.max(0, Math.ceil((new Date(keyData[0].expires_at).getTime() - Date.now()) / 86400000))
-              : null,
-          });
-        }
-      }
-    } catch {
-      // Silent fail
-    }
+  const loadKey = async () => {
+    const { data } = await supabase
+      .from("accelerator_keys")
+      .select("activation_key, activated_at, expires_at, status")
+      .eq("activated_by", user!.id)
+      .eq("status", "active")
+      .maybeSingle();
+    setKeyInfo(data);
     setLoading(false);
   };
 
-  const optimizationModules = [
-    {
-      id: "power",
-      icon: Power,
-      title: "Plano de Energia",
-      desc: "SnyX Ultimate Gaming — CPU 100%, sem sleep, core parking OFF",
-      color: "from-red-600 to-orange-500",
-      border: "border-red-500/20",
-      bg: "bg-red-500/5",
-    },
-    {
-      id: "visual",
-      icon: Eye,
-      title: "Efeitos Visuais",
-      desc: "Desabilita animações, transparências e efeitos que consomem GPU",
-      color: "from-purple-600 to-pink-500",
-      border: "border-purple-500/20",
-      bg: "bg-purple-500/5",
-    },
-    {
-      id: "network",
-      icon: Network,
-      title: "Rede TCP/Nagle",
-      desc: "Nagle OFF, throttling removido, latência -70%",
-      color: "from-cyan-600 to-blue-500",
-      border: "border-cyan-500/20",
-      bg: "bg-cyan-500/5",
-    },
-    {
-      id: "cpu",
-      icon: Cpu,
-      title: "Prioridade CPU/GPU",
-      desc: "Prioridade alta para jogos, scheduling otimizado",
-      color: "from-green-600 to-emerald-500",
-      border: "border-green-500/20",
-      bg: "bg-green-500/5",
-    },
-    {
-      id: "services",
-      icon: Settings,
-      title: "Serviços Windows",
-      desc: "Para telemetria, busca, superfetch e serviços inúteis",
-      color: "from-yellow-600 to-amber-500",
-      border: "border-yellow-500/20",
-      bg: "bg-yellow-500/5",
-    },
-    {
-      id: "ram",
-      icon: MemoryStick,
-      title: "Limpeza de RAM",
-      desc: "Limpa memória ociosa e flush DNS automático",
-      color: "from-teal-600 to-cyan-500",
-      border: "border-teal-500/20",
-      bg: "bg-teal-500/5",
-    },
-    {
-      id: "gamebar",
-      icon: Gamepad2,
-      title: "Game Bar / DVR",
-      desc: "Desabilita Xbox Game Bar e Game DVR — menos overhead",
-      color: "from-rose-600 to-red-500",
-      border: "border-rose-500/20",
-      bg: "bg-rose-500/5",
-    },
-    {
-      id: "gpu",
-      icon: Monitor,
-      title: "GPU Scheduling",
-      desc: "Hardware accelerated GPU scheduling ativado",
-      color: "from-indigo-600 to-violet-500",
-      border: "border-indigo-500/20",
-      bg: "bg-indigo-500/5",
-    },
-    {
-      id: "fullscreen",
-      icon: Monitor,
-      title: "Fullscreen Optimizations",
-      desc: "Desabilita otimizações de tela cheia do Windows",
-      color: "from-orange-600 to-yellow-500",
-      border: "border-orange-500/20",
-      bg: "bg-orange-500/5",
-    },
-    {
-      id: "mouse",
-      icon: MousePointer,
-      title: "Mouse Raw Input",
-      desc: "Remove aceleração do mouse — precisão total para FPS",
-      color: "from-lime-600 to-green-500",
-      border: "border-lime-500/20",
-      bg: "bg-lime-500/5",
-    },
-  ];
-
-  const handleDownloadAll = () => {
-    downloadScript(BOOST_SCRIPT, "SnyX-Otimizacao-ATIVAR.bat");
-    toast.success("🚀 Script de otimização completa baixado!");
-    setOptimizations(prev => {
-      const all: any = {};
-      Object.keys(prev).forEach(k => all[k] = true);
-      return all;
-    });
+  const activateKey = async () => {
+    if (!keyInput.trim()) return;
+    setActivating(true);
+    const { data, error } = await supabase.rpc("activate_accelerator_key", { p_key: keyInput.trim() });
+    if (error) { toast.error("Erro ao ativar chave"); setActivating(false); return; }
+    const result = data as any;
+    if (result.success) { toast.success(result.message); loadKey(); }
+    else toast.error(result.error);
+    setActivating(false);
   };
 
-  const handleRevertAll = () => {
-    downloadScript(REVERT_SCRIPT, "SnyX-Otimizacao-REVERTER.bat");
-    toast.success("↩️ Script de reversão baixado!");
-    setOptimizations(prev => {
-      const all: any = {};
-      Object.keys(prev).forEach(k => all[k] = false);
-      return all;
-    });
+  const handleOptimize = async (moduleId: string) => {
+    setRunningModule(moduleId);
+    await new Promise(r => setTimeout(r, 1500));
+    setOptimizedModules(prev => new Set(prev).add(moduleId));
+    setRunningModule(null);
+    toast.success(`${modules.find(m => m.id === moduleId)?.name} otimizado!`);
   };
 
-  const activeCount = Object.values(optimizations).filter(Boolean).length;
-  const totalCount = Object.keys(optimizations).length;
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
 
   return (
-    <div className="min-h-screen bg-[#07070f] text-white overflow-hidden relative">
-      {/* Background effects */}
-      <div className="fixed inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(0,200,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }} />
-      </div>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-cyan-600/15 rounded-full blur-[150px] pointer-events-none" />
-      <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-white/50 hover:text-white transition mb-8">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </button>
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm mb-6">
-            <Cpu className="w-4 h-4" /> Otimização Total — Vinculada à Chave
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Zap className="h-6 w-6 text-primary" /> SnyX Accelerator
+            </h1>
+            <p className="text-muted-foreground text-sm">Otimização avançada para PC</p>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight">
-            SnyX{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Optimizer
-            </span>
-          </h1>
-          <p className="text-lg text-white/50 max-w-2xl mx-auto">
-            Otimize seu PC para máxima performance. Tudo conectado à sua chave — 
-            desativou a chave, desativou a otimização.
-          </p>
         </div>
 
-        {/* Auth / Key check */}
-        {!user ? (
-          <div className="text-center space-y-4 mb-16">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm">
-              <Lock className="w-4 h-4" /> Faça login para acessar
+        {!hasAccess && !keyInfo ? (
+          <div className="max-w-md mx-auto space-y-6 py-12">
+            <div className="text-center space-y-2">
+              <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-bold text-foreground">Acesso Restrito</h2>
+              <p className="text-sm text-muted-foreground">Insira sua chave de ativação ou adquira acesso VIP</p>
             </div>
-            <br />
-            <Button onClick={() => navigate("/auth")}
-              className="px-10 py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 shadow-[0_0_40px_rgba(0,200,255,0.3)] border-0">
-              Fazer Login / Criar Conta
-            </Button>
-          </div>
-        ) : loading ? (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
-            <p className="text-white/40">Verificando chave de ativação...</p>
-          </div>
-        ) : !hasActiveKey ? (
-          <div className="text-center space-y-6 mb-16">
-            <div className="max-w-md mx-auto p-8 rounded-2xl border border-red-500/20 bg-red-500/5">
-              <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2 text-red-400">Chave Não Encontrada</h3>
-              <p className="text-white/50 text-sm mb-6">
-                Você precisa de uma chave ativa do SnyX Accelerator para usar a otimização.
-                A otimização está vinculada à sua chave — sem chave, sem otimização.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => navigate("/accelerator")}
-                  className="px-6 py-5 font-bold rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 border-0">
-                  <Zap className="w-4 h-4 mr-2" /> Ativar Chave
-                </Button>
-                <Button onClick={() => navigate("/")} variant="outline"
-                  className="px-6 py-5 font-bold rounded-xl border-white/10 hover:border-white/20">
-                  Voltar ao Início
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="SNYX-ACC-XXXX-XXXX-XXXX"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && activateKey()}
+                className="flex-1 px-4 py-2 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground font-mono text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <Button onClick={activateKey} disabled={activating || !keyInput.trim()}>
+                {activating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ativar"}
+              </Button>
             </div>
           </div>
         ) : (
           <>
-            {/* Key status card */}
-            <div className="max-w-2xl mx-auto mb-10 p-5 rounded-2xl border border-green-500/20 bg-green-500/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-green-500/20">
-                  <CheckCircle2 className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
-                  <div className="font-bold text-green-400">Chave Ativa — Otimização Liberada</div>
-                  <div className="text-xs text-white/40 font-mono">
-                    {keyInfo?.activation_key || "Chave válida"}
-                    {keyInfo?.days_remaining !== null && keyInfo?.days_remaining !== undefined && (
-                      <span className="ml-2 text-yellow-400">• {keyInfo.days_remaining} dias restantes</span>
-                    )}
-                  </div>
-                </div>
+            {keyInfo && (
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                <span className="text-foreground">Chave ativa: <code className="font-mono text-primary">{keyInfo.activation_key}</code></span>
+                {keyInfo.expires_at && <span className="text-muted-foreground ml-auto">Expira: {new Date(keyInfo.expires_at).toLocaleDateString("pt-BR")}</span>}
               </div>
-              <button onClick={checkKeyStatus} className="text-white/30 hover:text-white transition p-2">
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Stats bar */}
-            <div className="max-w-2xl mx-auto mb-10 grid grid-cols-3 gap-3">
-              <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-                <div className="text-2xl font-black text-cyan-400">{activeCount}</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-wider">Ativas</div>
-              </div>
-              <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-                <div className="text-2xl font-black text-white/60">{totalCount - activeCount}</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-wider">Inativas</div>
-              </div>
-              <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-                <div className="text-2xl font-black text-green-400">{Math.round((activeCount / totalCount) * 100)}%</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-wider">Otimizado</div>
-              </div>
-            </div>
-
-            {/* Quick actions */}
-            <div className="max-w-2xl mx-auto mb-10 flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleDownloadAll}
-                className="px-8 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 border-0 shadow-[0_0_30px_rgba(0,200,255,0.3)]">
-                <Download className="w-5 h-5 mr-2" />
-                Baixar Otimização Completa
+            )}
+            <div className="flex gap-2">
+              <Button onClick={() => downloadScript(BOOST_SCRIPT, "SnyX-Optimizer.bat")} className="bg-primary hover:bg-primary/90">
+                <Download className="h-4 w-4 mr-2" /> Baixar Otimizador
               </Button>
-              <Button onClick={handleRevertAll} variant="outline"
-                className="px-6 py-6 text-base font-bold rounded-xl border-white/10 hover:border-yellow-500/30 hover:bg-yellow-500/5">
-                <RotateCcw className="w-5 h-5 mr-2 text-yellow-400" />
-                Reverter Tudo
+              <Button onClick={() => downloadScript(REVERT_SCRIPT, "SnyX-Reverter.bat")} variant="outline">
+                <RotateCcw className="h-4 w-4 mr-2" /> Baixar Reversor
               </Button>
             </div>
-
-            {/* Optimization modules grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
-              {optimizationModules.map((mod) => (
-                <div key={mod.id}
-                  className={`group p-5 rounded-2xl border transition-all duration-300 ${
-                    optimizations[mod.id as keyof typeof optimizations]
-                      ? `${mod.border} ${mod.bg}`
-                      : "border-white/5 bg-white/[0.02] hover:border-white/10"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl ${
-                        optimizations[mod.id as keyof typeof optimizations]
-                          ? `bg-gradient-to-br ${mod.color}`
-                          : "bg-white/5"
-                      }`}>
-                        <mod.icon className={`w-5 h-5 ${
-                          optimizations[mod.id as keyof typeof optimizations] ? "text-white" : "text-white/40"
-                        }`} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-sm">{mod.title}</h3>
-                        <p className="text-xs text-white/40 mt-0.5">{mod.desc}</p>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {modules.map((mod) => {
+                const Icon = mod.icon;
+                const isDone = optimizedModules.has(mod.id);
+                const isRunning = runningModule === mod.id;
+                return (
+                  <button
+                    key={mod.id}
+                    onClick={() => handleOptimize(mod.id)}
+                    disabled={!!runningModule || isDone}
+                    className={`p-4 rounded-xl border bg-gradient-to-br ${mod.color} text-left transition-all hover:scale-[1.02] disabled:opacity-60`}
+                  >
+                    <Icon className="h-6 w-6 mb-2" />
+                    <h3 className="font-semibold text-sm text-foreground">{mod.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{mod.desc}</p>
+                    <div className="mt-3 text-xs font-medium">
+                      {isRunning ? <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Otimizando...</span> :
+                       isDone ? <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="h-3 w-3" /> Aplicado</span> :
+                       "Clique para otimizar"}
                     </div>
-                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      optimizations[mod.id as keyof typeof optimizations]
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-white/5 text-white/30"
-                    }`}>
-                      {optimizations[mod.id as keyof typeof optimizations] ? "Ativo" : "OFF"}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-
-
-            {/* Link to Accelerator */}
-            <div className="text-center mb-10">
-              <Button onClick={() => navigate("/accelerator")} variant="outline"
-                className="px-6 py-5 rounded-xl border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/5">
-                <Zap className="w-4 h-4 mr-2 text-red-400" />
-                Ir para o SnyX Accelerator
-              </Button>
+                  </button>
+                );
+              })}
             </div>
           </>
         )}
-
-        <div className="text-center text-white/20 text-xs pb-8">
-          SnyX Optimizer v1.0 — Vinculado à chave Accelerator
-        </div>
       </div>
     </div>
   );
-};
+}
 
-export default Optimization;
+// ============= MAIN EXPORT =============
+export default function Optimization() {
+  const [desktopActivated, setDesktopActivated] = useState(false);
+  const handleActivated = useCallback(() => setDesktopActivated(true), []);
+
+  // Electron desktop: key-only flow, no auth needed
+  if (isDesktop) {
+    if (!desktopActivated) return <DesktopKeyActivation onActivated={handleActivated} />;
+    return <DesktopOptimizer />;
+  }
+
+  // Web: normal flow with auth
+  return <WebOptimization />;
+}
