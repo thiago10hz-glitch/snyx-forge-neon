@@ -841,9 +841,6 @@ function DangerZone({ onRefresh }: { onRefresh: () => void }) {
     </div>
   );
 }
-    </div>
-  );
-}
 
 /* ─── Admins Tab ─── */
 function AdminsTab() {
