@@ -148,7 +148,7 @@ serve(async (req) => {
     }
 
     // 5. Signature verification
-    const expectedSig = generateHMAC(`${user.id}:${timestampHeader}:${file_path}`, INTEGRITY_SECRET);
+    const expectedSig = await generateHMAC(`${user.id}:${timestampHeader}:${file_path}`, INTEGRITY_SECRET);
     if (integrityHeader !== expectedSig) {
       await logAudit(supabaseAdmin, user.id, "invalid_integrity", file_path, clientIP, userAgent, "error");
       return new Response(JSON.stringify({ error: "SnyX-SEC: Assinatura inválida" }), {
@@ -198,12 +198,12 @@ serve(async (req) => {
         INTEGRITY_SECRET
       );
 
-      const responseChecksum = generateHMAC(signedData.signedUrl, INTEGRITY_SECRET);
+      const responseChecksum = await generateHMAC(signedData.signedUrl, INTEGRITY_SECRET);
 
       return new Response(JSON.stringify({
         url: signedData.signedUrl,
         encrypted_token: encryptedUrl,
-        token: generateHMAC(`${user.id}:${now}:success`, INTEGRITY_SECRET),
+        token: await generateHMAC(`${user.id}:${now}:success`, INTEGRITY_SECRET),
         expires_in: 30,
         checksum: responseChecksum,
         security: {
@@ -218,7 +218,7 @@ serve(async (req) => {
     }
 
     if (action === "verify_integrity") {
-      const expectedCheck = generateHMAC(`${user.id}:snyx:integrity`, INTEGRITY_SECRET);
+      const expectedCheck = await generateHMAC(`${user.id}:snyx:integrity`, INTEGRITY_SECRET);
       const encryptedSession = await encryptToken(
         JSON.stringify({ uid: user.id, verified: true, ts: now }),
         INTEGRITY_SECRET
