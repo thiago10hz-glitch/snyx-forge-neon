@@ -80,6 +80,29 @@ function extractText(payload: any): string {
   return "Não foi possível gerar a imagem agora. Tente novamente.";
 }
 
+async function generateWithPollinations(prompt: string) {
+  try {
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      return { ok: false as const, status: res.status, rawText: `Pollinations ${res.status}` };
+    }
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const mime = res.headers.get("content-type") || "image/jpeg";
+    return { ok: true as const, imageUrl: `data:${mime};base64,${base64}` };
+  } catch (e) {
+    return { ok: false as const, status: 500, rawText: e instanceof Error ? e.message : "pollinations error" };
+  }
+}
+
 async function generateImage(apiKey: string, prompt: string) {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
