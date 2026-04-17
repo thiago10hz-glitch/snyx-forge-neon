@@ -84,7 +84,6 @@ export function AdminDashboard() {
       { count: msgCount },
       { count: ticketCount },
       { count: openTicketCount },
-      { count: siteCount },
       { count: charCount },
       { data: recent },
     ] = await Promise.all([
@@ -92,10 +91,10 @@ export function AdminDashboard() {
       supabase.from("chat_messages").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
-      supabase.from("hosted_sites").select("id", { count: "exact", head: true }).eq("status", "active"),
       supabase.from("ai_characters").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("display_name, created_at, is_vip, is_dev, team_badge").order("created_at", { ascending: false }).limit(8),
     ]);
+    const siteCount = 0;
 
     const users = profiles || [];
     const isBanned = (u: any) => u.banned_until && new Date(u.banned_until) > now;
@@ -216,7 +215,6 @@ export function AdminDashboard() {
               { label: "Cadastros Semana", value: stats.weekSignups, icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-500/10" },
               { label: "Banidos", value: stats.bannedUsers, icon: Ban, color: "text-red-400", bg: "bg-red-500/10" },
               { label: "Expirados", value: stats.expiredUsers, icon: Clock, color: "text-amber-400", bg: "bg-amber-500/10" },
-              { label: "Sites Ativos", value: stats.totalSites, icon: Globe, color: "text-orange-400", bg: "bg-orange-500/10" },
               { label: "Personagens", value: stats.totalCharacters, icon: Swords, color: "text-purple-400", bg: "bg-purple-500/10" },
             ].map((m) => (
               <div key={m.label} className={`flex items-center gap-3 p-3 rounded-xl ${m.bg} border border-transparent hover:border-border/20 transition-all`}>

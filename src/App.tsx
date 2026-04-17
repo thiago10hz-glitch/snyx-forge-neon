@@ -15,16 +15,12 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OwnerPanel from "./pages/OwnerPanel";
 import IPTV from "./pages/IPTV";
-import Hosting from "./pages/Hosting";
 import ResetPassword from "./pages/ResetPassword";
 import Downloads from "./pages/Downloads";
 import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
-import SiteManage from "./pages/SiteManage";
 
 import CheckoutReturn from "./pages/CheckoutReturn";
-import CloneSite from "./pages/CloneSite";
-import Videos from "./pages/Videos";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -134,15 +130,10 @@ const App = () => {
                   <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                   <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
                   <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
-                  <Route path="/hosting" element={<ProtectedRoute><Hosting /></ProtectedRoute>} />
                   <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
                   <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  
-                  <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
                   <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
-                  <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
-                  <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </ThemeProvider>

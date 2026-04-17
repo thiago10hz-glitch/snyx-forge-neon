@@ -13,7 +13,7 @@ interface Profile {
   avatar_url: string | null;
   bio: string | null;
   relationship_status: string | null;
-  hosting_tier: string;
+  
   team_badge: string | null;
   gender: string | null;
   partner_user_id: string | null;
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const [{ data }, { data: roleData }] = await Promise.all([
           supabase
             .from("profiles")
-            .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, hosting_tier, team_badge, gender, partner_user_id, background_url")
+            .select("is_vip, is_dev, is_pack_steam, is_rpg_premium, display_name, free_messages_used, banned_until, avatar_url, bio, relationship_status, team_badge, gender, partner_user_id, background_url")
             .eq("user_id", userId)
             .single(),
           supabase.rpc("has_role", { _user_id: userId, _role: "admin" as const }),

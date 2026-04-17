@@ -113,21 +113,6 @@ const MODE_CONFIG = {
     premiumLabel: null,
     premiumIcon: null,
   },
-  music: {
-    icon: Music,
-    label: "Música",
-    color: "text-orange-400",
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/20",
-    activeTab: "bg-orange-500/10 text-orange-400",
-    bubbleColor: "bg-muted/60",
-    placeholder: "Descreva a música que deseja criar... 🎵",
-    emptyTitle: "SnyX Música",
-    emptyText: "Crie músicas originais com IA! Descreva o estilo, gênero e mood. Powered by ElevenLabs.",
-    emptyEmoji: "🎵",
-    premiumLabel: null,
-    premiumIcon: null,
-  },
 };
 
 export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
@@ -356,54 +341,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     return null;
   };
 
-  const handleDeploySite = async (content: string, msgIndex: number, existingSiteName?: string) => {
-    // Publishing requires a hosting plan
-    if (!profile?.hosting_tier || profile.hosting_tier === "none") {
-      toast.error("Você precisa de um plano de Hosting para publicar sites", {
-        description: "Ative uma chave de hosting para desbloquear a publicação.",
-      });
-      return;
-    }
-
-    const html = extractHtmlFromMessage(content);
-    if (!html) {
-      toast.error("Nenhum código HTML encontrado nesta mensagem");
-      return;
-    }
-
-    setDeployingMsg(msgIndex);
-    setShowUpdatePicker(null);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-vercel`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({
-          html,
-          siteName: existingSiteName || `snyx-${Date.now()}`,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        toast.error(data.error || "Erro ao publicar site na Vercel");
-        return;
-      }
-
-      setDeployedUrls(prev => ({ ...prev, [msgIndex]: data.url }));
-      toast.success(existingSiteName ? `Site "${existingSiteName}" atualizado!` : "Site publicado na Vercel com sucesso!");
-    } catch (err) {
-      console.error("Deploy error:", err);
-      toast.error("Erro ao publicar site na Vercel");
-    } finally {
-      setDeployingMsg(null);
-    }
+  const handleDeploySite = async (_content: string, _msgIndex: number, _existingSiteName?: string) => {
+    toast.info("Publicação de sites removida — recurso indisponível.");
   };
 
   const openUpdatePicker = async (msgIndex: number) => {
