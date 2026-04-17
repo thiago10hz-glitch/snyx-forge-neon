@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,7 @@ const Index = () => {
   const { profile, user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [chatMode, setChatMode] = useState<"friend" | "programmer">("friend");
+  const [chatMode, setChatMode] = useState<"friend" | "programmer" | "writer">("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
@@ -89,6 +89,12 @@ const Index = () => {
     setShowModePicker(false);
   }, [isDev]);
 
+  const switchToWriter = useCallback(() => {
+    setChatMode("writer");
+    setPickedConvId(null);
+    setShowModePicker(false);
+  }, []);
+
   const handleUserInput = useCallback((text: string) => {
     const t = text.toLowerCase();
     if (/(quero|usar|abrir|trocar|mudar).*\bmodo\b/.test(t) || /\bmodo\s+(amigo|vip|programador)\b/.test(t)) {
@@ -100,6 +106,7 @@ const Index = () => {
   const railTopItems: RailItem[] = [
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen },
     { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
+    { icon: PenLine, label: "Escritor", onClick: switchToWriter, active: chatMode === "writer" },
     ...(isDev ? [{ icon: Code, label: "Programador", onClick: switchToProgrammer, active: chatMode === "programmer" } as RailItem] : []),
     { icon: Code2, label: "API para devs", to: "/api" },
     ...(isAdmin
@@ -244,7 +251,7 @@ const Index = () => {
                   <ChatPanel
                     key={chatMode}
                     onCodeGenerated={setCode}
-                    onModeChange={(m) => setChatMode(m as "friend" | "programmer")}
+                    onModeChange={(m) => setChatMode(m as "friend" | "programmer" | "writer")}
                     initialConversationId={pickedConvId}
                     forceMode={chatMode}
                     onUserInput={handleUserInput}
