@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Archive, PenLine, Rocket, Copy, Check } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Palette, Archive, PenLine, Rocket, Copy, Check } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 
 import ReactMarkdown from "react-markdown";
@@ -48,12 +48,14 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer" | "music";
+type ChatMode = "friend" | "programmer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
   onCodeGenerated: (code: string) => void;
   onModeChange?: (mode: ChatMode) => void;
+  initialConversationId?: string | null;
+  forceMode?: ChatMode;
 }
 
 const TEXT_FILE_EXTENSIONS = [
@@ -114,7 +116,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId, forceMode }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -122,7 +124,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [vipModalPlan, setVipModalPlan] = useState<"vip" | "programmer">("vip");
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
-  const [mode, setMode] = useState<ChatMode>("friend");
+  const [mode, setMode] = useState<ChatMode>(forceMode ?? "friend");
   const [usePremium, setUsePremium] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -220,6 +222,20 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   }, [user, mode]);
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
+
+  // Apply initialConversationId from parent (e.g. picked from history sidebar)
+  useEffect(() => {
+    if (!initialConversationId) return;
+    setActiveConversationId(initialConversationId);
+  }, [initialConversationId]);
+
+  // Apply forceMode from parent
+  useEffect(() => {
+    if (forceMode && forceMode !== mode) {
+      setMode(forceMode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceMode]);
 
   // Auto-resume last conversation per mode (persisted in localStorage)
   useEffect(() => {
@@ -659,12 +675,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       }
     }
     
-    // Music mode requires VIP or DEV
-    if (mode === "music" && !profile?.is_vip && !profile?.is_dev) {
-      setVipModalPlan("vip");
-      setShowVipModal(true);
-      return;
-    }
+    // (música removida)
+
     let freeLimitSnapshot: MessageLimitState | null = null;
 
     // Image attachment requires VIP/DEV in friend mode (unless using school action)
@@ -784,9 +796,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
     // Route to appropriate edge function
     let chatUrl: string;
-    if (mode === "music") {
-      chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-music`;
-    } else if (pendingAction === "imagegen") {
+    if (pendingAction === "imagegen") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-imagegen`;
     } else if (pendingAction === "rewrite") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-rewrite`;
@@ -816,11 +826,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       // Cycle thinking text
       const thinkingInterval = setInterval(() => {
         setThinkingText(prev => {
-          if (mode === "music") {
-            if (prev === "Pensando...") return "Compondo...";
-            if (prev === "Compondo...") return "Criando melodia...";
-            return "Pensando...";
-          }
           if (prev === "Pensando...") return "Analisando...";
           if (prev === "Analisando...") return "Elaborando resposta...";
           return "Pensando...";
@@ -829,9 +834,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
       // Build request body based on mode/action
       let requestBody: any;
-      if (mode === "music") {
-        requestBody = { prompt: trimmedInput, duration: 30 };
-      } else if (pendingAction === "imagegen") {
+      if (pendingAction === "imagegen") {
         requestBody = { prompt: trimmedInput };
       } else if (pendingAction === "school") {
         requestBody = {
@@ -1099,11 +1102,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       setShowVipModal(true);
       return;
     }
-    if (newMode === "music" && !profile?.is_vip && !profile?.is_dev) {
-      setVipModalPlan("vip");
-      setShowVipModal(true);
-      return;
-    }
 
     setMode(newMode);
     onModeChange?.(newMode);
@@ -1192,7 +1190,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
               const c = MODE_CONFIG[m];
               const Icon = c.icon;
               const isActive = mode === m;
-              const isLocked = (m === "programmer" && !profile?.is_dev) || (m === "music" && !profile?.is_vip && !profile?.is_dev);
+              const isLocked = m === "programmer" && !profile?.is_dev;
               return (
                 <button
                   key={m}
@@ -1280,14 +1278,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         </div>
 
 
-        {mode === "music" ? (
-          <div className="flex-1 flex items-center justify-center text-center px-6">
-            <div>
-              <Music size={48} className="text-orange-400 mx-auto mb-4" />
-              <p className="text-muted-foreground text-sm">A aba Música abre o Musicful AI em tela cheia.</p>
-            </div>
-          </div>
-        ) : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
             <div className={`flex flex-col items-center justify-center h-full px-5 sm:px-8 ${mode === "programmer" ? "py-4 sm:py-6" : "py-8 sm:py-12"}`}>
@@ -1399,42 +1389,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                       </div>
                       <div className={`flex-1 min-w-0 chat-bubble-ai ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
-                          {/* Check for audio content (music mode) */}
-                          {msg.content.includes("<audio:") ? (
-                            <>
-                              <ReactMarkdown>
-                                {msg.content.replace(/<audio:[^>]+>/g, "")}
-                              </ReactMarkdown>
-                              {(() => {
-                                const audioMatch = msg.content.match(/<audio:([^>]+)>/);
-                                if (!audioMatch) return null;
-                                const audioSrc = audioMatch[1];
-                                return (
-                                  <div className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
-                                        <Music size={18} className="text-orange-400" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <audio controls className="w-full" style={{ height: 36 }}>
-                                          <source src={audioSrc} type="audio/mpeg" />
-                                        </audio>
-                                      </div>
-                                    </div>
-                                    <div className="flex gap-2 mt-2">
-                                      <a
-                                        href={audioSrc}
-                                        download="snyx-music.mp3"
-                                        className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-400 transition-colors"
-                                      >
-                                        <Download size={12} /> Baixar MP3
-                                      </a>
-                                    </div>
-                                  </div>
-                                );
-                              })()}
-                            </>
-                          ) : msg.content.includes("<generated_image:") ? (
+                          {msg.content.includes("<generated_image:") ? (
                             <>
                               <ReactMarkdown>
                                 {msg.content.replace(/<generated_image:[^>]+>/g, "")}
@@ -1631,10 +1586,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </div>
           )}
         </div>
-        )}
+
 
         {/* Attachment preview */}
-        {mode !== "music" && attachment && (
+        {attachment && (
           <div className="px-4 py-2 border-t border-border/10">
             <div className="max-w-3xl lg:max-w-4xl mx-auto">
               <div className="flex items-center gap-3 glass-input rounded-xl p-2.5 border border-border/10">
@@ -1703,7 +1658,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         )}
 
         {/* Input area */}
-        {mode !== "music" && !isReadOnly && (
+        {!isReadOnly && (
         <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 pt-2"} safe-bottom`}>
           <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto`}>
             {/* Main input container */}

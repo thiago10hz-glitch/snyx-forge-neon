@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, ArrowLeft,
+  LogOut, ShieldCheck, Code, User, ArrowLeft, History,
   Menu, Palette, Crown, MessageSquare, Flame, X, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
+import { HistorySidebar } from "@/components/HistorySidebar";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
@@ -24,6 +25,9 @@ const PanelLoader = () => (
   </div>
 );
 
+const choiceToMode = (choice: ChatChoice): "friend" | "programmer" =>
+  choice === "programmer" ? "programmer" : "friend";
+
 const Index = () => {
   const [code, setCode] = useState("");
   const { profile, user, signOut } = useAuth();
@@ -31,9 +35,11 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showVipModal] = useState(false);
   const [chatChoice, setChatChoice] = useState<ChatChoice | null>(null);
-  const [chatMode, setChatMode] = useState<string>("friend");
+  const [chatMode, setChatMode] = useState<"friend" | "programmer">("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [pickedConvId, setPickedConvId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -46,13 +52,19 @@ const Index = () => {
 
   const handleSelectChat = (choice: ChatChoice) => {
     setChatChoice(choice);
-    if (choice === "programmer") setChatMode("programmer");
-    else setChatMode("friend");
+    setChatMode(choiceToMode(choice));
+    setPickedConvId(null);
   };
 
-  const handleBackToSelector = () => setChatChoice(null);
+  const handlePickFromHistory = (choice: ChatChoice, conversationId: string) => {
+    setChatChoice(choice);
+    setChatMode(choiceToMode(choice));
+    setPickedConvId(conversationId);
+  };
 
-  const navItems: { to: string; icon: any; label: string }[] = [];
+  const handleBackToSelector = () => { setChatChoice(null); setPickedConvId(null); };
+
+  
 
   // Mini icon-only sidebar item (w-14)
   const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent }: {
@@ -103,6 +115,7 @@ const Index = () => {
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
             <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
+            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} />
 
             {isAdmin && (
               <>
@@ -198,8 +211,11 @@ const Index = () => {
                   <div className="flex-1 min-h-0">
                     <Suspense fallback={<PanelLoader />}>
                       <ChatPanel
+                        key={chatChoice}
                         onCodeGenerated={setCode}
-                        onModeChange={(mode) => setChatMode(mode)}
+                        onModeChange={(mode) => setChatMode(mode as "friend" | "programmer")}
+                        initialConversationId={pickedConvId}
+                        forceMode={chatMode}
                       />
                     </Suspense>
                   </div>
@@ -239,6 +255,13 @@ const Index = () => {
                   <MessageSquare className="w-4 h-4 text-primary" />
                   <span>Trocar de chat</span>
                 </button>
+                <button
+                  onClick={() => { setHistoryOpen(true); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/20 transition-colors"
+                >
+                  <History className="w-4 h-4 text-primary" />
+                  <span>Histórico</span>
+                </button>
 
                 {isAdmin && (
                   <>
@@ -273,6 +296,13 @@ const Index = () => {
           <VipModal open={showVipModal} onClose={() => {}} />
           <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
         </Suspense>
+
+        <HistorySidebar
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          onPickConversation={handlePickFromHistory}
+          onNewChat={(choice) => { handleSelectChat(choice); }}
+        />
       </div>
     </TooltipProvider>
   );
