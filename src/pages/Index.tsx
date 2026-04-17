@@ -229,15 +229,6 @@ const Index = () => {
               </button>
             </div>
           </header>
-
-          {/* Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {chatChoice === null ? (
-              <ChatSelector onSelect={handleSelectChat} />
-            ) : (
-              <>
-                <div className={`w-full flex flex-col ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0 md:border-r md:border-border/10" : ""}`}>
-                  <div className="flex-1 min-h-0 bg-[hsl(0_0%_5%/0.4)]">
           </header>
 
           {/* Content */}
