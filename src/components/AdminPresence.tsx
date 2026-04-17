@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ShieldCheck } from "lucide-react";
+import { Bot } from "lucide-react";
 
 interface AdminPresenceEntry {
   user_id: string;
@@ -52,14 +52,10 @@ export function AdminPresenceIndicator() {
         {onlineAdmins.slice(0, 3).map((a) => (
           <div
             key={a.user_id}
-            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-background bg-muted ring-1 ring-emerald-400/40 shadow-[0_0_8px_-2px_hsl(152_76%_55%/0.6)] hover:scale-110 hover:z-10 transition-transform duration-300"
-            title={a.display_name || "Admin"}
+            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-background bg-gradient-to-br from-emerald-500/30 to-emerald-700/30 ring-1 ring-emerald-400/40 shadow-[0_0_8px_-2px_hsl(152_76%_55%/0.6)] hover:scale-110 hover:z-10 transition-transform duration-300 flex items-center justify-center"
+            title="Bot online"
           >
-            {a.avatar_url ? (
-              <img src={a.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <ShieldCheck className="w-3 h-3 text-emerald-300 m-auto h-full" />
-            )}
+            <Bot className="w-3.5 h-3.5 text-emerald-300" />
           </div>
         ))}
       </div>
