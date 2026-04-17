@@ -4,8 +4,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { useNavigate } from "react-router-dom";
 import {
   Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, KeyRound,
-  Flame, Crown, Zap, Shield, Gamepad2, MonitorPlay, Sparkles, Star, X,
-  Globe, Users,
+  Flame, Crown, Zap, Shield, Sparkles, Star, X, Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
@@ -66,49 +65,51 @@ const VIP_PLANS = [
   {
     icon: Crown,
     title: "VIP",
+    planKey: "vip" as const,
     plans: [
-      { label: "Semanal", price: "R$ 25,00" },
-      { label: "Mensal", price: "R$ 50,00" },
-      { label: "Anual", price: "R$ 150,00", badge: "Melhor custo" },
+      { label: "Semanal", price: "R$ 25", priceNum: 25 },
+      { label: "Mensal", price: "R$ 40", priceNum: 40 },
+      { label: "Anual", price: "R$ 120", priceNum: 120, badge: "Melhor" },
     ],
     features: [
-      "Chat IA sem limite de mensagens",
-      "Todos os modos (Amigo, Escola, Programador, Rewrite)",
-      "Geração de imagens com IA",
-      "Chamada de voz com IA",
-      "Geração de música com IA",
+      "Chat IA sem limite",
+      "Todos os modos",
+      "Geração de imagens",
+      "Geração de música",
       "Prioridade no suporte",
-      "Sem restrição de horário",
     ],
     popular: true,
-    color: "from-amber-500/20 to-orange-600/20",
-    borderColor: "border-amber-500/30",
+    gradient: "from-amber-500/15 via-yellow-500/10 to-orange-500/5",
+    glow: "shadow-[0_0_40px_-15px_rgba(251,191,36,0.4)]",
+    border: "border-amber-500/25",
     iconColor: "text-amber-400",
+    iconBg: "bg-amber-500/15",
   },
   {
     icon: Zap,
     title: "Desenvolvedor",
+    planKey: "programmer" as const,
     plans: [
-      { label: "Semanal", price: "R$ 100,00" },
-      { label: "Mensal", price: "R$ 150,00" },
-      { label: "Anual", price: "R$ 250,00", badge: "Melhor custo" },
+      { label: "Semanal", price: "R$ 100", priceNum: 100 },
+      { label: "Mensal", price: "R$ 120", priceNum: 120 },
+      { label: "Anual", price: "R$ 150", priceNum: 150, badge: "Melhor" },
     ],
     features: [
-      "Tudo do VIP incluso",
-      "SnyX Optimizer (otimização de PC)",
-      "VPN integrada com WireGuard",
-      "Hospedagem de sites grátis",
-      "Pack Steam com jogos",
-      "Downloads exclusivos",
-      "Acesso antecipado a novidades",
-      "Badge DEV no perfil",
+      "Tudo do VIP",
+      "Acesso a betas",
+      "Badge DEV brilhante",
+      "Recursos exclusivos",
     ],
     popular: false,
-    color: "from-blue-500/20 to-cyan-500/20",
-    borderColor: "border-blue-500/30",
-    iconColor: "text-blue-400",
+    gradient: "from-cyan-500/15 via-blue-500/10 to-indigo-500/5",
+    glow: "shadow-[0_0_40px_-15px_rgba(34,211,238,0.4)]",
+    border: "border-cyan-500/25",
+    iconColor: "text-cyan-400",
+    iconBg: "bg-cyan-500/15",
   },
 ];
+
+const PLAN_NAME_MAP = { vip: "SnyX VIP", programmer: "SnyX Desenvolvedor" } as const;
 
 const FREE_FEATURES = [
   "5 mensagens de chat IA por dia",
@@ -117,7 +118,7 @@ const FREE_FEATURES = [
 ];
 
 const inputClassName =
-  "w-full rounded-xl border border-border/30 bg-muted/15 px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary/40 focus:bg-card/80 focus:shadow-md focus:shadow-primary/5";
+  "w-full rounded-xl border border-border/30 bg-background/30 backdrop-blur-sm px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary/50 focus:bg-background/50 focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]";
 
 export default function Auth() {
   const [view, setView] = useState<AuthView>("login");
@@ -126,7 +127,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
@@ -271,317 +272,286 @@ export default function Auth() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 -top-32 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[140px]" />
-        <div className="absolute right-0 bottom-0 h-[300px] w-[300px] rounded-full bg-primary/3 blur-[120px]" />
+    <div className="relative min-h-screen overflow-hidden bg-background flex items-center justify-center px-4 py-8">
+      {/* === Aurora animated background === */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Grid texture */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }} />
+        {/* Floating blobs */}
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-primary/15 blur-[140px] animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute -right-32 top-1/3 h-[400px] w-[400px] rounded-full bg-amber-500/10 blur-[140px] animate-[pulse_10s_ease-in-out_infinite_2s]" />
+        <div className="absolute left-1/3 -bottom-40 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[140px] animate-[pulse_12s_ease-in-out_infinite_4s]" />
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background))_85%)]" />
       </div>
 
-      {/* Main layout */}
-      <div className="relative flex min-h-screen flex-col lg:flex-row">
-        {/* Left: Auth form — compact */}
-        <div className="flex flex-1 items-center justify-center px-4 py-6 lg:py-0">
-          <div className="w-full max-w-[360px]">
-            {/* Logo */}
-            <div className="mb-5 flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/15">
-                <Flame className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-base font-black tracking-tight text-foreground">SnyX</h1>
-                <p className="text-[10px] text-muted-foreground/60">Plataforma IA completa</p>
-              </div>
+      <div className="relative w-full max-w-md">
+        {/* Logo above card */}
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="relative mb-3">
+            <div className="absolute inset-0 bg-primary/40 blur-xl rounded-2xl animate-pulse" style={{ animationDuration: '3s' }} />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 border border-primary/40 shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.5)]">
+              <Flame className="h-6 w-6 text-primary-foreground" />
             </div>
+          </div>
+          <h1 className="text-2xl font-black tracking-tight bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">SnyX</h1>
+          <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium tracking-wider uppercase">Plataforma IA</p>
+        </div>
 
-            {/* VIP Info View */}
-            {view === "vip-info" && (
-              <div className="space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold text-foreground">Planos</h2>
-                    <p className="text-[10px] text-muted-foreground">Escolha o ideal para você</p>
+        {/* === Glass card === */}
+        <div className="relative rounded-3xl border border-border/30 bg-card/40 backdrop-blur-2xl shadow-[0_20px_70px_-15px_rgba(0,0,0,0.5)] overflow-hidden">
+          {/* Top sheen */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
+
+          {/* === VIP Info inside card === */}
+          {view === "vip-info" && (
+            <div className="p-6 space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-black text-foreground flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-400" /> Planos
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">Escolha o ideal para você</p>
+                </div>
+                <button onClick={() => setView("login")} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Free */}
+              <div className="rounded-2xl border border-border/20 bg-muted/5 p-3.5">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-muted/20 flex items-center justify-center">
+                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
-                  <button onClick={() => setView("login")} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-                    <X className="h-4 w-4" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-foreground">Grátis</p>
+                    <p className="text-[9px] text-muted-foreground/60">R$ 0 • Sem cartão</p>
+                  </div>
+                </div>
+                <ul className="grid grid-cols-1 gap-y-0.5 mt-2">
+                  {FREE_FEATURES.map((f, j) => (
+                    <li key={j} className="flex items-start gap-1.5 text-[10px] text-muted-foreground/70">
+                      <Check className="h-2.5 w-2.5 text-muted-foreground/40 shrink-0 mt-1" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Premium plans */}
+              <div className="space-y-3">
+                {VIP_PLANS.map((plan, i) => (
+                  <div key={i} className={`relative overflow-hidden rounded-2xl border ${plan.border} bg-gradient-to-br ${plan.gradient} backdrop-blur-sm p-4 transition-all duration-300 hover:scale-[1.01] ${plan.popular ? plan.glow : ''}`}>
+                    {plan.popular && (
+                      <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-amber-500 px-2.5 py-0.5 text-[9px] font-black text-black uppercase tracking-wider">
+                        <Star className="h-2.5 w-2.5" /> Popular
+                      </div>
+                    )}
+                    <div className="flex items-start gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${plan.iconBg} ${plan.iconColor} shadow-inner`}>
+                        <plan.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-foreground text-sm">{plan.title}</h3>
+                        <ul className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5">
+                          {plan.features.map((f, j) => (
+                            <li key={j} className="flex items-start gap-1 text-[9px] text-muted-foreground/80">
+                              <Check className={`h-2 w-2 ${plan.iconColor} shrink-0 mt-0.5`} />
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-1.5">
+                      {plan.plans.map((p, k) => (
+                        <button
+                          key={k}
+                          disabled={checkoutLoading}
+                          onClick={() => openCheckout({
+                            title: PLAN_NAME_MAP[plan.planKey],
+                            description: `Assinatura ${p.label.toLowerCase()} ${PLAN_NAME_MAP[plan.planKey]}`,
+                            price: p.priceNum,
+                            quantity: 1,
+                          })}
+                          className="relative flex flex-col items-center rounded-xl border border-border/20 bg-background/30 backdrop-blur-sm py-1.5 hover:bg-background/50 hover:border-primary/30 transition-all cursor-pointer disabled:opacity-50 group/btn"
+                        >
+                          {p.badge && (
+                            <span className="absolute -top-1.5 text-[7px] font-black bg-primary text-primary-foreground px-1.5 py-0 rounded-full shadow-md">{p.badge}</span>
+                          )}
+                          <span className="text-[8px] text-muted-foreground/60 uppercase font-bold">{p.label}</span>
+                          <span className="text-[12px] font-black text-foreground group-hover/btn:text-primary transition-colors">{p.price}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl border border-border/15 bg-muted/5 p-2.5">
+                <Shield className="h-3.5 w-3.5 text-primary shrink-0" />
+                <p className="text-[10px] text-muted-foreground/60">Mercado Pago • Ativação na hora • Cancele quando quiser</p>
+              </div>
+
+              <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-1.5 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3 w-3" /> Voltar ao login
+              </button>
+            </div>
+          )}
+
+          {/* === Forgot sent === */}
+          {view === "forgot-sent" && (
+            <div className="p-6 space-y-4">
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-base font-bold text-foreground">Confira seu e-mail</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Enviamos o link para <span className="font-semibold text-foreground">{email}</span>.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/20 bg-muted/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
+                <Check className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                <p>Não encontrou? Verifique spam ou promoções.</p>
+              </div>
+              <button type="button" onClick={() => setView("forgot")} className="w-full rounded-xl border border-border/30 bg-muted/15 px-3 py-2.5 text-xs font-medium text-foreground hover:bg-muted/25 transition-all">Reenviar e-mail</button>
+              <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
+              </button>
+            </div>
+          )}
+
+          {/* === Forgot form === */}
+          {view === "forgot" && (
+            <div className="p-6 space-y-4">
+              <div className="text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                  <KeyRound className="h-5 w-5 text-primary" />
+                </div>
+                <p className="text-base font-bold text-foreground">Esqueceu sua senha?</p>
+                <p className="mt-1 text-xs text-muted-foreground">Digite seu e-mail para receber o link.</p>
+              </div>
+              <form onSubmit={handleForgotPassword} className="space-y-3">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required autoFocus className={inputClassName} />
+                <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-primary/20">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-3.5 w-3.5" /> Enviar link</>}
+                </button>
+              </form>
+              <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
+              </button>
+            </div>
+          )}
+
+          {/* === Login / Signup === */}
+          {isAuthForm && (
+            <div className="p-6 space-y-5">
+              {/* Heading */}
+              <div className="text-center">
+                <h2 className="text-xl font-black text-foreground">
+                  {view === "login" ? "Bem-vindo de volta" : "Crie sua conta"}
+                </h2>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  {view === "login" ? "Entre para continuar onde parou" : "Comece grátis em segundos"}
+                </p>
+              </div>
+
+              {/* Tabs */}
+              <div className="grid grid-cols-2 rounded-xl border border-border/20 bg-background/30 backdrop-blur-sm p-1">
+                <button type="button" onClick={() => switchAuthView("login")}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold transition-all ${view === "login" ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>
+                  Entrar
+                </button>
+                <button type="button" onClick={() => switchAuthView("signup")}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold transition-all ${view === "signup" ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>
+                  Criar conta
+                </button>
+              </div>
+
+              {/* Social — primeiro pra dar destaque */}
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => handleOAuthSignIn("google")} disabled={loading}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-border/30 bg-background/40 backdrop-blur-sm px-3 py-2.5 text-xs font-semibold text-foreground hover:bg-background/60 hover:border-border/50 transition-all disabled:opacity-50">
+                  <GoogleIcon /> Google
+                </button>
+                <button type="button" onClick={() => handleOAuthSignIn("apple")} disabled={loading}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-border/30 bg-background/40 backdrop-blur-sm px-3 py-2.5 text-xs font-semibold text-foreground hover:bg-background/60 hover:border-border/50 transition-all disabled:opacity-50">
+                  <AppleIcon /> Apple
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border/20" />
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-bold">ou com e-mail</span>
+                <div className="h-px flex-1 bg-border/20" />
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 pointer-events-none" />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required className={`${inputClassName} pl-10`} />
+                </div>
+                <div className="relative">
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 pointer-events-none" />
+                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder={view === "signup" ? "Mínimo 12 caracteres" : "Sua senha"} required minLength={view === "login" ? 6 : 12}
+                    className={`${inputClassName} pl-10 pr-10`} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
 
-                {/* Free tier */}
-                <div className="rounded-xl border border-border/20 bg-muted/5 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-lg bg-muted/20 flex items-center justify-center">
-                      <Users className="w-3 h-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-xs font-bold text-foreground">Grátis</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/20 text-muted-foreground">R$ 0</span>
+                {view === "signup" && (
+                  <div className="rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-[10px] leading-relaxed text-muted-foreground/80">
+                    <span className="font-semibold text-foreground">12+ caracteres</span> com maiúscula, minúscula, número e símbolo.
                   </div>
-                  <ul className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-                    {FREE_FEATURES.map((f, j) => (
-                      <li key={j} className="flex items-start gap-1 text-[10px] text-muted-foreground/70">
-                        <Check className="h-2.5 w-2.5 text-muted-foreground/40 shrink-0 mt-0.5" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                )}
 
-                <div className="space-y-3">
-                  {VIP_PLANS.map((plan, i) => {
-                    const planKey = plan.title === "VIP" ? "vip" : plan.title === "RPG Premium" ? "rpg" : "programmer";
-                    const planNameMap: Record<string, string> = { vip: "SnyX VIP", rpg: "SnyX RPG Premium", programmer: "SnyX Programador DEV" };
-                    const priceMap: Record<string, Record<string, number>> = {
-                      vip: { Semanal: 25, Mensal: 50, Anual: 150 },
-                      rpg: { Semanal: 20, Mensal: 50, Anual: 120 },
-                      programmer: { Semanal: 100, Mensal: 150, Anual: 250 },
-                    };
+                {view === "login" && (
+                  <div className="text-right">
+                    <button type="button" onClick={() => setView("forgot")} className="text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors">
+                      Esqueci minha senha
+                    </button>
+                  </div>
+                )}
 
-                    return (
-                    <div key={i} className={`group relative rounded-2xl border ${plan.popular ? plan.borderColor + ' shadow-lg shadow-amber-500/5' : 'border-border/30'} bg-gradient-to-br ${plan.color}  p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`}>
-                      {plan.popular && (
-                        <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-black uppercase tracking-wider">
-                          <Star className="h-3 w-3" /> Popular
-                        </div>
-                      )}
-                      <div className="flex items-start gap-3">
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/40 ${plan.iconColor}`}>
-                          <plan.icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-foreground text-sm">{plan.title}</h3>
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            {plan.plans.map((p, k) => (
-                              <button
-                                key={k}
-                                disabled={checkoutLoading}
-                                onClick={() => {
-                                  const price = priceMap[planKey][p.label];
-                                  const periodLabel = p.label.toLowerCase();
-                                  openCheckout({
-                                    title: planNameMap[planKey],
-                                    description: `Assinatura ${periodLabel} ${planNameMap[planKey]}`,
-                                    price,
-                                    quantity: 1,
-                                  });
-                                }}
-                                className="relative flex flex-col items-center rounded-lg border border-border/15 bg-background/25 px-2 py-1 min-w-[60px] hover:bg-primary/15 hover:border-primary/30 transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                {p.badge && (
-                                  <span className="absolute -top-1.5 text-[7px] font-bold bg-primary text-primary-foreground px-1 py-0 rounded-full">{p.badge}</span>
-                                )}
-                                <span className="text-[8px] text-muted-foreground/60 uppercase">{p.label}</span>
-                                <span className="text-[11px] font-black text-foreground">{p.price}</span>
-                              </button>
-                            ))}
-                          </div>
-                          <ul className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5">
-                            {plan.features.map((f, j) => (
-                              <li key={j} className="flex items-start gap-1 text-[9px] text-muted-foreground/80">
-                                <Check className="h-2.5 w-2.5 text-primary shrink-0 mt-0.5" />
-                                {f}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    );
-                  })}
-                </div>
-
-                <p className="text-[10px] text-center text-muted-foreground/40">
-                  Clique no período desejado para ir ao pagamento
-                </p>
-
-                <div className="flex items-center gap-2 rounded-lg border border-border/15 bg-muted/5 p-2">
-                  <Shield className="h-3 w-3 text-primary shrink-0" />
-                  <p className="text-[9px] text-muted-foreground/60">Pagamento seguro via Mercado Pago • Ativação instantânea • Cancele quando quiser</p>
-                </div>
-
-                <button onClick={() => setView("login")} className="flex w-full items-center justify-center gap-1.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground">
-                  <ArrowLeft className="h-3 w-3" /> Voltar ao login
+                <button type="submit" disabled={loading}
+                  className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 px-3 py-3 text-sm font-bold text-primary-foreground hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.6)] transition-all disabled:opacity-50 overflow-hidden">
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                    <>
+                      <span>{view === "login" ? "Entrar agora" : "Criar minha conta"}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
                 </button>
-              </div>
-            )}
-
-            {/* Card for auth forms */}
-            {view !== "vip-info" && (
-              <div className="overflow-hidden rounded-2xl border border-border/20 bg-card/60 shadow-xl shadow-black/15 ">
-                <div className="p-4 space-y-4">
-                  {/* Tabs */}
-                  {isAuthForm && (
-                    <div className="grid grid-cols-2 rounded-xl border border-border/15 bg-muted/10 p-0.5">
-                      <button type="button" onClick={() => switchAuthView("login")}
-                        className={`rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${view === "login" ? "bg-card text-foreground shadow-sm border border-border/15" : "text-muted-foreground hover:text-foreground"}`}>
-                        Entrar
-                      </button>
-                      <button type="button" onClick={() => switchAuthView("signup")}
-                        className={`rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${view === "signup" ? "bg-card text-foreground shadow-sm border border-border/15" : "text-muted-foreground hover:text-foreground"}`}>
-                        Criar conta
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Forgot sent */}
-                  {view === "forgot-sent" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-center">
-                        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                          <Mail className="h-5 w-5 text-primary" />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Confira seu e-mail</p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          Enviamos o link para <span className="font-medium text-foreground">{email}</span>.
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-border/20 bg-muted/10 p-4 text-sm text-muted-foreground">
-                        <div className="flex items-start gap-3">
-                          <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10"><Check className="h-3 w-3 text-primary" /></div>
-                          <p>Não encontrou? Verifique spam ou promoções.</p>
-                        </div>
-                      </div>
-                      <button type="button" onClick={() => setView("forgot")} className="w-full rounded-xl border border-border/30 bg-muted/15 px-3 py-2.5 text-xs font-medium text-foreground transition-all hover:bg-muted/25">Reenviar e-mail</button>
-                      <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
-                    </div>
-                  )}
-
-                  {/* Forgot form */}
-                  {view === "forgot" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl border border-border/15 bg-muted/5 p-3 text-center">
-                        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10"><KeyRound className="h-4 w-4 text-primary" /></div>
-                        <p className="text-sm font-semibold text-foreground">Esqueceu sua senha?</p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">Digite seu e-mail para receber o link.</p>
-                      </div>
-                      <form onSubmit={handleForgotPassword} className="space-y-3">
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-muted-foreground">E-mail</label>
-                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required autoFocus className={inputClassName} />
-                        </div>
-                        <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50">
-                          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />} Enviar link
-                        </button>
-                      </form>
-                      <button type="button" onClick={() => { setView("login"); setPassword(""); }} className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login</button>
-                    </div>
-                  )}
-
-                  {/* Login / Signup form */}
-                  {isAuthForm && (
-                    <div className="space-y-3">
-                      {view === "signup" && (
-                        <div className="rounded-lg border border-primary/10 bg-primary/5 px-3 py-2 text-[10px] leading-relaxed text-muted-foreground">
-                          Senha: <span className="font-medium text-foreground">12+ chars</span>, maiúscula, minúscula, número e símbolo.
-                        </div>
-                      )}
-
-                      <form onSubmit={handleSubmit} className="space-y-3">
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-muted-foreground">E-mail</label>
-                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required className={inputClassName} />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-muted-foreground">Senha</label>
-                          <div className="relative">
-                            <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
-                              placeholder="••••••••••••" required minLength={view === "login" ? 6 : 12} className={`${inputClassName} pr-11`} />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors hover:text-foreground">
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {view === "login" && (
-                          <div className="text-right">
-                            <button type="button" onClick={() => setView("forgot")} className="text-[11px] font-medium text-primary/80 transition-colors hover:text-primary">Esqueci minha senha</button>
-                          </div>
-                        )}
-
-                        <button type="submit" disabled={loading}
-                          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 btn-glow">
-                          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>{view === "login" ? "Entrar" : "Criar conta"}<ArrowRight className="h-3.5 w-3.5" /></>}
-                        </button>
-                      </form>
-
-                      {/* Social divider */}
-                      <div className="flex items-center gap-2">
-                        <div className="h-px flex-1 bg-border/20" />
-                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/30">ou</span>
-                        <div className="h-px flex-1 bg-border/20" />
-                      </div>
-
-                      {/* Social buttons */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => handleOAuthSignIn("google")} disabled={loading}
-                          className="flex items-center justify-center gap-2 rounded-xl border border-border/20 bg-card/60 px-3 py-2 text-[11px] font-medium text-foreground transition-all hover:bg-muted/20 disabled:opacity-50">
-                          <GoogleIcon /> Google
-                        </button>
-                        <button type="button" onClick={() => handleOAuthSignIn("apple")} disabled={loading}
-                          className="flex items-center justify-center gap-2 rounded-xl border border-border/20 bg-card/60 px-3 py-2 text-[11px] font-medium text-foreground transition-all hover:bg-muted/20 disabled:opacity-50">
-                          <AppleIcon /> Apple
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Footer */}
-            {view !== "vip-info" && (
-              <div className="mt-4 text-center space-y-2">
-                <button
-                  onClick={() => setView("vip-info")}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-4 py-2 text-[10px] font-semibold text-amber-400 transition-all hover:from-amber-500/20 hover:to-orange-500/20 hover:border-amber-500/40"
-                >
-                  <Crown className="h-3 w-3" />
-                  Ver planos Premium
-                  <Sparkles className="h-3 w-3" />
-                </button>
-                <p className="text-[9px] text-muted-foreground/30 flex items-center justify-center gap-1">
-                  <Shield className="h-2.5 w-2.5" /> Login seguro • E-mail, Google ou Apple
-                </p>
-              </div>
-            )}
-          </div>
+              </form>
+            </div>
+          )}
         </div>
 
-        {/* Right: Feature showcase (desktop) */}
-        <div className="hidden lg:flex lg:w-[380px] xl:w-[440px] items-center justify-center border-l border-border/10 bg-gradient-to-br from-muted/3 to-transparent px-6">
-          <div className="w-full max-w-xs space-y-5">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Tudo em um só lugar</h2>
-              <p className="mt-1 text-[11px] text-muted-foreground/70 leading-relaxed">Chat IA, otimização, IPTV, hospedagem, RPG e mais.</p>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { icon: Sparkles, label: "Chat IA Avançado", desc: "6 modos: Amigo, Escola, Programador, RPG", color: "text-amber-400", bg: "bg-amber-500/10" },
-                { icon: Zap, label: "SnyX Optimizer", desc: "Otimize CPU, RAM, rede e GPU", color: "text-cyan-400", bg: "bg-cyan-500/10" },
-                { icon: MonitorPlay, label: "IPTV", desc: "Canais ao vivo com player integrado", color: "text-green-400", bg: "bg-green-500/10" },
-                { icon: Shield, label: "VPN WireGuard", desc: "Navegação segura e anônima", color: "text-purple-400", bg: "bg-purple-500/10" },
-                { icon: Globe, label: "Hospedagem", desc: "Publique sites direto na plataforma", color: "text-blue-400", bg: "bg-blue-500/10" },
-                { icon: Gamepad2, label: "RPG com IA", desc: "Personagens e aventuras com IA", color: "text-pink-400", bg: "bg-pink-500/10" },
-              ].map((item, i) => (
-                <div key={i} className="group flex items-center gap-3 rounded-xl border border-border/10 bg-card/20 p-2.5 transition-all hover:bg-card/40">
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${item.bg} ${item.color}`}>
-                    <item.icon className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-foreground">{item.label}</p>
-                    <p className="text-[9px] text-muted-foreground/60">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
-              <p className="text-[10px] font-semibold text-foreground mb-1">Plano Grátis inclui:</p>
-              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">5 mensagens/dia • Modo Amigo e Escola • Suporte por ticket • Sem cartão</p>
-            </div>
+        {/* Footer */}
+        {view !== "vip-info" && (
+          <div className="mt-5 flex flex-col items-center gap-3">
+            <button
+              onClick={() => setView("vip-info")}
+              className="group inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 backdrop-blur-sm px-5 py-2.5 text-xs font-bold text-amber-300 hover:from-amber-500/20 hover:via-yellow-500/20 hover:to-amber-500/20 hover:border-amber-500/50 transition-all shadow-[0_4px_20px_-8px_rgba(251,191,36,0.4)]"
+            >
+              <Crown className="h-3.5 w-3.5 group-hover:rotate-12 transition-transform" />
+              Ver planos Premium
+              <Sparkles className="h-3.5 w-3.5" />
+            </button>
+            <p className="text-[10px] text-muted-foreground/40 flex items-center gap-1.5">
+              <Shield className="h-3 w-3" /> Login seguro • Criptografia ponta-a-ponta
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
