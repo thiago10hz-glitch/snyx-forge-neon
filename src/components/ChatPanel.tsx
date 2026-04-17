@@ -56,6 +56,7 @@ interface ChatPanelProps {
   onModeChange?: (mode: ChatMode) => void;
   initialConversationId?: string | null;
   forceMode?: ChatMode;
+  onUserInput?: (text: string) => void;
 }
 
 const TEXT_FILE_EXTENSIONS = [
@@ -116,7 +117,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId, forceMode }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId, forceMode, onUserInput }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
