@@ -7,8 +7,9 @@ import { useEffect, useRef } from "react";
  * - Part\u00edculas brilhantes com halo (glow real) animadas
  * Usa o token --primary do tema, n\u00e3o cor fixa.
  */
-export function AuroraBackground() {
+export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | "subtle" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isSubtle = intensity === "subtle";
 
   useEffect(() => {
     const canvas = canvasRef.current;
