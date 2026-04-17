@@ -70,7 +70,8 @@ export function AdminPresenceIndicator() {
       </span>
 
       <span className="relative text-[10px] font-bold tracking-wide uppercase bg-gradient-to-r from-emerald-200 to-emerald-400 bg-clip-text text-transparent">
-        {onlineAdmins.length} online
+        <span className="hidden sm:inline">{onlineAdmins.length} online</span>
+        <span className="sm:hidden">{onlineAdmins.length}</span>
       </span>
     </div>
   );
