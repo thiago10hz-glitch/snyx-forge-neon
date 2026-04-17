@@ -115,9 +115,16 @@ const Index = () => {
   };
   const currentChatLabel = chatChoice ? chatLabels[chatChoice] : chatLabels.none;
 
+  const chatOptions: { key: ChatChoice; label: string; icon: any; locked: boolean; color: string }[] = [
+    { key: "friend", label: "Chat Amigo", icon: Heart, locked: false, color: "text-pink-400" },
+    { key: "vip", label: "Chat VIP", icon: CrownIcon, locked: !(profile?.is_vip || profile?.is_dev), color: "text-amber-400" },
+    { key: "programmer", label: "Programador", icon: CodeIcon, locked: !profile?.is_dev, color: "text-cyan-400" },
+  ];
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
+        <AuroraBackground />
         {/* === MINI SIDEBAR (desktop) — w-14 always === */}
         <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/60 backdrop-blur-xl z-20 relative">
           {/* Logo */}
