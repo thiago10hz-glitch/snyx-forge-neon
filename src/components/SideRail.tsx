@@ -30,7 +30,7 @@ interface SideRailProps {
  * Sidebar fina, com botão lateral pra expandir e mostrar os labels.
  * Quando expandida fica wider (180px) com nomes dos itens.
  */
-export function SideRail({ logo, topItems, bottomItems }: SideRailProps) {
+export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra }: SideRailProps) {
   const [expanded, setExpanded] = useState(false);
 
   const renderItem = (item: RailItem, idx: number) => {
