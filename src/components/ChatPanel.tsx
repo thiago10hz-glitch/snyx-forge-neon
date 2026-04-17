@@ -251,6 +251,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
   useEffect(() => {
     if (!activeConversationId) { setMessages([]); setConversationSummary(""); return; }
+    // If this conversation was just created locally, skip the reload (would wipe in-flight messages)
+    if (skipNextLoadRef.current === activeConversationId) {
+      skipNextLoadRef.current = null;
+      return;
+    }
     (async () => {
       const [msgsRes, sumRes] = await Promise.all([
         supabase.from("chat_messages").select("role, content").eq("conversation_id", activeConversationId).order("created_at", { ascending: true }),
