@@ -97,12 +97,13 @@ Deno.serve(async (req) => {
     } else if (team_badge) {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é membro da equipe SnyX com badge "${team_badge}". Trate com respeito especial como membro da equipe. Nome: ${display_name || "Membro"}.`;
     } else if (display_name) {
+      const firstName = display_name.trim().split(/\s+/)[0];
       const genderHint = user_gender === "masculino" ? " Essa pessoa é homem — use linguagem masculina (amigo, mano, irmão, parceiro)." 
         : user_gender === "feminino" ? " Essa pessoa é mulher — use linguagem feminina (amiga, mana, irmã, parceira)." 
         : "";
       const bioHint = user_bio ? ` Sobre ela: "${user_bio}".` : "";
       const relationHint = user_relationship_status ? ` Status de relacionamento: ${user_relationship_status}.` : "";
-      userContext = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente na conversa quando fizer sentido (não force). Trate de forma pessoal e acolhedora.${genderHint}${bioHint}${relationHint} Use essas informações de forma natural — não repita tudo de uma vez, mas demonstre que conhece a pessoa quando for relevante.`;
+      userContext = `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome dela é "${firstName}".\n\nREGRA ABSOLUTA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na PRIMEIRA mensagem da conversa (saudação) e usar o nome de forma natural ao longo da conversa quando fizer sentido. NUNCA use só "mano", "amigo", "parceiro" sem o nome na primeira saudação. Exemplo correto: "E aí, ${firstName}! Tudo bem?" — Exemplo ERRADO: "E aí mano, tudo bem?".\n\nTrate de forma pessoal e acolhedora.${genderHint}${bioHint}${relationHint} Use essas informações de forma natural — não despeje tudo de uma vez, mas demonstre que conhece a pessoa quando for relevante.`;
     } else if (user_gender) {
       const genderHint = user_gender === "masculino" ? " Use linguagem masculina (amigo, mano, irmão, parceiro)." 
         : user_gender === "feminino" ? " Use linguagem feminina (amiga, mana, irmã, parceira)." 
