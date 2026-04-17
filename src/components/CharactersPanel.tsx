@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Wand2, Lock, X, Flame } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Lock, X, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -73,7 +73,7 @@ const CATEGORIES = [
   { key: "geral", label: "Geral" },
 ];
 
-const CATEGORIES_OPTIONS = ["geral", "anime", "romance", "aventura", "drama", "fantasia", "sombrio"];
+
 
 interface CharactersPanelProps {
   onBack: () => void;
@@ -116,8 +116,6 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [generating, setGenerating] = useState(false);
   const [previewChar, setPreviewChar] = useState<Character | null>(null);
 
   const fetchCharacters = useCallback(async () => {
@@ -229,42 +227,6 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
     }
   };
 
-  const handleGenerateWithAI = async () => {
-    if (!aiPrompt.trim() || aiPrompt.trim().length < 5) {
-      toast.error("Descreva o personagem (mín. 5 caracteres)");
-      return;
-    }
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-character", {
-        body: { description: aiPrompt.trim() },
-      });
-      if (error || !data?.success) {
-        toast.error(data?.error || "Erro ao gerar personagem");
-        return;
-      }
-      const c = data.character;
-      setForm({
-        name: c.name || "",
-        description: c.description || "",
-        personality: c.personality || "",
-        system_prompt: c.system_prompt || "",
-        first_message: c.first_message || "",
-        scenario: c.scenario || "",
-        category: c.category || "geral",
-        tags: Array.isArray(c.tags) ? c.tags.join(", ") : "",
-        is_public: true,
-        is_nsfw: !!c.is_nsfw,
-        avatar_url: form.avatar_url,
-      });
-      toast.success("Personagem gerado! Revise e salve.");
-      setAiPrompt("");
-    } catch (e) {
-      toast.error("Falha ao chamar IA");
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const handleSave = async () => {
     if (!user || !form.name.trim()) {
