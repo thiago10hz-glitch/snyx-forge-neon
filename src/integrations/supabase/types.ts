@@ -202,6 +202,42 @@ export type Database = {
         }
         Relationships: []
       }
+      app_releases: {
+        Row: {
+          changelog: string | null
+          created_at: string
+          file_size: number | null
+          file_url: string
+          id: string
+          platform: string
+          updated_at: string
+          uploaded_by: string
+          version: string
+        }
+        Insert: {
+          changelog?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          platform?: string
+          updated_at?: string
+          uploaded_by: string
+          version: string
+        }
+        Update: {
+          changelog?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          platform?: string
+          updated_at?: string
+          uploaded_by?: string
+          version?: string
+        }
+        Relationships: []
+      }
       character_favorites: {
         Row: {
           character_id: string
