@@ -1,8 +1,11 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2,
+  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
