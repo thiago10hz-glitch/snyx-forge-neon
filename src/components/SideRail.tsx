@@ -21,13 +21,14 @@ interface SideRailProps {
   bottomItems: RailItem[];
   headerExtra?: ReactNode;
   footerExtra?: ReactNode;
+  collapsed?: boolean;
 }
 
 /**
- * Rail super estreita estilo SKYNETchat: ~52px, só ícones pequenos centralizados,
- * divisor vertical vermelho sutil à direita, sem expansão.
+ * Rail super estreita estilo SKYNETchat: ~44px, ícones bem pequenos,
+ * divisor vertical sutil à direita, sem expansão. Pode ser colapsada (ocultada).
  */
-export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra }: SideRailProps) {
+export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra, collapsed = false }: SideRailProps) {
   const renderItem = (item: RailItem, idx: number) => {
     const Icon = item.icon;
     const tone = item.active
@@ -41,12 +42,12 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
     const inner = (
       <button
         onClick={item.onClick}
-        className={`group relative w-9 h-9 flex items-center justify-center transition-colors duration-200 ${tone}`}
+        className={`group relative w-8 h-8 flex items-center justify-center transition-colors duration-200 ${tone}`}
         aria-label={item.label}
       >
-        <Icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
+        <Icon className="w-[14px] h-[14px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
         {item.dot && (
-          <span className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary))] animate-pulse" />
+          <span className="absolute top-1 right-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary))] animate-pulse" />
         )}
       </button>
     );
@@ -66,7 +67,11 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
   };
 
   return (
-    <aside className="hidden md:flex shrink-0 flex-col z-30 relative w-[52px]">
+    <aside
+      className={`hidden md:flex shrink-0 flex-col z-30 relative overflow-hidden transition-[width] duration-300 ease-out ${
+        collapsed ? "w-0" : "w-[44px]"
+      }`}
+    >
       {/* divisor vermelho bem sutil à direita, sem fundo opaco */}
       <div className="absolute top-0 right-0 bottom-0 w-px bg-primary/15" />
 
@@ -74,7 +79,7 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
         <div className="mb-3">{logo}</div>
         {headerExtra && <div className="mb-2 flex justify-center">{headerExtra}</div>}
 
-        <nav className="flex-1 flex flex-col items-center gap-2 overflow-y-auto scrollbar-hide w-full">
+        <nav className="flex-1 flex flex-col items-center gap-1.5 overflow-y-auto scrollbar-hide w-full">
           {topItems.map(renderItem)}
         </nav>
 

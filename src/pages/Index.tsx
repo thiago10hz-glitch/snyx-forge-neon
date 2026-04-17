@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,7 @@ const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(false);
 
   const [showModePicker, setShowModePicker] = useState(false);
 
@@ -191,8 +192,8 @@ const Index = () => {
           logo={railLogo}
           topItems={railTopItems}
           bottomItems={railBottomItems}
-          headerExtra={<AdminPresenceIndicator />}
           footerExtra={railFooterExtra}
+          collapsed={railCollapsed}
         />
 
         {/* Toggleable history panel */}
@@ -220,6 +221,18 @@ const Index = () => {
               <span className="font-bold">SnyX</span>
               <span className="text-foreground/60 font-normal">V3</span>
             </div>
+          </div>
+
+          {/* Top-left: toggle pra mostrar/esconder a barra lateral */}
+          <div className="hidden md:flex fixed top-3 left-3 z-30 items-center">
+            <button
+              onClick={() => setRailCollapsed((v) => !v)}
+              className="w-7 h-7 flex items-center justify-center text-muted-foreground/70 hover:text-foreground transition-colors"
+              aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
+              title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
+            >
+              <PanelLeft className="w-[17px] h-[17px]" strokeWidth={1.85} />
+            </button>
           </div>
 
           {/* Top-right tiny cluster: paleta + nova conversa */}
