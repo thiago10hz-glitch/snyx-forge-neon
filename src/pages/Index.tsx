@@ -75,15 +75,12 @@ const Index = () => {
     }
   }, []);
 
-  const railTopItems: RailItem[] = [
-    ...(isAdmin
-      ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin" },
-          { icon: Crown, label: "Dono", to: "/dono", accent: true },
-        ] as RailItem[])
-      : []),
-    { icon: Code2, label: "API para devs", to: "/api", accent: true },
-  ];
+  const railTopItems: RailItem[] = isAdmin
+    ? ([
+        { icon: ShieldCheck, label: "Admin", to: "/admin" },
+        { icon: Crown, label: "Dono", to: "/dono", accent: true },
+      ] as RailItem[])
+    : [];
 
   const railBottomItems: RailItem[] = [
     { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
