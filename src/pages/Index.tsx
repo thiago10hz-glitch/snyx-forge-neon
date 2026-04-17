@@ -64,7 +64,7 @@ const Index = () => {
 
   const handleBackToSelector = () => { setChatChoice(null); setPickedConvId(null); };
 
-  const navItems: { to: string; icon: any; label: string }[] = [];
+  
 
   // Mini icon-only sidebar item (w-14)
   const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent }: {
