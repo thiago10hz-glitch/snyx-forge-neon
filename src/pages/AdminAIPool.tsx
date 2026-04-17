@@ -37,6 +37,7 @@ const PROVIDERS = [
   { value: "mistral", label: "Mistral (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
   { value: "github", label: "GitHub Models (150 req/dia)", model: "gpt-4o-mini", limit: 150 },
   { value: "together", label: "Together AI ($5 free)", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", limit: 5000 },
+  { value: "cloudflare", label: "Cloudflare Workers AI (10k/dia)", model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", limit: 10000 },
 ];
 
 export default function AdminAIPool() {

@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       const upstreamBody = { ...body, model, stream: false };
 
       try {
-        const upstreamRes = await fetch(provider.url, {
+        const upstreamRes = await fetch(getProviderUrl(keyRow.provider, keyRow.api_key, model), {
           method: "POST",
           headers: { "Content-Type": "application/json", ...provider.auth(keyRow.api_key) },
           body: JSON.stringify(upstreamBody),
