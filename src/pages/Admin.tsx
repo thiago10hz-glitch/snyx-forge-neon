@@ -6,10 +6,10 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import { UserTagModal } from "@/components/UserTagModal";
 import {
   Loader2, ShieldCheck, ArrowLeft, Ban, KeyRound, Crown, Users, Search,
-  RefreshCw, MessageCircle, Menu, X, Clock, TrendingUp, Copy, Check,
-  ChevronDown, ChevronUp, Code2, Sparkles, LifeBuoy, ScrollText,
+  RefreshCw, MessageCircle, Menu, X, TrendingUp, Copy, Check,
+  ChevronDown, ChevronUp, Sparkles, LifeBuoy, ScrollText,
   StickyNote, KeySquare, Trash2, AlertTriangle, CheckCircle2, XCircle,
-  Send, Plus, Zap,
+  Send, Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 
