@@ -67,44 +67,7 @@ const Index = () => {
 
   const handleBackToSelector = () => { setChatChoice(null); setPickedConvId(null); };
 
-  
 
-  // Mini icon-only sidebar item (w-14)
-  const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent, dot }: {
-    icon: any; label: string; onClick?: () => void; active?: boolean; to?: string;
-    danger?: boolean; accent?: boolean; dot?: boolean;
-  }) => {
-    const base = (
-      <button
-        onClick={onClick}
-        className={`relative w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all duration-200 group
-          ${active
-            ? "bg-primary/15 text-primary border border-primary/25 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.4)]"
-            : danger
-              ? "text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 border border-transparent"
-              : accent
-                ? "text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 border border-transparent"
-                : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/15 border border-transparent"
-          }`}
-      >
-        <Icon className="w-[17px] h-[17px]" strokeWidth={1.8} />
-        {active && <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />}
-        {dot && (
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
-        )}
-      </button>
-    );
-
-    const wrapped = (
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>{to ? <Link to={to}>{base}</Link> : base}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={10} className="text-[11px] font-medium px-2.5 py-1.5">
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    );
-    return wrapped;
-  };
 
   // Header chat title dropdown
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
