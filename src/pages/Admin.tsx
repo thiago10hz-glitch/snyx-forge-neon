@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Zap } from "lucide-react";
+
 import { Navigate, Link } from "react-router-dom";
 import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
