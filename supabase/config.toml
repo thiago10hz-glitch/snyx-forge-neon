@@ -9,11 +9,5 @@ verify_jwt = false
 [functions.payments-webhook]
 verify_jwt = false
 
-[functions.vpn-manage]
-verify_jwt = false
-
 [functions.deploy-demo-site]
-verify_jwt = false
-
-[functions.optimizer-device-auth]
 verify_jwt = false
