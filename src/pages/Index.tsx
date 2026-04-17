@@ -12,6 +12,7 @@ import { HistoryPanel } from "@/components/HistoryPanel";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { SideRail, type RailItem } from "@/components/SideRail";
 import { ChatPanel } from "@/components/ChatPanel";
+import { SidebarConversations } from "@/components/SidebarConversations";
 
 const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
@@ -187,14 +188,24 @@ const Index = () => {
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
         <AuroraBackground intensity="full" />
 
-        {/* Sidebar lateral — desktop, pra todo mundo */}
+        {/* Sidebar lateral — com lista de conversas estilo ChatGPT */}
         <SideRail
           logo={railLogo}
+          brandName="SnyX"
           topItems={railTopItems}
           bottomItems={railBottomItems}
           footerExtra={railFooterExtra}
           collapsed={railCollapsed}
-        />
+        >
+          <SidebarConversations
+            activeConversationId={pickedConvId}
+            onPickConversation={handlePickFromHistory}
+            onNewChat={() => {
+              setPickedConvId(null);
+              window.dispatchEvent(new CustomEvent("snyx:new-chat"));
+            }}
+          />
+        </SideRail>
 
         {/* Toggleable history panel */}
         <HistoryPanel
@@ -220,7 +231,7 @@ const Index = () => {
           {/* Toggle pra mostrar/esconder a barra lateral (desktop e mobile) */}
           <div
             className="fixed top-4 z-50 transition-[left] duration-300 ease-out"
-            style={{ left: railCollapsed ? "16px" : "208px" }}
+            style={{ left: railCollapsed ? "16px" : "16px" }}
           >
             <button
               onClick={() => setRailCollapsed((v) => !v)}
