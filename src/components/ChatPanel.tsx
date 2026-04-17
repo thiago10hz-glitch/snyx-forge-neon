@@ -9,7 +9,7 @@ import { VipModal } from "./VipModal";
 import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
-import { resolveCharacterAvatar } from "@/lib/characterAvatars";
+
 
 interface ImageAttachment {
   kind: "image";
@@ -55,8 +55,6 @@ type PendingAction = "school" | "imagegen" | "rewrite" | null;
 interface ChatPanelProps {
   onCodeGenerated: (code: string) => void;
   onModeChange?: (mode: ChatMode) => void;
-  activeCharacter?: { id: string; name: string; system_prompt: string; avatar_url: string | null } | null;
-  onClearCharacter?: () => void;
 }
 
 const TEXT_FILE_EXTENSIONS = [
@@ -132,7 +130,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onClearCharacter }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -165,7 +163,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
-  const activeCharacterAvatar = activeCharacter ? resolveCharacterAvatar(activeCharacter.name, activeCharacter.avatar_url) : null;
 
   const checkMessageLimit = useCallback(async (): Promise<MessageLimitState | null> => {
     if (!user || profile?.is_vip || profile?.is_dev) {
@@ -241,67 +238,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
     })();
   }, [activeConversationId]);
 
-  // Auto-resumo a cada 30 mensagens em RPG (memória de longo prazo)
-  const lastSummarizedAtRef = useRef(0);
-  useEffect(() => {
-    if (!activeConversationId || !activeCharacter) return;
-    if (messages.length >= lastSummarizedAtRef.current + 30) {
-      lastSummarizedAtRef.current = messages.length;
-      supabase.functions.invoke("summarize-conversation", { body: { conversation_id: activeConversationId } })
-        .then(({ data }: any) => { if (data?.success && data.summary) setConversationSummary(data.summary); })
-        .catch(() => {});
-    }
-  }, [messages.length, activeConversationId, activeCharacter]);
-
-  // Quando troca de personagem: abre conversa do ?conv=, ou continua a última, ou cria nova
-  const lastCharIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!activeCharacter || !user) return;
-    if (lastCharIdRef.current === activeCharacter.id) return;
-    lastCharIdRef.current = activeCharacter.id;
-    (async () => {
-      // 1. Check ?conv= URL param (from CharacterProfile page)
-      const urlConv = new URLSearchParams(window.location.search).get("conv");
-      if (urlConv) {
-        const { data: existing } = await supabase
-          .from("chat_conversations")
-          .select("id")
-          .eq("id", urlConv)
-          .eq("user_id", user.id)
-          .eq("character_id", activeCharacter.id)
-          .maybeSingle();
-        if (existing) {
-          setActiveConversationId(existing.id);
-          setConversationSummary("");
-          lastSummarizedAtRef.current = 0;
-          // Clean conv from URL
-          const url = new URL(window.location.href);
-          url.searchParams.delete("conv");
-          window.history.replaceState({}, "", url.toString());
-          loadConversations();
-          return;
-        }
-      }
-      // 2. Otherwise create a new conversation
-      const { data } = await supabase
-        .from("chat_conversations")
-        .insert({ user_id: user.id, mode: "rpg", title: activeCharacter.name, character_id: activeCharacter.id })
-        .select("id")
-        .single();
-      if (!data) return;
-      setActiveConversationId(data.id);
-      setConversationSummary("");
-      lastSummarizedAtRef.current = 0;
-      const firstMsg = (activeCharacter as any).first_message?.trim();
-      if (firstMsg) {
-        await supabase.from("chat_messages").insert({ conversation_id: data.id, role: "assistant", content: firstMsg });
-        setMessages([{ role: "assistant", content: firstMsg } as Message]);
-      } else {
-        setMessages([]);
-      }
-      loadConversations();
-    })();
-  }, [activeCharacter?.id, user, loadConversations]);
+  
 
   const createConversation = async (): Promise<string | null> => {
     if (!user) return null;
@@ -924,7 +861,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
             content: m.content,
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
-          mode: activeCharacter ? "rpg" : (usePremium ? "premium" : mode),
+          mode: usePremium ? "premium" : mode,
           is_vip: !!profile?.is_vip,
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
@@ -932,16 +869,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           user_gender: profile?.gender || null,
           user_bio: profile?.bio || null,
           user_relationship_status: profile?.relationship_status || null,
-          ...(activeCharacter ? {
-            character_system_prompt: activeCharacter.system_prompt,
-            character_meta: {
-              name: activeCharacter.name,
-              description: (activeCharacter as any).description,
-              personality: (activeCharacter as any).personality,
-              scenario: (activeCharacter as any).scenario,
-              example_dialog: (activeCharacter as any).example_dialog,
-            },
-          } : {}),
           
           ...(conversationSummary ? { conversation_summary: conversationSummary } : {}),
         };
@@ -1310,25 +1237,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
           )}
         </div>
 
-        {/* Character banner */}
-        {activeCharacter && (
-          <div className="flex items-center gap-3 px-4 py-2 border-b border-border/10 bg-primary/5 shrink-0">
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 bg-muted/10 shrink-0">
-              {activeCharacterAvatar ? (
-                <img src={activeCharacterAvatar} alt="" className="w-full h-full object-cover" loading="lazy" width={1024} height={1024} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-primary">{activeCharacter.name[0]}</div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-foreground">{activeCharacter.name}</span>
-              <span className="text-[10px] text-muted-foreground/50 ml-2">Personagem</span>
-            </div>
-            <button onClick={onClearCharacter} className="text-[10px] px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
-              ✕ Sair
-            </button>
-          </div>
-        )}
 
         {mode === "music" ? (
           <div className="flex-1 flex items-center justify-center text-center px-6">
@@ -1441,9 +1349,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
                   ) : (
                     <div className="flex gap-3">
                       <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        {activeCharacterAvatar ? (
-                          <img src={activeCharacterAvatar} alt="AI" className="w-full h-full object-cover" />
-                        ) : aiAvatarUrl ? (
+                        {aiAvatarUrl ? (
                           <img src={aiAvatarUrl} alt="AI" className="w-full h-full object-cover" />
                         ) : (
                           <><Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} /></>

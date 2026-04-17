@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2, Ban } from "lucide-react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Loader2, Ban } from "lucide-react";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface VipModalProps {
   open: boolean;
   onClose: () => void;
-  highlightPlan?: "vip" | "rpg" | "programmer";
+  highlightPlan?: "vip" | "programmer";
 }
 
 const vipFeatures = [
@@ -20,17 +20,6 @@ const vipFeatures = [
   { icon: Palette, text: "Temas e personalização", desc: "Customize a aparência do chat" },
 ];
 
-const rpgFeatures = [
-  { icon: Swords, text: "RPG com IA avançada", desc: "Aventuras imersivas com narrativa inteligente" },
-  { icon: Wand2, text: "Personagens exclusivos", desc: "Crie e use personagens premium ilimitados" },
-  { icon: ScrollText, text: "Histórias infinitas", desc: "Narrativas sem limite de contexto" },
-  { icon: Flame, text: "Batalhas épicas com IA", desc: "Sistema de combate dinâmico e realista" },
-  { icon: Trophy, text: "Rankings e conquistas", desc: "Compita e desbloqueie conquistas únicas" },
-  { icon: Users, text: "Multiplayer com amigos", desc: "Jogue com amigos no mesmo universo" },
-  { icon: MessageCircle, text: "Mensagens ilimitadas", desc: "Sem limite em todas as sessões" },
-  { icon: Image, text: "Geração de cenários", desc: "Imagens dos seus cenários com IA" },
-  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios VIP + RPG" },
-];
 
 const programmerFeatures = [
   { icon: Code, text: "Criar sites completos com IA", desc: "HTML, CSS, JS gerados automaticamente" },
@@ -49,7 +38,6 @@ type Period = "weekly" | "monthly" | "yearly";
 
 const PLAN_PRICES: Record<string, Record<Period, number>> = {
   vip:        { weekly: 25,  monthly: 50,  yearly: 150 },
-  rpg:        { weekly: 20,  monthly: 50,  yearly: 120 },
   programmer: { weekly: 100, monthly: 150, yearly: 250 },
 };
 
@@ -88,7 +76,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
 
   if (!open) return null;
 
-  const handleSubscribe = async (plan: "vip" | "rpg" | "programmer") => {
+  const handleSubscribe = async (plan: "vip" | "programmer") => {
     if (isBanned) {
       toast.error("Sua conta está temporariamente suspensa por tentativa de fraude.");
       return;
@@ -99,7 +87,6 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
     const periodLabel = PERIOD_LABELS[period].toLowerCase();
     const planNames: Record<string, string> = {
       vip: "SnyX VIP",
-      rpg: "SnyX RPG Premium",
       programmer: "SnyX Programador DEV",
     };
 
@@ -185,7 +172,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
         </div>
 
         {/* Plans */}
-        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
+        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
           {/* VIP Plan */}
           <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col ${
             highlightPlan === "vip"
@@ -230,56 +217,6 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             >
               {loadingPlan === "vip" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
               ASSINAR VIP
-            </button>
-          </div>
-
-          {/* RPG Premium Plan */}
-          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col relative ${
-            highlightPlan === "rpg"
-              ? "border-purple-500/25 bg-purple-500/3 ring-1 ring-purple-500/10"
-              : "border-border/15 bg-muted/5"
-          }`}>
-            <div className="absolute -top-2.5 right-4">
-              <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/20">
-                ⚔️ RPG
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 mb-1">
-              <Swords size={18} className="text-purple-400" />
-              <span className="text-base font-bold text-foreground">RPG Premium</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground/50 mb-3">A experiência RPG definitiva</p>
-
-            <div className="mb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/20">⚔️ RPG Premium</span>
-              </div>
-              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.rpg[period]}</span>
-              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
-            </div>
-
-            <div className="space-y-2.5 flex-1">
-              {rpgFeatures.map((f, i) => (
-                <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
-                  <div className="w-5 h-5 rounded-md bg-purple-500/8 flex items-center justify-center shrink-0 mt-0.5">
-                    <Check size={11} className="text-purple-400" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-medium text-foreground/90">{f.text}</span>
-                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => handleSubscribe("rpg")}
-              disabled={!!loadingPlan}
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-purple-500/15 hover:shadow-lg hover:shadow-purple-500/10 disabled:opacity-50"
-            >
-              {loadingPlan === "rpg" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
-              ASSINAR RPG
             </button>
           </div>
 

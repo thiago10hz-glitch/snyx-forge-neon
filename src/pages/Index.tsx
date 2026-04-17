@@ -2,19 +2,18 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
   Zap, LogOut, ShieldCheck, MonitorPlay, Code, User, Server, Download,
-  Menu, Gamepad2, Users, Palette, Crown, MessageSquare, ChevronLeft,
+  Menu, Gamepad2, Palette, Crown, MessageSquare, ChevronLeft,
   ChevronRight, Flame, X, Globe, Loader2, Film,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
 const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
 const MusicPanel = lazy(() => import("@/components/MusicPanel").then(m => ({ default: m.MusicPanel })));
-const CharactersPanel = lazy(() => import("@/components/CharactersPanel").then(m => ({ default: m.CharactersPanel })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const SupportChat = lazy(() => import("@/components/SupportChat").then(m => ({ default: m.SupportChat })));
 const ThemeSelector = lazy(() => import("@/components/ThemeSelector").then(m => ({ default: m.ThemeSelector })));
@@ -34,10 +33,8 @@ const Index = () => {
   const [showVipModal, setShowVipModal] = useState(false);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [activeCharacter, setActiveCharacter] = useState<{ id: string; name: string; system_prompt: string; avatar_url: string | null } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     if (!user) return;
@@ -45,16 +42,6 @@ const Index = () => {
       setIsAdmin(!!data);
     });
   }, [user]);
-
-  const hasRpgAccess = !!(profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin);
-  const safeChatMode = chatMode === "characters" && !hasRpgAccess ? "friend" : chatMode;
-
-  useEffect(() => {
-    if (!hasRpgAccess) {
-      if (chatMode === "characters") setChatMode("friend");
-      if (activeCharacter) setActiveCharacter(null);
-    }
-  }, [hasRpgAccess, chatMode, activeCharacter]);
 
   useAdminHeartbeat();
 
@@ -67,39 +54,6 @@ const Index = () => {
     { to: "/downloads", icon: Download, label: "App" },
     { to: "/accelerator", icon: Zap, label: "Accelerator" },
   ];
-
-  const toggleCharactersPanel = () => {
-    if (!hasRpgAccess) { setShowVipModal(true); return; }
-    setChatMode((c) => c === "characters" ? "friend" : "characters");
-  };
-
-  const handleCharacterStartChat = async (id: string) => {
-    if (!hasRpgAccess) { setShowVipModal(true); return; }
-    const { data } = await supabase
-      .from("ai_characters")
-      .select("id, name, system_prompt, avatar_url, description, personality, scenario, example_dialog, first_message, is_nsfw")
-      .eq("id", id)
-      .single();
-    if (data) {
-      setActiveCharacter(data);
-      await supabase.rpc("increment_character_chat_count", { p_character_id: id });
-    }
-    setChatMode("friend");
-  };
-
-  // Auto-open character from URL ?character=ID (set by /character/:id page)
-  useEffect(() => {
-    const charId = searchParams.get("character");
-    if (charId && hasRpgAccess && !activeCharacter) {
-      handleCharacterStartChat(charId);
-      // Clean URL but preserve conv param for ChatPanel
-      const conv = searchParams.get("conv");
-      const next = new URLSearchParams();
-      if (conv) next.set("conv", conv);
-      setSearchParams(next, { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, hasRpgAccess]);
 
   const SidebarItem = ({ icon: Icon, label, onClick, active, to, className }: any) => {
     const content = (
@@ -152,8 +106,7 @@ const Index = () => {
 
         {/* Nav items */}
         <nav className="flex-1 p-1.5 space-y-0.5 overflow-y-auto scrollbar-thin">
-          <SidebarItem icon={MessageSquare} label="Chat" onClick={() => setChatMode("friend")} active={safeChatMode === "friend" || safeChatMode === "programmer"} />
-          <SidebarItem icon={Users} label="Criar RPG" onClick={toggleCharactersPanel} active={safeChatMode === "characters"} />
+          <SidebarItem icon={MessageSquare} label="Chat" onClick={() => setChatMode("friend")} active={chatMode === "friend" || chatMode === "programmer"} />
 
           <div className={`${sidebarOpen ? "px-3 pt-4 pb-1" : "pt-4 pb-1 flex justify-center"}`}>
             {sidebarOpen ? (
@@ -222,10 +175,6 @@ const Index = () => {
               <span className="badge-dev flex items-center gap-1 text-[8px]">
                 <Code size={8} /> DEV
               </span>
-            ) : (profile as any)?.is_rpg_premium ? (
-              <span className="flex items-center gap-1 text-[8px] px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-bold">
-                🎭 RPG
-              </span>
             ) : profile?.is_pack_steam ? (
               <span className="badge-pack-steam flex items-center gap-1 text-[8px]">
                 🎮 Steam
@@ -260,31 +209,23 @@ const Index = () => {
 
         {/* Content area */}
         <div className="flex-1 flex overflow-hidden">
-          {safeChatMode === "music" ? (
+          {chatMode === "music" ? (
             <div className="flex-1 overflow-hidden">
               <Suspense fallback={<PanelLoader />}>
                 <MusicPanel onBack={() => setChatMode("friend")} />
               </Suspense>
             </div>
-          ) : safeChatMode === "characters" ? (
-            <div className="flex-1 overflow-hidden">
-              <Suspense fallback={<PanelLoader />}>
-                <CharactersPanel onBack={() => setChatMode("friend")} onStartChat={handleCharacterStartChat} />
-              </Suspense>
-            </div>
           ) : (
             <>
-              <div className={`w-full ${safeChatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
+              <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} border-r border-border/8`}>
                 <Suspense fallback={<PanelLoader />}>
                   <ChatPanel
                     onCodeGenerated={setCode}
                     onModeChange={(mode) => setChatMode(mode)}
-                    activeCharacter={hasRpgAccess ? activeCharacter : null}
-                    onClearCharacter={() => setActiveCharacter(null)}
                   />
                 </Suspense>
               </div>
-              {safeChatMode === "programmer" && (
+              {chatMode === "programmer" && (
                 <div className="hidden md:block flex-1 min-w-0">
                   <Suspense fallback={<PanelLoader />}>
                     <CodeEditor code={code} onCodeChange={setCode} />
@@ -312,8 +253,7 @@ const Index = () => {
             </div>
 
             <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-              <SidebarItem icon={MessageSquare} label="Chat" onClick={() => { setChatMode("friend"); setMobileMenuOpen(false); }} active={safeChatMode === "friend"} />
-              <SidebarItem icon={Users} label="Criar RPG" onClick={() => { toggleCharactersPanel(); setMobileMenuOpen(false); }} active={safeChatMode === "characters"} />
+              <SidebarItem icon={MessageSquare} label="Chat" onClick={() => { setChatMode("friend"); setMobileMenuOpen(false); }} active={chatMode === "friend"} />
 
               <div className="px-2.5 pt-3 pb-0.5">
                 <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
@@ -350,7 +290,7 @@ const Index = () => {
       <Suspense fallback={null}>
         <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
         <SupportChat />
-        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="rpg" />
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
         <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
       </Suspense>
     </div>

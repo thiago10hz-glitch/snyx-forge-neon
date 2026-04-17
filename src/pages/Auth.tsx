@@ -75,7 +75,6 @@ const VIP_PLANS = [
       "Chat IA sem limite de mensagens",
       "Todos os modos (Amigo, Escola, Programador, Rewrite)",
       "Geração de imagens com IA",
-      "RPG com personagens ilimitados",
       "Chamada de voz com IA",
       "Geração de música com IA",
       "Prioridade no suporte",
@@ -108,27 +107,6 @@ const VIP_PLANS = [
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/30",
     iconColor: "text-blue-400",
-  },
-  {
-    icon: Gamepad2,
-    title: "RPG Premium",
-    plans: [
-      { label: "Semanal", price: "R$ 20,00" },
-      { label: "Mensal", price: "R$ 50,00" },
-      { label: "Anual", price: "R$ 120,00", badge: "Melhor custo" },
-    ],
-    features: [
-      "Personagens ilimitados com backstory",
-      "IA mestre de RPG avançada",
-      "Histórias e aventuras exclusivas",
-      "Itens e equipamentos premium",
-      "Voz de personagem com IA",
-      "Comunidade RPG exclusiva",
-    ],
-    popular: false,
-    color: "from-purple-500/20 to-pink-500/20",
-    borderColor: "border-purple-500/30",
-    iconColor: "text-purple-400",
   },
 ];
 
