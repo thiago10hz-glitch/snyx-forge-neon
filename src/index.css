@@ -6,38 +6,44 @@
 
 @layer base {
   :root {
-    /* Slate + Violeta — clean, modern, premium */
-    --background: 222 18% 6%;
-    --foreground: 220 15% 95%;
-    --card: 222 16% 9%;
-    --card-foreground: 220 15% 95%;
-    --popover: 222 16% 10%;
-    --popover-foreground: 220 15% 95%;
-    --primary: 255 92% 76%;
-    --primary-foreground: 222 30% 8%;
-    --secondary: 222 14% 13%;
-    --secondary-foreground: 220 12% 78%;
-    --muted: 222 14% 14%;
-    --muted-foreground: 220 10% 58%;
-    --accent: 255 92% 76%;
-    --accent-foreground: 222 30% 8%;
-    --destructive: 0 72% 60%;
+    /* Crimson Neon — vermelho vibrante + glassmorphism */
+    --background: 240 24% 5%;
+    --foreground: 0 0% 97%;
+    --card: 345 33% 7%;
+    --card-foreground: 0 0% 97%;
+    --popover: 345 30% 8%;
+    --popover-foreground: 0 0% 97%;
+    --primary: 350 100% 54%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 345 100% 66%;
+    --secondary: 345 20% 12%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 345 16% 12%;
+    --muted-foreground: 345 8% 62%;
+    --accent: 345 100% 66%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 350 100% 54%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 14% 16%;
-    --input: 222 14% 16%;
-    --ring: 255 92% 76%;
+    --border: 345 30% 14%;
+    --input: 345 25% 12%;
+    --ring: 350 100% 54%;
     --radius: 1rem;
-    --sidebar-background: 222 20% 5%;
-    --sidebar-foreground: 220 12% 88%;
-    --sidebar-primary: 255 92% 76%;
-    --sidebar-primary-foreground: 222 30% 8%;
-    --sidebar-accent: 222 16% 10%;
-    --sidebar-accent-foreground: 220 12% 90%;
-    --sidebar-border: 222 14% 14%;
-    --sidebar-ring: 255 92% 76%;
+    --sidebar-background: 240 28% 4%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 350 100% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 345 30% 8%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 345 25% 11%;
+    --sidebar-ring: 350 100% 54%;
 
-    --neon-glow: 0 0 14px hsl(255 92% 76% / 0.25), 0 0 36px hsl(255 92% 76% / 0.08);
-    --neon-glow-strong: 0 0 14px hsl(255 92% 76% / 0.4), 0 0 48px hsl(255 92% 76% / 0.18), 0 0 96px hsl(255 92% 76% / 0.07);
+    /* Glow tokens — usados em botões, cards e bordas */
+    --neon-glow: 0 0 16px hsl(350 100% 54% / 0.35), 0 0 40px hsl(350 100% 54% / 0.12);
+    --neon-glow-strong: 0 0 18px hsl(350 100% 54% / 0.55), 0 0 56px hsl(345 100% 66% / 0.28), 0 0 110px hsl(350 100% 54% / 0.12);
+    --neon-glow-soft: 0 0 12px hsl(345 100% 66% / 0.22), 0 0 28px hsl(350 100% 54% / 0.08);
+    --gradient-primary: linear-gradient(135deg, hsl(350 100% 54%), hsl(345 100% 66%));
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(350 100% 54% / 0.18), transparent 70%);
+    --gradient-card: linear-gradient(145deg, hsl(345 33% 9% / 0.85), hsl(240 24% 6% / 0.95));
   }
 }
 
