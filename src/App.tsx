@@ -140,7 +140,7 @@ const App = () => {
                   <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
                   <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+                  
                   <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
                   <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
                   <Route path="/accelerator" element={<Accelerator />} />

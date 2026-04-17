@@ -9,7 +9,7 @@ import { VipModal } from "./VipModal";
 import { supabase } from "@/integrations/supabase/client";
 import JSZip from "jszip";
 import { toast } from "sonner";
-import { resolveCharacterAvatar } from "@/lib/characterAvatars";
+
 
 interface ImageAttachment {
   kind: "image";
