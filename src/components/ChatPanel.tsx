@@ -126,6 +126,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [mode, setMode] = useState<ChatMode>(forceMode ?? "friend");
   const [usePremium, setUsePremium] = useState(false);
+  // Auto-enable premium mode for VIP/DEV users (no toggle needed)
+  useEffect(() => {
+    if (profile?.is_vip || profile?.is_dev) setUsePremium(true);
+  }, [profile?.is_vip, profile?.is_dev]);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
