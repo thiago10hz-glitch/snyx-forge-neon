@@ -165,8 +165,8 @@ const Index = () => {
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-transparent relative">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <header className="h-14 flex items-center justify-between gap-2 px-2 sm:px-6 shrink-0 bg-transparent relative">
+            <div className="flex items-center gap-2 shrink-0 sm:flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
@@ -190,14 +190,14 @@ const Index = () => {
             </div>
 
             {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="relative flex items-center gap-1.5 p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-180px)] sm:max-w-none">
+              <div className="relative flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
                 {/* glow halo */}
                 <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_70%)] blur-md" aria-hidden />
 
                 <button
                   onClick={() => setHistoryOpen((v) => !v)}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                  className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     historyOpen
                       ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                       : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -210,7 +210,7 @@ const Index = () => {
 
                 <button
                   onClick={switchToFriend}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                  className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     chatMode === "friend"
                       ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                       : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -224,7 +224,7 @@ const Index = () => {
                 {isDev && (
                   <button
                     onClick={switchToProgrammer}
-                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                    className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                       chatMode === "programmer"
                         ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                         : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -239,7 +239,7 @@ const Index = () => {
                 {isVip && (
                   <button
                     onClick={switchToFriend}
-                    className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
+                    className="relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
                     title="Abrir Chat VIP"
                   >
                     <Crown className="w-3.5 h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
@@ -250,15 +250,15 @@ const Index = () => {
             </div>
 
             {/* Right */}
-            <div className="flex items-center gap-1.5 flex-1 justify-end">
-              {/* API para devs — botão fixo no canto */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 sm:justify-end">
+              {/* API para devs — só desktop (mobile fica no menu) */}
               <Link
                 to="/api"
                 title="API para devs"
-                className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-b from-primary/20 to-primary/10 text-primary border border-primary/40 hover:border-primary/70 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] transition-all"
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-b from-primary/20 to-primary/10 text-primary border border-primary/40 hover:border-primary/70 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] transition-all"
               >
                 <Code2 className="w-3 h-3" strokeWidth={2.6} />
-                <span className="hidden sm:inline">API devs</span>
+                <span>API devs</span>
               </Link>
 
               {/* Badge de plano — VIP dourado pra assinantes, FREE pra contas novas */}
@@ -286,7 +286,7 @@ const Index = () => {
 
               <button
                 onClick={() => setShowProfile(true)}
-                className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)] ml-1"
+                className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)] sm:ml-1"
                 title="Minha conta"
               >
                 {profile?.avatar_url ? (
@@ -296,11 +296,11 @@ const Index = () => {
                 )}
               </button>
 
-              {/* Botão Sair */}
+              {/* Botão Sair — só desktop (mobile fica no menu) */}
               <button
                 onClick={signOut}
                 title="Sair da conta"
-                className="w-9 h-9 rounded-2xl flex items-center justify-center border border-border/30 hover:border-destructive/60 text-muted-foreground hover:text-destructive bg-card/60 hover:bg-destructive/10 transition-all duration-300 hover:shadow-[0_0_18px_-4px_hsl(var(--destructive)/0.6)]"
+                className="hidden sm:flex w-9 h-9 rounded-2xl items-center justify-center border border-border/30 hover:border-destructive/60 text-muted-foreground hover:text-destructive bg-card/60 hover:bg-destructive/10 transition-all duration-300 hover:shadow-[0_0_18px_-4px_hsl(var(--destructive)/0.6)]"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -420,6 +420,15 @@ const Index = () => {
                     <span>Programador</span>
                   </button>
                 )}
+
+                <Link
+                  to="/api"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary hover:bg-primary/10"
+                >
+                  <Code2 className="w-4 h-4" />
+                  <span>API para devs</span>
+                </Link>
 
                 {isAdmin && (
                   <>
