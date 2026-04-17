@@ -233,6 +233,20 @@ const Index = () => {
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
+          {/* Desktop hint: Cmd+K to open command palette */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("snyx:open-palette"))}
+            className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-card/70 backdrop-blur-xl border border-border/30 text-[10.5px] font-medium text-muted-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-card/90 transition-all group"
+            aria-label="Abrir paleta de comandos"
+            title="Paleta de comandos (Ctrl+K)"
+          >
+            <Sparkles className="w-3 h-3 text-primary/70 group-hover:text-primary transition-colors" />
+            <span>Comandos</span>
+            <kbd className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/40 border border-border/30 text-[9.5px] font-mono text-muted-foreground/80">
+              Ctrl K
+            </kbd>
+          </button>
+
           {/* Mobile floating menu button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
