@@ -932,6 +932,16 @@ export default function Admin() {
       )}
 
 
+      <UserTagModal
+        open={tagModalUserId !== null}
+        user={users.find((u) => u.user_id === tagModalUserId) ?? null}
+        onClose={() => setTagModalUserId(null)}
+        onUpdated={(patch) =>
+          setUsers((prev) =>
+            prev.map((u) => (u.user_id === tagModalUserId ? { ...u, ...patch } : u))
+          )
+        }
+      />
 
 
       {vipModalUser && (
