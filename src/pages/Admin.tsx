@@ -4,12 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 import { Navigate, Link } from "react-router-dom";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { UserTagModal } from "@/components/UserTagModal";
 
 
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,6 +65,7 @@ export default function Admin() {
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [totalMessagesCount, setTotalMessagesCount] = useState<number>(0);
+  const [tagModalUserId, setTagModalUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -667,6 +669,14 @@ export default function Admin() {
                         {/* Actions */}
                         {u.user_id !== user!.id && (
                           <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                            <ActionButton
+                              icon={Sparkles}
+                              title="Abrir perfil / dar tag"
+                              color="text-primary hover:bg-primary/10 border-primary/25"
+                              onClick={() => setTagModalUserId(u.user_id)}
+                              loading={false}
+                              disabled={false}
+                            />
                             <ActionButton
                               icon={Eye}
                               title="Detalhes"
