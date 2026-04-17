@@ -31,16 +31,16 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.min(110, Math.floor((w * h) / 18000));
+      const count = Math.min(60, Math.floor((w * h) / 32000));
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: Math.random() * 1.8 + 0.4,
-        a: Math.random() * 0.6 + 0.25,
-        vx: (Math.random() - 0.5) * 0.12,
-        vy: (Math.random() - 0.5) * 0.12,
+        r: Math.random() * 1.3 + 0.3,
+        a: Math.random() * 0.35 + 0.12,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
         phase: Math.random() * Math.PI * 2,
-        speed: 0.6 + Math.random() * 1.4,
+        speed: 0.4 + Math.random() * 1.0,
       }));
     };
 

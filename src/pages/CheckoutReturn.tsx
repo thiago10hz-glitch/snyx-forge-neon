@@ -33,6 +33,17 @@ export default function CheckoutReturn() {
     document.title = status === "approved"
       ? "Pagamento aprovado — API SnyX"
       : "Pagamento — API SnyX";
+    if (status === "rejected") {
+      toast.error("Pagamento não aprovado", {
+        description: "Nenhum valor foi cobrado. Você pode tentar novamente quando quiser.",
+        duration: 6000,
+      });
+    } else if (status === "pending") {
+      toast.warning("Pagamento em análise", {
+        description: "Assim que for aprovado, volte aqui para gerar sua chave.",
+        duration: 6000,
+      });
+    }
   }, [status]);
 
   const update = (k: keyof typeof form) => (e: any) => setForm((p) => ({ ...p, [k]: e.target.value }));
