@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Flame, Lock, Swords, Wand2, ShieldCheck, Scroll, Gem, Skull, Star } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Flame, Lock, Swords, Wand2, ShieldCheck, Scroll, Gem, Skull, Star, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 import { VipModal } from "@/components/VipModal";
+import { ChubImportModal } from "@/components/ChubImportModal";
 
 type Character = {
   id: string;
@@ -42,6 +43,7 @@ const Characters = () => {
   const [category, setCategory] = useState("all");
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showVipModal, setShowVipModal] = useState(false);
+  const [showChubImport, setShowChubImport] = useState(false);
 
   const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
   const accessReady = !authLoading && profile !== null;
