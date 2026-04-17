@@ -190,8 +190,8 @@ const Index = () => {
             </div>
 
             {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-180px)] sm:max-w-none">
-              <div className="relative flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-130px)] sm:max-w-none">
+              <div className="relative flex items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
                 {/* glow halo */}
                 <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_70%)] blur-md" aria-hidden />
 
