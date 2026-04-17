@@ -176,12 +176,73 @@ async function callGroqNonStream(model: string, messages: any[], temperature?: n
   return await res.json();
 }
 
+// ===== Pollinations Text (sem chave, grátis ilimitado) =====
+function messagesToFlatPrompt(messages: any[]): string {
+  const parts: string[] = [];
+  for (const m of messages) {
+    const text = typeof m.content === "string"
+      ? m.content
+      : (Array.isArray(m.content) ? m.content.filter((c: any) => c.type === "text").map((c: any) => c.text).join(" ") : "");
+    if (!text) continue;
+    if (m.role === "system") parts.push(`[SYSTEM]\n${text}`);
+    else if (m.role === "assistant") parts.push(`[ASSISTANT]\n${text}`);
+    else parts.push(`[USER]\n${text}`);
+  }
+  parts.push("[ASSISTANT]");
+  return parts.join("\n\n");
+}
+
+async function callPollinationsNonStream(messages: any[]): Promise<any> {
+  const prompt = messagesToFlatPrompt(messages);
+  const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`pollinations_${res.status}:${t.slice(0, 200)}`);
+  }
+  const text = await res.text();
+  return { choices: [{ message: { role: "assistant", content: text } }] };
+}
+
+async function callPollinationsStream(messages: any[]): Promise<Response> {
+  // Pollinations não tem SSE nativo; simula stream emitindo o texto inteiro de uma vez.
+  const data = await callPollinationsNonStream(messages);
+  const text = data.choices[0].message.content as string;
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      // Emite em pedaços pra dar sensação de streaming
+      const chunkSize = 40;
+      for (let i = 0; i < text.length; i += chunkSize) {
+        controller.enqueue(encoder.encode(encodeSSE(text.slice(i, i + chunkSize))));
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+  return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
+}
+
+// ===== Lovable AI Gateway (último recurso, usa créditos) =====
+async function callLovable(model: string | undefined, body: any): Promise<Response> {
+  const finalBody = { ...body, model: model || "google/gemini-3-flash-preview" };
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify(finalBody),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`lovable_${res.status}:${t.slice(0, 200)}`);
+  }
+  if (body.stream) return new Response(res.body, { headers: { "Content-Type": "text/event-stream" } });
+  const data = await res.json();
+  return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+}
+
 /**
- * Drop-in replacement for `fetch("https://ai.gateway.lovable.dev/v1/chat/completions", ...)`.
- * Tenta Google Gemini grátis primeiro, cai pra Groq se falhar.
- *
- * Aceita o mesmo body OpenAI (model, messages, stream, temperature, max_tokens, response_format).
- * Retorna Response com mesmo shape.
+ * Drop-in replacement para `fetch("https://ai.gateway.lovable.dev/v1/chat/completions", ...)`.
+ * Cadeia: Google Gemini -> Groq -> Pollinations Text -> Lovable AI.
  */
 export async function freeAIChat(_url: string, init: RequestInit): Promise<Response> {
   const body = JSON.parse(init.body as string);
@@ -190,38 +251,49 @@ export async function freeAIChat(_url: string, init: RequestInit): Promise<Respo
   const googleModel = mapToGoogleModel(model);
   const groqModel = mapToGroqModel(model);
 
-  // Tenta Google primeiro
+  // 1. Google Gemini (grátis)
   if (GOOGLE_KEY) {
     try {
-      if (stream) {
-        return await callGoogleStream(googleModel, messages, temperature, max_tokens);
-      } else {
-        const data = await callGoogleNonStream(googleModel, messages, temperature, max_tokens, jsonMode);
-        return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
-      }
+      if (stream) return await callGoogleStream(googleModel, messages, temperature, max_tokens);
+      const data = await callGoogleNonStream(googleModel, messages, temperature, max_tokens, jsonMode);
+      return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
     } catch (e) {
-      console.warn("[free-ai] Google falhou, tentando Groq:", (e as Error).message);
+      console.warn("[free-ai] Google falhou:", (e as Error).message);
     }
   }
 
-  // Fallback Groq
+  // 2. Groq (grátis, rápido)
   if (GROQ_KEY) {
     try {
-      if (stream) {
-        return await callGroqStream(groqModel, messages, temperature, max_tokens);
-      } else {
-        const data = await callGroqNonStream(groqModel, messages, temperature, max_tokens, jsonMode);
-        return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
-      }
+      if (stream) return await callGroqStream(groqModel, messages, temperature, max_tokens);
+      const data = await callGroqNonStream(groqModel, messages, temperature, max_tokens, jsonMode);
+      return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
     } catch (e) {
-      console.error("[free-ai] Groq também falhou:", (e as Error).message);
-      return new Response(JSON.stringify({ error: "Todos os provedores falharam" }), {
-        status: 502, headers: { "Content-Type": "application/json" },
-      });
+      console.warn("[free-ai] Groq falhou:", (e as Error).message);
     }
   }
 
-  return new Response(JSON.stringify({ error: "Nenhuma chave de IA configurada (GOOGLE_AI_API_KEY ou GROQ_API_KEY)" }), {
-    status: 500, headers: { "Content-Type": "application/json" },
+  // 3. Pollinations Text (sem chave, grátis, ilimitado) — pula se jsonMode
+  if (!jsonMode) {
+    try {
+      if (stream) return await callPollinationsStream(messages);
+      const data = await callPollinationsNonStream(messages);
+      return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+    } catch (e) {
+      console.warn("[free-ai] Pollinations falhou:", (e as Error).message);
+    }
+  }
+
+  // 4. Lovable AI (último recurso, gasta créditos)
+  if (LOVABLE_KEY) {
+    try {
+      return await callLovable(model, body);
+    } catch (e) {
+      console.error("[free-ai] Lovable também falhou:", (e as Error).message);
+    }
+  }
+
+  return new Response(JSON.stringify({ error: "Todos os provedores de IA falharam" }), {
+    status: 502, headers: { "Content-Type": "application/json" },
   });
 }
