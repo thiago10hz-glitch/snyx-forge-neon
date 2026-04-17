@@ -1,13 +1,14 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User,
+  LogOut, ShieldCheck, Code, User, ArrowLeft,
   Menu, Palette, Crown, MessageSquare, Flame, X, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
@@ -29,6 +30,7 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipModal] = useState(false);
+  const [chatChoice, setChatChoice] = useState<ChatChoice | null>(null);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,6 +43,14 @@ const Index = () => {
   }, [user]);
 
   useAdminHeartbeat();
+
+  const handleSelectChat = (choice: ChatChoice) => {
+    setChatChoice(choice);
+    if (choice === "programmer") setChatMode("programmer");
+    else setChatMode("friend");
+  };
+
+  const handleBackToSelector = () => setChatChoice(null);
 
   const navItems: { to: string; icon: any; label: string }[] = [];
 
