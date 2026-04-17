@@ -10,19 +10,19 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const STYLE_BY_CATEGORY: Record<string, string> = {
-  anime: "high-quality detailed anime portrait, vibrant colors, studio-grade illustration, expressive eyes, cinematic lighting, character art",
-  romance: "romantic cinematic portrait photo, soft warm lighting, shallow depth of field, photorealistic, magazine editorial quality, 85mm",
-  drama: "dramatic cinematic portrait photo, moody chiaroscuro lighting, photorealistic, intense expression, film grain, 50mm",
-  fantasia: "epic fantasy character portrait, intricate armor or robes, magical atmosphere, painterly digital art, ArtStation trending, ultra detailed",
-  aventura: "rugged adventurer portrait, dynamic pose, dramatic environment lighting, photorealistic cinematic style, 35mm",
-  sombrio: "dark gothic portrait, candlelight, deep shadows, mysterious atmosphere, photorealistic cinematic, oil painting feel",
-  geral: "high quality detailed character portrait, balanced lighting, photorealistic cinematic style, 50mm",
+  anime: "stylized anime/manga portrait of an ADULT character (mid 20s to 30s), mature face, sharp jawline, expressive eyes, cinematic lighting, ArtStation quality digital painting, fantasy RPG character art",
+  romance: "epic fantasy romance portrait of an ADULT character (mid 20s to 30s), elegant outfit, soft golden hour lighting, painterly digital art, fantasy RPG portrait, ArtStation trending",
+  drama: "dramatic fantasy portrait of a MATURE ADULT character (late 20s to 40s), moody chiaroscuro lighting, intense expression, painterly oil-style digital art, RPG character key art",
+  fantasia: "epic high fantasy portrait of an ADULT hero (mid 20s to 40s), intricate ornate armor or mage robes, magical glowing aura, ethereal atmosphere, painterly digital art, ArtStation trending, RPG character art, ultra detailed",
+  aventura: "rugged ADULT fantasy adventurer portrait (late 20s to 40s), weathered face, leather and steel gear, dramatic landscape backdrop, painterly digital RPG art, cinematic",
+  sombrio: "dark gothic fantasy portrait of an ADULT character (late 20s to 40s), candlelight and deep shadows, mysterious somber atmosphere, painterly digital art, RPG dark fantasy portrait",
+  geral: "epic fantasy portrait of an ADULT character (mid 20s to 30s), painterly digital art, RPG character art, cinematic lighting, ArtStation quality",
 };
 
 async function generateAvatar(name: string, description: string, category: string, isNsfw: boolean) {
   const style = STYLE_BY_CATEGORY[category] ?? STYLE_BY_CATEGORY.geral;
-  const safety = isNsfw ? "tasteful suggestive portrait, no nudity, fully clothed" : "";
-  const prompt = `Portrait of "${name}". ${description}. ${style}. ${safety} Centered head-and-shoulders composition, sharp focus on face, clean background, no text, no watermark, no logo.`;
+  const safety = isNsfw ? "tasteful elegant fantasy portrait, fully clothed, no nudity" : "";
+  const prompt = `Epic fantasy RPG portrait of "${name}", an ADULT character. ${description}. ${style}. ${safety} Head-and-shoulders composition, sharp focus on face, atmospheric fantasy background. STRICT NEGATIVE: no children, no kids, no minors, no toddlers, no young teens, no chibi, no infant features, no school uniform, no playground, no cartoon for kids, no text, no watermark, no logo. Subject must look mature adult.`;
 
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
