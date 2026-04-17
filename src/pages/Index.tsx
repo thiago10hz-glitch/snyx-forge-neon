@@ -7,7 +7,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import { AuroraBackground } from "@/components/AuroraBackground";
