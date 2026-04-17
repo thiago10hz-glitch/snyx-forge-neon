@@ -98,20 +98,20 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
         className="absolute inset-0 transition-opacity duration-700"
         style={{ opacity: isSubtle ? 0.35 : 1 }}
       >
-        {/* Gradiente principal: vermelho sutil no topo descendo pro fundo do tema */}
+        {/* Gradiente principal: vermelho vivo no topo descendo pra escuro */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, hsl(var(--primary) / 0.32) 0%, hsl(var(--primary) / 0.18) 22%, hsl(var(--primary) / 0.07) 50%, hsl(var(--background)) 88%)",
+              "linear-gradient(to bottom, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary) / 0.55) 25%, hsl(var(--primary) / 0.25) 55%, hsl(var(--background)) 95%)",
           }}
         />
-        {/* Brilho extra no topo central — bem suave */}
+        {/* Brilho extra no topo central */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 65% 45% at 50% 0%, hsl(var(--primary) / 0.18), transparent 70%)",
+              "radial-gradient(ellipse 70% 50% at 50% 0%, hsl(var(--primary) / 0.45), transparent 65%)",
           }}
         />
 
