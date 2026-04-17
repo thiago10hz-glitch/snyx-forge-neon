@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, ArrowLeft,
+  LogOut, ShieldCheck, Code, User, ArrowLeft, History,
   Menu, Palette, Crown, MessageSquare, Flame, X, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
+import { HistorySidebar } from "@/components/HistorySidebar";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
@@ -24,6 +25,9 @@ const PanelLoader = () => (
   </div>
 );
 
+const choiceToMode = (choice: ChatChoice): "friend" | "programmer" =>
+  choice === "programmer" ? "programmer" : "friend";
+
 const Index = () => {
   const [code, setCode] = useState("");
   const { profile, user, signOut } = useAuth();
@@ -31,9 +35,11 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showVipModal] = useState(false);
   const [chatChoice, setChatChoice] = useState<ChatChoice | null>(null);
-  const [chatMode, setChatMode] = useState<string>("friend");
+  const [chatMode, setChatMode] = useState<"friend" | "programmer">("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [pickedConvId, setPickedConvId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -46,11 +52,17 @@ const Index = () => {
 
   const handleSelectChat = (choice: ChatChoice) => {
     setChatChoice(choice);
-    if (choice === "programmer") setChatMode("programmer");
-    else setChatMode("friend");
+    setChatMode(choiceToMode(choice));
+    setPickedConvId(null);
   };
 
-  const handleBackToSelector = () => setChatChoice(null);
+  const handlePickFromHistory = (choice: ChatChoice, conversationId: string) => {
+    setChatChoice(choice);
+    setChatMode(choiceToMode(choice));
+    setPickedConvId(conversationId);
+  };
+
+  const handleBackToSelector = () => { setChatChoice(null); setPickedConvId(null); };
 
   const navItems: { to: string; icon: any; label: string }[] = [];
 
