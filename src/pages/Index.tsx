@@ -232,13 +232,13 @@ const Index = () => {
                   onClick={switchToFriend}
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 ${
                     isVip
-                      ? "bg-gradient-to-b from-primary via-primary to-[hsl(345_100%_45%)] text-primary-foreground border border-primary/80 shadow-[0_0_22px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.3)] hover:shadow-[0_0_30px_0_hsl(var(--primary))] animate-[glow-pulse_2.4s_ease-in-out_infinite]"
+                      ? "bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
                       : "text-primary/70 border border-primary/30 hover:text-primary hover:bg-primary/10 hover:border-primary/50"
                   }`}
                   title={isVip ? "Abrir Chat VIP" : "VIP inativo"}
                 >
-                  <Crown className={`w-3.5 h-3.5 ${isVip ? "fill-primary-foreground drop-shadow-[0_0_3px_hsl(0_0%_100%/0.6)]" : ""}`} strokeWidth={2.4} />
-                  <span className="hidden sm:inline">{isVip ? "VIP Ativo" : "VIP"}</span>
+                  <Crown className={`w-3.5 h-3.5 ${isVip ? "fill-primary-foreground/90" : ""}`} strokeWidth={2.4} />
+                  <span className="hidden sm:inline">{isVip ? "VIP" : "VIP"}</span>
                 </button>
               </div>
             </div>
