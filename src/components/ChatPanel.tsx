@@ -799,6 +799,18 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       setActiveConversationId(convId);
     }
 
+    const persistAssistantMessage = async (content: string) => {
+      const { error } = await supabase.from("chat_messages").insert({
+        conversation_id: convId,
+        role: "assistant",
+        content,
+      });
+
+      if (error) {
+        console.error("Erro ao salvar resposta da IA:", error);
+      }
+    };
+
     let userMsg: Message;
     let storedContent: string;
 
@@ -822,15 +834,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     setIsLoading(true);
     setThinkingText("Pensando...");
 
-    await saveMessage(convId, "user", storedContent);
-
-    if (messages.length === 0) {
-      updateConversationTitle(
-        convId,
-        trimmedInput || (attachment?.kind === "image" ? `Imagem: ${attachment.name}` : attachment?.name || "Nova conversa")
-      );
-    }
-
     // Route to appropriate edge function
     let chatUrl: string;
     if (mode === "music") {
@@ -850,6 +853,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     }
 
     try {
+      await saveMessage(convId, "user", storedContent);
+
+      if (messages.length === 0) {
+        updateConversationTitle(
+          convId,
+          trimmedInput || (attachment?.kind === "image" ? `Imagem: ${attachment.name}` : attachment?.name || "Nova conversa")
+        );
+      }
+
       const { data: sessionData } = await supabase.auth.getSession();
       const authToken = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -953,7 +965,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         }
         const errData = await res?.json().catch(() => null);
         const errorMsg = errData?.error || `Erro ${res?.status || "desconhecido"}`;
-        setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${errorMsg}` }]);
+        const persistedErrorMessage = `⚠️ ${errorMsg}`;
+        setMessages((prev) => [...prev, { role: "assistant", content: persistedErrorMessage }]);
+        await persistAssistantMessage(persistedErrorMessage);
         setIsLoading(false);
         setThinkingText("");
         return;
@@ -965,7 +979,9 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         const data = await res.json();
         // Handle rate limit
         if (data.error === "rate_limit") {
-          setMessages((prev) => [...prev, { role: "assistant", content: `⏳ ${data.message || "Serviço de IA sobrecarregado. Tente novamente em alguns minutos."}` }]);
+          const rateLimitMessage = `⏳ ${data.message || "Serviço de IA sobrecarregado. Tente novamente em alguns minutos."}`;
+          setMessages((prev) => [...prev, { role: "assistant", content: rateLimitMessage }]);
+          await persistAssistantMessage(rateLimitMessage);
           setIsLoading(false);
           setThinkingText("");
           return;
@@ -974,15 +990,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
           const musicContent = `🎵 **Música gerada!**\n\n_"${data.prompt || trimmedInput}"_\n\n<audio:${audioUrl}>`;
           setMessages((prev) => [...prev, { role: "assistant", content: musicContent }]);
-          await saveMessage(convId, "assistant", `🎵 Música gerada: "${data.prompt || trimmedInput}"`);
+          await persistAssistantMessage(musicContent);
         } else if (data.type === "image" && data.image_url) {
           const imageContent = `🎨 **Imagem gerada!** ✨\n\n<generated_image:${data.image_url}>`;
           setMessages((prev) => [...prev, { role: "assistant", content: imageContent }]);
-          await saveMessage(convId, "assistant", "🎨 Imagem gerada!");
+          await persistAssistantMessage(imageContent);
         } else {
           const textContent = data.text || data.error || "Resposta recebida.";
           setMessages((prev) => [...prev, { role: "assistant", content: textContent }]);
-          await saveMessage(convId, "assistant", textContent);
+          await persistAssistantMessage(textContent);
         }
         // increment already done before sending
       } else {
@@ -992,6 +1008,69 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         const decoder = new TextDecoder();
         let textBuffer = "";
         let assistantSoFar = "";
+        let persistedAssistantContent = "";
+        let persistedAssistantMessageId: string | null = null;
+        let persistDraftTimer: number | undefined;
+        let hasQueuedAssistantPersist = false;
+        let persistDraftQueue = Promise.resolve();
+
+        const persistAssistantDraft = (content: string, force = false) => {
+          const snapshot = content.trim();
+          if (!snapshot) return persistDraftQueue;
+          if (!force && snapshot === persistedAssistantContent) return persistDraftQueue;
+
+          persistDraftQueue = persistDraftQueue
+            .then(async () => {
+              if (!force && snapshot === persistedAssistantContent) return;
+
+              const { data: insertedDraft, error: insertError } = await supabase
+                .from("chat_messages")
+                .insert({ conversation_id: convId, role: "assistant", content: snapshot })
+                .select("id")
+                .single();
+
+              if (insertError) {
+                console.error("Erro ao salvar rascunho da resposta:", insertError);
+                return;
+              }
+
+              const previousDraftId = persistedAssistantMessageId;
+              persistedAssistantMessageId = insertedDraft.id;
+              persistedAssistantContent = snapshot;
+
+              if (previousDraftId) {
+                const { error: deleteError } = await supabase
+                  .from("chat_messages")
+                  .delete()
+                  .eq("id", previousDraftId);
+
+                if (deleteError) {
+                  console.error("Erro ao substituir rascunho da resposta:", deleteError);
+                }
+              }
+            })
+            .catch((persistError) => {
+              console.error("Erro ao persistir resposta parcial:", persistError);
+            });
+
+          return persistDraftQueue;
+        };
+
+        const scheduleAssistantDraftPersist = (content: string) => {
+          if (!hasQueuedAssistantPersist) {
+            hasQueuedAssistantPersist = true;
+            void persistAssistantDraft(content, true);
+            return;
+          }
+
+          if (persistDraftTimer) {
+            window.clearTimeout(persistDraftTimer);
+          }
+
+          persistDraftTimer = window.setTimeout(() => {
+            void persistAssistantDraft(content);
+          }, 800);
+        };
 
         const upsertAssistant = (chunk: string) => {
           assistantSoFar += chunk;
@@ -1002,6 +1081,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             }
             return [...prev, { role: "assistant", content: assistantSoFar }];
           });
+          scheduleAssistantDraftPersist(assistantSoFar);
         };
 
         let streamDone = false;
@@ -1032,8 +1112,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           }
         }
 
+        if (persistDraftTimer) {
+          window.clearTimeout(persistDraftTimer);
+        }
+
         if (assistantSoFar) {
-          await saveMessage(convId, "assistant", assistantSoFar);
+          await persistAssistantDraft(assistantSoFar, true);
           if (mode === "programmer") {
             // Extract the largest code block (prefer html blocks)
             const allBlocks = [...assistantSoFar.matchAll(/```(\w*)\n([\s\S]*?)```/g)];
@@ -1051,8 +1135,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       console.error("Chat error:", err);
       const errMsg = "❌ Erro ao contactar a IA. Tente novamente.";
       setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
-      // Persist the error so user sees something on reload instead of an orphan user message
-      if (convId) await saveMessage(convId, "assistant", errMsg).catch(() => {});
+      await persistAssistantMessage(errMsg);
       // Re-check limit on error to restore accurate state
       void checkMessageLimit();
     } finally {
