@@ -39,6 +39,7 @@ interface Conversation {
   title: string;
   mode: string;
   created_at: string;
+  updated_at?: string;
 }
 
 type MessageLimitState = {
