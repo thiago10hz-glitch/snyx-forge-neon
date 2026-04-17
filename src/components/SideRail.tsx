@@ -103,11 +103,21 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
 
       <div className="relative flex-1 flex flex-col items-center min-h-0 py-3">
         <div className="mb-3">{logo}</div>
+        {headerExtra && (
+          <div className={`mb-2 ${expanded ? "px-2.5 w-full flex justify-center" : "flex justify-center"}`}>
+            {headerExtra}
+          </div>
+        )}
         <div className="h-px w-8 bg-border/30 mb-3" />
         <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-hide w-full px-[10px] ${expanded ? "items-stretch" : "items-center"}`}>
           {topItems.map(renderItem)}
         </nav>
         <div className="h-px w-8 bg-border/30 my-3" />
+        {footerExtra && (
+          <div className={`mb-2 ${expanded ? "px-2.5 w-full flex flex-col items-stretch gap-1.5" : "flex flex-col items-center gap-1.5"}`}>
+            {footerExtra}
+          </div>
+        )}
         <div className={`flex flex-col gap-1.5 w-full px-[10px] ${expanded ? "items-stretch" : "items-center"}`}>
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
         </div>
