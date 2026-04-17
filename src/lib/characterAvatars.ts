@@ -12,14 +12,6 @@ const NAMED_CHARACTER_AVATARS: Record<string, string> = {
   "valentina rose": valentinaRose,
 };
 
-const ADULT_FALLBACK_AVATARS = [
-  akiraBlade,
-  lunaStarfire,
-  professorEnigma,
-  shadowRex,
-  valentinaRose,
-];
-
 const normalizeCharacterName = (value: string) =>
   value
     .toLowerCase()
@@ -28,15 +20,7 @@ const normalizeCharacterName = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-const hashCharacterName = (value: string) => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  return hash;
-};
-
-export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string | null) => {
+export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string | null): string | null => {
   const trimmedAvatarUrl = avatarUrl?.trim();
   if (trimmedAvatarUrl) return trimmedAvatarUrl;
 
@@ -45,9 +29,5 @@ export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string 
     return NAMED_CHARACTER_AVATARS[normalizedName];
   }
 
-  const fallbackIndex = normalizedName
-    ? hashCharacterName(normalizedName) % ADULT_FALLBACK_AVATARS.length
-    : 0;
-
-  return ADULT_FALLBACK_AVATARS[fallbackIndex];
+  return null;
 };
