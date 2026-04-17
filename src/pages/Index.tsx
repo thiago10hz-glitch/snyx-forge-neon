@@ -223,6 +223,18 @@ const Index = () => {
             </div>
           </div>
 
+          {/* Top-left: toggle pra mostrar/esconder a barra lateral */}
+          <div className="hidden md:flex fixed top-3 left-3 z-30 items-center">
+            <button
+              onClick={() => setRailCollapsed((v) => !v)}
+              className="w-7 h-7 flex items-center justify-center text-muted-foreground/70 hover:text-foreground transition-colors"
+              aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
+              title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
+            >
+              <PanelLeft className="w-[17px] h-[17px]" strokeWidth={1.85} />
+            </button>
+          </div>
+
           {/* Top-right tiny cluster: paleta + nova conversa */}
           <div className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-3">
             <button
