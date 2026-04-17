@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, ticketId, imageUrl } = await req.json();
+    const { message, ticketId, imageUrl, display_name } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -18,6 +18,11 @@ serve(async (req) => {
     const userContent = imageUrl 
       ? `${message || "O usuário enviou uma imagem."}\n\n[Imagem anexada: ${imageUrl}]`
       : message;
+
+    const firstName = display_name ? String(display_name).trim().split(/\s+/)[0] : "";
+    const nameBlock = firstName
+      ? `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome é "${firstName}".\nREGRA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na primeira resposta (saudação) e usar o nome de forma natural durante a conversa quando fizer sentido.`
+      : "";
 
     const response = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -38,7 +43,7 @@ Responda de forma útil, rápida e amigável em português do Brasil.
 - Se for sobre VIP/DEV/pagamento, explique que eles devem entrar em contato via WhatsApp para adquirir.
 - Mantenha respostas curtas (máximo 3 parágrafos).
 - Não invente informações que você não sabe.
-- Sempre seja educado e profissional.`
+- Sempre seja educado e profissional.${nameBlock}`
           },
           { role: "user", content: userContent },
         ],
