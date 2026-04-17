@@ -6,11 +6,11 @@ import OwnerChat from "@/components/OwnerChat";
 import {
   Crown, Users, MessageCircle, ShieldCheck, Globe, TrendingUp,
   ArrowLeft, Zap, Eye, Activity, Server, Database,
-  Send, Ban, Clock, Package, Code2, Megaphone,
-  BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
+  Send, Ban, Clock, Package, Megaphone,
+  BarChart3, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
   AlertTriangle, Star, Radio, Volume2, Menu, X,
   DollarSign, KeyRound, FileText, Cpu, Flame, Search,
-  ArrowUpRight, ArrowDownRight, Gauge,
+  ArrowUpRight, Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
 
