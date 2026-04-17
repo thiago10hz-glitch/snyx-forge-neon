@@ -9,7 +9,7 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, LogOut
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,15 +38,6 @@ type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" 
 
 type AdminTab = "dashboard" | "users";
 
-interface ChatMessage {
-  id: string;
-  conversation_id: string;
-  role: string;
-  content: string;
-  created_at: string;
-  conversation?: { user_id: string; mode: string; title: string };
-  user_display_name?: string;
-}
 
 export default function Admin() {
   const { user, loading: authLoading, isAdmin: cachedIsAdmin } = useAuth();
@@ -72,63 +63,7 @@ export default function Admin() {
 
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [userNames, setUserNames] = useState<Record<string, string>>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [totalMessagesCount, setTotalMessagesCount] = useState<number>(0);
-
-  const fetchMessages = async () => {
-    setLoadingMessages(true);
-    // Get total count of all messages
-    const { count: totalCount } = await supabase
-      .from("chat_messages")
-      .select("id", { count: "exact", head: true });
-    if (totalCount !== null) setTotalMessagesCount(totalCount);
-
-    // Get recent messages with conversation info
-    const { data: msgs, error } = await supabase
-      .from("chat_messages")
-      .select("id, conversation_id, role, content, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error) {
-      toast.error("Erro ao carregar mensagens");
-      setLoadingMessages(false);
-      return;
-    }
-
-    if (msgs && msgs.length > 0) {
-      const convIds = [...new Set(msgs.map(m => m.conversation_id))];
-      const { data: convs } = await supabase
-        .from("chat_conversations")
-        .select("id, user_id, mode, title")
-        .in("id", convIds);
-
-      const userIds = [...new Set((convs || []).map(c => c.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name")
-        .in("user_id", userIds);
-
-      const namesMap: Record<string, string> = {};
-      (profiles || []).forEach(p => { namesMap[p.user_id] = p.display_name || "Sem nome"; });
-      setUserNames(namesMap);
-
-      const convsMap: Record<string, { user_id: string; mode: string; title: string }> = {};
-      (convs || []).forEach(c => { convsMap[c.id] = { user_id: c.user_id, mode: c.mode, title: c.title }; });
-
-      const enriched: ChatMessage[] = msgs.map(m => ({
-        ...m,
-        conversation: convsMap[m.conversation_id],
-        user_display_name: convsMap[m.conversation_id] ? namesMap[convsMap[m.conversation_id].user_id] : undefined,
-      }));
-
-      setMessages(enriched.reverse());
-    }
-    setLoadingMessages(false);
-  };
 
   useEffect(() => {
     if (!user) return;
