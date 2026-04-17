@@ -9,34 +9,49 @@ import { toast } from "sonner";
 import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 
 function CharacterImg({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
-  const imageSrc = resolveCharacterAvatar(alt, src);
+  const initialSrc = resolveCharacterAvatar(alt, src);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(initialSrc);
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [triedProxy, setTriedProxy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    setCurrentSrc(initialSrc);
     setLoaded(false);
-    setError(false);
-  }, [imageSrc]);
+    setTriedProxy(false);
+    setFailed(false);
+  }, [initialSrc]);
 
-  if (!imageSrc || error) {
+  const handleError = () => {
+    // Tenta proxy de imagem (resolve hotlink/CORS de CDNs externos como Chub)
+    if (!triedProxy && currentSrc && /^https?:\/\//.test(currentSrc)) {
+      setTriedProxy(true);
+      setCurrentSrc(`https://images.weserv.nl/?url=${encodeURIComponent(currentSrc.replace(/^https?:\/\//, ""))}`);
+      return;
+    }
+    setFailed(true);
+  };
+
+  if (!currentSrc || failed) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center text-4xl font-bold text-primary/40">
+      <div className={`w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center text-4xl font-bold text-primary/40 ${className}`}>
         {alt?.[0]?.toUpperCase() || "?"}
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden">
       {!loaded && <div className="absolute inset-0 bg-muted/20 animate-pulse" />}
       <img
-        src={imageSrc}
+        src={currentSrc}
         alt={alt}
-        className={`${className} transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
-        style={{ position: loaded ? "relative" : "absolute", inset: 0 }}
+        className={`absolute inset-0 w-full h-full ${className} transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
         onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
+        onError={handleError}
         loading="lazy"
+        referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
       />
     </div>
   );
