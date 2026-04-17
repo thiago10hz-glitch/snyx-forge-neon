@@ -295,6 +295,15 @@ const Index = () => {
                   <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
                 )}
               </button>
+
+              {/* Botão Sair */}
+              <button
+                onClick={signOut}
+                title="Sair da conta"
+                className="w-9 h-9 rounded-2xl flex items-center justify-center border border-border/30 hover:border-destructive/60 text-muted-foreground hover:text-destructive bg-card/60 hover:bg-destructive/10 transition-all duration-300 hover:shadow-[0_0_18px_-4px_hsl(var(--destructive)/0.6)]"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </header>
 
