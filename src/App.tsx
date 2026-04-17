@@ -141,8 +141,6 @@ const App = () => {
                   
                   <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
                   <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
-                  <Route path="/accelerator" element={<Accelerator />} />
-                  <Route path="/optimization" element={<Optimization />} />
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
                   <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
