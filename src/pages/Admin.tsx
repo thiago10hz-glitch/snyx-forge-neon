@@ -8,9 +8,9 @@ import { UserTagModal } from "@/components/UserTagModal";
 
 
 import {
-  Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
+  Loader2, ShieldCheck, ArrowLeft, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
+  Clock, TrendingUp, Copy, Check, ChevronDown, ChevronUp, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,11 +46,7 @@ export default function Admin() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [vipModalUser, setVipModalUser] = useState<string | null>(null);
-  const [devModalUser, setDevModalUser] = useState<string | null>(null);
   
-  const [vipMonths, setVipMonths] = useState(1);
-  const [devMonths, setDevMonths] = useState(1);
   
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
@@ -122,90 +118,7 @@ export default function Admin() {
   };
 
 
-  const grantDev = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_dev");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_dev", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`DEV ativado por ${months} mês(es)`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_dev: true, dev_expires_at: data.dev_expires_at } : u)));
-      setDevModalUser(null);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder DEV");
-    }
-    setActionLoading(null);
-  };
-
-  const revokeDev = async (userId: string) => {
-    setActionLoading(userId + "-revoke_dev");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_dev", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("DEV removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_dev: false, dev_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar DEV");
-    }
-    setActionLoading(null);
-  };
-
   
-
-  const grantVip = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_vip");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_vip", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`VIP ativado por ${months} mês(es)`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_vip: true, vip_expires_at: data.vip_expires_at } : u)));
-      setVipModalUser(null);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder VIP");
-    }
-    setActionLoading(null);
-  };
-
-  const revokeVip = async (userId: string) => {
-    setActionLoading(userId + "-revoke_vip");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_vip", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("VIP removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_vip: false, vip_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar VIP");
-    }
-    setActionLoading(null);
-  };
-
-  const setTeamBadge = async (userId: string, badge: string | null) => {
-    setActionLoading(userId + "-badge");
-    try {
-      const { data, error } = await supabase.rpc("admin_set_team_badge", {
-        p_user_id: userId,
-        p_badge: badge,
-      });
-      if (error) throw error;
-      if (data && typeof data === "object" && "error" in data) throw new Error((data as any).error);
-      toast.success(badge ? `Badge "${badge}" concedido! 🏷️` : "Badge removido!");
-      fetchUsers();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao alterar badge");
-    }
-    setActionLoading(null);
-  };
 
   const adminAction = async (action: string, targetUserId: string, banHours?: number) => {
     setActionLoading(targetUserId + "-" + action);
