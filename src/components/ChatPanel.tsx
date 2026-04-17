@@ -134,7 +134,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [thinkingText, setThinkingText] = useState("");
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
-  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
   const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
@@ -1237,17 +1237,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </button>
           )}
 
-          {mode === "friend" && (
-            <button
-              onClick={() => setShowConnectionModal(true)}
-              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
-              title="Conectar com alguém"
-            >
-              <Link2 size={14} className="sm:hidden" />
-              <Link2 size={15} className="hidden sm:block" />
-            </button>
-          )}
-
           {/* Chat Settings Button */}
           <button
             onClick={() => setShowChatSettings(true)}
@@ -1794,7 +1783,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan={vipModalPlan} />
       <ChatSettings open={showChatSettings} onClose={() => setShowChatSettings(false)} />
       <VoiceCall open={showVoiceCall} onClose={() => setShowVoiceCall(false)} />
-      <ConnectionModal isOpen={showConnectionModal} onClose={() => setShowConnectionModal(false)} />
+      
 
       {/* Limit modal */}
       {showLimitModal && (
