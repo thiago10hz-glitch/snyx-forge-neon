@@ -22,6 +22,7 @@ import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
 import SiteManage from "./pages/SiteManage";
 import Characters from "./pages/Characters";
+import Explore from "./pages/Explore";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Accelerator from "./pages/Accelerator";
 import Optimization from "./pages/Optimization";
@@ -141,6 +142,7 @@ const App = () => {
                   <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
+                  <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
                   <Route path="/site/:id" element={<ProtectedRoute><SiteManage /></ProtectedRoute>} />
                   <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
                   <Route path="/accelerator" element={<Accelerator />} />
