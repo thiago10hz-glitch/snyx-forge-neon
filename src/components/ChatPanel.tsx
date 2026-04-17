@@ -1350,9 +1350,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   </span>
                   <span className="text-foreground/90">,</span>
                   <br />
-                  <span className="text-foreground/95">seja bem-vindo ao </span>
+                  <span className="text-foreground/95">
+                    {mode === "programmer" ? "vamos " : "seja bem-vindo ao "}
+                  </span>
                   <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    chat amigo
+                    {mode === "programmer" ? "programar" : mode === "friend" ? "chat amigo" : "estudar juntos"}
                   </span>
                 </h1>
 
