@@ -65,8 +65,12 @@ export default function ApiPricing() {
 
   const handleSubscribe = async (plan: ApiPlan) => {
     if (!user) { navigate("/auth"); return; }
-    // Free / Pro / Business: TODOS abrem entrevista pra teste grátis
-    setApplyingPlan(plan);
+    // Apenas o plano Free passa pela entrevista; Pro e Business vão direto pro checkout pago.
+    if (plan.slug === "free" || Number(plan.price_brl) === 0) {
+      setApplyingPlan(plan);
+      return;
+    }
+    await handleBuyNow(plan);
   };
 
   const handleBuyNow = async (plan: ApiPlan) => {
