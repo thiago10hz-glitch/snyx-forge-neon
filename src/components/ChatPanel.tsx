@@ -1258,67 +1258,44 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className={`flex flex-col items-center justify-center h-full px-5 sm:px-8 ${mode === "programmer" ? "py-4 sm:py-6" : "py-8 sm:py-12"}`}>
-              <div className={`${mode === "programmer" ? "max-w-sm" : "max-w-md lg:max-w-lg"} text-center space-y-3 sm:space-y-4 ${mode !== "programmer" ? "md:space-y-6 lg:space-y-8" : ""}`}>
-                {/* Icon with glow */}
-                <div className="relative mx-auto w-fit animate-reveal stagger-1">
-                  <div className={`${mode === "programmer" ? "w-12 h-12 sm:w-14 sm:h-14 rounded-xl" : "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl md:rounded-3xl"} flex items-center justify-center mx-auto ${config.bgColor} border ${config.borderColor} shadow-2xl animate-float`}>
-                    {mode === "programmer" ? (
-                      <ModeIcon size={20} className={config.color} />
-                    ) : (
-                      <>
-                        <ModeIcon size={24} className={`${config.color} sm:hidden`} />
-                        <ModeIcon size={32} className={`${config.color} hidden sm:block md:hidden`} />
-                        <ModeIcon size={40} className={`${config.color} hidden md:block lg:hidden`} />
-                        <ModeIcon size={48} className={`${config.color} hidden lg:block`} />
-                      </>
-                    )}
+            <div className="flex flex-col h-full px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+              <div className="m-auto w-full max-w-2xl space-y-5 sm:space-y-6 animate-reveal">
+                {/* Compact greeting */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${config.bgColor} border ${config.borderColor} shadow-[0_0_24px_-6px_hsl(var(--primary)/0.5)] shrink-0`}>
+                    <ModeIcon size={20} className={config.color} />
                   </div>
-                  <div className={`absolute -inset-4 sm:-inset-6 ${mode !== "programmer" ? "md:-inset-8" : ""} ${config.bgColor} rounded-full blur-3xl opacity-20 -z-10 animate-pulse-ring`} />
+                  <div className="min-w-0">
+                    <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
+                      Olá{profile?.display_name ? `, ${profile.display_name.split(" ")[0]}` : ""} 👋
+                    </h2>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground/60 leading-snug truncate">
+                      {mode === "programmer" ? "Crie sites, apps e código completo." : "Sobre o que você quer conversar hoje?"}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Title */}
-                <div className={`${mode === "programmer" ? "space-y-1" : "space-y-2 sm:space-y-3"} animate-reveal stagger-2`}>
-                  <h2 className={`${mode === "programmer" ? "text-base sm:text-lg" : "text-lg sm:text-xl md:text-2xl lg:text-3xl"} font-black text-foreground tracking-tight`}>{config.emptyTitle}</h2>
-                  <p className={`${mode === "programmer" ? "text-[11px] sm:text-xs" : "text-xs sm:text-sm md:text-base"} text-muted-foreground/50 leading-relaxed max-w-sm mx-auto`}>{config.emptyText}</p>
+                {/* Suggestion chips */}
+                <div className="flex flex-wrap gap-2">
+                  {(mode === "programmer"
+                    ? ["Landing Page", "Portfolio", "Loja Online", "Dashboard"]
+                    : ["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"]
+                  ).map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() =>
+                        setInput(mode === "programmer" ? `Crie um site de ${suggestion.toLowerCase()} completo` : suggestion)
+                      }
+                      className="text-[11px] sm:text-xs px-3 py-1.5 rounded-full bg-card/40 backdrop-blur-xl text-foreground/70 border border-border/20 hover:border-primary/50 hover:text-primary hover:bg-primary/10 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.6)] active:scale-[0.97] transition-all duration-300"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Suggestions */}
-                {mode === "programmer" && (
-                  <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 animate-reveal stagger-3">
-                    {["Landing Page", "Portfolio", "Loja Online", "Dashboard"].map(suggestion => (
-                      <button
-                        key={suggestion}
-                        onClick={() => setInput(`Crie um site de ${suggestion.toLowerCase()} completo`)}
-                        className="text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {mode === "friend" && (
-                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 animate-reveal stagger-3">
-                    {["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"].map(suggestion => (
-                      <button
-                        key={suggestion}
-                        onClick={() => setInput(suggestion)}
-                        className="text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl glass-subtle text-muted-foreground/60 border border-border/10 hover:bg-muted/25 hover:text-foreground hover:border-border/25 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Keyboard hint */}
-                <p className={`hidden md:block ${mode === "programmer" ? "text-[9px]" : "text-[10px] lg:text-[11px]"} text-muted-foreground/20 animate-reveal stagger-4`}>
-                  Pressione <kbd className="px-1.5 py-0.5 rounded-md bg-muted/15 border border-border/10 text-muted-foreground/35 font-mono text-[9px]">Enter</kbd> para enviar
-                </p>
               </div>
             </div>
           ) : (
-            <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto px-3 sm:px-4 md:px-6 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
+            <div className={`${mode === "programmer" ? "max-w-3xl" : "max-w-4xl lg:max-w-5xl"} mx-auto px-3 sm:px-5 md:px-8 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
               {messages.map((rawMsg, i) => {
                 const msg = { ...rawMsg, content: rawMsg.content ?? "" };
                 return (
