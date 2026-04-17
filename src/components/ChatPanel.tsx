@@ -208,7 +208,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading, thinkingText]);
 
   useEffect(() => {
     const ta = textareaRef.current;
