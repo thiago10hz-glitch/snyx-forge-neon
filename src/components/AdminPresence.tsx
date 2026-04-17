@@ -43,28 +43,33 @@ export function AdminPresenceIndicator() {
   if (onlineAdmins.length === 0) return null;
 
   return (
-    <div className="group flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-primary/8 border border-primary/20 hover:bg-primary/12 hover:border-primary/30 transition-all duration-300">
+    <div className="group relative flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-gradient-to-r from-emerald-500/10 via-emerald-400/5 to-transparent border border-emerald-400/25 hover:border-emerald-300/45 hover:shadow-[0_0_22px_-6px_hsl(152_76%_55%/0.55)] backdrop-blur-xl transition-all duration-300 overflow-hidden">
+      {/* shimmer sweep */}
+      <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-emerald-300/15 to-transparent" aria-hidden />
+
       {/* Stacked avatars */}
-      <div className="flex items-center -space-x-2">
+      <div className="relative flex items-center -space-x-2">
         {onlineAdmins.slice(0, 3).map((a) => (
           <div
             key={a.user_id}
-            className="relative w-5 h-5 rounded-full overflow-hidden border-2 border-background bg-muted"
+            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-background bg-muted ring-1 ring-emerald-400/40 shadow-[0_0_8px_-2px_hsl(152_76%_55%/0.6)] hover:scale-110 hover:z-10 transition-transform duration-300"
             title={a.display_name || "Admin"}
           >
             {a.avatar_url ? (
               <img src={a.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <ShieldCheck className="w-2.5 h-2.5 text-primary m-auto h-full" />
+              <ShieldCheck className="w-3 h-3 text-emerald-300 m-auto h-full" />
             )}
           </div>
         ))}
       </div>
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-gradient-to-br from-emerald-300 to-emerald-500 shadow-[0_0_8px_hsl(152_76%_55%)]" />
       </span>
-      <span className="text-[10px] font-semibold tracking-tight text-primary/90">
+
+      <span className="relative text-[10px] font-bold tracking-wide uppercase bg-gradient-to-r from-emerald-200 to-emerald-400 bg-clip-text text-transparent">
         {onlineAdmins.length} online
       </span>
     </div>
