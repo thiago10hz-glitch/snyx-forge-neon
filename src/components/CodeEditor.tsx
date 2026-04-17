@@ -20,7 +20,7 @@ type EditorView = "code" | "preview" | "split";
 const COMPONENT_SNIPPETS = [
   { label: "Navbar", icon: Layout, snippet: `<nav class="flex items-center justify-between p-4 bg-gray-900 text-white">\n  <a href="#" class="text-xl font-bold">Logo</a>\n  <div class="flex gap-4">\n    <a href="#" class="hover:text-blue-400">Home</a>\n    <a href="#" class="hover:text-blue-400">Sobre</a>\n    <a href="#" class="hover:text-blue-400">Contato</a>\n  </div>\n</nav>` },
   { label: "Hero", icon: Type, snippet: `<section class="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 bg-gradient-to-br from-gray-900 to-gray-800">\n  <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Título Principal</h1>\n  <p class="text-gray-400 text-lg max-w-2xl mb-8">Sua descrição aqui. Personalize como quiser.</p>\n  <button class="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-all">Começar</button>\n</section>` },
-  { label: "Cards", icon: Layers, snippet: `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-8">\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all">\n    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400">⚡</div>\n    <h3 class="font-bold mb-2">Recurso 1</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">\n    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400">🎨</div>\n    <h3 class="font-bold mb-2">Recurso 2</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-emerald-500 transition-all">\n    <div class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 text-emerald-400">🚀</div>\n    <h3 class="font-bold mb-2">Recurso 3</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n</div>` },
+  { label: "Cards", icon: Layers, snippet: `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-8">\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all">\n    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400">⚡</div>\n    <h3 class="font-bold mb-2">Recurso 1</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">\n    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400">🎨</div>\n    <h3 class="font-bold mb-2">Recurso 2</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-primary transition-all">\n    <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 text-primary">🚀</div>\n    <h3 class="font-bold mb-2">Recurso 3</h3>\n    <p class="text-gray-400 text-sm">Descrição do recurso.</p>\n  </div>\n</div>` },
   { label: "Footer", icon: Hash, snippet: `<footer class="bg-gray-900 border-t border-gray-800 py-8 px-4">\n  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">\n    <p class="text-gray-500 text-sm">© 2024 SnyX. Todos os direitos reservados.</p>\n    <div class="flex gap-6">\n      <a href="#" class="text-gray-400 hover:text-white text-sm">Privacidade</a>\n      <a href="#" class="text-gray-400 hover:text-white text-sm">Termos</a>\n      <a href="#" class="text-gray-400 hover:text-white text-sm">Contato</a>\n    </div>\n  </div>\n</footer>` },
   { label: "Formulário", icon: FileCode, snippet: `<form class="max-w-md mx-auto p-8 bg-gray-800 rounded-2xl border border-gray-700">\n  <h2 class="text-xl font-bold mb-6">Contato</h2>\n  <div class="space-y-4">\n    <input type="text" placeholder="Nome" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none text-white" />\n    <input type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none text-white" />\n    <textarea placeholder="Mensagem" rows="4" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none text-white resize-none"></textarea>\n    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-all">Enviar</button>\n  </div>\n</form>` },
   { label: "Galeria", icon: Image, snippet: `<div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-4">\n  <div class="aspect-square bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl hover:scale-105 transition-transform cursor-pointer"></div>\n  <div class="aspect-square bg-gradient-to-br from-emerald-600 to-cyan-600 rounded-xl hover:scale-105 transition-transform cursor-pointer"></div>\n  <div class="aspect-square bg-gradient-to-br from-orange-600 to-red-600 rounded-xl hover:scale-105 transition-transform cursor-pointer"></div>\n  <div class="aspect-square bg-gradient-to-br from-pink-600 to-violet-600 rounded-xl hover:scale-105 transition-transform cursor-pointer"></div>\n</div>` },
@@ -148,8 +148,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     ) : (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
         <div className="relative mb-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/[0.06] to-primary/[0.03] border border-cyan-500/[0.08] flex items-center justify-center">
-            <Terminal className="w-6 h-6 text-cyan-400/25" />
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/[0.06] to-primary/[0.03] border border-primary/[0.08] flex items-center justify-center">
+            <Terminal className="w-6 h-6 text-primary/25" />
           </div>
         </div>
         <p className="text-xs font-bold text-muted-foreground/40 mb-1">Nenhum código ainda</p>
@@ -158,7 +158,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         </p>
         <button
           onClick={() => setShowComponents(true)}
-          className="text-[10px] px-3 py-1.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-500/20 transition-all"
+          className="text-[10px] px-3 py-1.5 rounded-md bg-primary/10 text-primary border border-primary/15 hover:bg-primary/20 transition-all"
         >
           <Layers className="w-2.5 h-2.5 inline mr-1" />
           Componentes
@@ -206,8 +206,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     ) : (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
         <div className="relative mb-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500/[0.06] to-primary/[0.03] border border-violet-500/[0.06] flex items-center justify-center">
-            <Eye className="w-6 h-6 text-violet-400/20" />
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/[0.06] to-primary/[0.03] border border-primary/[0.06] flex items-center justify-center">
+            <Eye className="w-6 h-6 text-primary/20" />
           </div>
         </div>
         <p className="text-xs font-bold text-muted-foreground/40 mb-1">Preview em tempo real</p>
@@ -283,7 +283,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
             onClick={() => setShowComponents(!showComponents)}
             className={`flex items-center gap-1 px-2 py-1.5 text-[10px] rounded-md transition-all border ${
               showComponents
-                ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/15"
+                ? "bg-primary/10 text-primary border-primary/15"
                 : "text-muted-foreground/40 hover:text-foreground border-border/5 hover:bg-muted/10"
             }`}
             title="Componentes"
@@ -350,7 +350,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
             disabled={!code}
             className="flex items-center gap-1 px-2 py-1.5 text-[10px] text-muted-foreground/50 hover:text-foreground bg-muted/8 hover:bg-muted/15 rounded-md transition-all border border-border/5 disabled:opacity-15"
           >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            {copied ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
             <span className="hidden xl:inline">{copied ? "Copiado" : "Copiar"}</span>
           </button>
 
@@ -368,7 +368,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
           <button
             onClick={deployToVercel}
             disabled={!code || deploying}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] bg-emerald-500/10 text-emerald-400/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-md transition-all border border-emerald-500/10 disabled:opacity-15 disabled:border-border/5 disabled:text-muted-foreground/30"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] bg-primary/10 text-primary/80 hover:bg-primary/20 hover:text-primary rounded-md transition-all border border-primary/10 disabled:opacity-15 disabled:border-border/5 disabled:text-muted-foreground/30"
           >
             {deploying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Rocket className="w-3 h-3" />}
             <span className="hidden lg:inline">{deploying ? "Publicando..." : "Publicar"}</span>
@@ -379,7 +379,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
               href={deployedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 px-2 py-1 text-[9px] text-emerald-400/60 hover:text-emerald-400 bg-emerald-500/5 rounded-md border border-emerald-500/8 truncate max-w-[100px]"
+              className="flex items-center gap-1 px-2 py-1 text-[9px] text-primary/60 hover:text-primary bg-primary/5 rounded-md border border-primary/8 truncate max-w-[100px]"
             >
               <ExternalLink className="w-2.5 h-2.5 shrink-0" />
               <span className="truncate">{deployedUrl.replace("https://", "")}</span>
@@ -396,7 +396,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
               <button
                 key={comp.label}
                 onClick={() => insertSnippet(comp.snippet)}
-                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-medium rounded-lg bg-muted/[0.04] border border-border/8 text-muted-foreground/60 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/15 transition-all whitespace-nowrap shrink-0"
+                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-medium rounded-lg bg-muted/[0.04] border border-border/8 text-muted-foreground/60 hover:bg-primary/10 hover:text-primary hover:border-primary/15 transition-all whitespace-nowrap shrink-0"
               >
                 <comp.icon className="w-3 h-3" />
                 {comp.label}
@@ -469,7 +469,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       <div className="h-6 flex items-center justify-between px-3 border-t border-border/5 bg-background/40 shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
-            <Play className="w-2.5 h-2.5 text-emerald-400/50" />
+            <Play className="w-2.5 h-2.5 text-primary/50" />
             <span className="text-[9px] text-muted-foreground/30">Pronto</span>
           </div>
           {code && (
