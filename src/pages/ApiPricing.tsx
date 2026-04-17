@@ -65,13 +65,12 @@ export default function ApiPricing() {
 
   const handleSubscribe = async (plan: ApiPlan) => {
     if (!user) { navigate("/auth"); return; }
+    // Free / Pro / Business: TODOS abrem entrevista pra teste grátis
+    setApplyingPlan(plan);
+  };
 
-    if (plan.price_brl === 0) {
-      // Abre modal de entrevista — IA decide se aprova
-      setApplyingPlan(plan);
-      return;
-    }
-
+  const handleBuyNow = async (plan: ApiPlan) => {
+    if (!user) { navigate("/auth"); return; }
     setActiveSlug(plan.slug);
     await openCheckout({
       title: `API SnyX — Plano ${plan.name}`,
