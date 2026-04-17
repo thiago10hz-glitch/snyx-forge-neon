@@ -115,7 +115,7 @@ Adapte TODO o conteúdo ao nicho pedido:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-3-flash-preview",
         messages: apiMessages,
         stream: true,
         max_tokens: 32768,

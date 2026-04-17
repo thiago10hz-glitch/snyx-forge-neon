@@ -117,7 +117,7 @@ serve(async (req) => {
             method: "POST",
             headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-lite",
+              model: "google/gemini-3-flash-preview",
               messages: [
                 { role: "system", content: "Você é um assistente de manutenção do SnyX. Analise os problemas encontrados e dê um resumo em português BR. Seja direto e técnico. Máximo 3 frases." },
                 { role: "user", content: `Problemas encontrados no site:\n${JSON.stringify(issues, null, 2)}\n\nEstatísticas: ${totalProfiles} perfis, ${totalMessages} mensagens, ${totalConvos} conversas.` }
