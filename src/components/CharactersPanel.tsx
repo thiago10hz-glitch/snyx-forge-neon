@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Wand2, Lock, X, Flame } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Plus, Pencil, Trash2, Eye, EyeOff, Upload, Loader2, Lock, X, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -73,7 +73,7 @@ const CATEGORIES = [
   { key: "geral", label: "Geral" },
 ];
 
-const CATEGORIES_OPTIONS = ["geral", "anime", "romance", "aventura", "drama", "fantasia", "sombrio"];
+
 
 interface CharactersPanelProps {
   onBack: () => void;
@@ -116,8 +116,6 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [generating, setGenerating] = useState(false);
   const [previewChar, setPreviewChar] = useState<Character | null>(null);
 
   const fetchCharacters = useCallback(async () => {
@@ -229,42 +227,6 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
     }
   };
 
-  const handleGenerateWithAI = async () => {
-    if (!aiPrompt.trim() || aiPrompt.trim().length < 5) {
-      toast.error("Descreva o personagem (mín. 5 caracteres)");
-      return;
-    }
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-character", {
-        body: { description: aiPrompt.trim() },
-      });
-      if (error || !data?.success) {
-        toast.error(data?.error || "Erro ao gerar personagem");
-        return;
-      }
-      const c = data.character;
-      setForm({
-        name: c.name || "",
-        description: c.description || "",
-        personality: c.personality || "",
-        system_prompt: c.system_prompt || "",
-        first_message: c.first_message || "",
-        scenario: c.scenario || "",
-        category: c.category || "geral",
-        tags: Array.isArray(c.tags) ? c.tags.join(", ") : "",
-        is_public: true,
-        is_nsfw: !!c.is_nsfw,
-        avatar_url: form.avatar_url,
-      });
-      toast.success("Personagem gerado! Revise e salve.");
-      setAiPrompt("");
-    } catch (e) {
-      toast.error("Falha ao chamar IA");
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const handleSave = async () => {
     if (!user || !form.name.trim()) {
@@ -589,38 +551,10 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
         {/* ===== CREATE ===== */}
         {tab === "create" && (
           <div className="p-4 max-w-2xl mx-auto space-y-4">
-            {/* AI Generator */}
-            <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <Wand2 className="w-5 h-5 text-primary" />
-                <h3 className="text-sm font-bold text-foreground">Criar com IA <span className="text-[10px] font-normal text-muted-foreground">(1 clique)</span></h3>
-              </div>
-              <p className="text-xs text-muted-foreground/70">Descreva o personagem em uma frase. A IA preenche tudo: nome, personalidade, cenário, primeira fala.</p>
-              <div className="flex gap-2">
-                <Input
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Ex: vampiro charmoso e sarcástico que mora numa mansão"
-                  className="bg-background/50 border-border/20"
-                  onKeyDown={(e) => e.key === "Enter" && !generating && handleGenerateWithAI()}
-                  disabled={generating}
-                />
-                <button
-                  onClick={handleGenerateWithAI}
-                  disabled={generating || !aiPrompt.trim()}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
-                >
-                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {generating ? "Gerando..." : "Gerar"}
-                </button>
-              </div>
-            </div>
-
-            {/* Manual form */}
             <div className="rounded-2xl border border-border/10 bg-muted/5 p-5 space-y-4">
-              <h3 className="text-sm font-bold text-foreground">{editingId ? "Editar Personagem" : "Detalhes do Personagem"}</h3>
+              <h3 className="text-sm font-bold text-foreground">{editingId ? "Editar Personagem" : "Novo Personagem"}</h3>
 
-              {/* Avatar */}
+              {/* Foto */}
               <div className="flex items-center gap-4">
                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-border/15 bg-muted/10 flex items-center justify-center shrink-0">
                   {form.avatar_url ? (
@@ -633,7 +567,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                 <div className="flex-1 space-y-1">
                   <label className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/10 border border-border/10 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-all ${uploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
                     {uploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    {uploadingAvatar ? "Enviando..." : "Upload Avatar"}
+                    {uploadingAvatar ? "Enviando..." : "Foto"}
                     <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" disabled={uploadingAvatar} />
                   </label>
                   {form.avatar_url && !uploadingAvatar && (
@@ -642,52 +576,37 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                 </div>
               </div>
 
+              {/* Nome */}
               <div>
                 <label className="text-xs text-muted-foreground/60 mb-1 block">Nome *</label>
                 <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Ex: Sakura, Anubis..." className="bg-muted/10 border-border/10" />
               </div>
 
+              {/* Personalidade */}
               <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block">Descrição curta</label>
-                <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Aparece nos cards da galeria" className="bg-muted/10 border-border/10 min-h-[60px]" />
+                <label className="text-xs text-muted-foreground/60 mb-1 block">Personalidade</label>
+                <Textarea value={form.personality} onChange={(e) => setForm((f) => ({ ...f, personality: e.target.value }))} placeholder="Misterioso, dominante, sarcástico, carinhoso..." className="bg-muted/10 border-border/10 min-h-[60px]" />
               </div>
 
+              {/* Características (description) */}
               <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block flex items-center gap-1">🎬 Cenário inicial</label>
-                <Textarea value={form.scenario} onChange={(e) => setForm((f) => ({ ...f, scenario: e.target.value }))} placeholder="Ex: Você acorda numa caverna escura..." className="bg-muted/10 border-border/10 min-h-[60px]" />
+                <label className="text-xs text-muted-foreground/60 mb-1 block">Características</label>
+                <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Quem é o personagem, o que faz, gostos, manias..." className="bg-muted/10 border-border/10 min-h-[60px]" />
               </div>
 
+              {/* Aparência física (scenario repurposed) */}
               <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block flex items-center gap-1">💬 Primeira fala</label>
+                <label className="text-xs text-muted-foreground/60 mb-1 block">Aparência física</label>
+                <Textarea value={form.scenario} onChange={(e) => setForm((f) => ({ ...f, scenario: e.target.value }))} placeholder="Cabelo, olhos, altura, roupas, traços marcantes..." className="bg-muted/10 border-border/10 min-h-[60px]" />
+              </div>
+
+              {/* Fala inicial */}
+              <div>
+                <label className="text-xs text-muted-foreground/60 mb-1 block">Fala</label>
                 <Textarea value={form.first_message} onChange={(e) => setForm((f) => ({ ...f, first_message: e.target.value }))} placeholder="O que o personagem diz quando você entra no chat" className="bg-muted/10 border-border/10 min-h-[60px]" />
               </div>
 
-              <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block">Personalidade</label>
-                <Textarea value={form.personality} onChange={(e) => setForm((f) => ({ ...f, personality: e.target.value }))} placeholder="Misterioso, dominante, sarcástico..." className="bg-muted/10 border-border/10 min-h-[60px]" />
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block">System Prompt (instruções para a IA)</label>
-                <Textarea value={form.system_prompt} onChange={(e) => setForm((f) => ({ ...f, system_prompt: e.target.value }))} placeholder="Você é um personagem que..." className="bg-muted/10 border-border/10 min-h-[100px]" />
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block">Categoria</label>
-                <div className="flex gap-2 flex-wrap">
-                  {CATEGORIES_OPTIONS.map((c) => (
-                    <button key={c} onClick={() => setForm((f) => ({ ...f, category: c }))} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${form.category === c ? "bg-primary text-primary-foreground" : "bg-muted/10 text-muted-foreground border border-border/10 hover:bg-muted/20"}`}>
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground/60 mb-1 block">Tags (separadas por vírgula)</label>
-                <Input value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="anime, fofo, divertido" className="bg-muted/10 border-border/10" />
-              </div>
-
+              {/* Público / Privado */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/10">
                 <div className="flex items-center gap-2">
                   {form.is_public ? <Eye className="w-4 h-4 text-muted-foreground" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
@@ -696,6 +615,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                 <Switch checked={form.is_public} onCheckedChange={(v) => setForm((f) => ({ ...f, is_public: v }))} />
               </div>
 
+              {/* +18 */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/5 border border-red-500/10">
                 <div className="flex items-center gap-2">
                   <Flame className="w-4 h-4 text-red-500" />
