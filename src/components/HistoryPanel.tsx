@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Heart, Crown, Code, Trash2, MessageCircle, Search, Plus, Sparkles } from "lucide-react";
+import { Heart, Crown, Code, Trash2, MessageCircle, Search, Plus, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatChoice } from "./ChatSelector";
@@ -15,13 +15,15 @@ interface HistoryPanelProps {
   activeConversationId: string | null;
   onPickConversation: (choice: ChatChoice, conversationId: string) => void;
   onNewChat: (choice: ChatChoice) => void;
+  open: boolean;
+  onClose: () => void;
 }
 
 /**
  * Painel de histórico SEMPRE visível ao lado da sidebar.
  * Mostra apenas grupos que o usuário tem acesso (tag amigo = sempre, programador só dev, vip = se vip/dev).
  */
-export function HistoryPanel({ activeConversationId, onPickConversation, onNewChat }: HistoryPanelProps) {
+export function HistoryPanel({ activeConversationId, onPickConversation, onNewChat, open, onClose }: HistoryPanelProps) {
   const { user, profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [search, setSearch] = useState("");
@@ -75,17 +77,34 @@ export function HistoryPanel({ activeConversationId, onPickConversation, onNewCh
       .filter((c) => !q || c.title.toLowerCase().includes(q));
   };
 
+  if (!open) return null;
+
   return (
-    <aside className="hidden lg:flex shrink-0 flex-col w-[260px] z-20 relative border-r border-border/15">
-      <div className="absolute inset-0 bg-sidebar/55 backdrop-blur-2xl" />
+    <>
+      {/* Backdrop só em telas pequenas — em desktop fica como painel lateral fixo */}
+      <div
+        className="fixed inset-0 z-30 bg-background/40 backdrop-blur-[2px] lg:hidden animate-in fade-in duration-150"
+        onClick={onClose}
+      />
+      <aside className="fixed lg:relative inset-y-0 left-[60px] lg:left-auto lg:inset-y-auto flex shrink-0 flex-col w-[280px] lg:w-[260px] z-40 lg:z-20 border-r border-border/15 animate-in slide-in-from-left-4 duration-200">
+      <div className="absolute inset-0 bg-sidebar/85 lg:bg-sidebar/55 backdrop-blur-2xl" />
 
       <div className="relative flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <div className="h-14 shrink-0 flex items-center px-4 border-b border-border/15">
-          <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />
-          <span className="text-[13px] font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Histórico
-          </span>
+        <div className="h-14 shrink-0 flex items-center px-4 border-b border-border/15 justify-between">
+          <div className="flex items-center">
+            <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />
+            <span className="text-[13px] font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Histórico
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-colors"
+            title="Fechar histórico"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Search */}
@@ -167,5 +186,6 @@ export function HistoryPanel({ activeConversationId, onPickConversation, onNewCh
         </div>
       </div>
     </aside>
+    </>
   );
 }

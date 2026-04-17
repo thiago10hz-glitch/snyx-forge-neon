@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart,
+  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,7 @@ const Index = () => {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Mode picker overlay (triggered by typing "quero usar o modo amigo" etc.)
   const [showModePicker, setShowModePicker] = useState(false);
@@ -76,10 +77,16 @@ const Index = () => {
 
   const railTopItems: RailItem[] = [
     {
+      icon: History,
+      label: "Histórico",
+      onClick: () => setHistoryOpen((v) => !v),
+      active: historyOpen,
+    },
+    {
       icon: isVip ? Crown : MessageSquare,
       label: isVip ? "Chat VIP" : "Chat Amigo",
       onClick: switchToFriend,
-      active: chatMode === "friend",
+      active: chatMode === "friend" && !historyOpen,
     },
     ...(isDev
       ? [{
@@ -152,14 +159,20 @@ const Index = () => {
           bottomItems={railBottomItems}
         />
 
-        {/* Always-visible history panel */}
+        {/* Toggleable history panel */}
         <HistoryPanel
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
           activeConversationId={pickedConvId}
-          onPickConversation={handlePickFromHistory}
+          onPickConversation={(choice, id) => {
+            handlePickFromHistory(choice, id);
+            setHistoryOpen(false);
+          }}
           onNewChat={(choice) => {
             if (choice === "programmer" && isDev) setChatMode("programmer");
             else setChatMode("friend");
             setPickedConvId(null);
+            setHistoryOpen(false);
           }}
         />
 
