@@ -119,7 +119,7 @@ const Index = () => {
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-12 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-border/10 bg-card/20 backdrop-blur-xl relative">
+          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-[hsl(0_0%_5%/0.7)] backdrop-blur-2xl relative after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/30 after:to-transparent">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
