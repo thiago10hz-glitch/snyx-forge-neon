@@ -76,18 +76,6 @@ const Index = () => {
   }, []);
 
   const railTopItems: RailItem[] = [
-    {
-      icon: History,
-      label: "Histórico",
-      onClick: () => setHistoryOpen((v) => !v),
-      active: historyOpen,
-    },
-    {
-      icon: isVip ? Crown : MessageSquare,
-      label: isVip ? "Chat VIP" : "Chat Amigo",
-      onClick: switchToFriend,
-      active: chatMode === "friend" && !historyOpen,
-    },
     ...(isAdmin
       ? ([
           { icon: ShieldCheck, label: "Admin", to: "/admin" },
