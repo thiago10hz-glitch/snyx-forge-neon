@@ -8,14 +8,13 @@ import { AdminNotesPanel } from "@/components/AdminNotesPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
-import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 
 
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
-  Crown, Users, Search, RefreshCw, MessageCircle, Phone,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Link2, Shield, Package, Swords
+  Crown, Users, Search, RefreshCw, MessageCircle, Phone, Menu, X,
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Shield, Package, Swords, LogOut
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,7 +41,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "security" | "livechats" | "releases";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "security" | "livechats";
 
 interface ChatMessage {
   id: string;
@@ -488,53 +487,100 @@ export default function Admin() {
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
+  const tabs: { key: AdminTab; label: string; icon: any; color: string; dot?: boolean }[] = [
+    { key: "dashboard", label: "Dashboard", icon: TrendingUp, color: "text-primary" },
+    { key: "users", label: "Usuários", icon: Users, color: "text-primary" },
+    { key: "messages", label: "Mensagens", icon: MessageCircle, color: "text-primary", dot: true },
+    { key: "support", label: "Suporte", icon: ShieldCheck, color: "text-emerald-400" },
+    { key: "notes", label: "Notas", icon: StickyNote, color: "text-yellow-400" },
+    { key: "security", label: "Segurança", icon: Shield, color: "text-red-400" },
+    { key: "livechats", label: "Chat ao Vivo", icon: Phone, color: "text-cyan-400" },
+  ];
+
+  const currentTab = tabs.find(t => t.key === adminTab);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="border-b border-border/30 bg-background sticky top-0 z-10">
-        <div className="h-12 flex items-center justify-between px-3 sm:px-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-background text-foreground flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* === SIDEBAR === */}
+      <aside className={`
+        fixed md:sticky top-0 left-0 h-[100dvh] w-64 shrink-0 z-50 md:z-10
+        bg-sidebar/95 backdrop-blur-xl border-r border-border/15
+        flex flex-col transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Brand */}
+        <div className="h-14 flex items-center justify-between px-4 border-b border-border/10 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20">
               <ShieldCheck className="w-4 h-4 text-primary" />
-              <h1 className="text-sm font-bold">Admin</h1>
+            </div>
+            <div>
+              <h1 className="text-sm font-bold tracking-tight">Admin</h1>
+              <p className="text-[9px] text-muted-foreground/50 font-medium">SnyX Console</p>
             </div>
           </div>
-          <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[200px]">{user.email}</span>
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div className="flex items-center gap-1.5 px-3 sm:px-4 pb-2 overflow-x-auto scrollbar-hide">
-          {([
-            { key: "dashboard" as AdminTab, label: "Dashboard", icon: TrendingUp, activeClass: "bg-gradient-to-r from-primary/15 to-purple-500/15 text-primary border-primary/30" },
-            { key: "users" as AdminTab, label: "Usuários", icon: Users, activeClass: "bg-primary/15 text-primary border-primary/30" },
-            { key: "messages" as AdminTab, label: "Mensagens", icon: MessageCircle, activeClass: "bg-primary/15 text-primary border-primary/30", dot: true },
-            { key: "support" as AdminTab, label: "Suporte", icon: ShieldCheck, activeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-            { key: "notes" as AdminTab, label: "Notas", icon: StickyNote, activeClass: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-            { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
-            
-            { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
-            { key: "releases" as AdminTab, label: "Releases", icon: Package, activeClass: "bg-green-500/15 text-green-400 border-green-500/30" },
-          ]).map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setAdminTab(tab.key)}
-              className={`px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
-                adminTab === tab.key
-                  ? `${tab.activeClass} border`
-                  : "text-muted-foreground hover:text-foreground border border-transparent"
-              }`}
-            >
-              <tab.icon className="w-3 h-3" />
-              {tab.label}
-              {tab.dot && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <p className="px-3 pb-2 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Painel</p>
+          {tabs.map((tab) => {
+            const active = adminTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => { setAdminTab(tab.key); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                  active
+                    ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_-8px_hsl(var(--primary)/0.4)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/15 border border-transparent"
+                }`}
+              >
+                <tab.icon className={`w-4 h-4 ${active ? tab.color : ""}`} />
+                <span className="flex-1 text-left">{tab.label}</span>
+                {tab.dot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom */}
+        <div className="p-3 border-t border-border/10 space-y-1 shrink-0">
+          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+            <ArrowLeft className="w-4 h-4" /><span>Voltar ao app</span>
+          </Link>
+          <div className="px-3 py-2 rounded-xl bg-muted/10 border border-border/10">
+            <p className="text-[10px] text-muted-foreground/50 truncate">{user.email}</p>
+          </div>
+        </div>
+      </aside>
+
+      {/* === MAIN === */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
+        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-border/10 bg-background/80 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+              <Menu className="w-4 h-4" />
             </button>
-          ))}
-        </div>
-      </header>
+            <div className="flex items-center gap-2">
+              {currentTab && <currentTab.icon className={`w-4 h-4 ${currentTab.color}`} />}
+              <h2 className="text-sm font-bold">{currentTab?.label || "Admin"}</h2>
+            </div>
+          </div>
+        </header>
 
       {adminTab === "dashboard" && (
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 w-full">
           <AdminDashboard />
         </div>
       )}
@@ -1088,9 +1134,6 @@ export default function Admin() {
         <AdminLiveChatsPanel />
       )}
 
-      {adminTab === "releases" && (
-        <AdminReleasesPanel />
-      )}
 
       {vipModalUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
