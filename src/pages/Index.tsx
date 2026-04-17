@@ -125,36 +125,33 @@ const Index = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
-        {chatChoice === null && <AuroraBackground />}
-        {/* === MINI SIDEBAR (desktop) — w-14 always === */}
-        <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/40 backdrop-blur-xl z-20 relative">
-          {/* Logo */}
-          <div className="h-14 flex items-center justify-center shrink-0 border-b border-border/10">
-            <Link to="/" className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10 hover:scale-105 transition-transform">
+        <AuroraBackground intensity={chatChoice === null ? "full" : "subtle"} />
+
+        <CinematicSidebar
+          logo={
+            <Link
+              to="/"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_28px_-2px_hsl(var(--primary)/0.8)] transition-all"
+            >
               <Flame className="w-4 h-4 text-primary" />
             </Link>
-          </div>
-
-          {/* Nav */}
-          <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
-            <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
-            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} dot={chatChoice !== null} />
-
-            {isAdmin && (
-              <>
-                <div className="my-2 mx-3 h-px bg-border/20" />
-                <MiniItem to="/admin" icon={ShieldCheck} label="Admin" />
-                <MiniItem to="/dono" icon={Crown} label="Dono" accent />
-              </>
-            )}
-          </nav>
-
-          {/* Bottom */}
-          <div className="py-3 border-t border-border/10 space-y-1.5">
-            <MiniItem icon={Palette} label="Tema" onClick={() => setShowThemeModal(true)} />
-            <MiniItem icon={LogOut} label="Sair" onClick={signOut} danger />
-          </div>
-        </aside>
+          }
+          topItems={[
+            { icon: MessageSquare, label: "Conversa", onClick: handleBackToSelector, active: chatChoice === null },
+            { icon: History, label: "Histórico", onClick: () => setHistoryOpen(true), active: historyOpen, dot: chatChoice !== null },
+            ...(isAdmin
+              ? ([
+                  { icon: ShieldCheck, label: "Admin", to: "/admin" },
+                  { icon: Crown, label: "Dono", to: "/dono", accent: true },
+                ] as SidebarItem[])
+              : []),
+          ]}
+          groupDivider={isAdmin ? [{ afterIndex: 1, label: "Equipe" }] : []}
+          bottomItems={[
+            { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
+            { icon: LogOut, label: "Sair", onClick: signOut, danger: true },
+          ]}
+        />
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
