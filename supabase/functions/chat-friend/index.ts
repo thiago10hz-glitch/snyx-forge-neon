@@ -247,7 +247,7 @@ REGRAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: isRpgMode ? "google/gemini-2.5-pro" : "google/gemini-3-flash-preview",
+        model: "google/gemini-3-flash-preview",
         messages: openaiMessages,
         stream: true,
         max_tokens: isRpgMode ? 6000 : 4096,
