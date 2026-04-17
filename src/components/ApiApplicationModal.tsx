@@ -64,8 +64,20 @@ export function ApiApplicationModal({ open, onClose, planSlug, planName, onAppro
       const { data, error } = await supabase.functions.invoke("api-trial-interview", {
         body: { plan_slug: planSlug, messages: historyForAI },
       });
-      if (error) throw error;
-      const res = data as any;
+
+      // Tenta extrair body da resposta de erro (FunctionsHttpError)
+      let res: any = data;
+      if (error) {
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx?.json) res = await ctx.json();
+          else if (ctx?.text) res = JSON.parse(await ctx.text());
+        } catch { /* ignore */ }
+        if (!res) {
+          toast.error("Erro no atendimento", { description: error.message });
+          return;
+        }
+      }
 
       if (res?.status === "approved" && res.api_key) {
         setMessages((p) => [
@@ -77,6 +89,16 @@ export function ApiApplicationModal({ open, onClose, planSlug, planName, onAppro
         setRejected(res.message || "Solicitação recusada após análise.");
       } else if (res?.status === "chatting" && res.reply) {
         setMessages((p) => [...p, { role: "assistant", content: res.reply }]);
+      } else if (res?.error === "payment_required") {
+        setMessages((p) => [
+          ...p,
+          { role: "assistant", content: "⚠️ Nosso atendimento está temporariamente fora do ar (créditos da IA esgotados). Por favor, tente novamente mais tarde ou fale direto com o suporte." },
+        ]);
+      } else if (res?.error === "rate_limit") {
+        setMessages((p) => [
+          ...p,
+          { role: "assistant", content: "⏳ Muita gente conversando ao mesmo tempo. Aguarde uns segundos e tente de novo." },
+        ]);
       } else if (res?.error) {
         toast.error(res.message || res.error);
       }
