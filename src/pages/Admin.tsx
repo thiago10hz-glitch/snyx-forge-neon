@@ -8,9 +8,9 @@ import { UserTagModal } from "@/components/UserTagModal";
 
 
 import {
-  Loader2, ShieldCheck, ArrowLeft, KeyRound,
+  Loader2, ShieldCheck, ArrowLeft, Ban, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Copy, Check, ChevronDown, ChevronUp, Sparkles
+  Clock, TrendingUp, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
