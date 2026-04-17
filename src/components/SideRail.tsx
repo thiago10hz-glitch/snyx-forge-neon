@@ -20,6 +20,10 @@ interface SideRailProps {
   logo: ReactNode;
   topItems: RailItem[];
   bottomItems: RailItem[];
+  /** Conteúdo extra renderizado no topo (ex: presence indicator). Visível só quando expandido OU em modo compacto centrado. */
+  headerExtra?: ReactNode;
+  /** Conteúdo extra antes dos bottomItems (ex: badges + avatar). */
+  footerExtra?: ReactNode;
 }
 
 /**
