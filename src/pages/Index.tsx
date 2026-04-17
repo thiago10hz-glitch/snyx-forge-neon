@@ -173,57 +173,61 @@ const Index = () => {
 
             {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="flex items-center gap-1 p-1 rounded-full border border-primary/40 bg-primary/10 backdrop-blur-xl shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)]">
+              <div className="relative flex items-center gap-1.5 p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
+                {/* glow halo */}
+                <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_70%)] blur-md" aria-hidden />
+
                 <button
                   onClick={() => setHistoryOpen((v) => !v)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     historyOpen
-                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
-                      : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                      ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
+                      : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
                   }`}
                   title="Histórico"
                 >
-                  <History className="w-3 h-3" strokeWidth={2.4} />
+                  <History className="w-3.5 h-3.5" strokeWidth={2.4} />
                   <span className="hidden sm:inline">Histórico</span>
                 </button>
+
                 <button
                   onClick={switchToFriend}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     chatMode === "friend"
-                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
-                      : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                      ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
+                      : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
                   }`}
                   title="Chat Amigo"
                 >
-                  <Heart className="w-3 h-3" strokeWidth={2.4} />
+                  <Heart className={`w-3.5 h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">Amigo</span>
                 </button>
 
                 {isDev && (
                   <button
                     onClick={switchToProgrammer}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                       chatMode === "programmer"
-                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
-                        : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                        ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
+                        : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
                     }`}
                     title="Modo Programador"
                   >
-                    <Code className="w-3 h-3" strokeWidth={2.4} />
+                    <Code className="w-3.5 h-3.5" strokeWidth={2.4} />
                     <span className="hidden sm:inline">Programador</span>
                   </button>
                 )}
 
                 <button
                   onClick={switchToFriend}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 ${
                     isVip
-                      ? "bg-primary text-primary-foreground shadow-[0_0_14px_-2px_hsl(var(--primary))] border border-primary hover:shadow-[0_0_20px_-1px_hsl(var(--primary))]"
-                      : "text-primary/60 border border-primary/25 hover:text-primary hover:bg-primary/10"
+                      ? "bg-gradient-to-b from-primary via-primary to-[hsl(345_100%_45%)] text-primary-foreground border border-primary/80 shadow-[0_0_22px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.3)] hover:shadow-[0_0_30px_0_hsl(var(--primary))] animate-[glow-pulse_2.4s_ease-in-out_infinite]"
+                      : "text-primary/70 border border-primary/30 hover:text-primary hover:bg-primary/10 hover:border-primary/50"
                   }`}
                   title={isVip ? "Abrir Chat VIP" : "VIP inativo"}
                 >
-                  <Crown className={`w-3 h-3 ${isVip ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
+                  <Crown className={`w-3.5 h-3.5 ${isVip ? "fill-primary-foreground drop-shadow-[0_0_3px_hsl(0_0%_100%/0.6)]" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">{isVip ? "VIP Ativo" : "VIP"}</span>
                 </button>
               </div>
