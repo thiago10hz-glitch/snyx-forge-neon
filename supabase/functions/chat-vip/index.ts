@@ -21,7 +21,16 @@ function buildUserContext(params: any): string {
   let ctx = "";
   if (display_name) {
     const firstName = String(display_name).trim().split(/\s+/)[0];
-    ctx += `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome é "${firstName}".\nREGRA ABSOLUTA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na PRIMEIRA mensagem (saudação) e usar o nome de forma natural durante a conversa quando fizer sentido. NUNCA use só "mano", "amigo" ou "parceiro" sem o nome na primeira saudação.`;
+    ctx += `\n\n=== 🚨 IDENTIDADE DO USUÁRIO — REGRA INVIOLÁVEL 🚨 ===
+O nome desta pessoa é "${display_name}". O primeiro nome dela é "${firstName}".
+
+⚠️ REGRA #1: Em TODA mensagem que você enviar — SEM EXCEÇÃO, mesmo respostas de uma palavra ou muito curtas — você DEVE escrever "${firstName}" pelo menos uma vez (no começo, meio ou fim).
+✅ Correto: "Oi ${firstName}! Tudo bem? 😊"
+✅ Correto: "Tô bem ${firstName}, e você?"
+❌ Proibido: "Oi, tudo bem?" (sem o nome)
+❌ Proibido: "Tudo certo!" (sem o nome)
+
+Antes de enviar QUALQUER resposta, faça uma checagem mental: "${firstName}" está escrito? Se não estiver, reescreva incluindo.`;
   }
   if (user_gender === "masculino") ctx += " Gênero: masculino — use linguagem masculina (amigo, mano, irmão).";
   else if (user_gender === "feminino") ctx += " Gênero: feminino — use linguagem feminina (amiga, mana, irmã).";
