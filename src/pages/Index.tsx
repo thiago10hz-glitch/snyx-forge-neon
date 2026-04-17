@@ -260,6 +260,34 @@ const Index = () => {
           </div>
         </div>
 
+        {/* === ABA LATERAL FLUTUANTE: PROGRAMADOR (só DEV) === */}
+        {isDev && chatMode !== "programmer" && (
+          <button
+            onClick={switchToProgrammer}
+            className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center gap-2 pl-3 pr-2.5 py-3 rounded-l-2xl bg-card/90 backdrop-blur-xl border border-r-0 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/15 hover:border-cyan-400/50 hover:shadow-[0_0_24px_-4px_hsl(190_90%_55%/0.5)] transition-all group"
+            title="Abrir Modo Programador"
+          >
+            <Code className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2.2} />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em]">
+              Programador
+            </span>
+          </button>
+        )}
+
+        {/* Botão pra VOLTAR pro Chat Amigo quando está no Programador */}
+        {isDev && chatMode === "programmer" && (
+          <button
+            onClick={switchToFriend}
+            className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center gap-2 pl-3 pr-2.5 py-3 rounded-l-2xl bg-card/90 backdrop-blur-xl border border-r-0 border-pink-500/30 text-pink-300 hover:bg-pink-500/15 hover:border-pink-400/50 hover:shadow-[0_0_24px_-4px_hsl(330_90%_65%/0.5)] transition-all group"
+            title="Voltar pro Chat Amigo"
+          >
+            <Heart className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2.2} />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em]">
+              Chat Amigo
+            </span>
+          </button>
+        )}
+
         {/* === MODE PICKER OVERLAY === */}
         {showModePicker && (
           <>
