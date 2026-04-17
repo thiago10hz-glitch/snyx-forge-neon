@@ -165,7 +165,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
 
   const tierLabel = profile?.is_dev ? "DEV" : profile?.is_vip ? "VIP" : "Free";
   const tierIcon = profile?.is_dev ? Code : profile?.is_vip ? Crown : Sparkles;
-  const tierExpires = profile?.is_dev ? profile?.dev_expires_at : profile?.is_vip ? profile?.vip_expires_at : null;
+  const tierExpires = profile?.is_dev ? (profile as any)?.dev_expires_at : profile?.is_vip ? (profile as any)?.vip_expires_at : null;
   const tierDaysLeft = tierExpires
     ? Math.max(0, Math.ceil((new Date(tierExpires).getTime() - Date.now()) / 86400000))
     : null;
