@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Swords, Wand2, ScrollText, Users, Flame, Trophy, Loader2, Ban } from "lucide-react";
+import { Zap, Crown, Code, Heart, Check, X, Mic, Globe, Image, MessageCircle, Sparkles, Tv, Shield, Headphones, Palette, Rocket, Server, FileCode, MonitorPlay, Loader2, Ban } from "lucide-react";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface VipModalProps {
   open: boolean;
   onClose: () => void;
-  highlightPlan?: "vip" | "rpg" | "programmer";
+  highlightPlan?: "vip" | "programmer";
 }
 
 const vipFeatures = [
@@ -20,17 +20,6 @@ const vipFeatures = [
   { icon: Palette, text: "Temas e personalização", desc: "Customize a aparência do chat" },
 ];
 
-const rpgFeatures = [
-  { icon: Swords, text: "RPG com IA avançada", desc: "Aventuras imersivas com narrativa inteligente" },
-  { icon: Wand2, text: "Personagens exclusivos", desc: "Crie e use personagens premium ilimitados" },
-  { icon: ScrollText, text: "Histórias infinitas", desc: "Narrativas sem limite de contexto" },
-  { icon: Flame, text: "Batalhas épicas com IA", desc: "Sistema de combate dinâmico e realista" },
-  { icon: Trophy, text: "Rankings e conquistas", desc: "Compita e desbloqueie conquistas únicas" },
-  { icon: Users, text: "Multiplayer com amigos", desc: "Jogue com amigos no mesmo universo" },
-  { icon: MessageCircle, text: "Mensagens ilimitadas", desc: "Sem limite em todas as sessões" },
-  { icon: Image, text: "Geração de cenários", desc: "Imagens dos seus cenários com IA" },
-  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios VIP + RPG" },
-];
 
 const programmerFeatures = [
   { icon: Code, text: "Criar sites completos com IA", desc: "HTML, CSS, JS gerados automaticamente" },
