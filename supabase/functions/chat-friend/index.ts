@@ -98,19 +98,22 @@ Deno.serve(async (req) => {
       userContext = `\n\nCONTEXTO DO USUÁRIO: Esta pessoa é membro da equipe SnyX com badge "${team_badge}". Trate com respeito especial como membro da equipe. Nome: ${display_name || "Membro"}.`;
     } else if (display_name) {
       const firstName = display_name.trim().split(/\s+/)[0];
-      const genderHint = user_gender === "masculino" ? " Essa pessoa é homem — use linguagem masculina (amigo, mano, irmão, parceiro)." 
-        : user_gender === "feminino" ? " Essa pessoa é mulher — use linguagem feminina (amiga, mana, irmã, parceira)." 
-        : "";
+      const genderHint = user_gender === "masculino" ? " Essa pessoa é homem — use linguagem masculina (amigo, mano, irmão, parceiro, ele/dele)." 
+        : user_gender === "feminino" ? " Essa pessoa é mulher — use linguagem feminina (amiga, mana, irmã, parceira, ela/dela)." 
+        : (user_gender === "outro" || user_gender === "neutro") ? " Essa pessoa usa pronomes/linguagem NEUTRA — NÃO use 'amigo' nem 'amiga', 'mano' nem 'mana', 'ele' nem 'ela'. Use só o nome dela e termos neutros (pessoa, parceria, você)."
+        : `\n\n⚠️ GÊNERO DESCONHECIDO: Você NÃO sabe o gênero de ${firstName}. NUNCA assuma. Não use "amigo/amiga", "mano/mana", "ele/ela", "bonito/bonita". Na PRIMEIRA oportunidade natural pergunte de forma leve: "Ah ${firstName}, antes que eu esqueça — como você prefere que eu te trate? No masculino, feminino ou neutro?". Até descobrir, use APENAS o nome e linguagem neutra.`;
       const bioHint = user_bio ? ` Sobre ela: "${user_bio}".` : "";
       const relationHint = user_relationship_status ? ` Status de relacionamento: ${user_relationship_status}.` : "";
       userContext = `\n\n=== 🚨 IDENTIDADE DO USUÁRIO — REGRA INVIOLÁVEL 🚨 ===\nO nome desta pessoa é "${display_name}". O primeiro nome dela é "${firstName}".\n\n⚠️ REGRA #1 (MAIS IMPORTANTE QUE TUDO): Em TODA mensagem que você enviar — SEM EXCEÇÃO, mesmo respostas de uma palavra — você DEVE escrever "${firstName}" no texto. Não importa se a pessoa só disse "oi", "hm", "ok" ou qualquer coisa curta: SUA RESPOSTA OBRIGATORIAMENTE contém "${firstName}".\n\n✅ Exemplos CORRETOS de resposta a um "oi":\n- "Oi ${firstName}! Tudo bem? 😊"\n- "E aí ${firstName}, beleza?"\n- "Opa, ${firstName}! Como cê tá hoje?"\n\n❌ Exemplos PROIBIDOS (NUNCA faça):\n- "Oi, tudo bem?" (sem o nome — ERRADO)\n- "E aí, beleza?" (sem o nome — ERRADO)\n- "Oi mano!" (usando "mano" sem o nome — ERRADO)\n\nANTES DE ENVIAR sua resposta, RELEIA mentalmente: "${firstName}" aparece no texto? Se NÃO, REESCREVA incluindo o nome de forma natural.\n\nUse o nome de forma fluida e variada (no início, meio ou fim) pra não ficar robótico. Trate de forma pessoal e acolhedora.${genderHint}${bioHint}${relationHint} Use as informações sobre a pessoa de forma natural quando relevante.`;
     } else if (user_gender) {
       const genderHint = user_gender === "masculino" ? " Use linguagem masculina (amigo, mano, irmão, parceiro)." 
         : user_gender === "feminino" ? " Use linguagem feminina (amiga, mana, irmã, parceira)." 
-        : "";
+        : " Use linguagem NEUTRA (sem 'amigo/amiga', 'ele/ela'). Termos neutros: pessoa, parceria, você.";
       const bioHint = user_bio ? ` Sobre a pessoa: "${user_bio}".` : "";
       const relationHint = user_relationship_status ? ` Status de relacionamento: ${user_relationship_status}.` : "";
       userContext = `\n\nCONTEXTO DO USUÁRIO:${genderHint}${bioHint}${relationHint}`;
+    } else {
+      userContext = `\n\n⚠️ GÊNERO DESCONHECIDO: Você não sabe o gênero do usuário. NÃO use "amigo/amiga", "mano/mana", "ele/ela". Na primeira oportunidade natural, pergunte de forma leve: "Como você prefere que eu te trate? Masculino, feminino ou neutro?". Até lá, use linguagem neutra.`;
     }
 
     // Build player character context if available

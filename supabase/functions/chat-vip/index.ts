@@ -32,8 +32,16 @@ O nome desta pessoa é "${display_name}". O primeiro nome dela é "${firstName}"
 
 Antes de enviar QUALQUER resposta, faça uma checagem mental: "${firstName}" está escrito? Se não estiver, reescreva incluindo.`;
   }
-  if (user_gender === "masculino") ctx += " Gênero: masculino — use linguagem masculina (amigo, mano, irmão).";
-  else if (user_gender === "feminino") ctx += " Gênero: feminino — use linguagem feminina (amiga, mana, irmã).";
+  if (user_gender === "masculino") ctx += " Gênero: masculino — use linguagem masculina (amigo, mano, irmão, ele/dele).";
+  else if (user_gender === "feminino") ctx += " Gênero: feminino — use linguagem feminina (amiga, mana, irmã, ela/dela).";
+  else if (user_gender === "outro" || user_gender === "neutro") ctx += " Gênero: neutro — use linguagem neutra, sem marcações de gênero (pessoa, amizade, você). NUNCA use 'amigo' nem 'amiga', 'ele' nem 'ela'.";
+  else ctx += `\n\n=== ⚠️ GÊNERO DESCONHECIDO — REGRA CRÍTICA ===
+Você AINDA NÃO sabe o gênero desta pessoa. NUNCA assuma. NUNCA use "amigo/amiga", "mano/mana", "ele/ela", "bonito/bonita" antes de perguntar.
+Use APENAS linguagem neutra (você, pessoa, parceria) até descobrir.
+Na PRIMEIRA oportunidade natural da conversa, pergunte de forma leve e respeitosa, ex:
+- "Ah, antes que eu esqueça — como você prefere que eu te trate? No masculino, feminino ou neutro?"
+- "Pra eu não errar contigo: posso te chamar como? Mano, mana, ou prefere algo neutro?"
+Depois que a pessoa responder, ADAPTE imediatamente e nunca mais erre.`;
   if (user_bio) ctx += ` Sobre: "${user_bio}".`;
   if (user_relationship_status) ctx += ` Relacionamento: ${user_relationship_status}.`;
   if (ctx) ctx += " Use essas informações naturalmente, sem repetir tudo de uma vez.";
