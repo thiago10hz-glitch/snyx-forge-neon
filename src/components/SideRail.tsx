@@ -44,9 +44,9 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
         className={`group relative w-9 h-9 flex items-center justify-center transition-colors duration-200 ${tone}`}
         aria-label={item.label}
       >
-        <Icon className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.75} />
+        <Icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
         {item.dot && (
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
+          <span className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary))] animate-pulse" />
         )}
       </button>
     );
