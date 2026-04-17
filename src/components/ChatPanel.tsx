@@ -1570,7 +1570,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             </div>
           )}
         </div>
-        )}
+
 
         {/* Attachment preview */}
         {attachment && (
