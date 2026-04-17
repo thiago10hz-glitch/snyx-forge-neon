@@ -27,12 +27,38 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check if user is DEV (allows web search)
+    let isDev = false;
+    try {
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader) {
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_ANON_KEY")!,
+          { global: { headers: { Authorization: authHeader } } }
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("is_dev, dev_expires_at")
+            .eq("user_id", user.id)
+            .single();
+          isDev = !!(profile?.is_dev && (!profile.dev_expires_at || new Date(profile.dev_expires_at) > new Date()));
+        }
+      }
+    } catch (e) { console.error("Dev check failed:", e); }
+
     let userCtx = "";
     if (display_name) {
       const firstName = String(display_name).trim().split(/\s+/)[0];
       userCtx = `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome é "${firstName}".\nREGRA ABSOLUTA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na PRIMEIRA mensagem (saudação) e usar o nome de forma natural durante a conversa quando fizer sentido. NUNCA use só "dev", "mano" ou similar sem o nome na primeira saudação.`;
       if (user_gender === "masculino") userCtx += " Trate no masculino.";
       else if (user_gender === "feminino") userCtx += " Trate no feminino.";
+    }
+
+    if (isDev) {
+      userCtx += `\n\n=== PESQUISA WEB ATIVADA (DEV) ===\nVocê tem acesso a pesquisa web em tempo real via Google Search. Use SEMPRE que a pergunta envolver: notícias atuais, documentação recente de bibliotecas/frameworks, versões de pacotes, eventos atuais, preços, ou qualquer informação que possa ter mudado. Cite fontes quando usar resultados da pesquisa.`;
     }
 
     const systemPrompt = `Você é SnyX Dev — o programador de ELITE mais avançado do mundo. Você não é apenas um gerador de templates: você ENTENDE profundamente o que o usuário quer e cria EXATAMENTE o que foi pedido.
