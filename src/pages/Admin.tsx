@@ -3,18 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Navigate, Link } from "react-router-dom";
-import { AdminSupportPanel } from "@/components/AdminSupportPanel";
-import { AdminNotesPanel } from "@/components/AdminNotesPanel";
-import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
-
-import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 
 
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
-  Crown, Users, Search, RefreshCw, MessageCircle, Phone, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, StickyNote, Shield, Package, Swords, LogOut
+  Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, LogOut
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +36,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "security" | "livechats";
+type AdminTab = "dashboard" | "users" | "messages";
 
 interface ChatMessage {
   id: string;
@@ -492,10 +487,6 @@ export default function Admin() {
     { key: "dashboard", label: "Dashboard", icon: TrendingUp, color: "text-primary" },
     { key: "users", label: "Usuários", icon: Users, color: "text-primary" },
     { key: "messages", label: "Mensagens", icon: MessageCircle, color: "text-primary", dot: true },
-    { key: "support", label: "Suporte", icon: ShieldCheck, color: "text-emerald-400" },
-    { key: "notes", label: "Notas", icon: StickyNote, color: "text-yellow-400" },
-    { key: "security", label: "Segurança", icon: Shield, color: "text-red-400" },
-    { key: "livechats", label: "Chat ao Vivo", icon: Phone, color: "text-cyan-400" },
   ];
 
   const currentTab = tabs.find(t => t.key === adminTab);
@@ -1117,22 +1108,6 @@ export default function Admin() {
         </div>
       )}
 
-      {adminTab === "support" && (
-        <AdminSupportPanel />
-      )}
-
-      {adminTab === "notes" && (
-        <AdminNotesPanel />
-      )}
-
-      {adminTab === "security" && (
-        <AdminSecurityPanel />
-      )}
-
-
-      {adminTab === "livechats" && (
-        <AdminLiveChatsPanel />
-      )}
 
 
       {vipModalUser && (
