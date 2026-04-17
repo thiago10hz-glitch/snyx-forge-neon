@@ -111,7 +111,7 @@ const VIP_PLANS = [
 ];
 
 const FREE_FEATURES = [
-  "15 mensagens de chat IA por dia",
+  "5 mensagens de chat IA por dia",
   "Modo Amigo e Escola",
   "Suporte por ticket",
 ];
@@ -578,7 +578,7 @@ export default function Auth() {
 
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
               <p className="text-[10px] font-semibold text-foreground mb-1">Plano Grátis inclui:</p>
-              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">15 mensagens/dia • Modo Amigo e Escola • Suporte por ticket • Sem cartão</p>
+              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">5 mensagens/dia • Modo Amigo e Escola • Suporte por ticket • Sem cartão</p>
             </div>
           </div>
         </div>
