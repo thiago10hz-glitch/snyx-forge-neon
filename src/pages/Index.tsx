@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
 const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
-const SupportChat = lazy(() => import("@/components/SupportChat").then(m => ({ default: m.SupportChat })));
+
 const ThemeSelector = lazy(() => import("@/components/ThemeSelector").then(m => ({ default: m.ThemeSelector })));
 const VipModal = lazy(() => import("@/components/VipModal").then(m => ({ default: m.VipModal })));
 
@@ -241,7 +241,7 @@ const Index = () => {
 
         <Suspense fallback={null}>
           <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
-          <SupportChat />
+          
           <VipModal open={showVipModal} onClose={() => {}} />
           <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
         </Suspense>
