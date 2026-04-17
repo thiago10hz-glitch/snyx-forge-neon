@@ -8,9 +8,9 @@ import { UserTagModal } from "@/components/UserTagModal";
 
 
 import {
-  Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
+  Loader2, ShieldCheck, ArrowLeft, Ban, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
+  Clock, TrendingUp, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,11 +46,7 @@ export default function Admin() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [vipModalUser, setVipModalUser] = useState<string | null>(null);
-  const [devModalUser, setDevModalUser] = useState<string | null>(null);
   
-  const [vipMonths, setVipMonths] = useState(1);
-  const [devMonths, setDevMonths] = useState(1);
   
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
@@ -122,90 +118,7 @@ export default function Admin() {
   };
 
 
-  const grantDev = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_dev");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_dev", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`DEV ativado por ${months} mês(es)`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_dev: true, dev_expires_at: data.dev_expires_at } : u)));
-      setDevModalUser(null);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder DEV");
-    }
-    setActionLoading(null);
-  };
-
-  const revokeDev = async (userId: string) => {
-    setActionLoading(userId + "-revoke_dev");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_dev", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("DEV removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_dev: false, dev_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar DEV");
-    }
-    setActionLoading(null);
-  };
-
   
-
-  const grantVip = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_vip");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_vip", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`VIP ativado por ${months} mês(es)`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_vip: true, vip_expires_at: data.vip_expires_at } : u)));
-      setVipModalUser(null);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder VIP");
-    }
-    setActionLoading(null);
-  };
-
-  const revokeVip = async (userId: string) => {
-    setActionLoading(userId + "-revoke_vip");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_vip", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("VIP removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_vip: false, vip_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar VIP");
-    }
-    setActionLoading(null);
-  };
-
-  const setTeamBadge = async (userId: string, badge: string | null) => {
-    setActionLoading(userId + "-badge");
-    try {
-      const { data, error } = await supabase.rpc("admin_set_team_badge", {
-        p_user_id: userId,
-        p_badge: badge,
-      });
-      if (error) throw error;
-      if (data && typeof data === "object" && "error" in data) throw new Error((data as any).error);
-      toast.success(badge ? `Badge "${badge}" concedido! 🏷️` : "Badge removido!");
-      fetchUsers();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao alterar badge");
-    }
-    setActionLoading(null);
-  };
 
   const adminAction = async (action: string, targetUserId: string, banHours?: number) => {
     setActionLoading(targetUserId + "-" + action);
@@ -583,104 +496,24 @@ export default function Admin() {
                           </div>
                         </div>
 
-                        {/* Actions */}
+                        {/* Actions: tudo dentro do perfil */}
                         {u.user_id !== user!.id && (
-                          <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
-                            <ActionButton
-                              icon={Sparkles}
-                              title="Abrir perfil / dar tag"
-                              color="text-primary hover:bg-primary/10 border-primary/25"
-                              onClick={() => setTagModalUserId(u.user_id)}
-                              loading={false}
-                              disabled={false}
-                            />
-                            <ActionButton
-                              icon={Eye}
-                              title="Detalhes"
-                              color="text-muted-foreground hover:bg-muted/50 border-border/20"
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
                               onClick={() => setExpandedUser(isExpanded ? null : u.user_id)}
-                              loading={false}
-                              disabled={false}
-                            />
-                            <ActionButton
-                              icon={Crown}
-                              title="Dar VIP"
-                              color="text-yellow-400 hover:bg-yellow-500/10 border-yellow-500/20"
-                              onClick={() => setVipModalUser(u.user_id)}
-                              loading={false}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_vip && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar VIP"
-                                color="text-destructive hover:bg-destructive/10 border-destructive/20"
-                                onClick={() => revokeVip(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_vip"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            <ActionButton
-                              icon={Code2}
-                              title="Dar DEV"
-                              color="text-cyan-400 hover:bg-cyan-500/10 border-cyan-500/20"
-                              onClick={() => setDevModalUser(u.user_id)}
-                              loading={false}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_dev && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar DEV"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => revokeDev(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_dev"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            
-                            <ActionButton
-                              icon={ShieldCheck}
-                              title="Badge SnyX"
-                              color="text-primary hover:bg-primary/10 border-primary/20"
-                              onClick={() => {
-                                const badge = prompt("Badge da equipe (ex: SnyX, Primeira-Dama)\nDeixe vazio para remover:");
-                                setTeamBadge(u.user_id, badge?.trim() || null);
-                              }}
-                              loading={actionLoading === u.user_id + "-badge"}
-                              disabled={actionLoading !== null}
-                            />
-                            {isBanned(u) ? (
-                              <ActionButton
-                                icon={ShieldOff}
-                                title="Desbanir"
-                                color="text-emerald-400 hover:bg-emerald-500/10 border-emerald-500/20"
-                                onClick={() => adminAction("unban", u.user_id)}
-                                loading={actionLoading === u.user_id + "-unban"}
-                                disabled={actionLoading !== null}
-                              />
-                            ) : (
-                              <ActionButton
-                                icon={Ban}
-                                title="Banir"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => adminAction("ban", u.user_id, banHoursInput[u.user_id] || 24)}
-                                loading={actionLoading === u.user_id + "-ban"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            <ActionButton
-                              icon={Trash2}
-                              title="Excluir"
-                              color="text-destructive hover:bg-destructive/10 border-destructive/20"
-                              onClick={() => {
-                                if (confirm("Excluir este usuário? Isso é irreversível!")) {
-                                  adminAction("delete", u.user_id);
-                                }
-                              }}
-                              loading={actionLoading === u.user_id + "-delete"}
-                              disabled={actionLoading !== null}
-                            />
+                              className="p-2 rounded-xl border border-border/20 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
+                              title="Ver detalhes técnicos"
+                            >
+                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => setTagModalUserId(u.user_id)}
+                              className="px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center gap-1.5 text-xs font-bold"
+                              title="Abrir perfil de admin"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Abrir perfil</span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -823,93 +656,12 @@ export default function Admin() {
             prev.map((u) => (u.user_id === tagModalUserId ? { ...u, ...patch } : u))
           )
         }
+        onDeleted={(uid) => {
+          setUsers((prev) => prev.filter((u) => u.user_id !== uid));
+          setTagModalUserId(null);
+        }}
       />
 
-
-      {vipModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-yellow-500/10 mb-4">
-              <Crown className="w-6 h-6 text-yellow-400" />
-            </div>
-            <h2 className="text-base font-semibold mb-1">Conceder VIP</h2>
-            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[1, 2, 3, 6].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setVipMonths(m)}
-                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    vipMonths === m
-                      ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/40"
-                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setVipModalUser(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => grantVip(vipModalUser, vipMonths)}
-                disabled={actionLoading !== null}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25 border border-yellow-500/30 transition-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DEV Duration Modal */}
-      {devModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 mb-4">
-              <Code2 className="w-6 h-6 text-cyan-400" />
-            </div>
-            <h2 className="text-base font-semibold mb-1">Conceder DEV</h2>
-            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[1, 2, 3, 6].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setDevMonths(m)}
-                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    devMonths === m
-                      ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/40"
-                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDevModalUser(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => grantDev(devModalUser, devMonths)}
-                disabled={actionLoading !== null}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
               
       </div>
@@ -917,29 +669,3 @@ export default function Admin() {
   );
 }
 
-function ActionButton({
-  icon: Icon,
-  title,
-  color,
-  onClick,
-  loading,
-  disabled,
-}: {
-  icon: typeof Crown;
-  title: string;
-  color: string;
-  onClick: () => void;
-  loading: boolean;
-  disabled: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`p-2 rounded-xl border transition-all disabled:opacity-50 ${color}`}
-      title={title}
-    >
-      {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
-    </button>
-  );
-}
