@@ -37,8 +37,8 @@ const programmerFeatures = [
 type Period = "weekly" | "monthly" | "yearly";
 
 const PLAN_PRICES: Record<string, Record<Period, number>> = {
-  vip:        { weekly: 25,  monthly: 50,  yearly: 150 },
-  programmer: { weekly: 100, monthly: 150, yearly: 250 },
+  vip:        { weekly: 25,  monthly: 40,  yearly: 120 },
+  programmer: { weekly: 100, monthly: 120, yearly: 150 },
 };
 
 const PERIOD_LABELS: Record<Period, string> = {
