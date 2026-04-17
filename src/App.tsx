@@ -16,6 +16,7 @@ import OwnerPanel from "./pages/OwnerPanel";
 import AdminAIPool from "./pages/AdminAIPool";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import ApiPricing from "./pages/ApiPricing";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -117,6 +118,7 @@ const App = () => {
                 <Route path="/admin/ai-pool" element={<ProtectedRoute><AdminAIPool /></ProtectedRoute>} />
                 <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/api" element={<ApiPricing />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeProvider>
