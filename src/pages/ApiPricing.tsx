@@ -5,8 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Code2, Loader2, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
+import { Check, Code2, Loader2, Sparkles, Zap, Crown, ArrowLeft, Copy, KeyRound } from "lucide-react";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface ApiPlan {
   id: string;
@@ -58,8 +60,25 @@ export default function ApiPricing() {
 
   const handleSubscribe = async (plan: ApiPlan) => {
     if (!user) { navigate("/auth"); return; }
-    if (plan.price_brl === 0) { navigate("/"); return; }
     setActiveSlug(plan.slug);
+
+    if (plan.price_brl === 0) {
+      try {
+        const { data, error } = await supabase.functions.invoke("issue-api-key", {
+          body: { plan_slug: plan.slug },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        setIssuedKey((data as any).api_key);
+        setKeyExisted(!!(data as any).existed);
+      } catch (err: any) {
+        toast.error("Não foi possível gerar a chave", { description: err?.message });
+      } finally {
+        setActiveSlug(null);
+      }
+      return;
+    }
+
     await openCheckout({
       title: `API SnyX — Plano ${plan.name}`,
       description: `Acesso mensal · ${plan.monthly_request_limit.toLocaleString("pt-BR")} requisições/mês`,
@@ -68,6 +87,12 @@ export default function ApiPricing() {
       userEmail: user.email,
     });
     setActiveSlug(null);
+  };
+
+  const copyKey = async () => {
+    if (!issuedKey) return;
+    await navigator.clipboard.writeText(issuedKey);
+    toast.success("Chave copiada!");
   };
 
   const fmtNumber = (n: number) => n.toLocaleString("pt-BR");
