@@ -116,6 +116,21 @@ const MODE_CONFIG = {
     premiumLabel: null,
     premiumIcon: null,
   },
+  writer: {
+    icon: PenLine,
+    label: "Escritor",
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+    activeTab: "bg-emerald-500/10 text-emerald-400",
+    bubbleColor: "bg-muted/60",
+    placeholder: "Cole texto pra parafrasear, corrigir, resumir ou traduzir... ✍️",
+    emptyTitle: "SnyX Escritor",
+    emptyText: "Parafraseia, corrige gramática, resume e traduz. Seu copilot de escrita.",
+    emptyEmoji: "✍️",
+    premiumLabel: null,
+    premiumIcon: null,
+  },
 };
 
 export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId, forceMode, onUserInput }: ChatPanelProps) {
