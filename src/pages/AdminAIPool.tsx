@@ -37,6 +37,7 @@ const PROVIDERS = [
   { value: "mistral", label: "Mistral (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
   { value: "github", label: "GitHub Models (150 req/dia)", model: "gpt-4o-mini", limit: 150 },
   { value: "together", label: "Together AI ($5 free)", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", limit: 5000 },
+  { value: "cloudflare", label: "Cloudflare Workers AI (10k/dia)", model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", limit: 10000 },
 ];
 
 export default function AdminAIPool() {
@@ -156,7 +157,20 @@ export default function AdminAIPool() {
                   </Select>
                 </div>
                 <div><Label>Label (apelido)</Label><Input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} placeholder="Ex: Groq Conta 1" /></div>
-                <div><Label>API Key</Label><Input type="password" value={form.api_key} onChange={e => setForm({ ...form, api_key: e.target.value })} placeholder="gsk_..., AIza..., sk-..." /></div>
+                <div>
+                  <Label>API Key</Label>
+                  <Input
+                    type="password"
+                    value={form.api_key}
+                    onChange={e => setForm({ ...form, api_key: e.target.value })}
+                    placeholder={form.provider === "cloudflare" ? "ACCOUNT_ID:API_TOKEN" : "gsk_..., AIza..., sk-..."}
+                  />
+                  {form.provider === "cloudflare" && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Formato: <code className="text-amber-300">ACCOUNT_ID:API_TOKEN</code> (cole os dois separados por dois-pontos)
+                    </p>
+                  )}
+                </div>
                 <div><Label>Modelo padrão</Label><Input value={form.model_default} onChange={e => setForm({ ...form, model_default: e.target.value })} placeholder="(deixe vazio p/ usar padrão)" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>Limite/dia</Label><Input type="number" value={form.daily_limit} onChange={e => setForm({ ...form, daily_limit: +e.target.value })} /></div>

@@ -57,7 +57,24 @@ const PROVIDER_ENDPOINTS: Record<string, { url: string; auth: (k: string) => Rec
     auth: (k) => ({ Authorization: `Bearer ${k}` }),
     defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
   },
+  // Cloudflare: api_key armazenada como "ACCOUNT_ID:API_TOKEN"
+  cloudflare: {
+    url: "", // dinâmica — montada com base no account_id
+    auth: (k) => {
+      const token = k.split(":")[1] || k;
+      return { Authorization: `Bearer ${token}` };
+    },
+    defaultModel: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  },
 };
+
+function getProviderUrl(provider: string, apiKey: string, model: string): string {
+  if (provider === "cloudflare") {
+    const accountId = apiKey.split(":")[0];
+    return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1/chat/completions`;
+  }
+  return PROVIDER_ENDPOINTS[provider].url;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -111,7 +128,7 @@ Deno.serve(async (req) => {
       const upstreamBody = { ...body, model, stream: false };
 
       try {
-        const upstreamRes = await fetch(provider.url, {
+        const upstreamRes = await fetch(getProviderUrl(keyRow.provider, keyRow.api_key, model), {
           method: "POST",
           headers: { "Content-Type": "application/json", ...provider.auth(keyRow.api_key) },
           body: JSON.stringify(upstreamBody),
