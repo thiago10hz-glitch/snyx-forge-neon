@@ -118,42 +118,28 @@ const Index = () => {
   const railLogo = (
     <Link
       to="/"
-      className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
+      className="group relative w-8 h-8 rounded-xl flex items-center justify-center transition-transform duration-300 hover:scale-110"
       title="SnyX"
     >
-      <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
-      <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
-      <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
-        <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
-      </span>
-      <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
-      <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
+      <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary via-primary/70 to-primary/30 shadow-[0_2px_12px_-2px_hsl(var(--primary)/0.6)]" aria-hidden />
+      <Sparkles className="relative w-[15px] h-[15px] text-white drop-shadow-[0_0_4px_hsl(var(--primary))]" strokeWidth={2.4} />
     </Link>
   );
 
-  // Footer extra: badges only (avatar moved to top-right)
+  // Footer: avatar minúsculo, sem badges (estilo SKYNETchat)
   const railFooterExtra = (
-    <div className="flex flex-col items-center gap-1 max-w-full">
-      {profile?.is_vip || profile?.is_dev ? (
-        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
-          <Crown size={8} className="fill-amber-300" /> VIP
-        </span>
+    <button
+      onClick={() => setShowProfile(true)}
+      className="relative w-7 h-7 rounded-full overflow-hidden border border-border/40 hover:border-primary/50 transition-all flex items-center justify-center bg-muted/30 hover:bg-muted/60"
+      title="Minha conta"
+      aria-label="Minha conta"
+    >
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
       ) : (
-        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
-          FREE
-        </span>
+        <User className="w-3.5 h-3.5 text-muted-foreground/70" />
       )}
-      {profile?.is_dev && (
-        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-          <Code size={8} /> DEV
-        </span>
-      )}
-      {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
-          👑 {profile.team_badge}
-        </span>
-      )}
-    </div>
+    </button>
   );
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "Usuário";
