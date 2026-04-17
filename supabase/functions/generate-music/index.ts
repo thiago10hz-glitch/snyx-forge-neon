@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { freeAIChat } from "../_shared/free-ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
