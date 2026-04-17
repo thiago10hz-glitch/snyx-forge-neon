@@ -5,10 +5,10 @@ import { Navigate, Link } from "react-router-dom";
 import OwnerChat from "@/components/OwnerChat";
 import {
   Crown, Users, MessageCircle, ShieldCheck, Globe, TrendingUp,
-  ArrowLeft, Zap, Eye, Activity,
+  ArrowLeft, Zap, Eye, Activity, Server, Database, Wifi,
   Send, Ban, Clock, Package, Code2, Swords, Megaphone,
   BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
-  AlertTriangle, Star, Heart, Menu, X
+  AlertTriangle, Star, Heart, Radio, Volume2, Menu, X
 } from "lucide-react";
 import { toast } from "sonner";
 
