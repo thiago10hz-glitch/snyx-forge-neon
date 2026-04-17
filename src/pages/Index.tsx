@@ -113,11 +113,7 @@ const Index = () => {
       : []),
   ];
 
-  const railBottomItems: RailItem[] = [
-    { icon: User, label: "Minha conta", onClick: () => setShowProfile(true) },
-    { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
-    { icon: LogOut, label: "Sair", onClick: signOut, danger: true },
-  ];
+  const railBottomItems: RailItem[] = [];
 
   const railLogo = (
     <Link
