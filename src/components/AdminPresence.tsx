@@ -43,7 +43,7 @@ export function AdminPresenceIndicator() {
   if (onlineAdmins.length === 0) return null;
 
   return (
-    <div className="group relative flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-gradient-to-r from-emerald-500/10 via-emerald-400/5 to-transparent border border-emerald-400/25 hover:border-emerald-300/45 hover:shadow-[0_0_22px_-6px_hsl(152_76%_55%/0.55)] backdrop-blur-xl transition-all duration-300 overflow-hidden">
+    <div className="group relative flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 sm:pr-3 py-1 rounded-full bg-gradient-to-r from-emerald-500/10 via-emerald-400/5 to-transparent border border-emerald-400/25 hover:border-emerald-300/45 hover:shadow-[0_0_22px_-6px_hsl(152_76%_55%/0.55)] backdrop-blur-xl transition-all duration-300 overflow-hidden">
       {/* shimmer sweep */}
       <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-emerald-300/15 to-transparent" aria-hidden />
 
