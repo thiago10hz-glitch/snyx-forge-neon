@@ -134,13 +134,16 @@ const Index = () => {
             <div className="absolute left-1/2 -translate-x-1/2">
               <button
                 onClick={() => setChatMenuOpen((v) => !v)}
-                className="group flex items-center gap-1.5 px-3 py-1 rounded-full hover:bg-muted/15 transition-colors"
+                className="group flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/15 bg-[hsl(0_0%_8%/0.6)] hover:border-primary/30 hover:bg-[hsl(0_0%_10%/0.7)] hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.4)] transition-all duration-300"
               >
-                <Flame className="w-3.5 h-3.5 text-primary" />
-                <span className="text-sm font-bold tracking-tight text-foreground">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+                </span>
+                <span className="text-[13px] font-bold tracking-tight text-foreground">
                   {currentChatLabel}
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground/60 transition-transform ${chatMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-300 ${chatMenuOpen ? "rotate-180 text-primary" : ""}`} />
               </button>
 
               {chatMenuOpen && (
