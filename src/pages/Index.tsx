@@ -213,17 +213,18 @@ const Index = () => {
                   </button>
                 )}
 
-                <span
+                <button
+                  onClick={switchToFriend}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all ${
                     isVip
-                      ? "bg-primary text-primary-foreground shadow-[0_0_14px_-2px_hsl(var(--primary))] border border-primary"
-                      : "text-primary/60 border border-primary/25"
+                      ? "bg-primary text-primary-foreground shadow-[0_0_14px_-2px_hsl(var(--primary))] border border-primary hover:shadow-[0_0_20px_-1px_hsl(var(--primary))]"
+                      : "text-primary/60 border border-primary/25 hover:text-primary hover:bg-primary/10"
                   }`}
-                  title={isVip ? "VIP ativo" : "VIP inativo"}
+                  title={isVip ? "Abrir Chat VIP" : "VIP inativo"}
                 >
                   <Crown className={`w-3 h-3 ${isVip ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">{isVip ? "VIP Ativo" : "VIP"}</span>
-                </span>
+                </button>
               </div>
             </div>
 
