@@ -1182,15 +1182,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
                 {/* Avatar / emoji circle */}
                 <div className="relative mx-auto w-20 h-20 mb-5 rounded-2xl flex items-center justify-center bg-gradient-to-br from-primary/25 via-primary/10 to-transparent border border-primary/30 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.6)]">
-                  <span className="text-4xl">{currentMode.emptyEmoji}</span>
+                  <span className="text-4xl">{config.emptyEmoji}</span>
                   <span className="absolute -inset-1 rounded-2xl bg-primary/20 blur-md -z-10 animate-pulse-ring" aria-hidden />
                 </div>
 
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text-primary mb-2">
-                  Bem-vindo ao {currentMode.emptyTitle}
+                  Bem-vindo ao {config.emptyTitle}
                 </h2>
                 <p className="text-sm text-muted-foreground/80 leading-relaxed mb-6">
-                  {currentMode.emptyText}
+                  {config.emptyText}
                 </p>
 
                 {/* Quick suggestions */}
