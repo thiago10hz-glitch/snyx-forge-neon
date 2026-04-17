@@ -22,19 +22,11 @@ const normalizeCharacterName = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-const fallbackAvatarFor = (name: string) => {
-  const seed = encodeURIComponent(normalizeCharacterName(name) || name);
-  // High-quality stylized portrait fallback (DiceBear "lorelei" + "notionists" rotation by hash)
-  const styles = ["lorelei", "notionists", "adventurer"];
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  const style = styles[hash % styles.length];
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf,ffd93d,6bcf7f`;
-};
-
 export const resolveCharacterAvatar = (name?: string | null, avatarUrl?: string | null) => {
   const trimmedAvatarUrl = avatarUrl?.trim();
   if (trimmedAvatarUrl) return trimmedAvatarUrl;
   if (!name) return null;
-  return DEFAULT_CHARACTER_AVATARS[normalizeCharacterName(name)] ?? fallbackAvatarFor(name);
+  // Only return preset portrait if name matches one of our hand-crafted characters.
+  // Otherwise return null so the UI shows its themed initial-fallback (epic gradient).
+  return DEFAULT_CHARACTER_AVATARS[normalizeCharacterName(name)] ?? null;
 };
