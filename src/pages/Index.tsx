@@ -218,14 +218,14 @@ const Index = () => {
           {/* (header central removido) */}
 
           {/* Top-left: toggle invisível pra mostrar/esconder a barra lateral (aparece no hover) */}
-          <div className="hidden md:block fixed top-3 left-3 z-30">
+          <div className="hidden md:block fixed top-4 left-4 z-30">
             <button
               onClick={() => setRailCollapsed((v) => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-card/40 hover:bg-card/80 border border-border/40 hover:border-border text-muted-foreground/60 hover:text-foreground transition-all duration-200 backdrop-blur-sm"
+              className="flex items-center justify-center text-muted-foreground/50 hover:text-foreground transition-colors duration-200"
               aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
               title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
             >
-              <PanelLeft className="w-[18px] h-[18px]" strokeWidth={1.85} />
+              <PanelLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />
             </button>
           </div>
 
