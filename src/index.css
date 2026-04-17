@@ -6,44 +6,44 @@
 
 @layer base {
   :root {
-    /* Crimson Neon — vermelho vibrante + glassmorphism */
+    /* Crimson Royal — vermelho rubi sofisticado, mais cinematográfico */
     --background: 240 24% 5%;
     --foreground: 0 0% 97%;
-    --card: 345 33% 7%;
+    --card: 350 28% 7%;
     --card-foreground: 0 0% 97%;
-    --popover: 345 30% 8%;
+    --popover: 350 26% 8%;
     --popover-foreground: 0 0% 97%;
-    --primary: 350 100% 54%;
+    --primary: 354 84% 57%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 345 100% 66%;
-    --secondary: 345 20% 12%;
+    --primary-glow: 350 92% 68%;
+    --secondary: 350 18% 12%;
     --secondary-foreground: 0 0% 92%;
-    --muted: 345 16% 12%;
-    --muted-foreground: 345 8% 62%;
-    --accent: 345 100% 66%;
+    --muted: 350 14% 12%;
+    --muted-foreground: 350 8% 62%;
+    --accent: 350 92% 68%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 350 100% 54%;
+    --destructive: 354 84% 57%;
     --destructive-foreground: 0 0% 100%;
-    --border: 345 30% 14%;
-    --input: 345 25% 12%;
-    --ring: 350 100% 54%;
+    --border: 350 26% 14%;
+    --input: 350 22% 12%;
+    --ring: 354 84% 57%;
     --radius: 1rem;
     --sidebar-background: 240 28% 4%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 350 100% 54%;
+    --sidebar-primary: 354 84% 57%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 345 30% 8%;
+    --sidebar-accent: 350 28% 8%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 345 25% 11%;
-    --sidebar-ring: 350 100% 54%;
+    --sidebar-border: 350 22% 11%;
+    --sidebar-ring: 354 84% 57%;
 
-    /* Glow tokens — usados em botões, cards e bordas */
-    --neon-glow: 0 0 16px hsl(350 100% 54% / 0.35), 0 0 40px hsl(350 100% 54% / 0.12);
-    --neon-glow-strong: 0 0 18px hsl(350 100% 54% / 0.55), 0 0 56px hsl(345 100% 66% / 0.28), 0 0 110px hsl(350 100% 54% / 0.12);
-    --neon-glow-soft: 0 0 12px hsl(345 100% 66% / 0.22), 0 0 28px hsl(350 100% 54% / 0.08);
-    --gradient-primary: linear-gradient(135deg, hsl(350 100% 54%), hsl(345 100% 66%));
-    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(350 100% 54% / 0.18), transparent 70%);
-    --gradient-card: linear-gradient(145deg, hsl(345 33% 9% / 0.85), hsl(240 24% 6% / 0.95));
+    /* Glow tokens — vermelho rubi mais elegante */
+    --neon-glow: 0 0 16px hsl(354 84% 57% / 0.35), 0 0 40px hsl(354 84% 57% / 0.12);
+    --neon-glow-strong: 0 0 18px hsl(354 84% 57% / 0.55), 0 0 56px hsl(350 92% 68% / 0.28), 0 0 110px hsl(354 84% 57% / 0.12);
+    --neon-glow-soft: 0 0 12px hsl(350 92% 68% / 0.22), 0 0 28px hsl(354 84% 57% / 0.08);
+    --gradient-primary: linear-gradient(135deg, hsl(354 84% 57%), hsl(350 92% 68%));
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(354 84% 57% / 0.18), transparent 70%);
+    --gradient-card: linear-gradient(145deg, hsl(350 28% 9% / 0.85), hsl(240 24% 6% / 0.95));
   }
 }
 
