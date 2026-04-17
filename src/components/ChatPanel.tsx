@@ -1345,25 +1345,28 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                           {copiedMsg === i ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
                         </button>
                       </div>
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 border border-primary/8 bg-primary/12">
-                        {profile?.avatar_url ? (
-                          <img src={profile.avatar_url} alt="Você" className="w-full h-full object-cover" />
-                        ) : (
-                          <>
-                            <User size={12} className="text-primary md:hidden" />
-                            <User size={14} className="text-primary hidden md:block" />
-                          </>
-                        )}
+                      <div className="relative shrink-0 mt-1">
+                        <span className="absolute inset-0 rounded-xl bg-primary/30 blur-md animate-pulse-ring pointer-events-none" aria-hidden />
+                        <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl overflow-hidden flex items-center justify-center border border-primary/40 bg-gradient-to-br from-primary/30 to-primary/10 shadow-[0_0_14px_-2px_hsl(var(--primary)/0.55)]">
+                          {profile?.avatar_url ? (
+                            <img src={profile.avatar_url} alt="Você" className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={14} className="text-primary-foreground/95 drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.2} />
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        {aiAvatarUrl ? (
-                          <img src={aiAvatarUrl} alt="AI" className="w-full h-full object-cover" />
-                        ) : (
-                          <><Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} /></>
-                        )}
+                      <div className="relative shrink-0 mt-1">
+                        <span className="absolute inset-0 rounded-xl bg-primary/20 blur-md animate-pulse-ring pointer-events-none" aria-hidden />
+                        <div className={`relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl overflow-hidden flex items-center justify-center border border-primary/30 bg-gradient-to-br from-card/80 to-background/90 shadow-[0_0_12px_-3px_hsl(var(--primary)/0.45),inset_0_1px_0_hsl(var(--primary)/0.15)]`}>
+                          {aiAvatarUrl ? (
+                            <img src={aiAvatarUrl} alt="AI" className="w-full h-full object-cover" />
+                          ) : (
+                            <Bot size={14} className="text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.7)]" strokeWidth={2.2} />
+                          )}
+                        </div>
                       </div>
                       <div className={`flex-1 min-w-0 chat-bubble-ai ${getBubbleClass(bubbleStyle, chatThemeColor)} px-3 py-2`}>
                         <div className="text-sm leading-relaxed text-foreground/90 prose prose-invert prose-sm max-w-none">
@@ -1541,21 +1544,23 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
               {isLoading && (
                 <div className="flex gap-3 animate-slide-up-fade">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${config.bgColor} border ${config.borderColor}`}>
-                    <Bot size={14} className={config.color} />
+                  <div className="relative shrink-0">
+                    <span className="absolute inset-0 rounded-xl bg-primary/30 blur-md animate-pulse-ring pointer-events-none" aria-hidden />
+                    <div className="relative w-9 h-9 rounded-xl flex items-center justify-center border border-primary/40 bg-gradient-to-br from-primary/20 to-card/80 shadow-[0_0_14px_-2px_hsl(var(--primary)/0.6)]">
+                      <Bot size={15} className="text-primary drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.2} />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 py-3">
-                    {thinkingText && (
-                      <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl glass-input border border-border/10">
-                        <Brain size={14} className={`${config.color} animate-pulse`} />
-                        <span className="text-xs text-muted-foreground/60 animate-pulse">{thinkingText}</span>
+                  <div className="flex items-center gap-2 py-2">
+                    {thinkingText ? (
+                      <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl glass-input border border-primary/20 shadow-[0_0_18px_-6px_hsl(var(--primary)/0.45)]">
+                        <Brain size={14} className="text-primary animate-pulse drop-shadow-[0_0_4px_hsl(var(--primary)/0.6)]" />
+                        <span className="text-xs font-medium text-foreground/80 animate-pulse">{thinkingText}</span>
                       </div>
-                    )}
-                    {!thinkingText && (
-                      <div className="flex items-center gap-2 px-3 py-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-dot-pulse" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-dot-pulse" style={{ animationDelay: '200ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-dot-pulse" style={{ animationDelay: '400ms' }} />
+                    ) : (
+                      <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl chat-bubble-ai">
+                        <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-dot-pulse" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-dot-pulse" style={{ animationDelay: '180ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-dot-pulse" style={{ animationDelay: '360ms' }} />
                       </div>
                     )}
                   </div>

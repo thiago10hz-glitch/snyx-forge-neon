@@ -42,14 +42,16 @@ export function SideRail({ logo, topItems, bottomItems }: SideRailProps) {
     const inner = (
       <button
         onClick={item.onClick}
-        className={`relative ${expanded ? "w-full h-10 px-2.5 justify-start gap-2.5" : "w-10 h-10 justify-center"} rounded-2xl border flex items-center transition-all duration-200 ${tone}`}
+        className={`group relative ${expanded ? "w-full h-10 px-2.5 justify-start gap-2.5" : "w-10 h-10 justify-center"} rounded-2xl border flex items-center transition-all duration-300 ease-out hover:scale-[1.04] active:scale-[0.96] ${tone}`}
       >
         {item.active && (
           <span className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
         )}
-        <Icon className="w-[17px] h-[17px] shrink-0" strokeWidth={1.85} />
+        {/* glow halo on hover */}
+        <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.18),transparent_70%)]" aria-hidden />
+        <Icon className="relative w-[17px] h-[17px] shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]" strokeWidth={1.85} />
         {expanded && (
-          <span className="text-[12px] font-semibold tracking-tight truncate">{item.label}</span>
+          <span className="relative text-[12px] font-semibold tracking-tight truncate">{item.label}</span>
         )}
         {item.dot && (
           <span className={`absolute ${expanded ? "top-2 right-2" : "top-1.5 right-1.5"} w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse`} />
