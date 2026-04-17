@@ -158,23 +158,70 @@ const Index = () => {
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-12 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-border/10 bg-card/40 backdrop-blur-xl">
-            <div className="flex items-center gap-2">
+          <header className="h-12 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-border/10 bg-card/20 backdrop-blur-xl relative">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-all"
               >
                 <Menu className="w-4 h-4" />
               </button>
-              <div className="md:hidden flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold tracking-tight">SnyX</span>
-              </div>
               <AdminPresenceIndicator />
             </div>
 
+            {/* Center: chat title + dropdown */}
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <button
+                onClick={() => setChatMenuOpen((v) => !v)}
+                className="group flex items-center gap-1.5 px-3 py-1 rounded-full hover:bg-muted/15 transition-colors"
+              >
+                <Flame className="w-3.5 h-3.5 text-primary" />
+                <span className="text-sm font-bold tracking-tight text-foreground">
+                  {currentChatLabel}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground/60 transition-transform ${chatMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {chatMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setChatMenuOpen(false)} />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border border-border/20 bg-card/95 backdrop-blur-2xl shadow-2xl shadow-primary/10 z-40 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    <div className="p-1.5">
+                      {chatOptions.map((opt) => {
+                        const Icon = opt.icon;
+                        const active = chatChoice === opt.key;
+                        return (
+                          <button
+                            key={opt.key}
+                            onClick={() => {
+                              setChatMenuOpen(false);
+                              if (opt.locked) return;
+                              handleSelectChat(opt.key);
+                            }}
+                            disabled={opt.locked}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                              active
+                                ? "bg-primary/15 text-primary"
+                                : opt.locked
+                                  ? "text-muted-foreground/40 cursor-not-allowed"
+                                  : "text-foreground hover:bg-muted/20"
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${active ? "text-primary" : opt.color}`} />
+                            <span className="flex-1 text-left font-medium">{opt.label}</span>
+                            {opt.locked && <Lock className="w-3 h-3 text-muted-foreground/40" />}
+                            {active && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Right */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1 justify-end">
               {profile?.is_dev ? (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25">
                   <Code size={9} /> DEV
