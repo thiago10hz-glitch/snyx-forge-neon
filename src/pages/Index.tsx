@@ -69,9 +69,9 @@ const Index = () => {
   
 
   // Mini icon-only sidebar item (w-14)
-  const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent }: {
+  const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent, dot }: {
     icon: any; label: string; onClick?: () => void; active?: boolean; to?: string;
-    danger?: boolean; accent?: boolean;
+    danger?: boolean; accent?: boolean; dot?: boolean;
   }) => {
     const base = (
       <button
@@ -88,6 +88,9 @@ const Index = () => {
       >
         <Icon className="w-[17px] h-[17px]" strokeWidth={1.8} />
         {active && <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />}
+        {dot && (
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
+        )}
       </button>
     );
 
@@ -101,6 +104,16 @@ const Index = () => {
     );
     return wrapped;
   };
+
+  // Header chat title dropdown
+  const [chatMenuOpen, setChatMenuOpen] = useState(false);
+  const chatLabels: Record<ChatChoice | "none", string> = {
+    none: "SnyX",
+    friend: "Chat Amigo",
+    vip: "Chat VIP",
+    programmer: "Chat Programador",
+  };
+  const currentChatLabel = chatChoice ? chatLabels[chatChoice] : chatLabels.none;
 
   return (
     <TooltipProvider delayDuration={150}>
