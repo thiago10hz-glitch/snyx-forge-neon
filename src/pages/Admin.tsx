@@ -656,93 +656,12 @@ export default function Admin() {
             prev.map((u) => (u.user_id === tagModalUserId ? { ...u, ...patch } : u))
           )
         }
+        onDeleted={(uid) => {
+          setUsers((prev) => prev.filter((u) => u.user_id !== uid));
+          setTagModalUserId(null);
+        }}
       />
 
-
-      {vipModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-yellow-500/10 mb-4">
-              <Crown className="w-6 h-6 text-yellow-400" />
-            </div>
-            <h2 className="text-base font-semibold mb-1">Conceder VIP</h2>
-            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[1, 2, 3, 6].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setVipMonths(m)}
-                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    vipMonths === m
-                      ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/40"
-                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setVipModalUser(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => grantVip(vipModalUser, vipMonths)}
-                disabled={actionLoading !== null}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25 border border-yellow-500/30 transition-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DEV Duration Modal */}
-      {devModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 mb-4">
-              <Code2 className="w-6 h-6 text-cyan-400" />
-            </div>
-            <h2 className="text-base font-semibold mb-1">Conceder DEV</h2>
-            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[1, 2, 3, 6].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setDevMonths(m)}
-                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    devMonths === m
-                      ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/40"
-                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDevModalUser(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => grantDev(devModalUser, devMonths)}
-                disabled={actionLoading !== null}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
               
       </div>
@@ -750,29 +669,3 @@ export default function Admin() {
   );
 }
 
-function ActionButton({
-  icon: Icon,
-  title,
-  color,
-  onClick,
-  loading,
-  disabled,
-}: {
-  icon: typeof Crown;
-  title: string;
-  color: string;
-  onClick: () => void;
-  loading: boolean;
-  disabled: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`p-2 rounded-xl border transition-all disabled:opacity-50 ${color}`}
-      title={title}
-    >
-      {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
-    </button>
-  );
-}
