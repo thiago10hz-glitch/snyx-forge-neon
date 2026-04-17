@@ -49,7 +49,7 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer";
+type ChatMode = "friend" | "programmer" | "writer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
@@ -794,6 +794,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-school`;
     } else if (mode === "programmer") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-programmer`;
+    } else if (mode === "writer") {
+      chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-writer`;
     } else if (mode === "friend" && usePremium) {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-vip`;
     } else {
