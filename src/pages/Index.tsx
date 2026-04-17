@@ -130,10 +130,20 @@ const Index = () => {
           logo={
             <Link
               to="/"
-              className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary/35 via-primary/15 to-transparent flex items-center justify-center border border-primary/30 shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_26px_-2px_hsl(var(--primary)/0.7)] transition-all"
+              className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
               title="SnyX"
             >
-              <Sparkles className="w-4 h-4 text-primary" />
+              {/* outer glow halo */}
+              <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
+              {/* gradient body */}
+              <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
+              {/* shine sweep */}
+              <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
+                <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
+              </span>
+              {/* inner ring */}
+              <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
+              <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
             </Link>
           }
           topItems={railTopItems}
