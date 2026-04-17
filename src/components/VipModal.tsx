@@ -174,37 +174,39 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
         {/* Plans */}
         <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
           {/* VIP Plan */}
-          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col ${
+          <div className={`relative rounded-2xl border p-3 sm:p-5 transition-all duration-300 flex flex-col overflow-hidden card-premium ${
             highlightPlan === "vip"
-              ? "border-yellow-500/25 bg-yellow-500/3 ring-1 ring-yellow-500/10"
-              : "border-border/15 bg-muted/5"
+              ? "border-primary/45 ring-1 ring-primary/25 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.55)]"
+              : "border-primary/15"
           }`}>
-            <div className="flex items-center gap-2 mb-1">
-              <Crown size={18} className="text-yellow-400" />
+            {/* glow halo */}
+            <div className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
+            <div className="relative flex items-center gap-2 mb-1">
+              <Crown size={18} className="text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               <span className="text-base font-bold text-foreground">VIP</span>
               {highlightPlan === "vip" && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-yellow-400 font-bold animate-pulse">POPULAR</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-primary/15 text-primary font-bold animate-pulse border border-primary/30">POPULAR</span>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground/50 mb-3">Para quem quer o máximo do chat</p>
-            
-            <div className="mb-3">
+            <p className="relative text-[11px] text-muted-foreground/60 mb-3">Para quem quer o máximo do chat</p>
+
+            <div className="relative mb-3">
               <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-bold border border-yellow-500/20">👑 VIP</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/30 shadow-[0_0_8px_-2px_hsl(var(--primary)/0.4)]">👑 VIP</span>
               </div>
-              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.vip[period]}</span>
-              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
+              <span className="text-3xl font-black gradient-text-primary">R${PLAN_PRICES.vip[period]}</span>
+              <span className="text-xs text-muted-foreground/50">{PERIOD_SUFFIX[period]}</span>
             </div>
 
-            <div className="space-y-2.5 flex-1">
+            <div className="relative space-y-2.5 flex-1">
               {vipFeatures.map((f, i) => (
                 <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
-                  <div className="w-5 h-5 rounded-md bg-emerald-500/8 flex items-center justify-center shrink-0 mt-0.5">
-                    <Check size={11} className="text-emerald-400" />
+                  <div className="w-5 h-5 rounded-md bg-primary/12 flex items-center justify-center shrink-0 mt-0.5 border border-primary/20">
+                    <Check size={11} className="text-primary" />
                   </div>
                   <div>
                     <span className="text-xs font-medium text-foreground/90">{f.text}</span>
-                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
+                    <p className="text-[10px] text-muted-foreground/50">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -213,48 +215,49 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             <button
               onClick={() => handleSubscribe("vip")}
               disabled={!!loadingPlan}
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-semibold rounded-xl py-3 transition-all duration-300 text-sm border border-yellow-500/15 hover:shadow-lg hover:shadow-yellow-500/5 disabled:opacity-50"
+              className="relative mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-primary/20 to-primary/10 hover:from-primary/30 hover:to-primary/15 text-primary font-bold uppercase tracking-wider rounded-xl py-3 transition-all duration-300 text-sm border border-primary/30 hover:border-primary/60 hover:shadow-[0_0_24px_-4px_hsl(var(--primary)/0.5)] disabled:opacity-50 btn-glow"
             >
               {loadingPlan === "vip" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
-              ASSINAR VIP
+              Assinar VIP
             </button>
           </div>
 
           {/* Programmer Plan */}
-          <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col relative ${
+          <div className={`relative rounded-2xl border p-3 sm:p-5 transition-all duration-300 flex flex-col overflow-hidden card-premium ${
             highlightPlan === "programmer"
-              ? "border-cyan-500/25 bg-cyan-500/3 ring-1 ring-cyan-500/10"
-              : "border-border/15 bg-muted/5"
+              ? "border-primary/45 ring-1 ring-primary/25 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.55)]"
+              : "border-primary/15"
           }`}>
-            <div className="absolute -top-2.5 right-4">
-              <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/20">
-                🚀 MELHOR
+            <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
+            <div className="absolute -top-2.5 right-4 z-10">
+              <span className="text-[9px] px-2 py-1 rounded-full bg-gradient-to-r from-primary to-[hsl(345_100%_45%)] text-primary-foreground font-black uppercase tracking-wider shadow-[0_0_18px_-2px_hsl(var(--primary)/0.7)] animate-pulse">
+                🚀 Melhor
               </span>
             </div>
 
-            <div className="flex items-center gap-2 mb-1">
-              <Code size={18} className="text-cyan-400" />
+            <div className="relative flex items-center gap-2 mb-1">
+              <Code size={18} className="text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               <span className="text-base font-bold text-foreground">Programador</span>
             </div>
-            <p className="text-[11px] text-muted-foreground/50 mb-3">Crie projetos profissionais com IA</p>
+            <p className="relative text-[11px] text-muted-foreground/60 mb-3">Crie projetos profissionais com IA</p>
 
-            <div className="mb-3">
+            <div className="relative mb-3">
               <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/20">💻 DEV</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/30 shadow-[0_0_8px_-2px_hsl(var(--primary)/0.4)]">💻 DEV</span>
               </div>
-              <span className="text-3xl font-black text-foreground">R${PLAN_PRICES.programmer[period]}</span>
-              <span className="text-xs text-muted-foreground/40">{PERIOD_SUFFIX[period]}</span>
+              <span className="text-3xl font-black gradient-text-primary">R${PLAN_PRICES.programmer[period]}</span>
+              <span className="text-xs text-muted-foreground/50">{PERIOD_SUFFIX[period]}</span>
             </div>
 
-            <div className="space-y-2.5 flex-1">
+            <div className="relative space-y-2.5 flex-1">
               {programmerFeatures.map((f, i) => (
                 <div key={i} className="flex items-start gap-2.5 animate-slide-up-fade" style={{ animationDelay: `${i * 50}ms` }}>
-                  <div className="w-5 h-5 rounded-md bg-cyan-500/8 flex items-center justify-center shrink-0 mt-0.5">
-                    <Check size={11} className="text-cyan-400" />
+                  <div className="w-5 h-5 rounded-md bg-primary/12 flex items-center justify-center shrink-0 mt-0.5 border border-primary/20">
+                    <Check size={11} className="text-primary" />
                   </div>
                   <div>
                     <span className="text-xs font-medium text-foreground/90">{f.text}</span>
-                    <p className="text-[10px] text-muted-foreground/40">{f.desc}</p>
+                    <p className="text-[10px] text-muted-foreground/50">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -263,10 +266,10 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
             <button
               onClick={() => handleSubscribe("programmer")}
               disabled={!!loadingPlan}
-              className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold rounded-xl py-3 transition-all duration-300 text-sm shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25 disabled:opacity-50"
+              className="relative mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-primary to-[hsl(345_100%_45%)] hover:from-[hsl(350_100%_60%)] hover:to-primary text-primary-foreground font-black uppercase tracking-wider rounded-xl py-3 transition-all duration-300 text-sm shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_32px_-2px_hsl(var(--primary))] disabled:opacity-50 btn-glow"
             >
               {loadingPlan === "programmer" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
-              ASSINAR DEV
+              Assinar DEV
             </button>
           </div>
         </div>
