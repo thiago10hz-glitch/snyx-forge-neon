@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Phone, Archive, Link2, PenLine, Rocket, Copy, Check } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Archive, PenLine, Rocket, Copy, Check } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
-import { VoiceCall } from "./VoiceCall";
 
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -133,7 +132,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [thinkingText, setThinkingText] = useState("");
   const [showChatSettings, setShowChatSettings] = useState(false);
-  const [showVoiceCall, setShowVoiceCall] = useState(false);
   
   const [bubbleStyle, setBubbleStyle] = useState("default");
   const [chatThemeColor, setChatThemeColor] = useState("#8b5cf6");
@@ -1225,17 +1223,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             )}
           </div>
 
-          {/* Voice Call Button (friend mode) */}
-          {mode === "friend" && (
-            <button
-              onClick={() => setShowVoiceCall(true)}
-              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
-              title="Ligar para a IA"
-            >
-              <Phone size={14} className="sm:hidden" />
-              <Phone size={15} className="hidden sm:block" />
-            </button>
-          )}
+          {/* Voice Call removed */}
 
           {/* Chat Settings Button */}
           <button
@@ -1782,7 +1770,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
       <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan={vipModalPlan} />
       <ChatSettings open={showChatSettings} onClose={() => setShowChatSettings(false)} />
-      <VoiceCall open={showVoiceCall} onClose={() => setShowVoiceCall(false)} />
       
 
       {/* Limit modal */}

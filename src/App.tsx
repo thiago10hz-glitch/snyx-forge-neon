@@ -9,25 +9,19 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { Loader2 } from "lucide-react";
 import { initSnyxSecurity, setSnyxOwnerMode } from "@/lib/snyxSecurity";
 
-// Eager imports — all pages loaded upfront for instant navigation
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OwnerPanel from "./pages/OwnerPanel";
-import IPTV from "./pages/IPTV";
 import ResetPassword from "./pages/ResetPassword";
-import Downloads from "./pages/Downloads";
-import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
-
-import CheckoutReturn from "./pages/CheckoutReturn";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 min cache
-      gcTime: 10 * 60 * 1000, // 10 min garbage collection
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -42,7 +36,6 @@ const PageLoader = () => (
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
@@ -50,7 +43,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-
   if (loading) return <PageLoader />;
   if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
@@ -61,16 +53,14 @@ function CopyProtection() {
   const isOwner = isAdmin || profile?.team_badge === "Dona" || profile?.team_badge === "Primeira-Dama";
 
   React.useEffect(() => {
-    // Set owner mode in security module
     setSnyxOwnerMode(!!isOwner);
 
     if (isOwner) {
       document.documentElement.style.userSelect = '';
-      document.documentElement.style.webkitUserSelect = '';
+      (document.documentElement.style as any).webkitUserSelect = '';
       return;
     }
 
-    // Block copy/cut/select for non-owners
     document.documentElement.style.userSelect = 'none';
     (document.documentElement.style as any).webkitUserSelect = 'none';
 
@@ -102,12 +92,7 @@ function CopyProtection() {
 }
 
 const App = () => {
-  // Initialize SnyX-SEC protection layer
-  React.useEffect(() => {
-    initSnyxSecurity();
-  }, []);
-
-  // Drag protection (all users)
+  React.useEffect(() => { initSnyxSecurity(); }, []);
   React.useEffect(() => {
     const handleDragStart = (e: DragEvent) => e.preventDefault();
     document.addEventListener('dragstart', handleDragStart);
@@ -125,17 +110,13 @@ const App = () => {
             <CommandPalette />
             <ThemeProvider>
               <Routes>
-                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                  <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                  <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
-                  <Route path="/iptv" element={<ProtectedRoute><IPTV /></ProtectedRoute>} />
-                  <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
-                  <Route path="/pack-steam" element={<ProtectedRoute><PackSteam /></ProtectedRoute>} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </ThemeProvider>
           </AuthProvider>
         </BrowserRouter>

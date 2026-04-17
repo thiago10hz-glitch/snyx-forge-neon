@@ -8,7 +8,7 @@ import {
   ArrowLeft, Zap, Eye, Activity, Server, Database, Wifi,
   Send, Ban, Clock, Package, Code2, Swords, Megaphone,
   BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
-  AlertTriangle, Star, Heart, Radio, Volume2
+  AlertTriangle, Star, Heart, Radio, Volume2, Menu, X
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -85,6 +85,7 @@ export default function OwnerPanel() {
   const [loading, setLoading] = useState(true);
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -122,8 +123,6 @@ export default function OwnerPanel() {
       supabase.from("profiles").select("display_name, created_at, is_vip, is_dev, team_badge").order("created_at", { ascending: false }).limit(10),
       supabase.from("profiles").select("display_name, free_messages_used, is_vip").order("free_messages_used", { ascending: false }).limit(5),
     ]);
-    const connCount = 0;
-    const siteCount = 0;
 
     const users = profiles || [];
     const notExpired = (flag: boolean, exp: string | null) => flag && (!exp || new Date(exp) > now);
@@ -144,9 +143,9 @@ export default function OwnerPanel() {
       totalConversations: convCount || 0,
       totalTickets: ticketCount || 0,
       openTickets: openTicketCount || 0,
-      totalSites: siteCount || 0,
+      totalSites: 0,
       totalCharacters: charCount || 0,
-      totalConnections: connCount || 0,
+      totalConnections: 0,
       todaySignups: users.filter(u => u.created_at >= todayStart).length,
       weekSignups: users.filter(u => u.created_at >= weekStart).length,
       avgMessagesPerUser: totalUsers > 0 ? Math.round(totalMsgs / totalUsers) : 0,
@@ -177,86 +176,129 @@ export default function OwnerPanel() {
     { key: "aichat", label: "IA Chat", icon: Sparkles },
   ];
 
+  const currentTab = tabs.find(t => t.key === activeTab);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Premium Header */}
-      <header className="relative border-b border-amber-500/20 bg-gradient-to-r from-amber-950/30 via-background to-amber-950/30 sticky top-0 z-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/5 via-transparent to-transparent" />
-        <div className="relative h-14 flex items-center justify-between px-4">
+    <div className="min-h-screen bg-background text-foreground flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* === SIDEBAR === */}
+      <aside className={`
+        fixed md:sticky top-0 left-0 h-[100dvh] w-64 shrink-0 z-50 md:z-10
+        bg-gradient-to-b from-amber-950/40 via-sidebar/95 to-sidebar/95 backdrop-blur-xl
+        border-r border-amber-500/20 flex flex-col transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Brand */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-amber-500/15 shrink-0">
           <div className="flex items-center gap-3">
-            <Link to="/" className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="flex items-center gap-2.5">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                  <Crown className="w-4 h-4 text-black" />
-                </div>
-                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
+            <div className="relative">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <Crown className="w-5 h-5 text-black" />
               </div>
-              <div>
-                <h1 className="text-sm font-bold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
-                  Painel do Dono
-                </h1>
-                <p className="text-[9px] text-amber-500/50 font-medium tracking-wider uppercase">
-                  {profile?.display_name || "Owner"} • Full Access
-                </p>
-              </div>
+              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-sm font-black bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-transparent tracking-tight">
+                Painel do Dono
+              </h1>
+              <p className="text-[9px] text-amber-500/60 font-bold tracking-widest uppercase">Full Access</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => fetchAll()}
-              disabled={refreshing}
-              className="p-2 rounded-xl text-amber-400/60 hover:text-amber-400 hover:bg-amber-500/10 transition-all"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-            </button>
-            <Link
-              to="/admin"
-              className="px-3 py-1.5 rounded-xl text-[10px] font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all border border-border/20"
-            >
-              Admin Clássico
-            </Link>
-          </div>
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        {/* Tabs */}
-        <div className="relative flex items-center gap-1 px-4 pb-2 overflow-x-auto scrollbar-hide">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                activeTab === tab.key
-                  ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/5"
-                  : "text-muted-foreground/60 hover:text-muted-foreground border border-transparent hover:bg-muted/20"
-              }`}
-            >
-              <tab.icon className="w-3 h-3" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </header>
 
-      {/* Content */}
-      <main className="max-w-6xl mx-auto p-4 space-y-5">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+        {/* User pill */}
+        <div className="px-3 pt-3">
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/30 to-yellow-500/20 flex items-center justify-center text-xs font-black text-amber-300">
+              {(profile?.display_name || "O")[0].toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold truncate">{profile?.display_name || "Owner"}</p>
+              <p className="text-[9px] text-amber-500/60 truncate">👑 {profile?.team_badge || "Dono"}</p>
+            </div>
           </div>
-        ) : (
-          <>
-            {activeTab === "overview" && stats && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
-            {activeTab === "analytics" && stats && <AnalyticsTab stats={stats} />}
-            {activeTab === "admins" && <AdminsTab />}
-            {activeTab === "broadcast" && <BroadcastTab broadcastMsg={broadcastMsg} setBroadcastMsg={setBroadcastMsg} />}
-            {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
-            {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
-            {activeTab === "aichat" && <OwnerChat />}
-          </>
-        )}
-      </main>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <p className="px-3 pt-2 pb-2 text-[9px] font-bold text-amber-500/40 uppercase tracking-widest">Console</p>
+          {tabs.map((tab) => {
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  active
+                    ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-300 border border-amber-500/30 shadow-[0_0_25px_-8px_hsl(45_100%_60%/0.5)]"
+                    : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/15 border border-transparent"
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span className="flex-1 text-left">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom */}
+        <div className="p-3 border-t border-amber-500/10 space-y-1 shrink-0">
+          <Link to="/admin" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+            <ShieldCheck className="w-3.5 h-3.5" /><span>Admin Console</span>
+          </Link>
+          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+            <ArrowLeft className="w-3.5 h-3.5" /><span>Voltar ao app</span>
+          </Link>
+        </div>
+      </aside>
+
+      {/* === MAIN === */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-border/10 bg-background/80 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+              <Menu className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              {currentTab && <currentTab.icon className="w-4 h-4 text-amber-400" />}
+              <h2 className="text-sm font-bold">{currentTab?.label}</h2>
+            </div>
+          </div>
+          <button
+            onClick={() => fetchAll()}
+            disabled={refreshing}
+            className="p-2 rounded-xl text-amber-400/60 hover:text-amber-400 hover:bg-amber-500/10 transition-all"
+            title="Atualizar"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+          </button>
+        </header>
+
+        <main className="flex-1 max-w-6xl mx-auto w-full p-4 space-y-5">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+            </div>
+          ) : (
+            <>
+              {activeTab === "overview" && stats && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
+              {activeTab === "analytics" && stats && <AnalyticsTab stats={stats} />}
+              {activeTab === "admins" && <AdminsTab />}
+              {activeTab === "broadcast" && <BroadcastTab broadcastMsg={broadcastMsg} setBroadcastMsg={setBroadcastMsg} />}
+              {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
+              {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
+              {activeTab === "aichat" && <OwnerChat />}
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
