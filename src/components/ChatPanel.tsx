@@ -795,6 +795,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     if (!convId) {
       convId = await createConversation();
       if (!convId) { toast.error("Erro ao criar conversa"); return; }
+      skipNextLoadRef.current = convId;
       setActiveConversationId(convId);
     }
 
