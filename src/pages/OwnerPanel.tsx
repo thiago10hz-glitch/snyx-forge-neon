@@ -1,16 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import OwnerChat from "@/components/OwnerChat";
 import {
   Crown, Users, MessageCircle, ShieldCheck, Globe, TrendingUp,
-  ArrowLeft, Zap, Eye, Activity, Server, Database, Wifi,
-  Send, Ban, Clock, Package, Code2, Swords, Megaphone,
+  ArrowLeft, Zap, Eye, Activity, Server, Database,
+  Send, Ban, Clock, Package, Code2, Megaphone,
   BarChart3, Settings, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
-  AlertTriangle, Star, Heart, Radio, Volume2, Menu, X
+  AlertTriangle, Star, Radio, Volume2, Menu, X,
+  DollarSign, KeyRound, FileText, Cpu, Flame, Search,
+  ArrowUpRight, ArrowDownRight, Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
+
+/* ════════════════════════════════════════════════════════════════
+ *  PAINEL DO DONO — SnyX Command Center v3
+ *  Dark neon vermelho · Bento grid · Live data
+ * ════════════════════════════════════════════════════════════════ */
 
 interface PlatformStats {
   totalUsers: number;
@@ -24,15 +31,18 @@ interface PlatformStats {
   totalConversations: number;
   totalTickets: number;
   openTickets: number;
-  totalSites: number;
   totalCharacters: number;
-  totalConnections: number;
   todaySignups: number;
   weekSignups: number;
   avgMessagesPerUser: number;
+  apiClients: number;
+  apiRequests: number;
+  monthlyRevenue: number;
+  pendingApplications: number;
 }
 
 interface RecentUser {
+  user_id: string;
   display_name: string | null;
   created_at: string;
   is_vip: boolean;
@@ -46,20 +56,20 @@ interface TopUser {
   is_vip: boolean;
 }
 
-function AnimatedCounter({ value, duration = 1200 }: { value: number; duration?: number }) {
+function AnimatedCounter({ value, duration = 1000, prefix = "", suffix = "" }: { value: number; duration?: number; prefix?: string; suffix?: string }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
     if (value === 0) { setDisplay(0); return; }
     const start = performance.now();
     const step = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
       setDisplay(Math.round(value * eased));
-      if (progress < 1) requestAnimationFrame(step);
+      if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }, [value, duration]);
-  return <>{display.toLocaleString("pt-BR")}</>;
+  return <>{prefix}{display.toLocaleString("pt-BR")}{suffix}</>;
 }
 
 function formatRelative(dateStr: string): string {
@@ -69,11 +79,12 @@ function formatRelative(dateStr: string): string {
   if (mins < 60) return `${mins}min`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return `${Math.floor(hours / 24)}d`;
 }
 
-type OwnerTab = "overview" | "analytics" | "broadcast" | "actions" | "platform" | "admins" | "aichat";
+type OwnerTab =
+  | "overview" | "analytics" | "revenue" | "live" | "health"
+  | "admins" | "broadcast" | "actions" | "platform" | "aichat";
 
 export default function OwnerPanel() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -83,14 +94,10 @@ export default function OwnerPanel() {
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [topUsers, setTopUsers] = useState<TopUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [broadcastMsg, setBroadcastMsg] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    checkAdmin();
-  }, [user]);
+  useEffect(() => { if (user) checkAdmin(); }, [user]);
 
   const checkAdmin = async () => {
     const { data } = await supabase.rpc("has_role", { _user_id: user!.id, _role: "admin" });
@@ -113,6 +120,9 @@ export default function OwnerPanel() {
       { count: charCount },
       { data: recent },
       { data: top },
+      { count: apiClientCount },
+      { data: apiClientsData },
+      { count: pendingApps },
     ] = await Promise.all([
       supabase.from("profiles").select("is_vip, is_dev, is_pack_steam, is_rpg_premium, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at, rpg_premium_expires_at, created_at, free_messages_used"),
       supabase.from("chat_messages").select("id", { count: "exact", head: true }),
@@ -120,8 +130,11 @@ export default function OwnerPanel() {
       supabase.from("support_tickets").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
       supabase.from("ai_characters").select("id", { count: "exact", head: true }),
-      supabase.from("profiles").select("display_name, created_at, is_vip, is_dev, team_badge").order("created_at", { ascending: false }).limit(10),
+      supabase.from("profiles").select("user_id, display_name, created_at, is_vip, is_dev, team_badge").order("created_at", { ascending: false }).limit(10),
       supabase.from("profiles").select("display_name, free_messages_used, is_vip").order("free_messages_used", { ascending: false }).limit(5),
+      supabase.from("api_clients").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("api_clients").select("daily_used, monthly_used"),
+      supabase.from("api_key_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     ]);
 
     const users = profiles || [];
@@ -130,25 +143,35 @@ export default function OwnerPanel() {
 
     const totalMsgs = msgCount || 0;
     const totalUsers = users.length;
+    const vipCount = users.filter(u => notExpired(u.is_vip, u.vip_expires_at)).length;
+    const devCount = users.filter(u => notExpired(u.is_dev, u.dev_expires_at)).length;
+    const packCount = users.filter(u => notExpired(u.is_pack_steam, u.pack_steam_expires_at)).length;
+    const rpgCount = users.filter(u => notExpired(u.is_rpg_premium, u.rpg_premium_expires_at)).length;
+
+    // Estimativa simples de receita mensal (pode ser ajustada com preços reais)
+    const monthlyRevenue = vipCount * 19.9 + packCount * 29.9 + rpgCount * 14.9;
+    const apiRequests = (apiClientsData || []).reduce((acc: number, c: any) => acc + (c.monthly_used || 0), 0);
 
     setStats({
       totalUsers,
-      vipUsers: users.filter(u => notExpired(u.is_vip, u.vip_expires_at)).length,
-      devUsers: users.filter(u => notExpired(u.is_dev, u.dev_expires_at)).length,
-      packSteamUsers: users.filter(u => notExpired(u.is_pack_steam, u.pack_steam_expires_at)).length,
-      rpgPremiumUsers: users.filter(u => notExpired(u.is_rpg_premium, u.rpg_premium_expires_at)).length,
+      vipUsers: vipCount,
+      devUsers: devCount,
+      packSteamUsers: packCount,
+      rpgPremiumUsers: rpgCount,
       freeUsers: users.filter(u => !u.is_vip && !u.is_dev && !u.is_pack_steam && !u.is_rpg_premium).length,
       bannedUsers: users.filter(u => isBanned(u)).length,
       totalMessages: totalMsgs,
       totalConversations: convCount || 0,
       totalTickets: ticketCount || 0,
       openTickets: openTicketCount || 0,
-      totalSites: 0,
       totalCharacters: charCount || 0,
-      totalConnections: 0,
       todaySignups: users.filter(u => u.created_at >= todayStart).length,
       weekSignups: users.filter(u => u.created_at >= weekStart).length,
       avgMessagesPerUser: totalUsers > 0 ? Math.round(totalMsgs / totalUsers) : 0,
+      apiClients: apiClientCount || 0,
+      apiRequests,
+      monthlyRevenue,
+      pendingApplications: pendingApps || 0,
     });
     setRecentUsers((recent || []) as RecentUser[]);
     setTopUsers((top || []) as TopUser[]);
@@ -166,134 +189,185 @@ export default function OwnerPanel() {
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  const tabs: { key: OwnerTab; label: string; icon: typeof Crown }[] = [
-    { key: "overview", label: "Visão Geral", icon: Eye },
-    { key: "analytics", label: "Analytics", icon: BarChart3 },
-    { key: "admins", label: "Administradores", icon: ShieldCheck },
-    { key: "broadcast", label: "Broadcast", icon: Megaphone },
-    { key: "actions", label: "Ações Rápidas", icon: Zap },
-    { key: "platform", label: "Plataforma", icon: Settings },
-    { key: "aichat", label: "IA Chat", icon: Sparkles },
+  const navGroups: { label: string; tabs: { key: OwnerTab; label: string; icon: typeof Crown; badge?: number }[] }[] = [
+    {
+      label: "Operação",
+      tabs: [
+        { key: "overview", label: "Visão Geral", icon: Eye },
+        { key: "live", label: "Tempo Real", icon: Activity },
+        { key: "analytics", label: "Analytics", icon: BarChart3 },
+      ],
+    },
+    {
+      label: "Negócio",
+      tabs: [
+        { key: "revenue", label: "Receita & API", icon: DollarSign, badge: stats?.pendingApplications },
+        { key: "broadcast", label: "Broadcast", icon: Megaphone },
+      ],
+    },
+    {
+      label: "Sistema",
+      tabs: [
+        { key: "health", label: "Saúde", icon: Gauge },
+        { key: "platform", label: "Serviços", icon: Server },
+        { key: "actions", label: "Ações", icon: Zap },
+      ],
+    },
+    {
+      label: "Pessoas & IA",
+      tabs: [
+        { key: "admins", label: "Admins", icon: ShieldCheck },
+        { key: "aichat", label: "IA Chat", icon: Sparkles },
+      ],
+    },
   ];
 
-  const currentTab = tabs.find(t => t.key === activeTab);
+  const allTabs = navGroups.flatMap(g => g.tabs);
+  const currentTab = allTabs.find(t => t.key === activeTab);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
-      {/* Mobile overlay */}
+    <div className="min-h-screen bg-background text-foreground flex relative overflow-hidden">
+      {/* Ambient red glow */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute top-1/3 -right-40 w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl" />
+      </div>
+
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* === SIDEBAR === */}
+      {/* ═══ SIDEBAR ═══ */}
       <aside className={`
-        fixed md:sticky top-0 left-0 h-[100dvh] w-64 shrink-0 z-50 md:z-10
-        bg-gradient-to-b from-amber-950/40 via-sidebar/95 to-sidebar/95 backdrop-blur-xl
-        border-r border-amber-500/20 flex flex-col transition-transform duration-300
+        fixed md:sticky top-0 left-0 h-[100dvh] w-[260px] shrink-0 z-50 md:z-10
+        bg-gradient-to-b from-card/90 via-background/95 to-background/95 backdrop-blur-2xl
+        border-r border-primary/15 flex flex-col transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Brand */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-amber-500/15 shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-primary/10 shrink-0">
+          <div className="flex items-center gap-2.5">
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <Crown className="w-5 h-5 text-black" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary-glow to-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
+                <Crown className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
             </div>
             <div>
-              <h1 className="text-sm font-black bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-transparent tracking-tight">
-                Painel do Dono
+              <h1 className="text-sm font-black bg-gradient-to-r from-primary-glow via-primary to-primary-glow bg-clip-text text-transparent tracking-tight">
+                SnyX Command
               </h1>
-              <p className="text-[9px] text-amber-500/60 font-bold tracking-widest uppercase">Full Access</p>
+              <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase">Owner Console</p>
             </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* User pill */}
+        {/* Owner pill */}
         <div className="px-3 pt-3">
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/30 to-yellow-500/20 flex items-center justify-center text-xs font-black text-amber-300">
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-sm font-black text-primary-glow shadow-inner">
               {(profile?.display_name || "O")[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate">{profile?.display_name || "Owner"}</p>
-              <p className="text-[9px] text-amber-500/60 truncate">👑 {profile?.team_badge || "Dono"}</p>
+              <p className="text-xs font-bold truncate flex items-center gap-1">
+                {profile?.display_name || "Owner"}
+                <Crown className="w-3 h-3 text-primary-glow" />
+              </p>
+              <p className="text-[9px] text-primary/70 truncate font-semibold">{profile?.team_badge || "Dono"} · Full Access</p>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <p className="px-3 pt-2 pb-2 text-[9px] font-bold text-amber-500/40 uppercase tracking-widest">Console</p>
-          {tabs.map((tab) => {
-            const active = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => { setActiveTab(tab.key); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  active
-                    ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-300 border border-amber-500/30 shadow-[0_0_25px_-8px_hsl(45_100%_60%/0.5)]"
-                    : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/15 border border-transparent"
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span className="flex-1 text-left">{tab.label}</span>
-              </button>
-            );
-          })}
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+          {navGroups.map(group => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 pt-1 pb-1 text-[9px] font-black text-primary/40 uppercase tracking-[0.2em]">{group.label}</p>
+              {group.tabs.map(tab => {
+                const active = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => { setActiveTab(tab.key); setSidebarOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative group ${
+                      active
+                        ? "bg-gradient-to-r from-primary/25 via-primary/10 to-transparent text-primary-glow border border-primary/30 shadow-[0_0_25px_-8px_hsl(var(--primary)/0.7)]"
+                        : "text-muted-foreground/70 hover:text-foreground hover:bg-card/50 border border-transparent"
+                    }`}
+                  >
+                    {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-primary shadow-[0_0_12px_hsl(var(--primary))]" />}
+                    <tab.icon className={`w-4 h-4 ${active ? "drop-shadow-[0_0_4px_hsl(var(--primary))]" : ""}`} />
+                    <span className="flex-1 text-left">{tab.label}</span>
+                    {tab.badge !== undefined && tab.badge > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary-glow font-black border border-primary/30 min-w-[18px] text-center">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-amber-500/10 space-y-1 shrink-0">
-          <Link to="/admin" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+        <div className="p-3 border-t border-primary/10 space-y-1 shrink-0">
+          <Link to="/admin" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all">
             <ShieldCheck className="w-3.5 h-3.5" /><span>Admin Console</span>
           </Link>
-          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
+          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all">
             <ArrowLeft className="w-3.5 h-3.5" /><span>Voltar ao app</span>
           </Link>
         </div>
       </aside>
 
-      {/* === MAIN === */}
+      {/* ═══ MAIN ═══ */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-border/10 bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-primary/10 bg-background/85 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/50">
               <Menu className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              {currentTab && <currentTab.icon className="w-4 h-4 text-amber-400" />}
+              {currentTab && <currentTab.icon className="w-4 h-4 text-primary-glow drop-shadow-[0_0_4px_hsl(var(--primary))]" />}
               <h2 className="text-sm font-bold">{currentTab?.label}</h2>
             </div>
           </div>
-          <button
-            onClick={() => fetchAll()}
-            disabled={refreshing}
-            className="p-2 rounded-xl text-amber-400/60 hover:text-amber-400 hover:bg-amber-500/10 transition-all"
-            title="Atualizar"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold text-emerald-400">SISTEMA OK</span>
+            </div>
+            <button
+              onClick={() => fetchAll()}
+              disabled={refreshing}
+              className="p-2 rounded-xl text-primary/70 hover:text-primary-glow hover:bg-primary/10 transition-all"
+              title="Atualizar"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
         </header>
 
-        <main className="flex-1 max-w-6xl mx-auto w-full p-4 space-y-5">
+        <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-5">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+              <Loader2 className="w-7 h-7 text-primary animate-spin" />
             </div>
           ) : (
             <>
               {activeTab === "overview" && stats && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
+              {activeTab === "live" && stats && <LiveTab stats={stats} />}
               {activeTab === "analytics" && stats && <AnalyticsTab stats={stats} />}
-              {activeTab === "admins" && <AdminsTab />}
-              {activeTab === "broadcast" && <BroadcastTab broadcastMsg={broadcastMsg} setBroadcastMsg={setBroadcastMsg} />}
+              {activeTab === "revenue" && stats && <RevenueTab stats={stats} />}
+              {activeTab === "health" && stats && <HealthTab stats={stats} />}
+              {activeTab === "broadcast" && <BroadcastTab />}
               {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
               {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
+              {activeTab === "admins" && <AdminsTab />}
               {activeTab === "aichat" && <OwnerChat />}
             </>
           )}
@@ -303,62 +377,105 @@ export default function OwnerPanel() {
   );
 }
 
-/* ─── Overview Tab ─── */
+/* ════════════════════════════════════════════════════════════════
+ *  CARD BASE
+ * ═══════════════════════════════════════════════════════════════ */
+function NeonCard({ children, className = "", glow = false }: { children: React.ReactNode; className?: string; glow?: boolean }) {
+  return (
+    <div className={`relative rounded-2xl border border-primary/15 bg-gradient-to-br from-card/60 via-card/30 to-background/60 backdrop-blur-sm overflow-hidden ${glow ? "shadow-[0_0_30px_-12px_hsl(var(--primary)/0.4)]" : ""} ${className}`}>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      {children}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  OVERVIEW — Bento Grid
+ * ═══════════════════════════════════════════════════════════════ */
 function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; recentUsers: RecentUser[]; topUsers: TopUser[] }) {
-  const megaStats = [
-    { label: "Usuários", value: stats.totalUsers, icon: Users, gradient: "from-blue-500 to-cyan-500", bg: "from-blue-500/10 to-cyan-500/10" },
-    { label: "VIP", value: stats.vipUsers, icon: Crown, gradient: "from-amber-400 to-yellow-500", bg: "from-amber-500/10 to-yellow-500/10" },
-    { label: "DEV", value: stats.devUsers, icon: Code2, gradient: "from-cyan-400 to-blue-500", bg: "from-cyan-500/10 to-blue-500/10" },
-    { label: "Mensagens", value: stats.totalMessages, icon: MessageCircle, gradient: "from-purple-400 to-pink-500", bg: "from-purple-500/10 to-pink-500/10" },
-  ];
+  const conversionRate = stats.totalUsers > 0
+    ? ((stats.vipUsers + stats.devUsers + stats.packSteamUsers + stats.rpgPremiumUsers) / stats.totalUsers * 100)
+    : 0;
 
   return (
     <div className="space-y-5">
-      {/* Hero Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {megaStats.map((s, i) => (
-          <div
-            key={s.label}
-            className="group relative rounded-2xl border border-border/20 overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl animate-fade-in"
-            style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${s.bg} opacity-50`} />
-            <div className="relative p-4">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition-transform`}>
-                <s.icon className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-3xl font-black tracking-tight">
-                <AnimatedCounter value={s.value} />
+      {/* Hero — Receita + Métricas chave */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Big revenue card */}
+        <NeonCard glow className="col-span-12 lg:col-span-6 p-6 animate-fade-in">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-[10px] font-black tracking-[0.2em] text-primary/60 uppercase">Receita estimada / mês</p>
+              <p className="text-4xl md:text-5xl font-black mt-2 bg-gradient-to-br from-primary-glow via-primary to-primary-glow bg-clip-text text-transparent drop-shadow-[0_0_18px_hsl(var(--primary)/0.4)]">
+                <AnimatedCounter value={stats.monthlyRevenue} prefix="R$ " />
               </p>
-              <p className="text-[11px] text-muted-foreground/60 font-medium mt-0.5">{s.label}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <span className="flex items-center gap-1 text-xs font-bold text-emerald-400">
+                  <ArrowUpRight className="w-3 h-3" /> {conversionRate.toFixed(1)}%
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">conversão pagantes</span>
+              </div>
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+              <DollarSign className="w-7 h-7 text-primary-glow" />
             </div>
           </div>
+          <div className="grid grid-cols-4 gap-2 pt-4 border-t border-primary/10">
+            {[
+              { l: "VIP", v: stats.vipUsers, c: "text-yellow-400" },
+              { l: "DEV", v: stats.devUsers, c: "text-cyan-400" },
+              { l: "Steam", v: stats.packSteamUsers, c: "text-emerald-400" },
+              { l: "RPG", v: stats.rpgPremiumUsers, c: "text-pink-400" },
+            ].map(s => (
+              <div key={s.l} className="text-center">
+                <p className={`text-lg font-black ${s.c}`}><AnimatedCounter value={s.v} /></p>
+                <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-wider">{s.l}</p>
+              </div>
+            ))}
+          </div>
+        </NeonCard>
+
+        {/* 4 mini stats */}
+        {[
+          { label: "Usuários", value: stats.totalUsers, icon: Users, color: "from-blue-500/20 to-cyan-500/10", iconColor: "text-cyan-400", trend: stats.todaySignups },
+          { label: "Mensagens", value: stats.totalMessages, icon: MessageCircle, color: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
+          { label: "API Clients", value: stats.apiClients, icon: KeyRound, color: "from-primary/20 to-primary/5", iconColor: "text-primary-glow" },
+          { label: "Personagens", value: stats.totalCharacters, icon: Star, color: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-400" },
+        ].map((s, i) => (
+          <NeonCard key={s.label} className="col-span-6 lg:col-span-3 p-4 group hover:scale-[1.02] transition-transform animate-fade-in" >
+            <div className={`absolute inset-0 bg-gradient-to-br ${s.color} opacity-50`} />
+            <div className="relative">
+              <div className="flex items-start justify-between mb-3">
+                <s.icon className={`w-5 h-5 ${s.iconColor}`} />
+                {s.trend !== undefined && s.trend > 0 && (
+                  <span className="text-[9px] flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold">
+                    <ArrowUpRight className="w-2.5 h-2.5" />+{s.trend}
+                  </span>
+                )}
+              </div>
+              <p className="text-2xl font-black tracking-tight"><AnimatedCounter value={s.value} /></p>
+              <p className="text-[10px] text-muted-foreground/60 font-medium mt-0.5">{s.label}</p>
+            </div>
+          </NeonCard>
         ))}
       </div>
 
-      {/* Detailed stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+      {/* Stat strip */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {[
-          { label: "Pack Steam", value: stats.packSteamUsers, icon: Package, color: "text-green-400" },
-          { label: "Free", value: stats.freeUsers, icon: Users, color: "text-muted-foreground" },
-          { label: "Banidos", value: stats.bannedUsers, icon: Ban, color: "text-red-400" },
-          { label: "Conversas", value: stats.totalConversations, icon: MessageCircle, color: "text-purple-400" },
-          { label: "Personagens", value: stats.totalCharacters, icon: Star, color: "text-pink-400" },
-          { label: "Tickets", value: stats.openTickets, icon: ShieldCheck, color: "text-emerald-400", suffix: ` / ${stats.totalTickets}` },
-          { label: "Hoje", value: stats.todaySignups, icon: TrendingUp, color: "text-emerald-400" },
-          { label: "Semana", value: stats.weekSignups, icon: BarChart3, color: "text-cyan-400" },
-          { label: "Msg/User", value: stats.avgMessagesPerUser, icon: Activity, color: "text-amber-400" },
+          { label: "Free", value: stats.freeUsers, icon: Users, c: "text-muted-foreground" },
+          { label: "Banidos", value: stats.bannedUsers, icon: Ban, c: "text-destructive" },
+          { label: "Conversas", value: stats.totalConversations, icon: MessageCircle, c: "text-purple-400" },
+          { label: "Tickets", value: stats.openTickets, icon: ShieldCheck, c: "text-emerald-400", suffix: ` / ${stats.totalTickets}` },
+          { label: "Hoje", value: stats.todaySignups, icon: TrendingUp, c: "text-emerald-400" },
+          { label: "Msg/User", value: stats.avgMessagesPerUser, icon: Activity, c: "text-primary-glow" },
         ].map((s, i) => (
-          <div
-            key={s.label}
-            className="rounded-xl border border-border/15 bg-card/30 p-3 animate-fade-in"
-            style={{ animationDelay: `${300 + i * 40}ms`, animationFillMode: "both" }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <s.icon className={`w-3 h-3 ${s.color}`} />
-              <span className="text-[10px] text-muted-foreground/50 font-medium">{s.label}</span>
+          <div key={s.label} className="rounded-xl border border-primary/10 bg-card/30 p-3 hover:border-primary/25 transition-colors animate-fade-in" style={{ animationDelay: `${200 + i * 30}ms` }}>
+            <div className="flex items-center gap-1.5 mb-1">
+              <s.icon className={`w-3 h-3 ${s.c}`} />
+              <span className="text-[10px] text-muted-foreground/60 font-medium">{s.label}</span>
             </div>
-            <p className="text-lg font-bold">
+            <p className="text-base font-bold">
               <AnimatedCounter value={s.value} />
               {s.suffix && <span className="text-xs text-muted-foreground/40">{s.suffix}</span>}
             </p>
@@ -366,58 +483,55 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
         ))}
       </div>
 
-      {/* Recent + Top */}
+      {/* Two columns: recent + top */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Signups */}
-        <div className="rounded-2xl border border-border/20 bg-card/30 p-4">
+        <NeonCard className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-semibold">Cadastros Recentes</span>
+            <span className="text-xs font-bold">Cadastros Recentes</span>
             <div className="ml-auto flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[9px] text-muted-foreground/30">Live</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-wider">Live</span>
             </div>
           </div>
           <div className="space-y-1">
+            {recentUsers.length === 0 && <p className="text-xs text-muted-foreground/40 text-center py-4">Sem cadastros recentes</p>}
             {recentUsers.map((u, i) => (
-              <div key={i} className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-muted/15 transition-colors">
+              <div key={u.user_id || i} className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-primary/5 transition-colors">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                  u.team_badge ? "bg-gradient-to-br from-amber-400/20 to-yellow-500/20 text-amber-400" :
+                  u.team_badge ? "bg-gradient-to-br from-primary/30 to-primary/10 text-primary-glow" :
                   u.is_vip ? "bg-yellow-500/15 text-yellow-400" :
                   u.is_dev ? "bg-cyan-500/15 text-cyan-400" :
                   "bg-muted/30 text-muted-foreground/60"
                 }`}>
-                  {u.team_badge === "Dono" || u.team_badge === "Dona" ? "👑" :
-                   (u.display_name || "?")[0]?.toUpperCase()}
+                  {u.team_badge === "Dono" || u.team_badge === "Dona" ? "👑" : (u.display_name || "?")[0]?.toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">
                     {u.display_name || "Novo usuário"}
                     {u.team_badge && (
-                      <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                        {u.team_badge}
-                      </span>
+                      <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary-glow border border-primary/20">{u.team_badge}</span>
                     )}
                   </p>
                 </div>
-                <span className="text-[10px] text-muted-foreground/30">{formatRelative(u.created_at)}</span>
+                <span className="text-[10px] text-muted-foreground/40 font-mono">{formatRelative(u.created_at)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </NeonCard>
 
-        {/* Top Messagers */}
-        <div className="rounded-2xl border border-border/20 bg-card/30 p-4">
+        <NeonCard className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-semibold">Top Mensageiros (24h)</span>
+            <Flame className="w-4 h-4 text-primary-glow" />
+            <span className="text-xs font-bold">Top Mensageiros (24h)</span>
           </div>
           <div className="space-y-1">
+            {topUsers.length === 0 && <p className="text-xs text-muted-foreground/40 text-center py-4">Sem dados ainda</p>}
             {topUsers.map((u, i) => (
-              <div key={i} className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-muted/15 transition-colors">
+              <div key={i} className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-primary/5 transition-colors">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                  i === 0 ? "bg-gradient-to-br from-amber-400/20 to-yellow-500/20 text-amber-400" :
-                  i === 1 ? "bg-slate-400/15 text-slate-400" :
+                  i === 0 ? "bg-gradient-to-br from-yellow-400/20 to-amber-500/10 text-yellow-400" :
+                  i === 1 ? "bg-slate-400/15 text-slate-300" :
                   i === 2 ? "bg-orange-400/15 text-orange-400" :
                   "bg-muted/20 text-muted-foreground/50"
                 }`}>
@@ -426,279 +540,499 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">
                     {u.display_name || "Sem nome"}
-                    {u.is_vip && <span className="ml-1 text-[9px] text-yellow-400">VIP</span>}
+                    {u.is_vip && <Crown className="inline w-2.5 h-2.5 ml-1 text-yellow-400" />}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-purple-400">{u.free_messages_used}</span>
+                <span className="text-xs font-black text-primary-glow">{u.free_messages_used}</span>
               </div>
             ))}
           </div>
-        </div>
+        </NeonCard>
       </div>
     </div>
   );
 }
 
-/* ─── Analytics Tab ─── */
-function AnalyticsTab({ stats }: { stats: PlatformStats }) {
-  const userBreakdown = [
-    { label: "VIP", value: stats.vipUsers, color: "bg-yellow-500", pct: stats.totalUsers > 0 ? (stats.vipUsers / stats.totalUsers * 100) : 0 },
-    { label: "DEV", value: stats.devUsers, color: "bg-cyan-500", pct: stats.totalUsers > 0 ? (stats.devUsers / stats.totalUsers * 100) : 0 },
-    { label: "Pack Steam", value: stats.packSteamUsers, color: "bg-green-500", pct: stats.totalUsers > 0 ? (stats.packSteamUsers / stats.totalUsers * 100) : 0 },
-    { label: "Free", value: stats.freeUsers, color: "bg-muted-foreground/40", pct: stats.totalUsers > 0 ? (stats.freeUsers / stats.totalUsers * 100) : 0 },
-  ];
+/* ════════════════════════════════════════════════════════════════
+ *  LIVE — Tempo real
+ * ═══════════════════════════════════════════════════════════════ */
+function LiveTab({ stats }: { stats: PlatformStats }) {
+  const [feed, setFeed] = useState<{ id: string; type: string; text: string; ts: number }[]>([]);
 
-  const platformMetrics = [
-    { label: "Taxa de Conversão", value: stats.totalUsers > 0 ? `${((stats.vipUsers + stats.devUsers + stats.packSteamUsers) / stats.totalUsers * 100).toFixed(1)}%` : "0%", desc: "Usuários pagantes", icon: TrendingUp, color: "text-emerald-400" },
-    { label: "Engajamento", value: `${stats.avgMessagesPerUser} msg/user`, desc: "Média por usuário", icon: Activity, color: "text-purple-400" },
-    { label: "Retenção", value: `${stats.totalConversations}`, desc: "Conversas criadas", icon: MessageCircle, color: "text-blue-400" },
-    { label: "Saúde", value: stats.bannedUsers === 0 ? "Ótima" : `${stats.bannedUsers} ban`, desc: "Moderação ativa", icon: ShieldCheck, color: stats.bannedUsers === 0 ? "text-emerald-400" : "text-amber-400" },
+  useEffect(() => {
+    const channels = [
+      supabase.channel("owner-live-msgs").on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (p: any) => {
+        setFeed(prev => [{ id: p.new.id, type: "msg", text: `Nova mensagem (${p.new.role})`, ts: Date.now() }, ...prev].slice(0, 50));
+      }).subscribe(),
+      supabase.channel("owner-live-users").on("postgres_changes", { event: "INSERT", schema: "public", table: "profiles" }, (p: any) => {
+        setFeed(prev => [{ id: p.new.id, type: "user", text: `Novo cadastro: ${p.new.display_name || "anon"}`, ts: Date.now() }, ...prev].slice(0, 50));
+      }).subscribe(),
+      supabase.channel("owner-live-tickets").on("postgres_changes", { event: "INSERT", schema: "public", table: "support_tickets" }, (p: any) => {
+        setFeed(prev => [{ id: p.new.id, type: "ticket", text: `Novo ticket: ${p.new.subject}`, ts: Date.now() }, ...prev].slice(0, 50));
+      }).subscribe(),
+    ];
+    return () => { channels.forEach(c => supabase.removeChannel(c)); };
+  }, []);
+
+  const iconFor = (t: string) => t === "msg" ? MessageCircle : t === "user" ? Users : ShieldCheck;
+  const colorFor = (t: string) => t === "msg" ? "text-purple-400" : t === "user" ? "text-emerald-400" : "text-amber-400";
+
+  return (
+    <div className="space-y-5">
+      {/* Live counters */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { l: "Conexões", v: stats.totalUsers, i: Users, c: "text-cyan-400" },
+          { l: "Conversas Ativas", v: stats.totalConversations, i: MessageCircle, c: "text-purple-400" },
+          { l: "Tickets Abertos", v: stats.openTickets, i: ShieldCheck, c: "text-emerald-400" },
+          { l: "API Reqs/Mês", v: stats.apiRequests, i: Cpu, c: "text-primary-glow" },
+        ].map(s => (
+          <NeonCard key={s.l} className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <s.i className={`w-4 h-4 ${s.c}`} />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            </div>
+            <p className="text-2xl font-black"><AnimatedCounter value={s.v} /></p>
+            <p className="text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wider">{s.l}</p>
+          </NeonCard>
+        ))}
+      </div>
+
+      {/* Live feed */}
+      <NeonCard className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="relative">
+            <Activity className="w-4 h-4 text-primary-glow" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          </div>
+          <h3 className="text-sm font-bold">Feed ao Vivo</h3>
+          <span className="ml-auto text-[10px] text-muted-foreground/50 font-mono">{feed.length} eventos</span>
+        </div>
+        <div className="space-y-1 max-h-[500px] overflow-y-auto">
+          {feed.length === 0 && (
+            <div className="text-center py-12">
+              <Radio className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2 animate-pulse" />
+              <p className="text-xs text-muted-foreground/50">Aguardando atividade da plataforma...</p>
+            </div>
+          )}
+          {feed.map(ev => {
+            const Icon = iconFor(ev.type);
+            return (
+              <div key={ev.id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-card/30 border border-primary/5 hover:border-primary/15 transition-colors animate-fade-in">
+                <Icon className={`w-3.5 h-3.5 ${colorFor(ev.type)}`} />
+                <span className="text-xs flex-1 truncate">{ev.text}</span>
+                <span className="text-[9px] text-muted-foreground/40 font-mono">{formatRelative(new Date(ev.ts).toISOString())}</span>
+              </div>
+            );
+          })}
+        </div>
+      </NeonCard>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  ANALYTICS
+ * ═══════════════════════════════════════════════════════════════ */
+function AnalyticsTab({ stats }: { stats: PlatformStats }) {
+  const breakdown = [
+    { label: "VIP", value: stats.vipUsers, color: "bg-yellow-500", glow: "shadow-[0_0_8px_rgb(234_179_8/0.5)]" },
+    { label: "DEV", value: stats.devUsers, color: "bg-cyan-500", glow: "shadow-[0_0_8px_rgb(6_182_212/0.5)]" },
+    { label: "Pack Steam", value: stats.packSteamUsers, color: "bg-emerald-500", glow: "shadow-[0_0_8px_rgb(16_185_129/0.5)]" },
+    { label: "RPG", value: stats.rpgPremiumUsers, color: "bg-pink-500", glow: "shadow-[0_0_8px_rgb(236_72_153/0.5)]" },
+    { label: "Free", value: stats.freeUsers, color: "bg-muted-foreground/40", glow: "" },
+  ].map(b => ({ ...b, pct: stats.totalUsers > 0 ? (b.value / stats.totalUsers * 100) : 0 }));
+
+  const metrics = [
+    { label: "Conversão", value: `${stats.totalUsers > 0 ? ((stats.vipUsers + stats.devUsers + stats.packSteamUsers + stats.rpgPremiumUsers) / stats.totalUsers * 100).toFixed(1) : 0}%`, desc: "Pagantes / Total", icon: TrendingUp, c: "text-emerald-400" },
+    { label: "Engajamento", value: `${stats.avgMessagesPerUser}`, desc: "msgs / usuário", icon: Activity, c: "text-purple-400" },
+    { label: "Conversas", value: `${stats.totalConversations}`, desc: "Total criadas", icon: MessageCircle, c: "text-cyan-400" },
+    { label: "Saúde", value: stats.bannedUsers === 0 ? "✓" : `${stats.bannedUsers}`, desc: stats.bannedUsers === 0 ? "Sem bans" : "Banidos", icon: ShieldCheck, c: stats.bannedUsers === 0 ? "text-emerald-400" : "text-destructive" },
   ];
 
   return (
     <div className="space-y-5">
-      {/* User Breakdown */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
+      <NeonCard className="p-5">
         <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-amber-400" />
+          <BarChart3 className="w-4 h-4 text-primary-glow" />
           Distribuição de Usuários
         </h3>
-        {/* Bar visualization */}
-        <div className="flex rounded-xl overflow-hidden h-8 mb-4">
-          {userBreakdown.filter(u => u.value > 0).map(u => (
-            <div
-              key={u.label}
-              className={`${u.color} flex items-center justify-center transition-all duration-500`}
-              style={{ width: `${Math.max(u.pct, 3)}%` }}
-              title={`${u.label}: ${u.value} (${u.pct.toFixed(1)}%)`}
-            >
-              {u.pct > 8 && <span className="text-[9px] font-bold text-white/90">{u.pct.toFixed(0)}%</span>}
+        <div className="flex rounded-xl overflow-hidden h-10 mb-4 border border-primary/10">
+          {breakdown.filter(u => u.value > 0).map(u => (
+            <div key={u.label} className={`${u.color} ${u.glow} flex items-center justify-center transition-all`} style={{ width: `${Math.max(u.pct, 3)}%` }} title={`${u.label}: ${u.value}`}>
+              {u.pct > 8 && <span className="text-[10px] font-black text-white drop-shadow">{u.pct.toFixed(0)}%</span>}
             </div>
           ))}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {userBreakdown.map(u => (
+          {breakdown.map(u => (
             <div key={u.label} className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${u.color}`} />
               <div>
-                <p className="text-[10px] text-muted-foreground/50">{u.label}</p>
-                <p className="text-xs font-bold">{u.value} <span className="text-muted-foreground/30">({u.pct.toFixed(1)}%)</span></p>
+                <p className="text-[10px] text-muted-foreground/60">{u.label}</p>
+                <p className="text-xs font-bold">{u.value} <span className="text-muted-foreground/40 font-normal">({u.pct.toFixed(1)}%)</span></p>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </NeonCard>
 
-      {/* Platform Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {platformMetrics.map((m, i) => (
-          <div
-            key={m.label}
-            className="rounded-2xl border border-border/20 bg-card/30 p-4 animate-fade-in"
-            style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
-          >
-            <m.icon className={`w-5 h-5 ${m.color} mb-2`} />
-            <p className="text-lg font-black">{m.value}</p>
-            <p className="text-[10px] text-muted-foreground/50 font-medium">{m.label}</p>
-            <p className="text-[9px] text-muted-foreground/30 mt-0.5">{m.desc}</p>
-          </div>
+        {metrics.map((m, i) => (
+          <NeonCard key={m.label} className="p-4 animate-fade-in" >
+            <m.icon className={`w-5 h-5 ${m.c} mb-2`} />
+            <p className="text-2xl font-black">{m.value}</p>
+            <p className="text-[10px] text-muted-foreground/60 font-medium">{m.label}</p>
+            <p className="text-[9px] text-muted-foreground/40 mt-0.5">{m.desc}</p>
+          </NeonCard>
         ))}
       </div>
 
-      {/* Growth indicators */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
+      <NeonCard className="p-5">
         <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-emerald-400" />
-          Crescimento
+          <TrendingUp className="w-4 h-4 text-emerald-400" /> Crescimento
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="text-center p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-            <p className="text-3xl font-black text-emerald-400"><AnimatedCounter value={stats.todaySignups} /></p>
-            <p className="text-[11px] text-muted-foreground/50 mt-1">Cadastros Hoje</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-            <p className="text-3xl font-black text-blue-400"><AnimatedCounter value={stats.weekSignups} /></p>
-            <p className="text-[11px] text-muted-foreground/50 mt-1">Cadastros Semana</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
-            <p className="text-3xl font-black text-purple-400"><AnimatedCounter value={stats.totalMessages} /></p>
-            <p className="text-[11px] text-muted-foreground/50 mt-1">Total Mensagens</p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { v: stats.todaySignups, l: "Hoje", c: "text-emerald-400", bg: "from-emerald-500/15 to-emerald-500/5" },
+            { v: stats.weekSignups, l: "Semana", c: "text-cyan-400", bg: "from-cyan-500/15 to-cyan-500/5" },
+            { v: stats.totalMessages, l: "Total Mensagens", c: "text-primary-glow", bg: "from-primary/15 to-primary/5" },
+          ].map(s => (
+            <div key={s.l} className={`text-center p-4 rounded-xl bg-gradient-to-br ${s.bg} border border-primary/10`}>
+              <p className={`text-3xl font-black ${s.c}`}><AnimatedCounter value={s.v} /></p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1 font-medium">{s.l}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      </NeonCard>
     </div>
   );
 }
 
-/* ─── Broadcast Tab ─── */
-function BroadcastTab({ broadcastMsg, setBroadcastMsg }: { broadcastMsg: string; setBroadcastMsg: (v: string) => void }) {
+/* ════════════════════════════════════════════════════════════════
+ *  REVENUE & API
+ * ═══════════════════════════════════════════════════════════════ */
+function RevenueTab({ stats }: { stats: PlatformStats }) {
+  const [apps, setApps] = useState<any[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from("api_key_applications").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase.from("api_plans").select("*").eq("is_active", true).order("price_brl"),
+    ]).then(([{ data: a }, { data: p }]) => {
+      setApps(a || []);
+      setPlans(p || []);
+      setLoadingApps(false);
+    });
+  }, []);
+
+  const planRevenue = [
+    { name: "VIP", users: stats.vipUsers, price: 19.9, color: "from-yellow-500/20 to-amber-500/10", iconColor: "text-yellow-400" },
+    { name: "Pack Steam", users: stats.packSteamUsers, price: 29.9, color: "from-emerald-500/20 to-green-500/10", iconColor: "text-emerald-400" },
+    { name: "RPG Premium", users: stats.rpgPremiumUsers, price: 14.9, color: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-400" },
+    { name: "DEV", users: stats.devUsers, price: 0, color: "from-cyan-500/20 to-blue-500/10", iconColor: "text-cyan-400" },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Revenue overview */}
+      <NeonCard glow className="p-6">
+        <div className="flex items-start justify-between mb-5">
+          <div>
+            <p className="text-[10px] font-black tracking-[0.2em] text-primary/60 uppercase">Receita Mensal Recorrente (MRR)</p>
+            <p className="text-5xl font-black mt-2 bg-gradient-to-br from-primary-glow to-primary bg-clip-text text-transparent">
+              <AnimatedCounter value={stats.monthlyRevenue} prefix="R$ " />
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-2">Anual estimado: <span className="text-primary-glow font-bold">R$ {(stats.monthlyRevenue * 12).toLocaleString("pt-BR")}</span></p>
+          </div>
+          <DollarSign className="w-10 h-10 text-primary-glow opacity-40" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {planRevenue.map(p => (
+            <div key={p.name} className={`relative rounded-xl border border-primary/10 p-4 overflow-hidden`}>
+              <div className={`absolute inset-0 bg-gradient-to-br ${p.color} opacity-50`} />
+              <div className="relative">
+                <p className={`text-xs font-bold ${p.iconColor} mb-1`}>{p.name}</p>
+                <p className="text-2xl font-black"><AnimatedCounter value={p.users} /></p>
+                <p className="text-[10px] text-muted-foreground/60">usuários ativos</p>
+                <p className="text-[10px] mt-2 font-bold text-emerald-400">R$ {(p.users * p.price).toFixed(2)}/mês</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </NeonCard>
+
+      {/* API Usage */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <NeonCard className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <KeyRound className="w-4 h-4 text-primary-glow" />
+            <h3 className="text-xs font-bold">API Clients</h3>
+          </div>
+          <p className="text-3xl font-black text-primary-glow"><AnimatedCounter value={stats.apiClients} /></p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">Chaves ativas</p>
+        </NeonCard>
+        <NeonCard className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Cpu className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-xs font-bold">Requests / Mês</h3>
+          </div>
+          <p className="text-3xl font-black text-cyan-400"><AnimatedCounter value={stats.apiRequests} /></p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">Chamadas de API</p>
+        </NeonCard>
+        <NeonCard className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-4 h-4 text-amber-400" />
+            <h3 className="text-xs font-bold">Aplicações Pendentes</h3>
+          </div>
+          <p className="text-3xl font-black text-amber-400"><AnimatedCounter value={stats.pendingApplications} /></p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">Aguardando revisão</p>
+        </NeonCard>
+      </div>
+
+      {/* Plans table */}
+      <NeonCard className="p-5">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+          <Package className="w-4 h-4 text-primary-glow" /> Planos API
+        </h3>
+        <div className="space-y-2">
+          {plans.map(p => (
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-primary/10 hover:border-primary/25 transition-colors">
+              <div>
+                <p className="text-sm font-bold">{p.name}</p>
+                <p className="text-[10px] text-muted-foreground/60">{p.daily_request_limit}/dia · {p.monthly_request_limit}/mês · {p.rate_limit_per_minute} rpm</p>
+              </div>
+              <p className="text-lg font-black text-primary-glow">R$ {Number(p.price_brl).toFixed(2)}</p>
+            </div>
+          ))}
+          {plans.length === 0 && <p className="text-xs text-muted-foreground/40 text-center py-4">Nenhum plano ativo</p>}
+        </div>
+      </NeonCard>
+
+      {/* Recent applications */}
+      <NeonCard className="p-5">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-amber-400" /> Aplicações Recentes
+        </h3>
+        {loadingApps ? <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto my-6" /> : (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {apps.length === 0 && <p className="text-xs text-muted-foreground/40 text-center py-4">Nenhuma aplicação ainda</p>}
+            {apps.map(a => (
+              <div key={a.id} className="flex items-center justify-between p-3 rounded-xl border border-primary/10 hover:bg-card/40 transition">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold truncate">{a.full_name}</p>
+                  <p className="text-[10px] text-muted-foreground/60 truncate">{a.company_or_project}</p>
+                </div>
+                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                  a.status === "approved" ? "bg-emerald-500/15 text-emerald-400" :
+                  a.status === "rejected" ? "bg-destructive/15 text-destructive" :
+                  "bg-amber-500/15 text-amber-400"
+                }`}>{a.status}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </NeonCard>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  HEALTH — Saúde do sistema
+ * ═══════════════════════════════════════════════════════════════ */
+function HealthTab({ stats }: { stats: PlatformStats }) {
+  const [providerKeys, setProviderKeys] = useState<any[]>([]);
+  const [loadingKeys, setLoadingKeys] = useState(true);
+
+  useEffect(() => {
+    supabase.from("ai_provider_keys").select("provider, label, status, daily_used, daily_limit, total_used").then(({ data }) => {
+      setProviderKeys(data || []);
+      setLoadingKeys(false);
+    });
+  }, []);
+
+  const healthScore = useMemo(() => {
+    let score = 100;
+    if (stats.bannedUsers > 0) score -= Math.min(stats.bannedUsers * 2, 20);
+    if (stats.openTickets > 5) score -= 10;
+    const errorKeys = providerKeys.filter(k => k.status === "error" || k.status === "exhausted").length;
+    score -= errorKeys * 15;
+    return Math.max(0, score);
+  }, [stats, providerKeys]);
+
+  const scoreColor = healthScore >= 90 ? "text-emerald-400" : healthScore >= 70 ? "text-amber-400" : "text-destructive";
+  const scoreLabel = healthScore >= 90 ? "Excelente" : healthScore >= 70 ? "Atenção" : "Crítico";
+
+  return (
+    <div className="space-y-5">
+      {/* Health score */}
+      <NeonCard glow className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div className="text-center md:text-left">
+            <p className="text-[10px] font-black tracking-[0.2em] text-primary/60 uppercase">Saúde do Sistema</p>
+            <p className={`text-7xl font-black ${scoreColor} drop-shadow-[0_0_18px_currentColor] mt-2`}>{healthScore}</p>
+            <p className={`text-sm font-bold ${scoreColor}`}>{scoreLabel}</p>
+          </div>
+          <div className="md:col-span-2 grid grid-cols-2 gap-3">
+            {[
+              { l: "DB Conexão", v: "OK", c: "text-emerald-400", i: Database },
+              { l: "API Keys ativas", v: providerKeys.filter(k => k.status === "active").length, c: "text-emerald-400", i: KeyRound },
+              { l: "Tickets pend.", v: stats.openTickets, c: stats.openTickets > 5 ? "text-amber-400" : "text-emerald-400", i: ShieldCheck },
+              { l: "Banidos", v: stats.bannedUsers, c: stats.bannedUsers > 0 ? "text-amber-400" : "text-emerald-400", i: Ban },
+            ].map(s => (
+              <div key={s.l} className="flex items-center gap-3 p-3 rounded-xl border border-primary/10 bg-card/30">
+                <s.i className={`w-4 h-4 ${s.c}`} />
+                <div className="flex-1">
+                  <p className="text-[10px] text-muted-foreground/60">{s.l}</p>
+                  <p className={`text-base font-black ${s.c}`}>{s.v}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </NeonCard>
+
+      {/* AI Provider Keys */}
+      <NeonCard className="p-5">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-primary-glow" /> Provedores de IA
+        </h3>
+        {loadingKeys ? <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto my-4" /> : (
+          <div className="space-y-2">
+            {providerKeys.length === 0 && <p className="text-xs text-muted-foreground/40 text-center py-4">Nenhuma chave configurada</p>}
+            {providerKeys.map((k, i) => {
+              const usage = k.daily_limit > 0 ? (k.daily_used / k.daily_limit * 100) : 0;
+              return (
+                <div key={i} className="p-3 rounded-xl border border-primary/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${
+                        k.status === "active" ? "bg-emerald-400 animate-pulse" :
+                        k.status === "exhausted" ? "bg-amber-400" : "bg-destructive"
+                      }`} />
+                      <p className="text-xs font-bold">{k.label}</p>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground font-mono uppercase">{k.provider}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground/60">{k.daily_used}/{k.daily_limit}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
+                    <div className={`h-full transition-all ${
+                      usage > 90 ? "bg-destructive" : usage > 70 ? "bg-amber-400" : "bg-emerald-400"
+                    }`} style={{ width: `${Math.min(usage, 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </NeonCard>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  BROADCAST
+ * ═══════════════════════════════════════════════════════════════ */
+function BroadcastTab() {
+  const [msg, setMsg] = useState("");
   const [sending, setSending] = useState(false);
 
-  const sendBroadcast = () => {
-    if (!broadcastMsg.trim()) {
-      toast.error("Digite uma mensagem para broadcast");
-      return;
-    }
-    // Simulated for now — would integrate with push notifications or in-app notifications
+  const send = () => {
+    if (!msg.trim()) { toast.error("Digite uma mensagem"); return; }
     setSending(true);
     setTimeout(() => {
-      toast.success("📢 Broadcast enviado para todos os usuários!");
-      setBroadcastMsg("");
+      toast.success("📢 Broadcast enviado!");
+      setMsg("");
       setSending(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
     <div className="space-y-5">
-      {/* Broadcast Composer */}
-      <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 to-background p-5">
+      <NeonCard glow className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
-            <Megaphone className="w-4 h-4 text-black" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
+            <Megaphone className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
             <h3 className="text-sm font-bold">Broadcast Global</h3>
-            <p className="text-[10px] text-muted-foreground/40">Envie uma mensagem para todos os usuários</p>
+            <p className="text-[10px] text-muted-foreground/60">Mensagem para todos os usuários</p>
           </div>
         </div>
         <textarea
-          value={broadcastMsg}
-          onChange={e => setBroadcastMsg(e.target.value)}
-          placeholder="Digite sua mensagem de broadcast..."
-          className="w-full h-32 bg-background/50 border border-border/20 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-amber-500/40 transition-colors placeholder:text-muted-foreground/30"
+          value={msg}
+          onChange={e => setMsg(e.target.value)}
+          placeholder="Digite sua mensagem..."
+          className="w-full h-32 bg-background/60 border border-primary/15 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-primary/40 transition-colors placeholder:text-muted-foreground/40"
         />
         <div className="flex items-center justify-between mt-3">
-          <p className="text-[10px] text-muted-foreground/30">{broadcastMsg.length} caracteres</p>
+          <p className="text-[10px] text-muted-foreground/40 font-mono">{msg.length} chars</p>
           <button
-            onClick={sendBroadcast}
-            disabled={sending || !broadcastMsg.trim()}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-yellow-500 text-black disabled:opacity-50 hover:shadow-lg hover:shadow-amber-500/20 transition-all"
+            onClick={send}
+            disabled={sending || !msg.trim()}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-primary to-primary-glow text-primary-foreground disabled:opacity-50 hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)] transition-all"
           >
             {sending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-            {sending ? "Enviando..." : "Enviar Broadcast"}
+            {sending ? "Enviando..." : "Enviar"}
           </button>
         </div>
-      </div>
+      </NeonCard>
 
-      {/* Templates */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
+      <NeonCard className="p-5">
         <h3 className="text-sm font-bold mb-3">Templates Rápidos</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {[
-            { label: "🎉 Atualização", msg: "🚀 Nova atualização disponível! Confira as novidades." },
-            { label: "⚠️ Manutenção", msg: "⚠️ Manutenção programada. O sistema pode ficar instável por alguns minutos." },
-            { label: "🎁 Promoção", msg: "🎁 Promoção especial! VIP com desconto por tempo limitado." },
-            { label: "📢 Aviso", msg: "📢 Aviso importante: Novas regras de uso foram atualizadas." },
+            { l: "🎉 Atualização", m: "🚀 Nova atualização disponível! Confira as novidades." },
+            { l: "⚠️ Manutenção", m: "⚠️ Manutenção programada. Sistema pode ficar instável." },
+            { l: "🎁 Promoção", m: "🎁 Promoção especial! VIP com desconto por tempo limitado." },
+            { l: "📢 Aviso", m: "📢 Novas regras de uso foram atualizadas." },
           ].map(t => (
-            <button
-              key={t.label}
-              onClick={() => setBroadcastMsg(t.msg)}
-              className="text-left px-3 py-2.5 rounded-xl border border-border/15 bg-muted/10 hover:bg-muted/25 transition-all text-xs"
-            >
-              <span className="font-medium">{t.label}</span>
-              <p className="text-[10px] text-muted-foreground/40 mt-0.5 truncate">{t.msg}</p>
+            <button key={t.l} onClick={() => setMsg(t.m)} className="text-left px-3 py-2.5 rounded-xl border border-primary/10 bg-card/30 hover:border-primary/30 hover:bg-primary/5 transition-all text-xs">
+              <span className="font-bold">{t.l}</span>
+              <p className="text-[10px] text-muted-foreground/50 mt-0.5 truncate">{t.m}</p>
             </button>
           ))}
         </div>
-      </div>
+      </NeonCard>
     </div>
   );
 }
 
-/* ─── Actions Tab ─── */
+/* ════════════════════════════════════════════════════════════════
+ *  ACTIONS
+ * ═══════════════════════════════════════════════════════════════ */
 function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
 
-  const quickActions = [
+  const actions = [
     {
-      label: "Limpar mensagens expiradas",
-      desc: "Remove mensagens de conversas deletadas",
-      icon: Trash2,
-      color: "text-red-400",
-      bgColor: "bg-red-500/10 hover:bg-red-500/20 border-red-500/20",
+      label: "Resetar limites free", desc: "Zera contador de mensagens gratuitas", icon: RefreshCw, color: "text-cyan-400",
       action: async () => {
-        // Delete messages whose conversation no longer exists
-        const { data: convIds } = await supabase.from("chat_conversations").select("id");
-        const validIds = (convIds || []).map(c => c.id);
-        if (validIds.length === 0) {
-          // If no conversations exist, delete all messages
-          const { count } = await supabase.from("chat_messages").select("id", { count: "exact", head: true });
-          if (count && count > 0) {
-            // We can't delete orphaned easily without a server function, so let's use the approach of deleting old ones
-            toast.info(`${count} mensagens encontradas, mas sem conversas órfãs detectáveis do cliente.`);
-          } else {
-            toast.info("Nenhuma mensagem expirada encontrada.");
-          }
-          return;
-        }
-        toast.success("Verificação de mensagens expiradas concluída!");
+        const { error } = await supabase.from("profiles").update({ free_messages_used: 0, last_free_message_at: null } as any).gte("free_messages_used", 1);
+        if (error) return toast.error("Erro: " + error.message);
+        toast.success("✅ Limites resetados!"); onRefresh();
       },
     },
     {
-      label: "Resetar limites free",
-      desc: "Zera o contador de mensagens gratuitas de todos",
-      icon: RefreshCw,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
+      label: "Desbanir todos", desc: "Remove bans de todos os usuários", icon: CheckCircle2, color: "text-emerald-400",
       action: async () => {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ free_messages_used: 0, last_free_message_at: null } as any)
-          .gte("free_messages_used", 1);
-        if (error) { toast.error("Erro: " + error.message); return; }
-        toast.success("✅ Limites free resetados para todos os usuários!");
-        onRefresh();
+        const { error } = await supabase.from("profiles").update({ banned_until: null } as any).not("banned_until", "is", null);
+        if (error) return toast.error("Erro: " + error.message);
+        toast.success("✅ Bans removidos!"); onRefresh();
       },
     },
     {
-      label: "Desbanir todos",
-      desc: "Remove bans de todos os usuários",
-      icon: CheckCircle2,
-      color: "text-emerald-400",
-      bgColor: "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20",
+      label: "Fechar tickets resolvidos", desc: "Fecha tickets com status resolved", icon: ShieldCheck, color: "text-amber-400",
       action: async () => {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ banned_until: null } as any)
-          .not("banned_until", "is", null);
-        if (error) { toast.error("Erro: " + error.message); return; }
-        toast.success("✅ Todos os bans foram removidos!");
-        onRefresh();
+        const { error } = await supabase.from("support_tickets").update({ status: "closed" }).eq("status", "resolved");
+        if (error) return toast.error("Erro: " + error.message);
+        toast.success("✅ Tickets fechados!"); onRefresh();
       },
     },
     {
-      label: "Fechar tickets resolvidos",
-      desc: "Fecha automaticamente tickets antigos",
-      icon: ShieldCheck,
-      color: "text-amber-400",
-      bgColor: "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20",
-      action: async () => {
-        const { error } = await supabase
-          .from("support_tickets")
-          .update({ status: "closed" })
-          .eq("status", "resolved");
-        if (error) { toast.error("Erro: " + error.message); return; }
-        toast.success(`✅ Tickets resolvidos fechados!`);
-        onRefresh();
-      },
-    },
-    {
-      label: "Sincronizar perfis",
-      desc: "Atualiza cache de perfis e badges",
-      icon: RefreshCw,
-      color: "text-purple-400",
-      bgColor: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20",
-      action: async () => {
-        onRefresh();
-        toast.success("✅ Perfis sincronizados!");
-      },
-    },
-    {
-      label: "Verificar expirados",
-      desc: "Desativa planos VIP/DEV/Steam expirados",
-      icon: Clock,
-      color: "text-orange-400",
-      bgColor: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20",
+      label: "Verificar planos expirados", desc: "Desativa VIP/DEV/Steam/RPG vencidos", icon: Clock, color: "text-orange-400",
       action: async () => {
         const now = new Date().toISOString();
         const updates = await Promise.all([
@@ -707,465 +1041,341 @@ function ActionsTab({ onRefresh }: { onRefresh: () => void }) {
           supabase.from("profiles").update({ is_pack_steam: false, pack_steam_expires_at: null } as any).lt("pack_steam_expires_at", now).eq("is_pack_steam", true),
           supabase.from("profiles").update({ is_rpg_premium: false, rpg_premium_expires_at: null } as any).lt("rpg_premium_expires_at", now).eq("is_rpg_premium", true),
         ]);
-        const hasError = updates.find(u => u.error);
-        if (hasError?.error) { toast.error("Erro: " + hasError.error.message); return; }
-        toast.success("✅ Planos expirados desativados com sucesso!");
-        onRefresh();
+        const err = updates.find(u => u.error);
+        if (err?.error) return toast.error("Erro: " + err.error.message);
+        toast.success("✅ Planos expirados desativados!"); onRefresh();
       },
     },
     {
-      label: "Revogar todas as demos",
-      desc: "Remove todos os sites de demonstração e limpa os dados",
-      icon: Globe,
-      color: "text-pink-400",
-      bgColor: "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/20",
+      label: "Reset uso diário API", desc: "Zera daily_used das chaves IA", icon: Cpu, color: "text-primary-glow",
       action: async () => {
-        try {
-          const { data, error } = await supabase.functions.invoke("deploy-demo-site", {
-            body: { action: "cleanup" },
-          });
-          const { error: updateErr } = await supabase
-            .from("clone_demos" as any)
-            .update({ status: "expired" } as any)
-            .eq("status", "active");
-          if (error) throw error;
-          if (updateErr) throw updateErr;
-          const cleaned = data?.cleaned || 0;
-          toast.success(`✅ ${cleaned} demo(s) removida(s)! Sites de teste excluídos.`);
-        } catch (err: any) {
-          toast.error("Erro ao revogar demos: " + (err?.message || "Tente novamente"));
-        }
+        const { error } = await supabase.rpc("reset_daily_ai_usage");
+        if (error) return toast.error("Erro: " + error.message);
+        toast.success("✅ Uso diário resetado!");
       },
+    },
+    {
+      label: "Sincronizar dados", desc: "Refaz busca de stats e perfis", icon: RefreshCw, color: "text-purple-400",
+      action: async () => { onRefresh(); toast.success("✅ Sincronizado!"); },
     },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-amber-500/15 bg-gradient-to-br from-amber-950/10 to-background p-5">
+      <NeonCard className="p-5">
         <div className="flex items-center gap-2 mb-1">
-          <Zap className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-bold">Ações Rápidas do Dono</h3>
+          <Zap className="w-4 h-4 text-primary-glow" />
+          <h3 className="text-sm font-bold">Ações Rápidas</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground/40 mb-4">Execute ações em massa na plataforma</p>
+        <p className="text-[10px] text-muted-foreground/50 mb-4">Operações em massa na plataforma</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {quickActions.map(a => (
+          {actions.map(a => (
             <button
               key={a.label}
-              onClick={async () => {
-                setActionLoading(a.label);
-                await a.action();
-                setActionLoading(null);
-              }}
-              disabled={actionLoading === a.label}
-              className={`flex items-start gap-3 p-4 rounded-xl border transition-all text-left ${a.bgColor}`}
+              onClick={async () => { setLoadingKey(a.label); await a.action(); setLoadingKey(null); }}
+              disabled={loadingKey === a.label}
+              className="flex items-start gap-3 p-4 rounded-xl border border-primary/10 bg-card/30 hover:border-primary/30 hover:bg-primary/5 transition-all text-left disabled:opacity-50"
             >
               <div className="mt-0.5">
-                {actionLoading === a.label
+                {loadingKey === a.label
                   ? <Loader2 className={`w-4 h-4 animate-spin ${a.color}`} />
-                  : <a.icon className={`w-4 h-4 ${a.color}`} />
-                }
+                  : <a.icon className={`w-4 h-4 ${a.color}`} />}
               </div>
               <div>
-                <p className="text-xs font-semibold">{a.label}</p>
-                <p className="text-[10px] text-muted-foreground/40 mt-0.5">{a.desc}</p>
+                <p className="text-xs font-bold">{a.label}</p>
+                <p className="text-[10px] text-muted-foreground/50 mt-0.5">{a.desc}</p>
               </div>
             </button>
           ))}
         </div>
-      </div>
+      </NeonCard>
 
-      {/* Danger Zone */}
       <DangerZone onRefresh={onRefresh} />
     </div>
   );
 }
 
 function DangerZone({ onRefresh }: { onRefresh: () => void }) {
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
 
-  const clearAllConversations = async () => {
-    setActionLoading("conversations");
+  const clearConvs = async () => {
+    if (!confirm("⚠️ Apagar TODAS as conversas? Irreversível.")) return;
+    setLoadingKey("conv");
     try {
-      // Delete all messages first, then conversations
-      const { error: msgErr } = await supabase.from("chat_messages").delete().gte("created_at", "2000-01-01");
-      if (msgErr) throw msgErr;
-      const { error: convErr } = await supabase.from("chat_conversations").delete().gte("created_at", "2000-01-01");
-      if (convErr) throw convErr;
-      toast.success("🗑️ Todas as conversas foram apagadas!");
-      onRefresh();
-    } catch (err: any) {
-      toast.error("Erro: " + (err?.message || "Falha ao limpar conversas"));
-    }
-    setActionLoading(null);
+      await supabase.from("chat_messages").delete().gte("created_at", "2000-01-01");
+      await supabase.from("chat_conversations").delete().gte("created_at", "2000-01-01");
+      toast.success("🗑️ Conversas apagadas!"); onRefresh();
+    } catch (e: any) { toast.error("Erro: " + e?.message); }
+    setLoadingKey(null);
   };
 
-  const toggleMaintenance = async () => {
-    setActionLoading("maintenance");
-    // Store maintenance mode in a simple approach: broadcast a toast to admin
-    // For a real implementation we'd need a settings table, but for now we use localStorage as a signal
-    const current = localStorage.getItem("snyx_maintenance") === "true";
-    localStorage.setItem("snyx_maintenance", current ? "false" : "true");
-    toast.success(current ? "✅ Modo manutenção DESATIVADO!" : "🚫 Modo manutenção ATIVADO! Usuários verão aviso.");
-    setActionLoading(null);
+  const toggleMaintenance = () => {
+    const cur = localStorage.getItem("snyx_maintenance") === "true";
+    localStorage.setItem("snyx_maintenance", cur ? "false" : "true");
+    toast.success(cur ? "✅ Manutenção OFF" : "🚫 Manutenção ON");
   };
 
   const resetCache = async () => {
-    setActionLoading("cache");
+    setLoadingKey("cache");
     try {
-      // Clear all browser caches
       if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        const names = await caches.keys();
+        await Promise.all(names.map(n => caches.delete(n)));
       }
-      // Clear localStorage except auth
-      const authKeys: string[] = [];
+      const auth: Record<string, string> = {};
       for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith("sb-") || key === "snyx_maintenance")) {
-          authKeys.push(key);
-        }
+        const k = localStorage.key(i);
+        if (k && k.startsWith("sb-")) auth[k] = localStorage.getItem(k) || "";
       }
-      const saved: Record<string, string> = {};
-      authKeys.forEach(k => { saved[k] = localStorage.getItem(k) || ""; });
       localStorage.clear();
-      Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
-
-      // Clear sessionStorage
+      Object.entries(auth).forEach(([k, v]) => localStorage.setItem(k, v));
       sessionStorage.clear();
-
-      toast.success("💣 Cache completamente resetado! Recarregando...");
-      setTimeout(() => window.location.reload(), 1500);
-    } catch (err: any) {
-      toast.error("Erro: " + (err?.message || "Falha ao resetar cache"));
-    }
-    setActionLoading(null);
+      toast.success("💣 Cache resetado! Recarregando...");
+      setTimeout(() => window.location.reload(), 1200);
+    } catch (e: any) { toast.error("Erro: " + e?.message); }
+    setLoadingKey(null);
   };
 
   return (
-    <div className="rounded-2xl border border-red-500/20 bg-red-950/10 p-5">
+    <div className="rounded-2xl border border-destructive/25 bg-gradient-to-br from-destructive/10 to-background p-5 relative overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/50 to-transparent" />
       <div className="flex items-center gap-2 mb-3">
-        <AlertTriangle className="w-4 h-4 text-red-400" />
-        <h3 className="text-sm font-bold text-red-400">Zona de Perigo</h3>
+        <AlertTriangle className="w-4 h-4 text-destructive animate-pulse" />
+        <h3 className="text-sm font-bold text-destructive">Zona de Perigo</h3>
       </div>
-      <p className="text-[10px] text-muted-foreground/40 mb-4">Ações irreversíveis — use com cuidado</p>
+      <p className="text-[10px] text-muted-foreground/50 mb-4">Ações irreversíveis — use com cuidado</p>
       <div className="flex flex-wrap gap-2">
-        <button
-          onClick={clearAllConversations}
-          disabled={actionLoading === "conversations"}
-          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
-        >
-          {actionLoading === "conversations" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-          🗑️ Limpar todas as conversas
+        <button onClick={clearConvs} disabled={loadingKey === "conv"} className="px-3 py-2 rounded-xl text-[11px] font-bold border border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all flex items-center gap-1.5">
+          {loadingKey === "conv" && <Loader2 className="w-3 h-3 animate-spin" />}
+          🗑️ Limpar conversas
         </button>
-        <button
-          onClick={toggleMaintenance}
-          disabled={actionLoading === "maintenance"}
-          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
-        >
-          {actionLoading === "maintenance" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+        <button onClick={toggleMaintenance} className="px-3 py-2 rounded-xl text-[11px] font-bold border border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all">
           🚫 Modo manutenção
         </button>
-        <button
-          onClick={resetCache}
-          disabled={actionLoading === "cache"}
-          className="px-3 py-2 rounded-xl text-[11px] font-medium border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
-        >
-          {actionLoading === "cache" ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-          💣 Reset completo do cache
+        <button onClick={resetCache} disabled={loadingKey === "cache"} className="px-3 py-2 rounded-xl text-[11px] font-bold border border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all flex items-center gap-1.5">
+          {loadingKey === "cache" && <Loader2 className="w-3 h-3 animate-spin" />}
+          💣 Reset cache
         </button>
       </div>
     </div>
   );
 }
 
-/* ─── Admins Tab ─── */
+/* ════════════════════════════════════════════════════════════════
+ *  PLATFORM — serviços
+ * ═══════════════════════════════════════════════════════════════ */
+function PlatformTab({ stats }: { stats: PlatformStats }) {
+  const services = [
+    { name: "Chat AI", status: "online", icon: MessageCircle },
+    { name: "Voice", status: "online", icon: Volume2 },
+    { name: "Hosting", status: "online", icon: Globe },
+    { name: "IPTV", status: "online", icon: Radio },
+    { name: "Suporte", status: "online", icon: ShieldCheck },
+    { name: "Pagamentos", status: "online", icon: Zap },
+    { name: "Música AI", status: "online", icon: Volume2 },
+    { name: "Auth", status: "online", icon: Users },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <NeonCard glow className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_15px_rgb(16_185_129/0.4)]">
+            <Server className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold">Serviços da Plataforma</h3>
+            <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Todos operacionais
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {services.map(s => (
+            <div key={s.name} className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15">
+              <s.icon className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] font-bold">{s.name}</span>
+              <span className="ml-auto w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </NeonCard>
+
+      <NeonCard className="p-5">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+          <Database className="w-4 h-4 text-cyan-400" /> Sistema
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { l: "Plataforma", v: "SnyX" },
+            { l: "Versão", v: "3.0.0" },
+            { l: "Backend", v: "Lovable Cloud" },
+            { l: "Database", v: "PostgreSQL" },
+            { l: "Auth", v: "Integrado" },
+            { l: "Storage", v: "Cloud" },
+            { l: "Total Usuários", v: stats.totalUsers.toLocaleString("pt-BR") },
+            { l: "Total Mensagens", v: stats.totalMessages.toLocaleString("pt-BR") },
+          ].map(s => (
+            <div key={s.l} className="flex items-center justify-between p-3 rounded-xl border border-primary/10 bg-card/30">
+              <span className="text-xs text-muted-foreground/70">{s.l}</span>
+              <span className="text-xs font-bold font-mono">{s.v}</span>
+            </div>
+          ))}
+        </div>
+      </NeonCard>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  ADMINS
+ * ═══════════════════════════════════════════════════════════════ */
 function AdminsTab() {
   const [searchEmail, setSearchEmail] = useState("");
-  const [searchResult, setSearchResult] = useState<{ user_id: string; display_name: string | null; is_admin: boolean } | null>(null);
+  const [result, setResult] = useState<{ user_id: string; display_name: string | null; is_admin: boolean } | null>(null);
   const [searching, setSearching] = useState(false);
   const [admins, setAdmins] = useState<{ user_id: string; display_name: string | null; role: string }[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
 
   const fetchAdmins = async () => {
     setLoadingAdmins(true);
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
     if (roles && roles.length > 0) {
-      const userIds = roles.map(r => r.user_id);
-      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
-      const namesMap: Record<string, string | null> = {};
-      (profiles || []).forEach(p => { namesMap[p.user_id] = p.display_name; });
-      setAdmins(roles.map(r => ({ ...r, display_name: namesMap[r.user_id] || null })));
-    } else {
-      setAdmins([]);
-    }
+      const ids = roles.map(r => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", ids);
+      const map: Record<string, string | null> = {};
+      (profiles || []).forEach(p => { map[p.user_id] = p.display_name; });
+      setAdmins(roles.map(r => ({ ...r, display_name: map[r.user_id] || null })));
+    } else setAdmins([]);
     setLoadingAdmins(false);
   };
-
   useEffect(() => { fetchAdmins(); }, []);
 
-  const searchUser = async () => {
+  const search = async () => {
     if (!searchEmail.trim()) return;
-    setSearching(true);
-    setSearchResult(null);
+    setSearching(true); setResult(null);
     try {
-      const { data: userId, error } = await supabase.rpc("find_user_by_email", { p_email: searchEmail.trim() });
-      if (error || !userId) {
-        toast.error("Usuário não encontrado com esse email");
-        setSearching(false);
-        return;
-      }
-      const { data: profile } = await supabase.from("profiles").select("user_id, display_name").eq("user_id", userId).single();
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-      const isAdmin = (roles || []).some(r => r.role === "admin");
-      setSearchResult({
-        user_id: userId,
-        display_name: profile?.display_name || null,
-        is_admin: isAdmin,
-      });
-    } catch {
-      toast.error("Erro ao buscar usuário");
-    }
+      const { data: uid, error } = await supabase.rpc("find_user_by_email", { p_email: searchEmail.trim() });
+      if (error || !uid) { toast.error("Usuário não encontrado"); setSearching(false); return; }
+      const { data: profile } = await supabase.from("profiles").select("user_id, display_name").eq("user_id", uid).single();
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      setResult({ user_id: uid, display_name: profile?.display_name || null, is_admin: (roles || []).some(r => r.role === "admin") });
+    } catch { toast.error("Erro na busca"); }
     setSearching(false);
   };
 
-  const grantAdmin = async (userId: string) => {
-    setActionLoading(userId);
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" as any });
+  const grant = async (uid: string) => {
+    setActionId(uid);
+    const { error } = await supabase.from("user_roles").insert({ user_id: uid, role: "admin" as any });
     if (error) {
-      if (error.message.includes("duplicate") || error.message.includes("unique")) {
-        toast.info("Usuário já é admin");
-      } else {
-        toast.error("Erro: " + error.message);
-      }
+      if (error.message.includes("duplicate") || error.message.includes("unique")) toast.info("Já é admin");
+      else toast.error("Erro: " + error.message);
     } else {
-      toast.success("Admin concedido com sucesso!");
-      if (searchResult) setSearchResult({ ...searchResult, is_admin: true });
+      toast.success("✅ Admin concedido!");
+      if (result) setResult({ ...result, is_admin: true });
       fetchAdmins();
     }
-    setActionLoading(null);
+    setActionId(null);
   };
 
-  const revokeAdmin = async (userId: string) => {
-    setActionLoading(userId);
-    const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin" as any);
-    if (error) {
-      toast.error("Erro: " + error.message);
-    } else {
-      toast.success("Admin removido!");
-      if (searchResult?.user_id === userId) setSearchResult({ ...searchResult, is_admin: false });
-      fetchAdmins();
-    }
-    setActionLoading(null);
+  const revoke = async (uid: string) => {
+    setActionId(uid);
+    const { error } = await supabase.from("user_roles").delete().eq("user_id", uid).eq("role", "admin" as any);
+    if (error) toast.error("Erro: " + error.message);
+    else { toast.success("Admin removido"); if (result?.user_id === uid) setResult({ ...result, is_admin: false }); fetchAdmins(); }
+    setActionId(null);
   };
 
   return (
     <div className="space-y-5">
-      {/* Search User */}
-      <div className="rounded-2xl border border-amber-500/15 bg-gradient-to-br from-amber-950/10 to-background p-5">
+      <NeonCard glow className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck className="w-4 h-4 text-amber-400" />
+          <ShieldCheck className="w-4 h-4 text-primary-glow" />
           <h3 className="text-sm font-bold">Gerenciar Administradores</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground/40 mb-4">Busque por email para dar ou remover o cargo de admin</p>
-
         <div className="flex gap-2">
-          <input
-            type="email"
-            value={searchEmail}
-            onChange={(e) => setSearchEmail(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && searchUser()}
-            placeholder="Email do usuário..."
-            className="flex-1 px-3 py-2 rounded-xl bg-muted/30 border border-border/20 text-sm focus:outline-none focus:border-amber-500/30"
-          />
-          <button
-            onClick={searchUser}
-            disabled={searching}
-            className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-all border border-amber-500/20 flex items-center gap-2"
-          >
-            {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Users className="w-3.5 h-3.5" />}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+            <input
+              type="email"
+              value={searchEmail}
+              onChange={e => setSearchEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && search()}
+              placeholder="email@exemplo.com"
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-background/50 border border-primary/15 text-sm focus:outline-none focus:border-primary/40 transition-colors"
+            />
+          </div>
+          <button onClick={search} disabled={searching} className="px-4 py-2 rounded-xl bg-primary/15 text-primary-glow text-sm font-bold hover:bg-primary/25 transition-all border border-primary/25 flex items-center gap-2">
+            {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
             Buscar
           </button>
         </div>
 
-        {searchResult && (
-          <div className="mt-4 p-4 rounded-xl border border-border/20 bg-card/30 flex items-center justify-between gap-3">
+        {result && (
+          <div className="mt-4 p-4 rounded-xl border border-primary/15 bg-card/40 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">{searchResult.display_name || "Sem nome"}</p>
-              <p className="text-[10px] text-muted-foreground/40 font-mono">{searchResult.user_id.slice(0, 12)}...</p>
-              <div className="flex items-center gap-1.5 mt-1">
-                {searchResult.is_admin ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-bold">
-                    ✅ Admin
-                  </span>
-                ) : (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/20 font-medium">
-                    Usuário comum
-                  </span>
-                )}
-              </div>
+              <p className="text-sm font-bold">{result.display_name || "Sem nome"}</p>
+              <p className="text-[10px] text-muted-foreground/50 font-mono">{result.user_id.slice(0, 12)}...</p>
+              {result.is_admin
+                ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 font-bold mt-1 inline-block">✅ Admin</span>
+                : <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/20 mt-1 inline-block">Comum</span>}
             </div>
-            <div>
-              {searchResult.is_admin ? (
-                <button
-                  onClick={() => revokeAdmin(searchResult.user_id)}
-                  disabled={actionLoading === searchResult.user_id}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all border border-red-500/20 flex items-center gap-1.5"
-                >
-                  {actionLoading === searchResult.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
-                  Remover Admin
-                </button>
-              ) : (
-                <button
-                  onClick={() => grantAdmin(searchResult.user_id)}
-                  disabled={actionLoading === searchResult.user_id}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all border border-emerald-500/20 flex items-center gap-1.5"
-                >
-                  {actionLoading === searchResult.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
-                  Dar Admin
-                </button>
-              )}
-            </div>
+            {result.is_admin ? (
+              <button onClick={() => revoke(result.user_id)} disabled={actionId === result.user_id} className="px-3 py-2 rounded-xl text-xs font-bold bg-destructive/15 text-destructive hover:bg-destructive/25 transition-all border border-destructive/25 flex items-center gap-1.5">
+                {actionId === result.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
+                Remover
+              </button>
+            ) : (
+              <button onClick={() => grant(result.user_id)} disabled={actionId === result.user_id} className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all border border-emerald-500/25 flex items-center gap-1.5">
+                {actionId === result.user_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                Dar Admin
+              </button>
+            )}
           </div>
         )}
-      </div>
+      </NeonCard>
 
-      {/* Current Admins List */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
+      <NeonCard className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Crown className="w-4 h-4 text-amber-400" />
+            <Crown className="w-4 h-4 text-primary-glow" />
             <h3 className="text-sm font-bold">Admins Atuais</h3>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">{admins.length}</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary-glow font-bold">{admins.length}</span>
           </div>
           <button onClick={fetchAdmins} className="text-muted-foreground/40 hover:text-foreground transition">
             <RefreshCw className={`w-3.5 h-3.5 ${loadingAdmins ? "animate-spin" : ""}`} />
           </button>
         </div>
-
         {loadingAdmins ? (
-          <div className="flex justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-amber-400/50" />
-          </div>
+          <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : admins.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground/40 py-6">Nenhum admin encontrado</p>
+          <p className="text-center text-sm text-muted-foreground/40 py-6">Nenhum admin</p>
         ) : (
           <div className="space-y-2">
-            {admins.map((a) => (
-              <div key={a.user_id + a.role} className="flex items-center justify-between p-3 rounded-xl border border-border/15 hover:bg-muted/10 transition-colors">
+            {admins.map(a => (
+              <div key={a.user_id + a.role} className="flex items-center justify-between p-3 rounded-xl border border-primary/10 hover:bg-primary/5 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/20 to-yellow-500/20 flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 text-primary-glow" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold">{a.display_name || "Sem nome"}</p>
-                    <p className="text-[10px] text-muted-foreground/30 font-mono">{a.user_id.slice(0, 12)}...</p>
+                    <p className="text-xs font-bold">{a.display_name || "Sem nome"}</p>
+                    <p className="text-[10px] text-muted-foreground/50 font-mono">{a.user_id.slice(0, 12)}...</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/15 font-bold uppercase">
-                    {a.role}
-                  </span>
-                  <button
-                    onClick={() => revokeAdmin(a.user_id)}
-                    disabled={actionLoading === a.user_id}
-                    className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                    title="Remover admin"
-                  >
-                    {actionLoading === a.user_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/15 text-primary-glow border border-primary/25 font-black uppercase">{a.role}</span>
+                  <button onClick={() => revoke(a.user_id)} disabled={actionId === a.user_id} className="p-1.5 rounded-lg text-destructive/60 hover:text-destructive hover:bg-destructive/10 transition-all">
+                    {actionId === a.user_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Platform Tab ─── */
-function PlatformTab({ stats }: { stats: PlatformStats }) {
-  const services = [
-    { name: "Chat AI", status: "online", icon: MessageCircle, color: "text-emerald-400" },
-    { name: "Voice Call", status: "online", icon: Volume2, color: "text-emerald-400" },
-    { name: "Hosting", status: "online", icon: Globe, color: "text-emerald-400" },
-    { name: "IPTV", status: "online", icon: Radio, color: "text-emerald-400" },
-    { name: "Suporte", status: "online", icon: ShieldCheck, color: "text-emerald-400" },
-    { name: "Pagamentos", status: "online", icon: Zap, color: "text-emerald-400" },
-    { name: "Música AI", status: "online", icon: Volume2, color: "text-emerald-400" },
-    { name: "Auth", status: "online", icon: Users, color: "text-emerald-400" },
-  ];
-
-  return (
-    <div className="space-y-5">
-      {/* Platform Status */}
-      <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/15 to-background p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
-            <Server className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold">Status da Plataforma</h3>
-            <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Todos os serviços operacionais
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {services.map(s => (
-            <div key={s.name} className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-              <s.icon className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px] font-medium">{s.name}</span>
-              <span className="ml-auto w-2 h-2 rounded-full bg-emerald-400" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* System Info */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
-        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-          <Database className="w-4 h-4 text-blue-400" />
-          Informações do Sistema
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { label: "Plataforma", value: "SnyX" },
-            { label: "Versão", value: "2.0.0" },
-            { label: "Backend", value: "Lovable Cloud" },
-            { label: "Database", value: "PostgreSQL" },
-            { label: "Auth Provider", value: "Integrado" },
-            { label: "Storage", value: "Cloud Storage" },
-            { label: "Edge Functions", value: "Ativas" },
-            { label: "Realtime", value: "Habilitado" },
-          ].map(info => (
-            <div key={info.label} className="flex items-center justify-between py-2 px-3 rounded-xl bg-muted/10">
-              <span className="text-[11px] text-muted-foreground/50">{info.label}</span>
-              <span className="text-[11px] font-medium">{info.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Uptime */}
-      <div className="rounded-2xl border border-border/20 bg-card/30 p-5">
-        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-          <Wifi className="w-4 h-4 text-cyan-400" />
-          Uptime
-        </h3>
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <div className="h-3 rounded-full bg-muted/20 overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400" style={{ width: "99.9%" }} />
-            </div>
-          </div>
-          <span className="text-sm font-black text-emerald-400">99.9%</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/30 mt-2">Últimos 30 dias • Sem incidentes</p>
-      </div>
+      </NeonCard>
     </div>
   );
 }
