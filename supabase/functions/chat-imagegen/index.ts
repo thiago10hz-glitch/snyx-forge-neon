@@ -181,8 +181,15 @@ Deno.serve(async (req) => {
     const initialResult = await generateImage(LOVABLE_API_KEY, buildPrompt(prompt, Boolean(isPrivileged)));
     if (!initialResult.ok) {
       console.error("AI Gateway error:", initialResult.rawText);
-      return new Response(JSON.stringify({ error: `Erro ao gerar imagem: ${initialResult.status}` }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const status = initialResult.status;
+      let message = `Erro ao gerar imagem (${status}).`;
+      if (status === 402) {
+        message = "Os créditos da IA acabaram. Adicione créditos no workspace para continuar gerando imagens.";
+      } else if (status === 429) {
+        message = "Muitas requisições agora. Espere alguns segundos e tente de novo.";
+      }
+      return new Response(JSON.stringify({ error: message, text: message, code: status }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
