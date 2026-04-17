@@ -34,7 +34,6 @@ const Index = () => {
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // Mode picker overlay (triggered by typing "quero usar o modo amigo" etc.)
   const [showModePicker, setShowModePicker] = useState(false);
 
   useEffect(() => {
@@ -67,7 +66,6 @@ const Index = () => {
     setShowModePicker(false);
   }, [isDev]);
 
-  // Detect "quero usar o modo amigo" / "modo programador" typed in chat input
   const handleUserInput = useCallback((text: string) => {
     const t = text.toLowerCase();
     if (/(quero|usar|abrir|trocar|mudar).*\bmodo\b/.test(t) || /\bmodo\s+(amigo|vip|programador)\b/.test(t)) {
@@ -75,18 +73,80 @@ const Index = () => {
     }
   }, []);
 
-  const railTopItems: RailItem[] = isAdmin
-    ? ([
-        { icon: ShieldCheck, label: "Admin", to: "/admin" },
-        { icon: Crown, label: "Dono", to: "/dono", accent: true },
-      ] as RailItem[])
-    : [];
+  // === Sidebar items ===
+  const railTopItems: RailItem[] = [
+    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen },
+    { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
+    ...(isDev ? [{ icon: Code, label: "Programador", onClick: switchToProgrammer, active: chatMode === "programmer" } as RailItem] : []),
+    { icon: Code2, label: "API para devs", to: "/api" },
+    ...(isAdmin
+      ? ([
+          { icon: ShieldCheck, label: "Admin", to: "/admin" },
+          { icon: Crown, label: "Dono", to: "/dono", accent: true },
+        ] as RailItem[])
+      : []),
+  ];
 
   const railBottomItems: RailItem[] = [
-    { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
     { icon: User, label: "Minha conta", onClick: () => setShowProfile(true) },
+    { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
     { icon: LogOut, label: "Sair", onClick: signOut, danger: true },
   ];
+
+  const railLogo = (
+    <Link
+      to="/"
+      className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
+      title="SnyX"
+    >
+      <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
+      <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
+      <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
+        <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
+      </span>
+      <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
+      <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
+    </Link>
+  );
+
+  // Footer extra: badges + avatar (small)
+  const railFooterExtra = (
+    <div className="flex flex-col items-center gap-1.5 w-full">
+      <button
+        onClick={() => setShowProfile(true)}
+        className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
+        title="Minha conta"
+      >
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+        ) : (
+          <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
+        )}
+      </button>
+
+      <div className="flex flex-col items-center gap-1 max-w-full">
+        {profile?.is_vip || profile?.is_dev ? (
+          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
+            <Crown size={8} className="fill-amber-300" /> VIP
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
+            FREE
+          </span>
+        )}
+        {profile?.is_dev && (
+          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+            <Code size={8} /> DEV
+          </span>
+        )}
+        {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
+          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
+            👑 {profile.team_badge}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 
   const modeOptions = [
     {
@@ -122,28 +182,14 @@ const Index = () => {
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
         <AuroraBackground intensity="subtle" />
 
-        {/* Mini sidebar — só pra dono/admin */}
-        {isAdmin && (
-          <SideRail
-            logo={
-              <Link
-                to="/"
-                className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
-                title="SnyX"
-              >
-                <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
-                <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
-                <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
-                  <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
-                </span>
-                <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
-                <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
-              </Link>
-            }
-            topItems={railTopItems}
-            bottomItems={railBottomItems}
-          />
-        )}
+        {/* Sidebar lateral — desktop, pra todo mundo */}
+        <SideRail
+          logo={railLogo}
+          topItems={railTopItems}
+          bottomItems={railBottomItems}
+          headerExtra={<AdminPresenceIndicator />}
+          footerExtra={railFooterExtra}
+        />
 
         {/* Toggleable history panel */}
         <HistoryPanel
@@ -164,150 +210,16 @@ const Index = () => {
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
-          {/* Header */}
-          <header className="h-14 flex items-center justify-between gap-2 px-2 sm:px-6 shrink-0 bg-transparent relative">
-            <div className="flex items-center gap-2 shrink-0 sm:flex-1 min-w-0">
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
+          {/* Mobile floating menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="md:hidden fixed top-3 left-3 z-30 w-10 h-10 rounded-2xl flex items-center justify-center bg-card/80 backdrop-blur-xl border border-border/40 text-foreground shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.4)] hover:border-primary/50 transition-all"
+            aria-label="Abrir menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
 
-              {/* Logo SnyX — esconde em mobile (menu já tem branding); aparece em desktop quando não há SideRail */}
-              <Link
-                to="/"
-                title="SnyX"
-                className={`group relative w-9 h-9 rounded-2xl items-center justify-center transition-all duration-500 hover:scale-110 hidden sm:flex ${isAdmin ? "md:hidden" : ""}`}
-              >
-                <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 transition-all duration-500" aria-hidden />
-                <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
-                <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
-                <Sparkles className="relative w-[16px] h-[16px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
-              </Link>
-
-              <AdminPresenceIndicator />
-            </div>
-
-            {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-130px)] sm:max-w-none">
-              <div className="relative flex items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
-                {/* glow halo */}
-                <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_70%)] blur-md" aria-hidden />
-
-                <button
-                  onClick={() => setHistoryOpen((v) => !v)}
-                  className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
-                    historyOpen
-                      ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
-                      : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
-                  }`}
-                  title="Histórico"
-                >
-                  <History className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
-                  <span className="hidden sm:inline">Histórico</span>
-                </button>
-
-                <button
-                  onClick={switchToFriend}
-                  className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
-                    chatMode === "friend"
-                      ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
-                      : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
-                  }`}
-                  title="Chat Amigo"
-                >
-                  <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
-                  <span className="hidden sm:inline">Amigo</span>
-                </button>
-
-                {isDev && (
-                  <button
-                    onClick={switchToProgrammer}
-                    className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
-                      chatMode === "programmer"
-                        ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
-                        : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
-                    }`}
-                    title="Modo Programador"
-                  >
-                    <Code className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
-                    <span className="hidden sm:inline">Programador</span>
-                  </button>
-                )}
-
-                {isVip && (
-                  <button
-                    onClick={switchToFriend}
-                    className="relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
-                    title="Abrir Chat VIP"
-                  >
-                    <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
-                    <span className="hidden sm:inline">VIP</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Right */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 sm:justify-end">
-              {/* API para devs — só desktop (mobile fica no menu) */}
-              <Link
-                to="/api"
-                title="API para devs"
-                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-b from-primary/20 to-primary/10 text-primary border border-primary/40 hover:border-primary/70 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] transition-all"
-              >
-                <Code2 className="w-3 h-3" strokeWidth={2.6} />
-                <span>API devs</span>
-              </Link>
-
-              {/* Badge de plano — VIP dourado pra assinantes, FREE pra contas novas */}
-              {profile?.is_vip || profile?.is_dev ? (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
-                  <Crown size={8} className="fill-amber-300" /> VIP
-                </span>
-              ) : (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
-                  FREE
-                </span>
-              )}
-
-              {profile?.is_dev && (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                  <Code size={8} /> DEV
-                </span>
-              )}
-
-              {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-                <span className="hidden md:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)]">
-                  👑 {profile.team_badge}
-                </span>
-              )}
-
-              <button
-                onClick={() => setShowProfile(true)}
-                className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)] sm:ml-1"
-                title="Minha conta"
-              >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-                )}
-              </button>
-
-              {/* Botão Sair — só desktop (mobile fica no menu) */}
-              <button
-                onClick={signOut}
-                title="Sair da conta"
-                className="hidden sm:flex w-9 h-9 rounded-2xl items-center justify-center border border-border/30 hover:border-destructive/60 text-muted-foreground hover:text-destructive bg-card/60 hover:bg-destructive/10 transition-all duration-300 hover:shadow-[0_0_18px_-4px_hsl(var(--destructive)/0.6)]"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </header>
-
-          {/* Content — chat opens DIRECTLY, no selector */}
+          {/* Content — chat opens DIRECTLY, no header */}
           <div className="flex-1 flex overflow-hidden">
             <div className={`w-full flex flex-col ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0 md:border-r md:border-border/20" : ""}`}>
               <div className="flex-1 min-h-0">
@@ -393,7 +305,7 @@ const Index = () => {
           <>
             <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)} />
             <div className="fixed inset-y-0 left-0 z-50 w-72 bg-sidebar border-r border-sidebar-border flex flex-col md:hidden animate-in slide-in-from-left duration-200">
-              <div className="h-12 flex items-center justify-between px-3 border-b border-sidebar-border/60">
+              <div className="h-14 flex items-center justify-between px-3 border-b border-sidebar-border/60">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
                   <span className="text-sm font-bold tracking-tight">SnyX</span>
@@ -403,7 +315,18 @@ const Index = () => {
                 </button>
               </div>
 
+              <div className="px-3 py-2 border-b border-sidebar-border/40 flex justify-center">
+                <AdminPresenceIndicator />
+              </div>
+
               <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+                <button
+                  onClick={() => { setHistoryOpen(true); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/30"
+                >
+                  <History className="w-4 h-4" /><span>Histórico</span>
+                </button>
+
                 <button
                   onClick={() => { switchToFriend(); setMobileMenuOpen(false); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${chatMode === "friend" ? "bg-primary/10 text-primary" : "hover:bg-muted/30"}`}
@@ -446,6 +369,26 @@ const Index = () => {
               </nav>
 
               <div className="p-2 border-t border-sidebar-border/60 space-y-0.5">
+                {/* Badges row */}
+                <div className="flex flex-wrap items-center gap-1 px-2 pb-2">
+                  {profile?.is_vip || profile?.is_dev ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40">
+                      <Crown size={9} className="fill-amber-300" /> VIP
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">FREE</span>
+                  )}
+                  {profile?.is_dev && (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                      <Code size={9} /> DEV
+                    </span>
+                  )}
+                  {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30">
+                      👑 {profile.team_badge}
+                    </span>
+                  )}
+                </div>
                 <button onClick={() => { setShowProfile(true); setMobileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/30">
                   <User className="w-4 h-4" /><span>Minha conta</span>
                 </button>
