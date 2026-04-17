@@ -10,7 +10,7 @@ import { UserTagModal } from "@/components/UserTagModal";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, Sparkles
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -48,10 +48,10 @@ export default function Admin() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [vipModalUser, setVipModalUser] = useState<string | null>(null);
   const [devModalUser, setDevModalUser] = useState<string | null>(null);
-  const [rpgModalUser, setRpgModalUser] = useState<string | null>(null);
+  
   const [vipMonths, setVipMonths] = useState(1);
   const [devMonths, setDevMonths] = useState(1);
-  const [rpgMonths, setRpgMonths] = useState(1);
+  
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -155,70 +155,7 @@ export default function Admin() {
     setActionLoading(null);
   };
 
-  const grantPackSteam = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_pack_steam");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_pack_steam", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`Pack Steam ativado por ${months} mês(es)`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_pack_steam: true, pack_steam_expires_at: data.pack_steam_expires_at } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder Pack Steam");
-    }
-    setActionLoading(null);
-  };
-
-  const revokePackSteam = async (userId: string) => {
-    setActionLoading(userId + "-revoke_pack_steam");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_pack_steam", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("Pack Steam removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_pack_steam: false, pack_steam_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar Pack Steam");
-    }
-    setActionLoading(null);
-  };
-
-  const grantRpgPremium = async (userId: string, months: number) => {
-    setActionLoading(userId + "-grant_rpg");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "grant_rpg_premium", target_user_id: userId, vip_months: months },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`RPG Premium ativado por ${months} mês(es) ⚔️`);
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: true, rpg_premium_expires_at: data.rpg_premium_expires_at } : u)));
-      setRpgModalUser(null);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao conceder RPG Premium");
-    }
-    setActionLoading(null);
-  };
-
-  const revokeRpgPremium = async (userId: string) => {
-    setActionLoading(userId + "-revoke_rpg");
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "revoke_rpg_premium", target_user_id: userId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("RPG Premium removido");
-      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, is_rpg_premium: false, rpg_premium_expires_at: null } : u)));
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao revogar RPG Premium");
-    }
-    setActionLoading(null);
-  };
+  
 
   const grantVip = async (userId: string, months: number) => {
     setActionLoading(userId + "-grant_vip");
@@ -588,16 +525,7 @@ export default function Admin() {
                                 DEV
                               </span>
                             )}
-                            {u.is_pack_steam && !isPackSteamExpired(u) && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20">
-                                🎮 Pack Steam
-                              </span>
-                            )}
-                            {u.is_rpg_premium && !isRpgExpired(u) && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                ⚔️ RPG
-                              </span>
-                            )}
+                            
                             {u.is_vip && isVipExpired(u) && (
                               <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                 VIP Expirado
@@ -608,16 +536,7 @@ export default function Admin() {
                                 DEV Expirado
                               </span>
                             )}
-                            {u.is_pack_steam && isPackSteamExpired(u) && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                                Pack Steam Expirado
-                              </span>
-                            )}
-                            {u.is_rpg_premium && isRpgExpired(u) && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                                RPG Expirado
-                              </span>
-                            )}
+                            
                             {u.team_badge && (u.team_badge === "Dono" || u.team_badge === "Dona") ? (
                               <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-amber-500/15 via-yellow-400/20 to-amber-500/15 text-amber-300 border border-amber-400/30 shadow-lg shadow-amber-500/10 flex items-center gap-1">
                                 👑 {u.team_badge}
@@ -657,9 +576,7 @@ export default function Admin() {
                             {u.dev_expires_at && (
                               <span className="text-cyan-400/70">DEV até: {new Date(u.dev_expires_at).toLocaleDateString("pt-BR")}</span>
                             )}
-                            {u.rpg_premium_expires_at && (
-                              <span className="text-purple-400/70">RPG até: {new Date(u.rpg_premium_expires_at).toLocaleDateString("pt-BR")}</span>
-                            )}
+                            
                             {isBanned(u) && (
                               <span className="text-destructive/70">Ban até: {new Date(u.banned_until!).toLocaleString("pt-BR")}</span>
                             )}
@@ -721,42 +638,7 @@ export default function Admin() {
                                 disabled={actionLoading !== null}
                               />
                             )}
-                            <ActionButton
-                              icon={Package}
-                              title="Dar Pack Steam"
-                              color="text-green-400 hover:bg-green-500/10 border-green-500/20"
-                              onClick={() => grantPackSteam(u.user_id, 1)}
-                              loading={actionLoading === u.user_id + "-grant_pack_steam"}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_pack_steam && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar Pack Steam"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => revokePackSteam(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_pack_steam"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            <ActionButton
-                              icon={Swords}
-                              title="Dar RPG Premium"
-                              color="text-purple-400 hover:bg-purple-500/10 border-purple-500/20"
-                              onClick={() => setRpgModalUser(u.user_id)}
-                              loading={false}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_rpg_premium && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar RPG"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => revokeRpgPremium(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_rpg"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
+                            
                             <ActionButton
                               icon={ShieldCheck}
                               title="Badge SnyX"
@@ -1029,48 +911,7 @@ export default function Admin() {
         </div>
       )}
 
-      {/* RPG Duration Modal */}
-      {rpgModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 max-w-xs w-full text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-purple-500/10 mb-4">
-              <span className="text-2xl">⚔️</span>
-            </div>
-            <h2 className="text-base font-semibold mb-1">Conceder RPG Premium</h2>
-            <p className="text-xs text-muted-foreground/60 mb-4">Selecione a duração</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[1, 2, 3, 6].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setRpgMonths(m)}
-                  className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    rpgMonths === m
-                      ? "bg-purple-500/15 text-purple-400 border border-purple-500/40"
-                      : "bg-muted/30 text-muted-foreground border border-border/20 hover:border-border/50"
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setRpgModalUser(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border/20 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => grantRpgPremium(rpgModalUser, rpgMonths)}
-                disabled={actionLoading !== null}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30 transition-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              
       </div>
     </div>
   );
