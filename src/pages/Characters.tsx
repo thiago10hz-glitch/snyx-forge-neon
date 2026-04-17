@@ -92,7 +92,7 @@ const Characters = () => {
 
   const startChat = (charId: string) => {
     if (!hasAccess) { setShowVipModal(true); return; }
-    navigate("/?character=" + charId);
+    navigate("/character/" + charId);
   };
 
   const filtered = characters.filter((c) => {
