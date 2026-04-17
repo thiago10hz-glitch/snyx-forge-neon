@@ -36,7 +36,7 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipModal] = useState(false);
-  const [chatChoice, setChatChoice] = useState<ChatChoice | null>(null);
+  const [chatChoice, setChatChoice] = useState<ChatChoice | null>("friend");
   const [chatMode, setChatMode] = useState<"friend" | "programmer">("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
