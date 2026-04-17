@@ -1,8 +1,11 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2,
+  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -110,11 +113,7 @@ const Index = () => {
       : []),
   ];
 
-  const railBottomItems: RailItem[] = [
-    { icon: User, label: "Minha conta", onClick: () => setShowProfile(true) },
-    { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
-    { icon: LogOut, label: "Sair", onClick: signOut, danger: true },
-  ];
+  const railBottomItems: RailItem[] = [];
 
   const railLogo = (
     <Link
@@ -132,44 +131,33 @@ const Index = () => {
     </Link>
   );
 
-  // Footer extra: badges + avatar (small)
+  // Footer extra: badges only (avatar moved to top-right)
   const railFooterExtra = (
-    <div className="flex flex-col items-center gap-1.5 w-full">
-      <button
-        onClick={() => setShowProfile(true)}
-        className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
-        title="Minha conta"
-      >
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-        ) : (
-          <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-        )}
-      </button>
-
-      <div className="flex flex-col items-center gap-1 max-w-full">
-        {profile?.is_vip || profile?.is_dev ? (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
-            <Crown size={8} className="fill-amber-300" /> VIP
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
-            FREE
-          </span>
-        )}
-        {profile?.is_dev && (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-            <Code size={8} /> DEV
-          </span>
-        )}
-        {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
-            👑 {profile.team_badge}
-          </span>
-        )}
-      </div>
+    <div className="flex flex-col items-center gap-1 max-w-full">
+      {profile?.is_vip || profile?.is_dev ? (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
+          <Crown size={8} className="fill-amber-300" /> VIP
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
+          FREE
+        </span>
+      )}
+      {profile?.is_dev && (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+          <Code size={8} /> DEV
+        </span>
+      )}
+      {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
+          👑 {profile.team_badge}
+        </span>
+      )}
     </div>
   );
+
+  const displayName = profile?.display_name || user?.email?.split("@")[0] || "Usuário";
+  const firstName = displayName.trim().split(/\s+/)[0];
 
   const modeOptions = [
     {
@@ -233,19 +221,67 @@ const Index = () => {
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
-          {/* Desktop hint: Cmd+K to open command palette */}
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("snyx:open-palette"))}
-            className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-card/70 backdrop-blur-xl border border-border/30 text-[10.5px] font-medium text-muted-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-card/90 transition-all group"
-            aria-label="Abrir paleta de comandos"
-            title="Paleta de comandos (Ctrl+K)"
-          >
-            <Sparkles className="w-3 h-3 text-primary/70 group-hover:text-primary transition-colors" />
-            <span>Comandos</span>
-            <kbd className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/40 border border-border/30 text-[9.5px] font-mono text-muted-foreground/80">
-              Ctrl K
-            </kbd>
-          </button>
+          {/* Desktop top-right cluster: Commands + Avatar dropdown */}
+          <div className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-2">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("snyx:open-palette"))}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-card/70 backdrop-blur-xl border border-border/30 text-[10.5px] font-medium text-muted-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-card/90 transition-all group"
+              aria-label="Abrir paleta de comandos"
+              title="Paleta de comandos (Ctrl+K)"
+            >
+              <Sparkles className="w-3 h-3 text-primary/70 group-hover:text-primary transition-colors" />
+              <span>Comandos</span>
+              <kbd className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/40 border border-border/30 text-[9.5px] font-mono text-muted-foreground/80">
+                Ctrl K
+              </kbd>
+            </button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/30 hover:border-primary/40 hover:bg-card/90 transition-all group"
+                  aria-label="Menu da conta"
+                  title="Minha conta"
+                >
+                  <span className="relative w-7 h-7 rounded-xl overflow-hidden border border-border/30 group-hover:border-primary/50 transition-all flex items-center justify-center bg-muted/40">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-3.5 h-3.5 text-muted-foreground/70" />
+                    )}
+                  </span>
+                  <span className="text-[11px] font-semibold text-foreground/85 max-w-[100px] truncate">{firstName}</span>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-1">
+                <DropdownMenuLabel className="flex items-center gap-2 py-2">
+                  <span className="relative w-8 h-8 rounded-lg overflow-hidden border border-border/30 flex items-center justify-center bg-muted/40 shrink-0">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-4 h-4 text-muted-foreground/70" />
+                    )}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[12px] font-bold truncate">{displayName}</span>
+                    <span className="text-[10px] text-muted-foreground/60 truncate">{user?.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowProfile(true)} className="cursor-pointer">
+                  <User className="w-3.5 h-3.5 mr-2" /> Minha conta
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowThemeModal(true)} className="cursor-pointer">
+                  <Palette className="w-3.5 h-3.5 mr-2" /> Tema
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="w-3.5 h-3.5 mr-2" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Mobile floating menu button */}
           <button
