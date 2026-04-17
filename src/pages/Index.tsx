@@ -76,7 +76,7 @@ const Index = () => {
     if (!hasRpgAccess) { setShowVipModal(true); return; }
     const { data } = await supabase
       .from("ai_characters")
-      .select("id, name, system_prompt, avatar_url")
+      .select("id, name, system_prompt, avatar_url, description, personality, scenario, example_dialog, first_message, is_nsfw")
       .eq("id", id)
       .single();
     if (data) {

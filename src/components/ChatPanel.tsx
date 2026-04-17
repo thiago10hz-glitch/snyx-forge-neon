@@ -245,14 +245,43 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
   }, [activeConversationId]);
 
   // Auto-resumo a cada 30 mensagens em RPG (memória de longo prazo)
+  const lastSummarizedAtRef = useRef(0);
   useEffect(() => {
     if (!activeConversationId || !activeCharacter) return;
-    if (messages.length > 0 && messages.length % 30 === 0) {
+    if (messages.length >= lastSummarizedAtRef.current + 30) {
+      lastSummarizedAtRef.current = messages.length;
       supabase.functions.invoke("summarize-conversation", { body: { conversation_id: activeConversationId } })
         .then(({ data }: any) => { if (data?.success && data.summary) setConversationSummary(data.summary); })
         .catch(() => {});
     }
   }, [messages.length, activeConversationId, activeCharacter]);
+
+  // Quando troca de personagem: cria conversa nova + injeta first_message do personagem
+  const lastCharIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!activeCharacter || !user) return;
+    if (lastCharIdRef.current === activeCharacter.id) return;
+    lastCharIdRef.current = activeCharacter.id;
+    (async () => {
+      const { data } = await supabase
+        .from("chat_conversations")
+        .insert({ user_id: user.id, mode: "rpg", title: activeCharacter.name, character_id: activeCharacter.id })
+        .select("id")
+        .single();
+      if (!data) return;
+      setActiveConversationId(data.id);
+      setConversationSummary("");
+      lastSummarizedAtRef.current = 0;
+      const firstMsg = (activeCharacter as any).first_message?.trim();
+      if (firstMsg) {
+        await supabase.from("chat_messages").insert({ conversation_id: data.id, role: "assistant", content: firstMsg });
+        setMessages([{ role: "assistant", content: firstMsg } as Message]);
+      } else {
+        setMessages([]);
+      }
+      loadConversations();
+    })();
+  }, [activeCharacter?.id, user, loadConversations]);
 
   const createConversation = async (): Promise<string | null> => {
     if (!user) return null;
