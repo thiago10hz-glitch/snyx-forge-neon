@@ -80,6 +80,78 @@ function extractText(payload: any): string {
   return "Não foi possível gerar a imagem agora. Tente novamente.";
 }
 
+function bufferToDataUrl(buf: ArrayBuffer, contentType: string) {
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return `data:${contentType};base64,${btoa(binary)}`;
+}
+
+async function generateWithHuggingFace(prompt: string) {
+  const HF_TOKEN = Deno.env.get("HUGGINGFACE_API_KEY");
+  if (!HF_TOKEN) {
+    return { ok: false as const, status: 500, rawText: "HF token not configured" };
+  }
+  const models = [
+    "black-forest-labs/FLUX.1-schnell",
+    "stabilityai/stable-diffusion-xl-base-1.0",
+  ];
+  for (const model of models) {
+    try {
+      const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ inputs: prompt }),
+      });
+      if (!res.ok) {
+        console.error(`HF ${model} failed:`, res.status);
+        continue;
+      }
+      const buf = await res.arrayBuffer();
+      const mime = res.headers.get("content-type") || "image/jpeg";
+      return { ok: true as const, imageUrl: bufferToDataUrl(buf, mime) };
+    } catch (e) {
+      console.error(`HF ${model} error:`, e);
+    }
+  }
+  return { ok: false as const, status: 500, rawText: "all HF models failed" };
+}
+
+async function generateWithDeepAI(prompt: string) {
+  const DEEPAI_KEY = Deno.env.get("DEEPAI_API_KEY");
+  if (!DEEPAI_KEY) {
+    return { ok: false as const, status: 500, rawText: "DeepAI key not configured" };
+  }
+  try {
+    const res = await fetch("https://api.deepai.org/api/text2img", {
+      method: "POST",
+      headers: {
+        "api-key": DEEPAI_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: prompt }),
+    });
+    if (!res.ok) return { ok: false as const, status: res.status, rawText: `DeepAI ${res.status}` };
+    const json = await res.json();
+    if (json?.output_url) {
+      // Re-download to data URL so the client doesn't depend on third party
+      const img = await fetch(json.output_url);
+      const buf = await img.arrayBuffer();
+      const mime = img.headers.get("content-type") || "image/jpeg";
+      return { ok: true as const, imageUrl: bufferToDataUrl(buf, mime) };
+    }
+    return { ok: false as const, status: 502, rawText: "DeepAI no output" };
+  } catch (e) {
+    return { ok: false as const, status: 500, rawText: e instanceof Error ? e.message : "deepai error" };
+  }
+}
+
 async function generateWithPollinations(prompt: string) {
   try {
     const seed = Math.floor(Math.random() * 1_000_000);
@@ -203,16 +275,24 @@ Deno.serve(async (req) => {
 
     const finalPrompt = buildPrompt(prompt, Boolean(isPrivileged));
 
-    // Primary: Pollinations (free, no API key)
-    const poll = await generateWithPollinations(finalPrompt);
-    if (poll.ok) {
-      return new Response(JSON.stringify({
-        type: "image",
-        image_url: poll.imageUrl,
-        text: isPrivileged ? "🎨 Imagem gerada! ✨" : "🎨 Imagem gerada com segurança! ✨",
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Provider chain: Pollinations -> Hugging Face -> DeepAI -> Lovable AI
+    const providers: Array<{ name: string; fn: () => Promise<{ ok: true; imageUrl: string } | { ok: false; status: number; rawText: string }> }> = [
+      { name: "Pollinations", fn: () => generateWithPollinations(finalPrompt) },
+      { name: "HuggingFace", fn: () => generateWithHuggingFace(finalPrompt) },
+      { name: "DeepAI", fn: () => generateWithDeepAI(finalPrompt) },
+    ];
+
+    for (const p of providers) {
+      const r = await p.fn();
+      if (r.ok) {
+        return new Response(JSON.stringify({
+          type: "image",
+          image_url: r.imageUrl,
+          text: isPrivileged ? "🎨 Imagem gerada! ✨" : "🎨 Imagem gerada com segurança! ✨",
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      console.error(`${p.name} failed:`, r.rawText);
     }
-    console.error("Pollinations failed, falling back to Lovable AI:", poll.rawText);
 
     // Fallback: Lovable AI
     const initialResult = await generateImage(LOVABLE_API_KEY, finalPrompt);
