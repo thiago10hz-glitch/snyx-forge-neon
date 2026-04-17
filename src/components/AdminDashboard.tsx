@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users, Crown, MessageCircle, TrendingUp, Ban, Clock,
   ShieldCheck, Globe, Activity, BarChart3, ArrowUpRight,
-  Swords, Flame
+  Swords, Flame, Trash2
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface DashboardStats {
   totalUsers: number;
@@ -67,6 +68,22 @@ export function AdminDashboard() {
   });
   const [recentUsers, setRecentUsers] = useState<{ display_name: string | null; created_at: string; is_vip: boolean; is_dev: boolean; team_badge: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cleaning, setCleaning] = useState(false);
+
+  const handleCleanup = async () => {
+    if (!confirm("Apagar TODOS os arquivos antigos do bucket app-downloads (instaladores, ZIPs)? Não pode ser desfeito.")) return;
+    setCleaning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-cleanup-storage");
+      if (error) throw error;
+      toast.success("Limpeza concluída!");
+      console.log("cleanup result", data);
+    } catch (e: any) {
+      toast.error(e.message || "Falhou");
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   useEffect(() => {
     fetchDashboard();
@@ -158,8 +175,20 @@ export function AdminDashboard() {
     { label: "Free", value: stats.freeUsers, color: "bg-muted-foreground/30" },
   ];
 
+
   return (
     <div className="space-y-5">
+      {/* Cleanup button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleCleanup}
+          disabled={cleaning}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 transition disabled:opacity-50"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          {cleaning ? "Limpando..." : "Limpar Storage antigo"}
+        </button>
+      </div>
       {/* Hero Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {heroCards.map((s, i) => (
