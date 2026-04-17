@@ -169,8 +169,9 @@ export function AdminDashboard() {
       { data: topProfiles },
       { data: secLogs },
       { data: fraud },
+      { data: adminRoles },
     ] = await Promise.all([
-      supabase.from("profiles").select("is_vip, is_dev, is_pack_steam, is_rpg_premium, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at, rpg_premium_expires_at, created_at, free_messages_used"),
+      supabase.from("profiles").select("user_id, is_vip, is_dev, is_pack_steam, is_rpg_premium, banned_until, vip_expires_at, dev_expires_at, pack_steam_expires_at, rpg_premium_expires_at, created_at, free_messages_used"),
       supabase.from("chat_messages").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -181,9 +182,11 @@ export function AdminDashboard() {
       supabase.from("profiles").select("user_id, display_name, free_messages_used, is_vip, is_dev, team_badge").order("free_messages_used", { ascending: false }).limit(6),
       supabase.from("security_audit_log").select("id, event_type, severity, created_at, user_id, resource").order("created_at", { ascending: false }).limit(6),
       supabase.from("fraud_attempts").select("id, attempt_type, details, created_at, user_id").order("created_at", { ascending: false }).limit(6),
+      supabase.from("user_roles").select("user_id").eq("role", "admin"),
     ]);
 
-    const users = profiles || [];
+    const adminIds = new Set((adminRoles || []).map((r: any) => r.user_id));
+    const users = (profiles || []).filter((u: any) => !adminIds.has(u.user_id));
     const isBanned = (u: any) => u.banned_until && new Date(u.banned_until) > now;
     const notExpired = (flag: boolean, exp: string | null) => flag && (!exp || new Date(exp) > now);
     const isExpired = (u: any) =>
