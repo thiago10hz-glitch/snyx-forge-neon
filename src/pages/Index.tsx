@@ -238,6 +238,16 @@ const Index = () => {
 
             {/* Right */}
             <div className="flex items-center gap-1.5 flex-1 justify-end">
+              {/* API para devs — botão fixo no canto */}
+              <Link
+                to="/api"
+                title="API para devs"
+                className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-b from-primary/20 to-primary/10 text-primary border border-primary/40 hover:border-primary/70 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] transition-all"
+              >
+                <Code2 className="w-3 h-3" strokeWidth={2.6} />
+                <span className="hidden sm:inline">API devs</span>
+              </Link>
+
               {/* Badge de plano — VIP dourado pra assinantes, FREE pra contas novas */}
               {profile?.is_vip || profile?.is_dev ? (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
