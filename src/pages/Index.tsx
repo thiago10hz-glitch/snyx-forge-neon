@@ -11,8 +11,8 @@ import { type ChatChoice } from "@/components/ChatSelector";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { SideRail, type RailItem } from "@/components/SideRail";
+import { ChatPanel } from "@/components/ChatPanel";
 
-const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
 const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ThemeSelector = lazy(() => import("@/components/ThemeSelector").then(m => ({ default: m.ThemeSelector })));
