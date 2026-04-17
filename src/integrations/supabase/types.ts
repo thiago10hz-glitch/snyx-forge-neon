@@ -202,6 +202,239 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_provider_keys: {
+        Row: {
+          api_key: string
+          created_at: string
+          created_by: string
+          daily_limit: number
+          daily_used: number
+          id: string
+          label: string
+          last_error: string | null
+          last_reset_at: string
+          last_used_at: string | null
+          model_default: string | null
+          priority: number
+          provider: string
+          status: string
+          total_used: number
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          created_by: string
+          daily_limit?: number
+          daily_used?: number
+          id?: string
+          label: string
+          last_error?: string | null
+          last_reset_at?: string
+          last_used_at?: string | null
+          model_default?: string | null
+          priority?: number
+          provider: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          created_by?: string
+          daily_limit?: number
+          daily_used?: number
+          id?: string
+          label?: string
+          last_error?: string | null
+          last_reset_at?: string
+          last_used_at?: string | null
+          model_default?: string | null
+          priority?: number
+          provider?: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_clients: {
+        Row: {
+          api_key: string
+          api_key_prefix: string
+          created_at: string
+          daily_used: number
+          expires_at: string | null
+          id: string
+          last_reset_daily: string
+          last_reset_monthly: string
+          last_used_at: string | null
+          monthly_used: number
+          name: string
+          plan_id: string
+          status: string
+          total_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          api_key_prefix: string
+          created_at?: string
+          daily_used?: number
+          expires_at?: string | null
+          id?: string
+          last_reset_daily?: string
+          last_reset_monthly?: string
+          last_used_at?: string | null
+          monthly_used?: number
+          name?: string
+          plan_id: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          api_key_prefix?: string
+          created_at?: string
+          daily_used?: number
+          expires_at?: string | null
+          id?: string
+          last_reset_daily?: string
+          last_reset_monthly?: string
+          last_used_at?: string | null
+          monthly_used?: number
+          name?: string
+          plan_id?: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_clients_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "api_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_plans: {
+        Row: {
+          created_at: string
+          daily_request_limit: number
+          features: Json
+          id: string
+          is_active: boolean
+          models_allowed: string[]
+          monthly_request_limit: number
+          name: string
+          price_brl: number
+          rate_limit_per_minute: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_request_limit?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          models_allowed?: string[]
+          monthly_request_limit?: number
+          name: string
+          price_brl?: number
+          rate_limit_per_minute?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_request_limit?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          models_allowed?: string[]
+          monthly_request_limit?: number
+          name?: string
+          price_brl?: number
+          rate_limit_per_minute?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_usage_logs: {
+        Row: {
+          api_client_id: string
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          latency_ms: number | null
+          model: string | null
+          provider: string
+          provider_key_id: string | null
+          status_code: number
+          tokens_in: number | null
+          tokens_out: number | null
+          user_id: string
+        }
+        Insert: {
+          api_client_id: string
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          latency_ms?: number | null
+          model?: string | null
+          provider: string
+          provider_key_id?: string | null
+          status_code: number
+          tokens_in?: number | null
+          tokens_out?: number | null
+          user_id: string
+        }
+        Update: {
+          api_client_id?: string
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          latency_ms?: number | null
+          model?: string | null
+          provider?: string
+          provider_key_id?: string | null
+          status_code?: number
+          tokens_in?: number | null
+          tokens_out?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_api_client_id_fkey"
+            columns: ["api_client_id"]
+            isOneToOne: false
+            referencedRelation: "api_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_usage_logs_provider_key_id_fkey"
+            columns: ["provider_key_id"]
+            isOneToOne: false
+            referencedRelation: "ai_provider_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_releases: {
         Row: {
           changelog: string | null
@@ -739,6 +972,15 @@ export type Database = {
         Returns: Json
       }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
+      get_next_ai_key: {
+        Args: { p_provider?: string }
+        Returns: {
+          api_key: string
+          id: string
+          model_default: string
+          provider: string
+        }[]
+      }
       get_partner_user_id: { Args: { _user_id: string }; Returns: string }
       handle_security_violation: {
         Args: { p_reason?: string; p_user_id: string }
@@ -751,11 +993,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_ai_key_usage: { Args: { p_key_id: string }; Returns: undefined }
+      increment_api_client_usage: {
+        Args: { p_client_id: string }
+        Returns: undefined
+      }
       increment_character_chat_count: {
         Args: { p_character_id: string }
         Returns: undefined
       }
       increment_free_messages: { Args: never; Returns: undefined }
+      mark_ai_key_error: {
+        Args: { p_error: string; p_key_id: string }
+        Returns: undefined
+      }
+      reset_daily_ai_usage: { Args: never; Returns: undefined }
+      validate_api_client: { Args: { p_api_key: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

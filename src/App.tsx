@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OwnerPanel from "./pages/OwnerPanel";
+import AdminAIPool from "./pages/AdminAIPool";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { CommandPalette } from "./components/CommandPalette";
@@ -113,6 +114,7 @@ const App = () => {
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                 <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin/ai-pool" element={<ProtectedRoute><AdminAIPool /></ProtectedRoute>} />
                 <Route path="/dono" element={<ProtectedRoute><OwnerPanel /></ProtectedRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="*" element={<NotFound />} />
