@@ -124,7 +124,7 @@ const Index = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
-        <AuroraBackground />
+        {chatChoice === null && <AuroraBackground />}
         {/* === MINI SIDEBAR (desktop) — w-14 always === */}
         <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/40 backdrop-blur-xl z-20 relative">
           {/* Logo */}
