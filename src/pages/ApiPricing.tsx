@@ -242,6 +242,42 @@ export default function ApiPricing() {
           </div>
         </section>
       </div>
+
+      {/* Modal: API key gerada */}
+      <Dialog open={!!issuedKey} onOpenChange={(o) => !o && setIssuedKey(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-primary" />
+              {keyExisted ? "Sua chave de API" : "Chave gerada com sucesso!"}
+            </DialogTitle>
+            <DialogDescription>
+              {keyExisted
+                ? "Você já tinha uma chave ativa nesse plano. Guarde com segurança — não compartilhe."
+                : "Copie e guarde essa chave agora. Trate como uma senha — não compartilhe."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 font-mono text-xs break-all select-all">
+            {issuedKey}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={copyKey} className="flex-1">
+              <Copy className="w-4 h-4" /> Copiar chave
+            </Button>
+            <Button variant="outline" onClick={() => setIssuedKey(null)} className="flex-1">
+              Fechar
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground border-t border-border/40 pt-3 mt-1">
+            <strong className="text-foreground">Como usar:</strong> envie o header
+            <code className="mx-1 px-1.5 py-0.5 rounded bg-muted/50">Authorization: Bearer SUA_CHAVE</code>
+            para os endpoints da API SnyX.
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
