@@ -30,7 +30,7 @@ const programmerFeatures = [
   { icon: MonitorPlay, text: "Preview em tempo real", desc: "Veja o resultado enquanto cria" },
   { icon: MessageCircle, text: "Chat ilimitado com a IA Dev", desc: "Sem limites de mensagens" },
   { icon: Tv, text: "Acesso ao IPTV/Streaming", desc: "Filmes e séries inclusos" },
-  { icon: Shield, text: "Tudo do VIP + RPG incluído", desc: "Todos os benefícios anteriores + Dev" },
+  { icon: Shield, text: "Tudo do VIP incluído", desc: "Todos os benefícios anteriores + Dev" },
   { icon: Headphones, text: "Suporte prioritário", desc: "Atendimento rápido" },
 ];
 

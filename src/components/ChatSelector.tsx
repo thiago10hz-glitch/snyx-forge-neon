@@ -38,7 +38,7 @@ const CHATS = [
     border: "border-amber-500/25 hover:border-amber-500/50",
     glow: "hover:shadow-[0_8px_40px_-12px_hsl(45_100%_60%/0.4)]",
     accent: "from-amber-500/10 via-yellow-500/5 to-transparent",
-    features: ["Mensagens ilimitadas", "Geração de imagens", "Música por IA", "Modo +18 sem censura"],
+    features: ["Mensagens ilimitadas", "Geração de imagens", "Modo +18 sem censura", "Acesso prioritário"],
   },
   {
     key: "programmer" as const,

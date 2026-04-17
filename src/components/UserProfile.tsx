@@ -196,10 +196,6 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                 <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/40 shadow-[0_0_12px_rgba(34,211,238,0.5),inset_0_0_8px_rgba(34,211,238,0.15)] animate-pulse" style={{ animationDuration: '2.5s' }}>
                   <Code size={8} /> DEV
                 </span>
-              ) : profile?.is_rpg_premium ? (
-                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-purple-500/12 text-purple-400 font-bold border border-purple-500/15">
-                  ⚔️ RPG
-                </span>
               ) : profile?.is_vip ? (
                 <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-yellow-500/12 text-yellow-400 font-bold border border-yellow-500/15">
                   <Crown size={8} /> VIP
