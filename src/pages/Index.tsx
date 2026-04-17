@@ -1,13 +1,14 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User,
+  LogOut, ShieldCheck, Code, User, ArrowLeft,
   Menu, Palette, Crown, MessageSquare, Flame, X, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
@@ -29,6 +30,7 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipModal] = useState(false);
+  const [chatChoice, setChatChoice] = useState<ChatChoice | null>(null);
   const [chatMode, setChatMode] = useState<string>("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,6 +43,14 @@ const Index = () => {
   }, [user]);
 
   useAdminHeartbeat();
+
+  const handleSelectChat = (choice: ChatChoice) => {
+    setChatChoice(choice);
+    if (choice === "programmer") setChatMode("programmer");
+    else setChatMode("friend");
+  };
+
+  const handleBackToSelector = () => setChatChoice(null);
 
   const navItems: { to: string; icon: any; label: string }[] = [];
 
@@ -92,7 +102,7 @@ const Index = () => {
 
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
-            <MiniItem icon={MessageSquare} label="Chat" onClick={() => setChatMode("friend")} active={chatMode === "friend" || chatMode === "programmer"} />
+            <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
 
             {isAdmin && (
               <>
@@ -170,20 +180,38 @@ const Index = () => {
 
           {/* Content */}
           <div className="flex-1 flex overflow-hidden">
-            <div className={`w-full ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0" : ""} ${chatMode === "programmer" ? "border-r border-border/10" : ""}`}>
-              <Suspense fallback={<PanelLoader />}>
-                <ChatPanel
-                  onCodeGenerated={setCode}
-                  onModeChange={(mode) => setChatMode(mode)}
-                />
-              </Suspense>
-            </div>
-            {chatMode === "programmer" && (
-              <div className="hidden md:block flex-1 min-w-0">
-                <Suspense fallback={<PanelLoader />}>
-                  <CodeEditor code={code} onCodeChange={setCode} />
-                </Suspense>
-              </div>
+            {chatChoice === null ? (
+              <ChatSelector onSelect={handleSelectChat} />
+            ) : (
+              <>
+                <div className={`w-full flex flex-col ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0 md:border-r md:border-border/10" : ""}`}>
+                  {/* Back to selector bar */}
+                  <div className="h-9 flex items-center px-3 border-b border-border/10 bg-muted/5 shrink-0">
+                    <button
+                      onClick={handleBackToSelector}
+                      className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      Trocar de chat
+                    </button>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <Suspense fallback={<PanelLoader />}>
+                      <ChatPanel
+                        onCodeGenerated={setCode}
+                        onModeChange={(mode) => setChatMode(mode)}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+                {chatMode === "programmer" && (
+                  <div className="hidden md:block flex-1 min-w-0">
+                    <Suspense fallback={<PanelLoader />}>
+                      <CodeEditor code={code} onCodeChange={setCode} />
+                    </Suspense>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -205,11 +233,11 @@ const Index = () => {
 
               <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
                 <button
-                  onClick={() => { setChatMode("friend"); setMobileMenuOpen(false); }}
+                  onClick={() => { handleBackToSelector(); setMobileMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/20 transition-colors"
                 >
                   <MessageSquare className="w-4 h-4 text-primary" />
-                  <span>Chat</span>
+                  <span>Trocar de chat</span>
                 </button>
 
                 {isAdmin && (
