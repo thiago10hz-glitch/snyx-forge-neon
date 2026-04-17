@@ -131,44 +131,33 @@ const Index = () => {
     </Link>
   );
 
-  // Footer extra: badges + avatar (small)
+  // Footer extra: badges only (avatar moved to top-right)
   const railFooterExtra = (
-    <div className="flex flex-col items-center gap-1.5 w-full">
-      <button
-        onClick={() => setShowProfile(true)}
-        className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
-        title="Minha conta"
-      >
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-        ) : (
-          <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-        )}
-      </button>
-
-      <div className="flex flex-col items-center gap-1 max-w-full">
-        {profile?.is_vip || profile?.is_dev ? (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
-            <Crown size={8} className="fill-amber-300" /> VIP
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
-            FREE
-          </span>
-        )}
-        {profile?.is_dev && (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-            <Code size={8} /> DEV
-          </span>
-        )}
-        {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-          <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
-            👑 {profile.team_badge}
-          </span>
-        )}
-      </div>
+    <div className="flex flex-col items-center gap-1 max-w-full">
+      {profile?.is_vip || profile?.is_dev ? (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
+          <Crown size={8} className="fill-amber-300" /> VIP
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
+          FREE
+        </span>
+      )}
+      {profile?.is_dev && (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+          <Code size={8} /> DEV
+        </span>
+      )}
+      {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
+        <span className="inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)] whitespace-nowrap">
+          👑 {profile.team_badge}
+        </span>
+      )}
     </div>
   );
+
+  const displayName = profile?.display_name || user?.email?.split("@")[0] || "Usuário";
+  const firstName = displayName.trim().split(/\s+/)[0];
 
   const modeOptions = [
     {
