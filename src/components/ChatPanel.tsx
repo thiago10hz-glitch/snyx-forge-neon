@@ -126,7 +126,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [mode, setMode] = useState<ChatMode>(forceMode ?? "friend");
-  const [usePremium, setUsePremium] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -147,11 +146,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const skipNextLoadRef = useRef<string | null>(null);
   const { profile, user } = useAuth();
   const [messageLimit, setMessageLimit] = useState<MessageLimitState | null>(null);
-
-  // Auto-enable premium for VIP/DEV — no toggle needed, they get full power immediately
-  useEffect(() => {
-    if (profile?.is_vip || profile?.is_dev) setUsePremium(true);
-  }, [profile?.is_vip, profile?.is_dev]);
+  const hasPremiumAccess = !!(profile?.is_vip || profile?.is_dev);
+  const usePremium = mode === "friend" && hasPremiumAccess;
 
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
@@ -708,13 +704,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
     // Rewrite is free for everyone - no check needed
 
-    // Premium features in friend mode require VIP
-    if (mode === "friend" && usePremium && !profile?.is_vip) {
-      setVipModalPlan("vip");
-      setShowVipModal(true);
-      return;
-    }
-
     // Free users in friend mode have message limits
     if (shouldTrackFreeMessage) {
       const nextLimit = await checkMessageLimit();
@@ -860,7 +849,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
           mode: usePremium ? "premium" : mode,
-          is_vip: !!profile?.is_vip,
+          is_vip: hasPremiumAccess,
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
           team_badge: profile?.team_badge || null,
@@ -1111,7 +1100,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
     setMode(newMode);
     onModeChange?.(newMode);
-    setUsePremium(!!(profile?.is_vip || profile?.is_dev));
     setPendingAction(null);
     setActiveConversationId(null);
     setMessages([]);
@@ -1213,28 +1201,12 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
               );
             })}
 
-            {/* Premium toggle in friend mode */}
-            {mode === "friend" && (
-              <button
-                onClick={() => {
-                  if (!profile?.is_vip) {
-                    setVipModalPlan("vip");
-                    setShowVipModal(true);
-                    return;
-                  }
-                  setUsePremium(!usePremium);
-                }}
-                className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 md:py-2 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg transition-all duration-300 whitespace-nowrap ${
-                  usePremium
-                    ? "bg-yellow-500/10 text-yellow-400 shadow-sm"
-                    : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20"
-                }`}
-              >
+            {mode === "friend" && hasPremiumAccess && (
+              <div className="flex items-center gap-1 px-2 sm:px-3 py-1.5 md:py-2 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
                 <Crown size={12} className="sm:hidden" />
                 <Crown size={14} className="hidden sm:block" />
-                <span className="hidden sm:inline">Premium</span>
-                {!profile?.is_vip && <span className="text-[8px] opacity-50">🔒</span>}
-              </button>
+                <span className="hidden sm:inline">VIP ativo</span>
+              </div>
             )}
           </div>
 
