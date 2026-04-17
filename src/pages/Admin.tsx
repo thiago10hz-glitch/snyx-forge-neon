@@ -12,7 +12,7 @@ import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
 import { AdminReleasesPanel } from "@/components/AdminReleasesPanel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 
-import { AdminHealthPanel } from "@/components/AdminHealthPanel";
+
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Phone,

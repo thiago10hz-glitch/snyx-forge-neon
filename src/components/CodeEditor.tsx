@@ -70,35 +70,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const deployToVercel = async () => {
-    if (!code || deploying) return;
-    if (!profile?.hosting_tier || profile.hosting_tier === "none") {
-      toast.error("Você precisa de um plano de Hosting para publicar sites", {
-        description: "Entre em contato com o admin do SnyX para ativar.",
-      });
-      return;
-    }
-    setDeploying(true);
-    setDeployedUrl(null);
-    try {
-      const htmlContent = getPreviewHtml();
-      const { data, error } = await supabase.functions.invoke("deploy-vercel", {
-        body: { html: htmlContent, projectName: "snyx-site" },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (data?.url) {
-        setDeployedUrl(data.url);
-        toast.success("Site publicado!", {
-          description: data.url,
-          action: { label: "Abrir", onClick: () => window.open(data.url, "_blank") },
-        });
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao publicar";
-      toast.error("Falha no deploy", { description: msg });
-    } finally {
-      setDeploying(false);
-    }
+    toast.info("Publicação removida — recurso de hosting desativado.");
   };
 
   const openInNewTab = () => {

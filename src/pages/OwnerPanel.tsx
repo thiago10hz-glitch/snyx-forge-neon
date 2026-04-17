@@ -109,7 +109,6 @@ export default function OwnerPanel() {
       { count: convCount },
       { count: ticketCount },
       { count: openTicketCount },
-      { count: siteCount },
       { count: charCount },
       { count: connCount },
       { data: recent },
