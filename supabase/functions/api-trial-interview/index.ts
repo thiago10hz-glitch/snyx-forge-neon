@@ -115,7 +115,8 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -137,41 +138,67 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPTS[plan_slug] || SYSTEM_PROMPTS.free },
-          ...messages,
-        ],
-        tools: TOOLS,
-      }),
-    });
+    const aiMessages = [
+      { role: "system", content: SYSTEM_PROMPTS[plan_slug] || SYSTEM_PROMPTS.free },
+      ...messages,
+    ];
 
-    if (!aiResp.ok) {
-      if (aiResp.status === 429) {
-        return new Response(JSON.stringify({ error: "rate_limit", message: "Muita demanda agora — tente em alguns segundos." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResp.status === 402) {
-        return new Response(JSON.stringify({ error: "payment_required", message: "Créditos da IA esgotados. Avise o admin." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await aiResp.text();
-      console.error("ai gateway error:", aiResp.status, t);
-      return new Response(JSON.stringify({ error: "ai_error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Tenta Groq primeiro (gratuito + rápido), cai pra Lovable AI se falhar
+    async function callGroq() {
+      if (!GROQ_API_KEY) return null;
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: aiMessages,
+          tools: TOOLS,
+          tool_choice: "auto",
+          temperature: 0.7,
+        }),
       });
+      if (!r.ok) {
+        const t = await r.text();
+        console.error("groq error:", r.status, t);
+        return null;
+      }
+      return await r.json();
     }
 
-    const aiJson = await aiResp.json();
+    async function callLovable() {
+      if (!LOVABLE_API_KEY) return null;
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: aiMessages,
+          tools: TOOLS,
+        }),
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        console.error("lovable ai error:", r.status, t);
+        return null;
+      }
+      return await r.json();
+    }
+
+    let aiJson = await callGroq();
+    if (!aiJson) aiJson = await callLovable();
+
+    if (!aiJson) {
+      return new Response(JSON.stringify({
+        error: "ai_unavailable",
+        message: "Atendimento temporariamente fora do ar. Tente novamente em instantes.",
+      }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const choice = aiJson?.choices?.[0]?.message;
     const toolCalls = choice?.tool_calls;
 
