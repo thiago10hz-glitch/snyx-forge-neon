@@ -1010,7 +1010,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         let assistantSoFar = "";
         let persistedAssistantContent = "";
         let persistedAssistantMessageId: string | null = null;
-        let persistDraftTimer: ReturnType<typeof window.setTimeout> | null = null;
+        let persistDraftTimer: number | undefined;
         let hasQueuedAssistantPersist = false;
         let persistDraftQueue = Promise.resolve();
 
