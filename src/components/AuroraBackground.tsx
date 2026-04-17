@@ -98,34 +98,30 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
         className="absolute inset-0 transition-opacity duration-700"
         style={{ opacity: isSubtle ? 0.35 : 1 }}
       >
-        {/* Gradiente principal: vermelho vivo no topo descendo pra escuro */}
+        {/* Brilho vermelho concentrado no canto superior esquerdo (estilo da referência) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary) / 0.55) 25%, hsl(var(--primary) / 0.25) 55%, hsl(var(--background)) 95%)",
+              "radial-gradient(ellipse 55% 45% at 18% 0%, hsl(var(--primary) / 0.55), transparent 60%)",
           }}
         />
-        {/* Brilho extra no topo central */}
+        {/* Glow secundário superior direito mais sutil */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 70% 50% at 50% 0%, hsl(var(--primary) / 0.45), transparent 65%)",
+              "radial-gradient(ellipse 45% 35% at 85% 5%, hsl(var(--primary) / 0.18), transparent 65%)",
           }}
         />
 
         <div
-          className="absolute -left-[20%] top-[20%] w-[60vw] h-[60vh] rounded-full blur-[140px] opacity-60 animate-[pulse_12s_ease-in-out_infinite]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)" }}
+          className="absolute -left-[15%] top-[10%] w-[50vw] h-[50vh] rounded-full blur-[160px] opacity-50 animate-[pulse_12s_ease-in-out_infinite]"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.28), transparent 70%)" }}
         />
         <div
-          className="absolute -right-[15%] top-[40%] w-[55vw] h-[55vh] rounded-full blur-[140px] opacity-50 animate-[pulse_14s_ease-in-out_infinite_3s]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.3), transparent 70%)" }}
-        />
-        <div
-          className="absolute left-1/2 -translate-x-1/2 -bottom-[20%] w-[80vw] h-[40vh] rounded-full blur-[160px] opacity-40 animate-[pulse_16s_ease-in-out_infinite_5s]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%)" }}
+          className="absolute -right-[20%] top-[30%] w-[50vw] h-[50vh] rounded-full blur-[160px] opacity-30 animate-[pulse_14s_ease-in-out_infinite_3s]"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.18), transparent 70%)" }}
         />
 
         <div
