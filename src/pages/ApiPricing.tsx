@@ -111,15 +111,21 @@ export default function ApiPricing() {
 
         {/* Hero */}
         <header className="text-center mb-14 sm:mb-20">
-          <div className="relative mx-auto mb-8 max-w-3xl rounded-3xl overflow-hidden border border-primary/20 shadow-[0_0_60px_-15px_hsl(var(--primary)/0.5)]">
-            <img
-              src={apiHero}
-              alt="Cérebro de IA cristalino vermelho representando a API SnyX"
-              width={1920}
-              height={1080}
-              className="w-full h-auto object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          <div className="relative mx-auto mb-8 max-w-3xl rounded-3xl overflow-hidden border border-primary/30 shadow-[0_0_80px_-10px_hsl(var(--primary)/0.7)] animate-[float_6s_ease-in-out_infinite]">
+            {/* Pulsing glow ring */}
+            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary via-pink-500 to-primary opacity-60 blur-2xl animate-pulse pointer-events-none" />
+            <div className="relative">
+              <img
+                src={apiHero}
+                alt="Esfera de IA holográfica vermelha com energia explosiva representando a API SnyX"
+                width={1920}
+                height={1080}
+                className="w-full h-auto object-cover animate-[zoomBreath_8s_ease-in-out_infinite]"
+              />
+              {/* Animated shimmer overlay */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
+            </div>
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
             API <span className="text-primary">SnyX</span> para devs
