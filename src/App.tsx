@@ -29,6 +29,7 @@ import Accelerator from "./pages/Accelerator";
 import Optimization from "./pages/Optimization";
 import CloneSite from "./pages/CloneSite";
 import Videos from "./pages/Videos";
+import Rpg from "./pages/Rpg";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -151,6 +152,7 @@ const App = () => {
                   <Route path="/optimization" element={<Optimization />} />
                   <Route path="/clone-site" element={<ProtectedRoute><CloneSite /></ProtectedRoute>} />
                   <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
+                  <Route path="/rpg" element={<ProtectedRoute><Rpg /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </ThemeProvider>
