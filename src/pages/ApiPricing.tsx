@@ -1,0 +1,220 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useMercadoPagoCheckout } from "@/hooks/useMercadoPagoCheckout";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, Code2, Loader2, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
+import { AuroraBackground } from "@/components/AuroraBackground";
+
+interface ApiPlan {
+  id: string;
+  slug: string;
+  name: string;
+  price_brl: number;
+  daily_request_limit: number;
+  monthly_request_limit: number;
+  rate_limit_per_minute: number;
+  models_allowed: string[];
+}
+
+const PLAN_META: Record<string, { icon: any; tag?: string; highlight?: boolean }> = {
+  free: { icon: Sparkles },
+  pro: { icon: Zap, tag: "Mais popular", highlight: true },
+  business: { icon: Crown },
+};
+
+export default function ApiPricing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, isLoading: checkoutLoading } = useMercadoPagoCheckout();
+  const [plans, setPlans] = useState<ApiPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "API SnyX — Preços e Planos";
+    const meta = document.querySelector('meta[name="description"]');
+    const desc = "Planos da API SnyX: integre IA generativa (chat, código, imagem) ao seu app via REST. Free, Pro e Business em BRL.";
+    if (meta) meta.setAttribute("content", desc);
+    else {
+      const m = document.createElement("meta");
+      m.name = "description"; m.content = desc; document.head.appendChild(m);
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("api_plans")
+        .select("id, slug, name, price_brl, daily_request_limit, monthly_request_limit, rate_limit_per_minute, models_allowed")
+        .eq("is_active", true)
+        .order("price_brl", { ascending: true });
+      setPlans((data || []) as ApiPlan[]);
+      setLoading(false);
+    })();
+  }, []);
+
+  const handleSubscribe = async (plan: ApiPlan) => {
+    if (!user) { navigate("/auth"); return; }
+    if (plan.price_brl === 0) { navigate("/"); return; }
+    setActiveSlug(plan.slug);
+    await openCheckout({
+      title: `API SnyX — Plano ${plan.name}`,
+      description: `Acesso mensal · ${plan.monthly_request_limit.toLocaleString("pt-BR")} requisições/mês`,
+      price: Number(plan.price_brl),
+      userId: user.id,
+      userEmail: user.email,
+    });
+    setActiveSlug(null);
+  };
+
+  const fmtNumber = (n: number) => n.toLocaleString("pt-BR");
+
+  return (
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
+      <AuroraBackground />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-10">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Voltar
+          </Link>
+          <Badge variant="outline" className="border-primary/40 text-primary bg-primary/5">
+            <Code2 className="w-3 h-3 mr-1.5" /> API Pública
+          </Badge>
+        </div>
+
+        {/* Hero */}
+        <header className="text-center mb-14 sm:mb-20">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
+            API <span className="text-primary">SnyX</span> para devs
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+            Integre IA generativa ao seu app — chat, código e imagem — através de uma API REST simples.
+            Compatível com a interface OpenAI.
+          </p>
+        </header>
+
+        {/* Plans grid */}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const meta = PLAN_META[plan.slug] || { icon: Sparkles };
+              const Icon = meta.icon;
+              const isFree = plan.price_brl === 0;
+              const isLoadingThis = checkoutLoading && activeSlug === plan.slug;
+              return (
+                <article
+                  key={plan.id}
+                  className={`relative rounded-2xl border bg-card/60 backdrop-blur-xl p-6 flex flex-col transition-all hover:translate-y-[-2px] ${
+                    meta.highlight
+                      ? "border-primary/60 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.5)]"
+                      : "border-border/50"
+                  }`}
+                >
+                  {meta.tag && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 text-[11px] font-bold rounded-full bg-primary text-primary-foreground shadow-lg">
+                      {meta.tag}
+                    </span>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                      meta.highlight ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <h2 className="text-lg font-bold">{plan.name}</h2>
+                  </div>
+
+                  <div className="mb-5">
+                    {isFree ? (
+                      <div className="text-3xl font-extrabold">Grátis</div>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-extrabold">
+                          R$ {Number(plan.price_brl).toFixed(2).replace(".", ",")}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/mês</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                    <li className="flex gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span><strong>{fmtNumber(plan.daily_request_limit)}</strong> requisições/dia</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span><strong>{fmtNumber(plan.monthly_request_limit)}</strong> requisições/mês</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span><strong>{plan.rate_limit_per_minute}</strong> req/minuto</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span>Modelos: {plan.models_allowed.join(", ")}</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span>API key pessoal + dashboard</span>
+                    </li>
+                    {!isFree && (
+                      <li className="flex gap-2">
+                        <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        <span>Suporte prioritário</span>
+                      </li>
+                    )}
+                  </ul>
+
+                  <Button
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={isLoadingThis}
+                    variant={meta.highlight ? "default" : "outline"}
+                    className="w-full"
+                  >
+                    {isLoadingThis ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Abrindo checkout...</>
+                    ) : isFree ? (
+                      "Começar grátis"
+                    ) : (
+                      "Assinar agora"
+                    )}
+                  </Button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer info */}
+        <section className="mt-16 grid sm:grid-cols-3 gap-4 text-sm text-muted-foreground">
+          <div className="rounded-xl border border-border/40 bg-card/30 p-4">
+            <div className="font-semibold text-foreground mb-1">Pagamento via Pix/Cartão</div>
+            Cobrança mensal via Mercado Pago. Cancele quando quiser.
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/30 p-4">
+            <div className="font-semibold text-foreground mb-1">Sem letras miúdas</div>
+            Limites claros. Se atingir o teto, é só fazer upgrade.
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/30 p-4">
+            <div className="font-semibold text-foreground mb-1">Precisa de mais?</div>
+            Para volumes maiores, entre em contato pelo suporte.
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
