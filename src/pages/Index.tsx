@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { CinematicSidebar, type SidebarItem } from "@/components/CinematicSidebar";
 import { ChevronDown, Heart, Crown as CrownIcon, Code as CodeIcon, Lock } from "lucide-react";
 
 // Lazy load heavy components
