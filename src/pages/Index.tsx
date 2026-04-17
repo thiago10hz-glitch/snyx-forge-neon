@@ -229,19 +229,14 @@ const Index = () => {
           {/* (header central removido) */}
 
           {/* Toggle pra mostrar/esconder a barra lateral (desktop e mobile) */}
-          <div
-            className="fixed top-4 z-50 transition-[left] duration-300 ease-out"
-            style={{ left: railCollapsed ? "16px" : "16px" }}
+          <button
+            onClick={() => setRailCollapsed((v) => !v)}
+            className="fixed top-3 left-3 z-[60] w-10 h-10 flex items-center justify-center rounded-lg bg-card/70 hover:bg-card border border-border/50 text-foreground backdrop-blur-md transition-colors active:scale-95"
+            aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
+            title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
           >
-            <button
-              onClick={() => setRailCollapsed((v) => !v)}
-              className="flex items-center justify-center text-muted-foreground/70 hover:text-foreground transition-colors duration-200"
-              aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
-              title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
-            >
-              <PanelLeft className="w-[20px] h-[20px]" strokeWidth={1.75} />
-            </button>
-          </div>
+            <PanelLeft className="w-[18px] h-[18px]" strokeWidth={1.85} />
+          </button>
 
           {/* Top-right tiny cluster: paleta + nova conversa */}
           <div className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-3">
