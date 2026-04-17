@@ -1323,8 +1323,27 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.18),transparent_55%)]" aria-hidden />
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.10),transparent_60%)]" aria-hidden />
                 <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(hsl(var(--primary))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--primary))_1px,transparent_1px)] [background-size:42px_42px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" aria-hidden />
-                {/* Floating particles */}
-                {[...Array(6)].map((_, i) => (
+
+                {/* Friend mode: floating hearts rising */}
+                {mode === "friend" && [...Array(8)].map((_, i) => (
+                  <Heart
+                    key={`heart-${i}`}
+                    className="absolute text-primary/40 fill-primary/20 animate-float-up"
+                    style={{
+                      width: `${10 + (i % 3) * 4}px`,
+                      height: `${10 + (i % 3) * 4}px`,
+                      bottom: `-20px`,
+                      left: `${8 + (i * 12) % 88}%`,
+                      animationDelay: `${i * 0.7}s`,
+                      animationDuration: `${6 + (i % 4)}s`,
+                    }}
+                    strokeWidth={2}
+                    aria-hidden
+                  />
+                ))}
+
+                {/* Other modes: sparkle particles */}
+                {mode !== "friend" && [...Array(6)].map((_, i) => (
                   <span
                     key={i}
                     className="absolute w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_12px_hsl(var(--primary))] animate-pulse"
@@ -1347,15 +1366,27 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
                 {/* Bot avatar — premium orb with double rotating ring */}
                 <div className="relative mx-auto w-28 h-28 mb-7">
+                  {/* Friend mode: orbiting mini hearts */}
+                  {mode === "friend" && (
+                    <>
+                      <Heart className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-primary fill-primary/60 drop-shadow-[0_0_8px_hsl(var(--primary))] animate-bounce" style={{ animationDuration: '1.4s' }} strokeWidth={2} aria-hidden />
+                      <Heart className="absolute top-1/2 -right-3 -translate-y-1/2 w-3 h-3 text-primary/80 fill-primary/40 drop-shadow-[0_0_6px_hsl(var(--primary))] animate-bounce" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }} strokeWidth={2} aria-hidden />
+                      <Heart className="absolute top-1/2 -left-3 -translate-y-1/2 w-3 h-3 text-primary/80 fill-primary/40 drop-shadow-[0_0_6px_hsl(var(--primary))] animate-bounce" style={{ animationDuration: '1.6s', animationDelay: '0.6s' }} strokeWidth={2} aria-hidden />
+                    </>
+                  )}
                   {/* Outer orbiting glow */}
                   <div className="absolute -inset-3 rounded-full bg-[conic-gradient(from_0deg,hsl(var(--primary)/0.6),transparent_40%,hsl(var(--primary)/0.4)_70%,transparent)] animate-spin [animation-duration:8s] blur-md opacity-80" aria-hidden />
                   {/* Inner conic ring */}
                   <div className="absolute inset-0 rounded-3xl bg-[conic-gradient(from_180deg,hsl(var(--primary)),transparent,hsl(var(--primary)),transparent,hsl(var(--primary)))] animate-spin [animation-duration:5s] opacity-90 blur-[1px]" aria-hidden />
                   <div className="absolute inset-[3px] rounded-[22px] bg-background" aria-hidden />
-                  <div className="relative w-full h-full rounded-3xl flex items-center justify-center bg-gradient-to-br from-primary/35 via-primary/10 to-transparent border border-primary/50 shadow-[0_0_80px_-10px_hsl(var(--primary)/0.8),inset_0_1px_0_hsl(0_0%_100%/0.2),inset_0_-20px_40px_-20px_hsl(var(--primary)/0.4)]">
+                  <div className={`relative w-full h-full rounded-3xl flex items-center justify-center bg-gradient-to-br from-primary/35 via-primary/10 to-transparent border border-primary/50 shadow-[0_0_80px_-10px_hsl(var(--primary)/0.8),inset_0_1px_0_hsl(0_0%_100%/0.2),inset_0_-20px_40px_-20px_hsl(var(--primary)/0.4)] ${mode === "friend" ? "animate-heartbeat" : ""}`}>
                     {/* Inner shine */}
                     <div className="absolute inset-x-3 top-2 h-1/3 rounded-t-2xl bg-gradient-to-b from-white/15 to-transparent" aria-hidden />
-                    <Bot className="relative w-12 h-12 text-primary drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.6} />
+                    {mode === "friend" ? (
+                      <Heart className="relative w-12 h-12 text-primary fill-primary/40 drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.8} />
+                    ) : (
+                      <Bot className="relative w-12 h-12 text-primary drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.6} />
+                    )}
                     <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-background shadow-[0_0_14px_hsl(152_76%_55%)]">
                       <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-70" />
                     </span>
@@ -1368,41 +1399,68 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                     <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
                     <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   </span>
-                  <Sparkles className="w-3 h-3 text-primary" strokeWidth={2.4} />
+                  {mode === "friend" ? (
+                    <Heart className="w-3 h-3 text-primary fill-primary/60" strokeWidth={2.4} />
+                  ) : (
+                    <Sparkles className="w-3 h-3 text-primary" strokeWidth={2.4} />
+                  )}
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                    SnyX Bot online
+                    {mode === "friend" ? "Sempre aqui pra você" : "SnyX Bot online"}
                   </span>
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 leading-[1.02]">
-                  <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
-                    SnyX
-                  </span>
-                  <span className="text-foreground/90">,</span>
-                  <br />
-                  <span className="text-foreground/95">
-                    {mode === "programmer" ? "vamos " : "seja bem-vindo ao "}
-                  </span>
-                  <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
-                    {mode === "programmer" ? "programar" : mode === "friend" ? "chat amigo" : "estudar juntos"}
-                  </span>
+                  {mode === "friend" ? (
+                    <>
+                      <span className="text-foreground/95">Oi, eu sou o </span>
+                      <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
+                        SnyX
+                      </span>
+                      <br />
+                      <span className="text-foreground/95">seu </span>
+                      <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
+                        amigo
+                      </span>
+                      <span className="text-foreground/95"> sempre 💖</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
+                        SnyX
+                      </span>
+                      <span className="text-foreground/90">,</span>
+                      <br />
+                      <span className="text-foreground/95">
+                        {mode === "programmer" ? "vamos " : "seja bem-vindo ao "}
+                      </span>
+                      <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
+                        {mode === "programmer" ? "programar" : "estudar juntos"}
+                      </span>
+                    </>
+                  )}
                 </h1>
 
                 {/* Decorative divider */}
                 <div className="flex items-center justify-center gap-2 mb-5" aria-hidden>
                   <span className="h-px w-10 bg-gradient-to-r from-transparent to-primary/50" />
-                  <span className="w-1 h-1 rounded-full bg-primary/70 shadow-[0_0_8px_hsl(var(--primary))]" />
+                  {mode === "friend" ? (
+                    <Heart className="w-2.5 h-2.5 text-primary fill-primary/70 drop-shadow-[0_0_8px_hsl(var(--primary))]" strokeWidth={2} />
+                  ) : (
+                    <span className="w-1 h-1 rounded-full bg-primary/70 shadow-[0_0_8px_hsl(var(--primary))]" />
+                  )}
                   <span className="h-px w-10 bg-gradient-to-l from-transparent to-primary/50" />
                 </div>
 
                 <p className="text-sm sm:text-[15px] text-muted-foreground/85 leading-relaxed mb-8 max-w-md mx-auto">
-                  {config.emptyText}
+                  {mode === "friend"
+                    ? "Pode desabafar, rir, pedir conselho ou só conversar. Eu tô aqui pra te ouvir sem julgar, do seu jeito. 🤗"
+                    : config.emptyText}
                 </p>
 
                 {/* Quick suggestions */}
                 <div className="grid gap-2.5">
                   {(mode === "friend"
-                    ? ["Me dá um conselho 💭", "Conta uma curiosidade 🤔", "Vamos conversar 💬"]
+                    ? ["Tô precisando desabafar 💭", "Me conta uma curiosidade fofa 🌸", "Bora bater um papo 💬"]
                     : mode === "programmer"
                       ? ["Cria um site bonito 🚀", "Explica esse código 🧠", "Faz um app de lista ✅"]
                       : ["Me ajuda com matemática 📐", "Explica de forma simples 📚", "Faz um resumo ✍️"]
@@ -1416,7 +1474,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                       {/* Hover gradient sheen */}
                       <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden />
                       <span className="relative inline-flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
-                        <Sparkles className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.4} />
+                        {mode === "friend" ? (
+                          <Heart className="w-3 h-3 text-primary/70 fill-primary/30 group-hover:fill-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.2} />
+                        ) : (
+                          <Sparkles className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.4} />
+                        )}
                         {s}
                       </span>
                     </button>
