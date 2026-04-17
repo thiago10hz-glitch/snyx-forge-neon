@@ -54,6 +54,8 @@ type PendingAction = "school" | "imagegen" | "rewrite" | null;
 interface ChatPanelProps {
   onCodeGenerated: (code: string) => void;
   onModeChange?: (mode: ChatMode) => void;
+  initialConversationId?: string | null;
+  forceMode?: ChatMode;
 }
 
 const TEXT_FILE_EXTENSIONS = [
