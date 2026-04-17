@@ -171,7 +171,7 @@ const Index = () => {
             </div>
 
             {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
-            <div className="absolute left-1/2 -translate-x-1/2">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <div className="flex items-center gap-1 p-1 rounded-full border border-primary/40 bg-primary/10 backdrop-blur-xl shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)]">
                 <button
                   onClick={() => setHistoryOpen((v) => !v)}
