@@ -230,14 +230,14 @@ const Index = () => {
 
             {/* Right */}
             <div className="flex items-center gap-1.5 flex-1 justify-end">
-              {/* Badge VIP — pequenininho, sempre visível pra todos */}
+              {/* Badge de plano — VIP dourado pra assinantes, FREE pra contas novas */}
               {profile?.is_vip || profile?.is_dev ? (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
                   <Crown size={8} className="fill-amber-300" /> VIP
                 </span>
               ) : (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-300/60 border border-amber-500/20 hover:bg-amber-500/15 hover:text-amber-300 transition-colors">
-                  <Crown size={8} /> VIP
+                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
+                  FREE
                 </span>
               )}
 
