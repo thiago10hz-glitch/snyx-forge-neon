@@ -1258,42 +1258,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col h-full px-4 sm:px-6 md:px-8 py-6 sm:py-8">
-              <div className="m-auto w-full max-w-2xl space-y-5 sm:space-y-6 animate-reveal">
-                {/* Compact greeting */}
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${config.bgColor} border ${config.borderColor} shadow-[0_0_24px_-6px_hsl(var(--primary)/0.5)] shrink-0`}>
-                    <ModeIcon size={20} className={config.color} />
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
-                      Olá{profile?.display_name ? `, ${profile.display_name.split(" ")[0]}` : ""} 👋
-                    </h2>
-                    <p className="text-[11px] sm:text-xs text-muted-foreground/60 leading-snug truncate">
-                      {mode === "programmer" ? "Crie sites, apps e código completo." : "Sobre o que você quer conversar hoje?"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Suggestion chips */}
-                <div className="flex flex-wrap gap-2">
-                  {(mode === "programmer"
-                    ? ["Landing Page", "Portfolio", "Loja Online", "Dashboard"]
-                    : ["Me dá um conselho", "Preciso desabafar", "Me conte algo legal", "Me ajuda com algo"]
-                  ).map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() =>
-                        setInput(mode === "programmer" ? `Crie um site de ${suggestion.toLowerCase()} completo` : suggestion)
-                      }
-                      className="text-[11px] sm:text-xs px-3 py-1.5 rounded-full bg-card/40 backdrop-blur-xl text-foreground/70 border border-border/20 hover:border-primary/50 hover:text-primary hover:bg-primary/10 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.6)] active:scale-[0.97] transition-all duration-300"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <div className="flex flex-col h-full" />
           ) : (
             <div className={`${mode === "programmer" ? "max-w-3xl" : "max-w-4xl lg:max-w-5xl"} mx-auto px-3 sm:px-5 md:px-8 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
               {messages.map((rawMsg, i) => {
