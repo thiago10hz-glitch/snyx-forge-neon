@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, TrendingUp, Star, Filter, Lock, Swords, Wand2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Flame, Lock, Swords, Wand2, ShieldCheck, Scroll, Gem, Skull, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 import { VipModal } from "@/components/VipModal";
 
 type Character = {
@@ -21,14 +22,19 @@ type Character = {
 
 const CATEGORIES = [
   { key: "all", label: "Todos", icon: Sparkles },
+  { key: "fantasia", label: "Fantasia", icon: Wand2 },
   { key: "anime", label: "Anime", icon: Star },
   { key: "romance", label: "Romance", icon: Heart },
-  { key: "aventura", label: "Aventura", icon: TrendingUp },
-  { key: "geral", label: "Geral", icon: Filter },
+  { key: "aventura", label: "Aventura", icon: Swords },
+  { key: "sombrio", label: "Sombrio", icon: Skull },
+  { key: "drama", label: "Drama", icon: Scroll },
+  { key: "geral", label: "Geral", icon: Gem },
 ];
 
+const formatCount = (n: number) => n >= 1_000_000 ? (n/1_000_000).toFixed(1)+"M" : n >= 1000 ? (n/1000).toFixed(1)+"K" : String(n);
+
 const Characters = () => {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,37 +42,26 @@ const Characters = () => {
   const [category, setCategory] = useState("all");
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showVipModal, setShowVipModal] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminChecked, setAdminChecked] = useState(false);
 
   const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
-  const accessReady = !authLoading && profile !== null && adminChecked;
+  const accessReady = !authLoading && profile !== null;
 
   useEffect(() => {
     if (user) {
       fetchCharacters();
       fetchLikes();
-      checkAdmin();
     } else if (!authLoading) {
-      setAdminChecked(true);
       setLoading(false);
     }
   }, [user, authLoading]);
-
-  const checkAdmin = async () => {
-    if (!user) { setAdminChecked(true); return; }
-    const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    setIsAdmin(!!data);
-    setAdminChecked(true);
-  };
 
   const fetchCharacters = async () => {
     const { data } = await supabase
       .from("ai_characters")
       .select("*")
       .eq("is_public", true)
-      .order("likes_count", { ascending: false })
-      .limit(100);
+      .order("chat_count", { ascending: false })
+      .limit(120);
     setCharacters(data || []);
     setLoading(false);
   };
@@ -102,115 +97,133 @@ const Characters = () => {
 
   const filtered = characters.filter((c) => {
     const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.description.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === "all" || c.category === category;
+    const matchCat = category === "all" || c.category === category || c.tags?.some(t => t.toLowerCase() === category);
     return matchSearch && matchCat;
   });
 
-  const topRanking = [...characters].sort((a, b) => b.chat_count - a.chat_count).slice(0, 5);
+  const podium = [...characters].sort((a, b) => b.chat_count - a.chat_count).slice(0, 3);
+  const featured = characters[0];
 
-  // Aguarda carregar antes de decidir
   if (!accessReady) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-[#0a0014] flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full border-4 border-amber-500/20 border-t-amber-400 animate-spin" />
+          <Wand2 className="absolute inset-0 m-auto w-6 h-6 text-amber-400 animate-pulse" />
+        </div>
       </div>
     );
   }
 
-  // === PAYWALL — sem acesso ===
+  // === PAYWALL CINEMATOGRÁFICO ===
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-background relative overflow-hidden">
-        {/* Ambient */}
+      <div className="min-h-screen bg-[#0a0014] relative overflow-hidden text-white">
+        {/* Aura mágica de fundo */}
         <div className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-purple-500/8 blur-[120px] animate-glow-pulse" />
-          <div className="absolute bottom-20 left-1/4 h-64 w-64 rounded-full bg-pink-500/5 blur-[100px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.25),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(245,158,11,0.15),transparent_60%)]" />
+          <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-purple-600/15 blur-[140px] animate-glow-pulse" />
+          <div className="absolute bottom-0 left-1/4 h-[400px] w-[400px] rounded-full bg-amber-500/10 blur-[120px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+          {/* Partículas flutuantes */}
+          {Array.from({length: 25}).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-amber-400/60"
+              style={{
+                left: `${(i * 37) % 100}%`,
+                top: `${(i * 53) % 100}%`,
+                animation: `breathe ${3 + (i % 4)}s ease-in-out infinite`,
+                animationDelay: `${(i * 0.3) % 5}s`,
+              }}
+            />
+          ))}
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-20 glass border-b border-border/10">
+        <header className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0014]/70 border-b border-amber-500/10">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-            <Link to="/" className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted/15 transition-all text-muted-foreground hover:text-foreground">
+            <Link to="/" className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-amber-500/10 transition-all text-amber-400/60 hover:text-amber-300">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Personagens RPG</h1>
-              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase">Premium</p>
+              <h1 className="text-xl font-black bg-gradient-to-r from-amber-300 via-amber-100 to-purple-300 bg-clip-text text-transparent tracking-tight">
+                Reino dos Personagens
+              </h1>
+              <p className="text-[10px] text-amber-500/40 tracking-[0.3em] uppercase font-mono">⚔ Premium ⚔</p>
             </div>
           </div>
         </header>
 
-        {/* Paywall Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-4">
-          <div className="max-w-md w-full text-center space-y-6 animate-fade-in-up">
-            {/* Icon */}
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-[85vh] px-4 py-12">
+          <div className="max-w-2xl w-full text-center space-y-8 animate-fade-in-up">
+            {/* Selo épico */}
             <div className="relative mx-auto w-fit">
-              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-pink-500/5 flex items-center justify-center border border-purple-500/20 shadow-2xl shadow-purple-500/15">
-                <Swords className="w-12 h-12 text-purple-400" />
+              <div className="absolute -inset-8 rounded-full bg-gradient-conic from-amber-500/40 via-purple-500/40 to-amber-500/40 blur-2xl animate-spin" style={{ animationDuration: '20s' }} />
+              <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-purple-900 p-[3px] shadow-[0_0_60px_rgba(245,158,11,0.4)]">
+                <div className="w-full h-full rounded-full bg-[#0a0014] flex items-center justify-center relative overflow-hidden">
+                  <Swords className="w-16 h-16 text-amber-300 drop-shadow-[0_0_20px_rgba(252,211,77,0.8)]" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-300/10 to-transparent" />
+                </div>
               </div>
-              <div className="absolute -inset-5 rounded-3xl bg-purple-500/8 blur-2xl -z-10 animate-breathe" />
-              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center border-2 border-background shadow-lg shadow-purple-500/30">
-                <Lock className="w-4 h-4 text-white" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                RPG Premium
-              </h2>
-              <p className="text-sm text-muted-foreground/60 leading-relaxed">
-                Crie e converse com <span className="text-purple-400 font-bold">personagens AI únicos</span>. 
-                Aventuras épicas, romances, batalhas e muito mais!
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-2 gap-3 text-left">
-              <div className="rounded-xl border border-purple-500/15 bg-purple-500/5 p-4 space-y-2">
-                <Wand2 className="w-5 h-5 text-purple-400" />
-                <h4 className="text-xs font-bold">Criar Personagens</h4>
-                <p className="text-[10px] text-muted-foreground/50">Crie seus próprios personagens com personalidade única</p>
-              </div>
-              <div className="rounded-xl border border-pink-500/15 bg-pink-500/5 p-4 space-y-2">
-                <MessageCircle className="w-5 h-5 text-pink-400" />
-                <h4 className="text-xs font-bold">Chat Imersivo</h4>
-                <p className="text-[10px] text-muted-foreground/50">Conversas profundas e roleplay sem limites</p>
-              </div>
-              <div className="rounded-xl border border-purple-500/15 bg-purple-500/5 p-4 space-y-2">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-                <h4 className="text-xs font-bold">IA Avançada</h4>
-                <p className="text-[10px] text-muted-foreground/50">Respostas inteligentes e adaptativas</p>
-              </div>
-              <div className="rounded-xl border border-pink-500/15 bg-pink-500/5 p-4 space-y-2">
-                <ShieldCheck className="w-5 h-5 text-pink-400" />
-                <h4 className="text-xs font-bold">Acesso Total</h4>
-                <p className="text-[10px] text-muted-foreground/50">Todos os personagens da comunidade</p>
+              <div className="absolute -top-3 -right-3 w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-900 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.5)]">
+                <Lock className="w-5 h-5 text-amber-300" />
               </div>
             </div>
 
-            {/* Price */}
-            <div className="inline-flex flex-col items-center gap-1 px-8 py-5 rounded-2xl bg-purple-500/5 border border-purple-500/15">
-              <span className="text-xs text-muted-foreground/50">A partir de</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-foreground">R$80</span>
-                <span className="text-sm text-muted-foreground/50">/mês</span>
-              </div>
-              <span className="text-[10px] text-purple-400 font-medium">ou incluso no plano VIP/DEV</span>
-            </div>
-
-            {/* CTA */}
             <div className="space-y-3">
-              <button
-                onClick={() => setShowVipModal(true)}
-                className="w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl transition-all text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-[0.98] hover:-translate-y-0.5"
-              >
-                <Swords className="w-5 h-5 inline mr-2" />
-                Desbloquear RPG Premium
-              </button>
-              <p className="text-[10px] text-muted-foreground/30">
-                Entre em contato com o admin do SnyX para ativar
+              <p className="text-[11px] tracking-[0.4em] text-amber-500/60 uppercase font-mono">⟨ Acesso Restrito ⟩</p>
+              <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700 bg-clip-text text-transparent leading-none tracking-tight">
+                Desperte
+                <br />
+                <span className="bg-gradient-to-b from-purple-300 via-purple-500 to-purple-800 bg-clip-text text-transparent">a Lenda</span>
+              </h2>
+              <p className="text-base text-purple-100/60 leading-relaxed max-w-md mx-auto">
+                Centenas de personagens AI únicos te aguardam. Forje aventuras épicas, romances arrebatadores e batalhas inesquecíveis.
               </p>
             </div>
+
+            {/* Features grid premium */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
+              {[
+                { icon: Wand2, label: "Crie Personagens", color: "amber" },
+                { icon: Flame, label: "Roleplay Imersivo", color: "rose" },
+                { icon: Sparkles, label: "IA Avançada", color: "purple" },
+                { icon: ShieldCheck, label: "Sem Limites", color: "emerald" },
+              ].map(({ icon: Icon, label, color }) => (
+                <div key={label} className="group relative rounded-2xl border border-amber-500/15 bg-gradient-to-b from-purple-950/40 to-transparent p-4 hover:border-amber-400/40 hover:from-purple-900/40 transition-all hover:-translate-y-1">
+                  <Icon className={`w-6 h-6 mx-auto mb-2 text-${color}-400 drop-shadow-[0_0_8px_currentColor]`} />
+                  <p className="text-[11px] font-bold text-amber-100/80 text-center">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Preço majestoso */}
+            <div className="relative inline-flex flex-col items-center gap-2 px-10 py-6 rounded-2xl bg-gradient-to-br from-purple-950/60 via-[#0a0014] to-amber-950/30 border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.15)]">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-amber-500/0 animate-pulse" />
+              <span className="text-[10px] tracking-[0.3em] text-amber-500/60 uppercase font-mono relative">A partir de</span>
+              <div className="flex items-baseline gap-1 relative">
+                <span className="text-2xl text-amber-400">R$</span>
+                <span className="text-6xl font-black bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text text-transparent">80</span>
+                <span className="text-sm text-amber-500/60">/mês</span>
+              </div>
+              <span className="text-[11px] text-purple-300/80 font-medium relative">⚔ ou incluso no plano VIP/DEV ⚔</span>
+            </div>
+
+            <button
+              onClick={() => setShowVipModal(true)}
+              className="group relative w-full max-w-md mx-auto px-10 py-5 rounded-2xl overflow-hidden font-black text-base tracking-wide active:scale-[0.98] transition-all hover:-translate-y-0.5"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-amber-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-[2px] rounded-2xl bg-gradient-to-b from-amber-300 to-amber-600" />
+              <span className="relative flex items-center justify-center gap-2 text-purple-950">
+                <Swords className="w-5 h-5" />
+                INVOCAR PODER PREMIUM
+                <Sparkles className="w-5 h-5" />
+              </span>
+            </button>
+            <p className="text-[10px] text-amber-500/30 tracking-widest uppercase">Entre em contato com o admin para ativar</p>
           </div>
         </div>
 
@@ -219,90 +232,135 @@ const Characters = () => {
     );
   }
 
-  // === COM ACESSO ===
+  // === COM ACESSO — REINO DOS PERSONAGENS ===
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0014] text-white relative">
+      {/* Aura ambiente */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(245,158,11,0.08),transparent_50%)]" />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-20 glass border-b border-border/10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#0a0014]/80 border-b border-amber-500/10">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted/15 transition-all text-muted-foreground hover:text-foreground">
+            <Link to="/" className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-amber-500/10 transition-all text-amber-400/60 hover:text-amber-300">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Personagens AI</h1>
-              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase">Explore & Chat</p>
+              <h1 className="text-lg md:text-xl font-black bg-gradient-to-r from-amber-300 via-amber-100 to-purple-300 bg-clip-text text-transparent tracking-tight">
+                Reino dos Personagens
+              </h1>
+              <p className="text-[9px] text-amber-500/40 tracking-[0.3em] uppercase font-mono">⚔ {characters.length} heróis ⚔</p>
             </div>
           </div>
-          <div className="relative w-64 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+          <div className="relative w-44 md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500/40" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar personagem..."
-              className="pl-9 bg-muted/10 border-border/10 h-9 text-sm"
+              placeholder="Buscar herói..."
+              className="pl-9 h-10 bg-purple-950/30 border-amber-500/15 focus-visible:border-amber-400/40 focus-visible:ring-amber-400/20 text-sm rounded-xl placeholder:text-amber-500/30"
             />
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        {/* Mobile search */}
-        <div className="md:hidden relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar personagem..."
-            className="pl-9 bg-muted/10 border-border/10"
-          />
-        </div>
-
-        {/* Ranking Section */}
-        {topRanking.length > 0 && (
-          <div className="glass-elevated rounded-2xl border border-border/10 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Crown className="w-5 h-5 text-yellow-500" />
-              <h2 className="text-base font-bold text-foreground">Ranking</h2>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 space-y-8">
+        {/* Hero Featured */}
+        {featured && (
+          <button
+            onClick={() => startChat(featured.id)}
+            className="group relative w-full h-56 md:h-72 rounded-3xl overflow-hidden border border-amber-500/20 hover:border-amber-400/50 transition-all text-left"
+          >
+            {(() => {
+              const img = resolveCharacterAvatar(featured.name, featured.avatar_url);
+              return img ? (
+                <img src={img} alt={featured.name} className="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000" />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-purple-700 to-amber-900" />
+              );
+            })()}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0014] via-[#0a0014]/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0014] to-transparent" />
+            <div className="absolute inset-0 flex items-center px-6 md:px-12">
+              <div className="space-y-3 max-w-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-bold tracking-widest uppercase text-amber-300">
+                  <Crown className="w-3 h-3" /> Lenda Suprema
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl leading-tight">
+                  {featured.name}
+                </h2>
+                <p className="text-sm text-white/70 line-clamp-2 max-w-md">{featured.description}</p>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="flex items-center gap-1 text-amber-300"><Flame className="w-3.5 h-3.5" /> {formatCount(featured.chat_count)} aventuras</span>
+                  <span className="flex items-center gap-1 text-rose-300"><Heart className="w-3.5 h-3.5 fill-rose-400" /> {formatCount(featured.likes_count)}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {topRanking.map((char, i) => (
-                <button
-                  key={char.id}
-                  onClick={() => startChat(char.id)}
-                  className="flex flex-col items-center gap-2 min-w-[80px] group"
-                >
-                  <div className="relative">
-                    <div className={`w-16 h-16 rounded-full overflow-hidden border-2 ${i === 0 ? "border-yellow-500" : i === 1 ? "border-gray-400" : i === 2 ? "border-amber-700" : "border-border/20"} group-hover:scale-105 transition-transform`}>
-                      {char.avatar_url ? (
-                        <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
+          </button>
+        )}
+
+        {/* Pódio */}
+        {podium.length === 3 && (
+          <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-b from-purple-950/30 to-transparent p-6 backdrop-blur">
+            <div className="flex items-center gap-2 mb-6">
+              <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(252,211,77,0.6)]" />
+              <h2 className="text-base font-black tracking-wider uppercase bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">Salão da Glória</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-3 md:gap-6 items-end">
+              {[podium[1], podium[0], podium[2]].map((char, idx) => {
+                const realIdx = idx === 0 ? 1 : idx === 1 ? 0 : 2;
+                const heights = ["h-24 md:h-32", "h-32 md:h-44", "h-20 md:h-28"];
+                const colors = [
+                  "from-slate-300 to-slate-500", // 2nd silver
+                  "from-amber-300 to-amber-600", // 1st gold
+                  "from-orange-400 to-orange-700", // 3rd bronze
+                ];
+                const ringColors = ["ring-slate-400/60", "ring-amber-400/80 shadow-[0_0_30px_rgba(252,211,77,0.5)]", "ring-orange-500/60"];
+                const labels = ["II", "I", "III"];
+                const img = resolveCharacterAvatar(char.name, char.avatar_url);
+                return (
+                  <button
+                    key={char.id}
+                    onClick={() => startChat(char.id)}
+                    className="group flex flex-col items-center gap-2"
+                  >
+                    <div className={`relative ${idx === 1 ? "w-20 h-20 md:w-28 md:h-28" : "w-16 h-16 md:w-20 md:h-20"} rounded-full overflow-hidden ring-4 ${ringColors[idx]} group-hover:scale-105 transition-transform`}>
+                      {img ? (
+                        <img src={img} alt={char.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-lg font-bold text-primary">
-                          {char.name[0]}
-                        </div>
+                        <div className="w-full h-full bg-gradient-to-br from-purple-700 to-amber-900 flex items-center justify-center text-2xl font-black">{char.name[0]}</div>
+                      )}
+                      {idx === 1 && (
+                        <Crown className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 text-amber-400 drop-shadow-[0_0_8px_rgba(252,211,77,0.8)]" />
                       )}
                     </div>
-                    <span className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-gray-400 text-black" : i === 2 ? "bg-amber-700 text-white" : "bg-muted text-muted-foreground"}`}>
-                      {i + 1}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[80px]">{char.name}</span>
-                </button>
-              ))}
+                    <div className="text-center min-w-0 w-full">
+                      <p className={`text-xs md:text-sm font-bold truncate ${idx === 1 ? "text-amber-200" : "text-white/80"}`}>{char.name}</p>
+                      <p className="text-[10px] text-white/40">{formatCount(char.chat_count)} chats</p>
+                    </div>
+                    <div className={`w-full ${heights[idx]} rounded-t-xl bg-gradient-to-b ${colors[idx]} flex items-start justify-center pt-2 font-black text-xl md:text-2xl text-purple-950 shadow-2xl`}>
+                      {labels[idx]}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* Categories */}
+        {/* Categorias */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setCategory(key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
                 category === key
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                  : "bg-muted/10 text-muted-foreground hover:bg-muted/20 hover:text-foreground border border-border/10"
+                  ? "bg-gradient-to-r from-amber-400 to-amber-600 text-purple-950 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                  : "bg-purple-950/40 text-amber-100/60 hover:bg-purple-900/50 hover:text-amber-200 border border-amber-500/10"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -311,67 +369,79 @@ const Characters = () => {
           ))}
         </div>
 
-        {/* Characters Grid */}
+        {/* Grid de cards */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] rounded-2xl bg-muted/10 animate-pulse" />
+              <div key={i} className="aspect-[3/4] rounded-2xl bg-purple-950/30 animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground/50">
-            <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Nenhum personagem encontrado</p>
+          <div className="text-center py-20 text-amber-500/40">
+            <Wand2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Nenhum herói encontrado neste reino</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filtered.map((char) => (
-              <button
-                key={char.id}
-                onClick={() => startChat(char.id)}
-                className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
-              >
-                {char.avatar_url ? (
-                  <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/5 to-background flex items-center justify-center">
-                    <span className="text-4xl font-black text-primary/30">{char.name[0]}</span>
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+            {filtered.map((char, i) => {
+              const img = resolveCharacterAvatar(char.name, char.avatar_url);
+              const rank = i + 1;
+              return (
                 <button
-                  onClick={(e) => toggleLike(char.id, e)}
-                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40  flex items-center justify-center hover:bg-black/60 transition-all"
+                  key={char.id}
+                  onClick={() => startChat(char.id)}
+                  className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-amber-500/10 hover:border-amber-400/40 transition-all duration-500 hover:shadow-[0_0_30px_rgba(245,158,11,0.25)] hover:-translate-y-1 bg-purple-950/20"
                 >
-                  <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
+                  {/* Glow ring on hover */}
+                  <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-amber-400/0 via-amber-400/0 to-purple-500/0 group-hover:from-amber-400/40 group-hover:via-amber-300/20 group-hover:to-purple-500/40 transition-all duration-500 opacity-0 group-hover:opacity-100 blur-sm -z-10" />
+
+                  {img ? (
+                    <img src={img} alt={char.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-700 via-purple-900 to-amber-900 flex items-center justify-center text-5xl font-black text-amber-300/40">
+                      {char.name[0]}
+                    </div>
+                  )}
+
+                  {/* Vinheta dourada inferior */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0014] via-[#0a0014]/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-900/0 to-purple-900/0 group-hover:from-amber-900/10 group-hover:to-purple-900/20 transition-all duration-500" />
+
+                  {/* Rank top */}
+                  {rank <= 10 && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/90 text-purple-950 text-[10px] font-black backdrop-blur shadow-lg">
+                      <Crown className="w-2.5 h-2.5" /> #{rank}
+                    </div>
+                  )}
+
+                  {/* Like button */}
+                  <button
+                    onClick={(e) => toggleLike(char.id, e)}
+                    className="absolute top-2 right-2 w-9 h-9 rounded-full bg-purple-950/70 backdrop-blur border border-amber-500/20 flex items-center justify-center hover:bg-purple-900 hover:border-amber-400/50 transition-all"
+                  >
+                    <Heart className={`w-4 h-4 ${likedIds.has(char.id) ? "fill-rose-400 text-rose-400 drop-shadow-[0_0_6px_rgba(251,113,133,0.8)]" : "text-amber-200/60"}`} />
+                  </button>
+
+                  {/* Chat count chip */}
+                  <div className="absolute top-12 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-purple-950/70 backdrop-blur border border-amber-500/20 text-[10px] text-amber-200 font-bold">
+                    <MessageCircle className="w-3 h-3" /> {formatCount(char.chat_count)}
+                  </div>
+
+                  {/* Bottom info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1.5">
+                    <h3 className="text-sm font-black text-white truncate drop-shadow-lg group-hover:text-amber-200 transition-colors">{char.name}</h3>
+                    <p className="text-[10px] text-white/60 line-clamp-2 leading-snug">{char.description}</p>
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {(char.tags && char.tags.length > 0 ? char.tags : [char.category]).slice(0, 2).map((tag, k) => (
+                        <span key={k} className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/20 text-amber-200 capitalize font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </button>
-
-                {char.likes_count > 0 && (
-                  <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40  text-[10px] text-white/80">
-                    <Heart className="w-3 h-3 fill-red-500 text-red-500" />
-                    {char.likes_count >= 1000 ? (char.likes_count / 1000).toFixed(1) + "k" : char.likes_count}
-                  </div>
-                )}
-
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="text-sm font-bold text-white truncate">{char.name}</h3>
-                  <p className="text-[10px] text-white/50 truncate mt-0.5">{char.description}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="flex items-center gap-1 text-[10px] text-white/40">
-                      <MessageCircle className="w-3 h-3" />
-                      {char.chat_count >= 1000 ? (char.chat_count / 1000).toFixed(1) + "k" : char.chat_count}
-                    </span>
-                    {char.tags && char.tags.length > 0 && (
-                      <span className="text-[10px] text-white/30 truncate">
-                        {char.tags[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -382,4 +452,3 @@ const Characters = () => {
 };
 
 export default Characters;
-
