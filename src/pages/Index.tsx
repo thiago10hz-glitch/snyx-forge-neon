@@ -421,6 +421,15 @@ const Index = () => {
                   </button>
                 )}
 
+                <Link
+                  to="/api"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary hover:bg-primary/10"
+                >
+                  <Code2 className="w-4 h-4" />
+                  <span>API para devs</span>
+                </Link>
+
                 {isAdmin && (
                   <>
                     <div className="px-3 pt-3 pb-1">
