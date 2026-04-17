@@ -1409,7 +1409,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   </span>
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 leading-[1.02]">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-[1.05]">
                   {mode === "friend" ? (
                     <>
                       <span className="text-foreground/95">Oi, eu sou o </span>
