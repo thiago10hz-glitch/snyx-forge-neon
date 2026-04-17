@@ -68,6 +68,22 @@ export function AdminDashboard() {
   });
   const [recentUsers, setRecentUsers] = useState<{ display_name: string | null; created_at: string; is_vip: boolean; is_dev: boolean; team_badge: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cleaning, setCleaning] = useState(false);
+
+  const handleCleanup = async () => {
+    if (!confirm("Apagar TODOS os arquivos antigos do bucket app-downloads (instaladores, ZIPs)? Não pode ser desfeito.")) return;
+    setCleaning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-cleanup-storage");
+      if (error) throw error;
+      toast.success("Limpeza concluída!");
+      console.log("cleanup result", data);
+    } catch (e: any) {
+      toast.error(e.message || "Falhou");
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   useEffect(() => {
     fetchDashboard();
