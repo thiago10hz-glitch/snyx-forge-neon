@@ -223,6 +223,20 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
+  // Apply initialConversationId from parent (e.g. picked from history sidebar)
+  useEffect(() => {
+    if (!initialConversationId) return;
+    setActiveConversationId(initialConversationId);
+  }, [initialConversationId]);
+
+  // Apply forceMode from parent
+  useEffect(() => {
+    if (forceMode && forceMode !== mode) {
+      setMode(forceMode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceMode]);
+
   // Auto-resume last conversation per mode (persisted in localStorage)
   useEffect(() => {
     if (!user || conversations.length === 0) return;
