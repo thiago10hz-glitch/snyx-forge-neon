@@ -43,13 +43,29 @@ export function AdminPresenceIndicator() {
   if (onlineAdmins.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-      <div className="relative">
-        <ShieldCheck size={14} className="text-emerald-400" />
-        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+    <div className="group flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-primary/8 border border-primary/20 hover:bg-primary/12 hover:border-primary/30 transition-all duration-300">
+      {/* Stacked avatars */}
+      <div className="flex items-center -space-x-2">
+        {onlineAdmins.slice(0, 3).map((a) => (
+          <div
+            key={a.user_id}
+            className="relative w-5 h-5 rounded-full overflow-hidden border-2 border-background bg-muted"
+            title={a.display_name || "Admin"}
+          >
+            {a.avatar_url ? (
+              <img src={a.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <ShieldCheck className="w-2.5 h-2.5 text-primary m-auto h-full" />
+            )}
+          </div>
+        ))}
       </div>
-      <span className="text-[10px] font-medium text-emerald-400">
-        {onlineAdmins.length} Admin{onlineAdmins.length > 1 ? "s" : ""} online
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+      </span>
+      <span className="text-[10px] font-semibold tracking-tight text-primary/90">
+        {onlineAdmins.length} online
       </span>
     </div>
   );
@@ -61,12 +77,9 @@ export function useAdminHeartbeat() {
   useEffect(() => {
     if (!user) return;
 
-    let active = false;
-
     const checkAndBeat = async () => {
       const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
       if (!isAdmin) return;
-      active = true;
 
       const upsertPresence = async () => {
         await supabase.from("admin_presence").upsert({
