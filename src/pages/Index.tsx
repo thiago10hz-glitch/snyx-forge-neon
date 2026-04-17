@@ -75,15 +75,12 @@ const Index = () => {
     }
   }, []);
 
-  const railTopItems: RailItem[] = [
-    ...(isAdmin
-      ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin" },
-          { icon: Crown, label: "Dono", to: "/dono", accent: true },
-        ] as RailItem[])
-      : []),
-    { icon: Code2, label: "API para devs", to: "/api", accent: true },
-  ];
+  const railTopItems: RailItem[] = isAdmin
+    ? ([
+        { icon: ShieldCheck, label: "Admin", to: "/admin" },
+        { icon: Crown, label: "Dono", to: "/dono", accent: true },
+      ] as RailItem[])
+    : [];
 
   const railBottomItems: RailItem[] = [
     { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
@@ -125,30 +122,28 @@ const Index = () => {
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
         <AuroraBackground intensity="subtle" />
 
-        {/* Mini sidebar */}
-        <SideRail
-          logo={
-            <Link
-              to="/"
-              className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
-              title="SnyX"
-            >
-              {/* outer glow halo */}
-              <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
-              {/* gradient body */}
-              <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
-              {/* shine sweep */}
-              <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
-                <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
-              </span>
-              {/* inner ring */}
-              <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
-              <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
-            </Link>
-          }
-          topItems={railTopItems}
-          bottomItems={railBottomItems}
-        />
+        {/* Mini sidebar — só pra dono/admin */}
+        {isAdmin && (
+          <SideRail
+            logo={
+              <Link
+                to="/"
+                className="group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110"
+                title="SnyX"
+              >
+                <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" aria-hidden />
+                <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
+                <span className="absolute inset-0 rounded-2xl overflow-hidden" aria-hidden>
+                  <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-[300%] transition-transform duration-[1100ms] ease-out" />
+                </span>
+                <span className="absolute inset-[2px] rounded-[14px] border border-white/15" aria-hidden />
+                <Sparkles className="relative w-[18px] h-[18px] text-white drop-shadow-[0_0_6px_hsl(var(--primary))]" strokeWidth={2.4} />
+              </Link>
+            }
+            topItems={railTopItems}
+            bottomItems={railBottomItems}
+          />
+        )}
 
         {/* Toggleable history panel */}
         <HistoryPanel
@@ -243,6 +238,16 @@ const Index = () => {
 
             {/* Right */}
             <div className="flex items-center gap-1.5 flex-1 justify-end">
+              {/* API para devs — botão fixo no canto */}
+              <Link
+                to="/api"
+                title="API para devs"
+                className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-b from-primary/20 to-primary/10 text-primary border border-primary/40 hover:border-primary/70 hover:shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] transition-all"
+              >
+                <Code2 className="w-3 h-3" strokeWidth={2.6} />
+                <span className="hidden sm:inline">API devs</span>
+              </Link>
+
               {/* Badge de plano — VIP dourado pra assinantes, FREE pra contas novas */}
               {profile?.is_vip || profile?.is_dev ? (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
