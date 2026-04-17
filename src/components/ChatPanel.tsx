@@ -238,7 +238,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     })();
   }, [activeConversationId]);
 
-  const lastSummarizedAtRef = useRef(0);
+  
 
   const createConversation = async (): Promise<string | null> => {
     if (!user) return null;
@@ -1349,9 +1349,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
                   ) : (
                     <div className="flex gap-3">
                       <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shrink-0 mt-1 ${config.bgColor} border ${config.borderColor} shadow-sm`}>
-                        {activeCharacterAvatar ? (
-                          <img src={activeCharacterAvatar} alt="AI" className="w-full h-full object-cover" />
-                        ) : aiAvatarUrl ? (
+                        {aiAvatarUrl ? (
                           <img src={aiAvatarUrl} alt="AI" className="w-full h-full object-cover" />
                         ) : (
                           <><Bot size={12} className={`${config.color} sm:hidden`} /><Bot size={13} className={`${config.color} hidden sm:block md:hidden`} /><Bot size={14} className={`${config.color} hidden md:block`} /></>
