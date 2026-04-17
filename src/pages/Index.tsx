@@ -43,6 +43,29 @@ const Index = () => {
     });
   }, [user]);
 
+  // Listen for global Command Palette events
+  useEffect(() => {
+    const onNewChat = () => {
+      setPickedConvId(null);
+      // Force ChatPanel remount to clear current conversation state
+      setChatMode((m) => m);
+    };
+    const onToggleHistory = () => setHistoryOpen((v) => !v);
+    const onOpenTheme = () => setShowThemeModal(true);
+    const onOpenProfile = () => setShowProfile(true);
+
+    window.addEventListener("snyx:new-chat", onNewChat);
+    window.addEventListener("snyx:toggle-history", onToggleHistory);
+    window.addEventListener("snyx:open-theme", onOpenTheme);
+    window.addEventListener("snyx:open-profile", onOpenProfile);
+    return () => {
+      window.removeEventListener("snyx:new-chat", onNewChat);
+      window.removeEventListener("snyx:toggle-history", onToggleHistory);
+      window.removeEventListener("snyx:open-theme", onOpenTheme);
+      window.removeEventListener("snyx:open-profile", onOpenProfile);
+    };
+  }, []);
+
   useAdminHeartbeat();
 
   const isDev = !!profile?.is_dev;
