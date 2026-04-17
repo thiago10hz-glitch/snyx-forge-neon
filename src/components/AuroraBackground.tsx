@@ -98,12 +98,20 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
         className="absolute inset-0 transition-opacity duration-700"
         style={{ opacity: isSubtle ? 0.35 : 1 }}
       >
-        {/* Gradiente principal: vermelho no topo */}
+        {/* Gradiente principal: vermelho vivo no topo descendo pra escuro (estilo SKYNETchat) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 90% 70% at 50% -10%, hsl(var(--primary) / 0.55), transparent 60%)",
+              "linear-gradient(to bottom, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary) / 0.55) 25%, hsl(var(--primary) / 0.25) 55%, hsl(var(--background)) 95%)",
+          }}
+        />
+        {/* Brilho extra no topo central */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 50% at 50% 0%, hsl(var(--primary) / 0.45), transparent 65%)",
           }}
         />
 
@@ -135,7 +143,7 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at center, transparent 40%, hsl(var(--background) / 0.7) 100%)",
+              "radial-gradient(ellipse at center, transparent 50%, hsl(var(--background) / 0.5) 100%)",
           }}
         />
 
