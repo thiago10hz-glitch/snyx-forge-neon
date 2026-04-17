@@ -132,6 +132,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversationSummary, setConversationSummary] = useState<string>("");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [thinkingText, setThinkingText] = useState("");
   const [showChatSettings, setShowChatSettings] = useState(false);
