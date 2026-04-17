@@ -18,7 +18,7 @@ type Status = "approved" | "rejected" | "pending" | null;
 
 export default function CheckoutReturn() {
   const [params] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const status = (params.get("status") || params.get("collection_status")) as Status;
   const paymentId = params.get("payment_id") || params.get("collection_id") || "";
 
