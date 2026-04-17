@@ -49,7 +49,7 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer";
+type ChatMode = "friend" | "programmer" | "writer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
@@ -113,6 +113,21 @@ const MODE_CONFIG = {
     emptyTitle: "SnyX Programador",
     emptyText: "Crie sites, apps e código completo. Publique online!",
     emptyEmoji: "🚀",
+    premiumLabel: null,
+    premiumIcon: null,
+  },
+  writer: {
+    icon: PenLine,
+    label: "Escritor",
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+    activeTab: "bg-emerald-500/10 text-emerald-400",
+    bubbleColor: "bg-muted/60",
+    placeholder: "Cole texto pra parafrasear, corrigir, resumir ou traduzir... ✍️",
+    emptyTitle: "SnyX Escritor",
+    emptyText: "Parafraseia, corrige gramática, resume e traduz. Seu copilot de escrita.",
+    emptyEmoji: "✍️",
     premiumLabel: null,
     premiumIcon: null,
   },
@@ -794,6 +809,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-school`;
     } else if (mode === "programmer") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-programmer`;
+    } else if (mode === "writer") {
+      chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-writer`;
     } else if (mode === "friend" && usePremium) {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-vip`;
     } else {
