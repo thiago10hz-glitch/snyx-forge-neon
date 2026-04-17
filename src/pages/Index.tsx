@@ -165,8 +165,8 @@ const Index = () => {
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-transparent relative">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <header className="h-14 flex items-center justify-between gap-2 px-2 sm:px-6 shrink-0 bg-transparent relative">
+            <div className="flex items-center gap-2 shrink-0 sm:flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
