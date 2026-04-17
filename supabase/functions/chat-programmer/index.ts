@@ -1,3 +1,5 @@
+import { freeAIChat } from "../_shared/free-ai.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -108,7 +110,7 @@ Adapte TODO o conteúdo ao nicho pedido:
       ...truncatedMessages,
     ];
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,

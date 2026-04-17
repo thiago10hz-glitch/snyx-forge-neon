@@ -5,6 +5,7 @@ const corsHeaders = {
 };
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { freeAIChat } from "../_shared/free-ai.ts";
 
 const SYSTEM = `Resuma a conversa abaixo em PORTUGUÊS BR em até 250 palavras. Foque em: quem são os personagens, eventos importantes, decisões, sentimentos, segredos, objetos relevantes, promessas. Escreva em terceira pessoa, denso e factual. Sem listas — texto corrido.`;
 
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
       ? `RESUMO ANTERIOR:\n${prev.summary}\n\nNOVAS MENSAGENS:\n${transcript}\n\nGere um resumo combinado atualizado.`
       : `Mensagens da conversa:\n${transcript}`;
 
-    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const r = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({

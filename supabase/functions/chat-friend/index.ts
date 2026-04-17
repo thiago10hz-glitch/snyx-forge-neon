@@ -1,3 +1,5 @@
+import { freeAIChat } from "../_shared/free-ai.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
