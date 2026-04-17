@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,11 +115,14 @@ const Index = () => {
   const railLogo = (
     <Link
       to="/"
-      className="group relative w-8 h-8 rounded-xl flex items-center justify-center transition-transform duration-300 hover:scale-110"
+      className="group relative w-8 h-8 flex items-center justify-center transition-transform duration-300 hover:scale-110"
       title="SnyX"
     >
-      <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary via-primary/70 to-primary/30 shadow-[0_2px_12px_-2px_hsl(var(--primary)/0.6)]" aria-hidden />
-      <Sparkles className="relative w-[15px] h-[15px] text-white drop-shadow-[0_0_4px_hsl(var(--primary))]" strokeWidth={2.4} />
+      <Flame
+        className="w-[20px] h-[20px] text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.7)] group-hover:drop-shadow-[0_0_12px_hsl(var(--primary))] transition-all"
+        strokeWidth={1.6}
+        fill="hsl(var(--primary) / 0.25)"
+      />
     </Link>
   );
 

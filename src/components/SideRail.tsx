@@ -44,9 +44,9 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
         className={`group relative w-9 h-9 flex items-center justify-center transition-colors duration-200 ${tone}`}
         aria-label={item.label}
       >
-        <Icon className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.75} />
+        <Icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
         {item.dot && (
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
+          <span className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary))] animate-pulse" />
         )}
       </button>
     );
@@ -67,22 +67,21 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
 
   return (
     <aside className="hidden md:flex shrink-0 flex-col z-30 relative w-[52px]">
-      {/* fundo + divisor vermelho sutil à direita */}
-      <div className="absolute inset-0 bg-sidebar/90 backdrop-blur-2xl" />
-      <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-primary/0 via-primary/35 to-primary/0" />
+      {/* divisor vermelho bem sutil à direita, sem fundo opaco */}
+      <div className="absolute top-0 right-0 bottom-0 w-px bg-primary/15" />
 
-      <div className="relative flex-1 flex flex-col items-center min-h-0 py-2.5">
-        <div className="mb-2">{logo}</div>
-        {headerExtra && <div className="mb-1.5 flex justify-center">{headerExtra}</div>}
+      <div className="relative flex-1 flex flex-col items-center min-h-0 py-3">
+        <div className="mb-3">{logo}</div>
+        {headerExtra && <div className="mb-2 flex justify-center">{headerExtra}</div>}
 
-        <nav className="flex-1 flex flex-col items-center gap-0.5 overflow-y-auto scrollbar-hide w-full">
+        <nav className="flex-1 flex flex-col items-center gap-2 overflow-y-auto scrollbar-hide w-full">
           {topItems.map(renderItem)}
         </nav>
 
         {footerExtra && (
-          <div className="mt-1.5 mb-1 flex flex-col items-center gap-1">{footerExtra}</div>
+          <div className="mt-2 mb-1 flex flex-col items-center gap-1.5">{footerExtra}</div>
         )}
-        <div className="flex flex-col items-center gap-0.5 w-full">
+        <div className="flex flex-col items-center gap-1 w-full">
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
         </div>
       </div>
