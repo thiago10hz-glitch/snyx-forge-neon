@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ChevronRight } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 export interface RailItem {
   icon: LucideIcon;
@@ -12,6 +12,8 @@ export interface RailItem {
   danger?: boolean;
   accent?: boolean;
   dot?: boolean;
+  /** Visualmente agrupa este item com o anterior (sem separador, encostado) */
+  groupedWithPrev?: boolean;
 }
 
 interface SideRailProps {
@@ -21,10 +23,12 @@ interface SideRailProps {
 }
 
 /**
- * Sidebar fina, fixa, sempre visível. Sem alça, sem expandir.
- * Tooltips no hover mostram o label.
+ * Sidebar fina, com botão lateral pra expandir e mostrar os labels.
+ * Quando expandida fica wider (180px) com nomes dos itens.
  */
 export function SideRail({ logo, topItems, bottomItems }: SideRailProps) {
+  const [expanded, setExpanded] = useState(false);
+
   const renderItem = (item: RailItem, idx: number) => {
     const Icon = item.icon;
     const tone = item.active
@@ -38,22 +42,31 @@ export function SideRail({ logo, topItems, bottomItems }: SideRailProps) {
     const inner = (
       <button
         onClick={item.onClick}
-        className={`relative w-10 h-10 rounded-2xl border flex items-center justify-center transition-all duration-200 ${tone}`}
+        className={`relative ${expanded ? "w-full h-10 px-2.5 justify-start gap-2.5" : "w-10 h-10 justify-center"} rounded-2xl border flex items-center transition-all duration-200 ${tone}`}
       >
         {item.active && (
           <span className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
         )}
-        <Icon className="w-[17px] h-[17px]" strokeWidth={1.85} />
+        <Icon className="w-[17px] h-[17px] shrink-0" strokeWidth={1.85} />
+        {expanded && (
+          <span className="text-[12px] font-semibold tracking-tight truncate">{item.label}</span>
+        )}
         {item.dot && (
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
+          <span className={`absolute ${expanded ? "top-2 right-2" : "top-1.5 right-1.5"} w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse`} />
         )}
       </button>
     );
 
+    const wrapper = item.to ? <Link to={item.to}>{inner}</Link> : <div>{inner}</div>;
+
+    if (expanded) {
+      return <div key={idx} className={item.groupedWithPrev ? "-mt-1" : ""}>{wrapper}</div>;
+    }
+
     return (
       <Tooltip key={idx}>
         <TooltipTrigger asChild>
-          {item.to ? <Link to={item.to}>{inner}</Link> : <div>{inner}</div>}
+          <div className={item.groupedWithPrev ? "-mt-1" : ""}>{wrapper}</div>
         </TooltipTrigger>
         <TooltipContent side="right" sideOffset={10} className="text-[11px] font-medium">
           {item.label}
@@ -63,18 +76,33 @@ export function SideRail({ logo, topItems, bottomItems }: SideRailProps) {
   };
 
   return (
-    <aside className="hidden md:flex shrink-0 flex-col w-[60px] z-30 relative">
+    <aside
+      className={`hidden md:flex shrink-0 flex-col z-30 relative transition-[width] duration-300 ease-out ${expanded ? "w-[180px]" : "w-[60px]"}`}
+    >
       <div className="absolute inset-0 bg-sidebar/85 backdrop-blur-2xl border-r border-sidebar-border/40" />
       <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
+
+      {/* Botão de puxar/recolher */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="absolute top-1/2 -right-3 -translate-y-1/2 z-40 w-6 h-12 rounded-r-xl rounded-l-md bg-card/95 backdrop-blur-xl border border-border/40 border-l-0 flex items-center justify-center text-muted-foreground/70 hover:text-primary hover:border-primary/40 hover:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)] transition-all group"
+        title={expanded ? "Recolher" : "Expandir"}
+        aria-label={expanded ? "Recolher menu" : "Expandir menu"}
+      >
+        <ChevronRight
+          className={`w-3.5 h-3.5 transition-transform duration-300 ${expanded ? "rotate-180" : ""} group-hover:scale-110`}
+          strokeWidth={2.5}
+        />
+      </button>
 
       <div className="relative flex-1 flex flex-col items-center min-h-0 py-3">
         <div className="mb-3">{logo}</div>
         <div className="h-px w-8 bg-border/30 mb-3" />
-        <nav className="flex-1 flex flex-col items-center gap-1.5 overflow-y-auto scrollbar-hide w-full px-[10px]">
+        <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-hide w-full px-[10px] ${expanded ? "items-stretch" : "items-center"}`}>
           {topItems.map(renderItem)}
         </nav>
         <div className="h-px w-8 bg-border/30 my-3" />
-        <div className="flex flex-col items-center gap-1.5 w-full px-[10px]">
+        <div className={`flex flex-col gap-1.5 w-full px-[10px] ${expanded ? "items-stretch" : "items-center"}`}>
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
         </div>
       </div>

@@ -94,6 +94,7 @@ const Index = () => {
           label: "Programador",
           onClick: switchToProgrammer,
           active: chatMode === "programmer",
+          groupedWithPrev: true,
         } as RailItem]
       : []),
     ...(isAdmin
@@ -205,17 +206,18 @@ const Index = () => {
 
             {/* Right */}
             <div className="flex items-center gap-2 flex-1 justify-end">
+              {/* Badge de status — sempre mostra "VIP Ativo" pra todos verem que existe */}
               {profile?.is_dev ? (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
                   <Code size={9} /> DEV
                 </span>
               ) : profile?.is_vip ? (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  ⭐ VIP
+                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_14px_-4px_hsl(45_100%_60%/0.5)]">
+                  <Crown size={9} className="fill-amber-300" /> VIP ATIVO
                 </span>
               ) : (
-                <span className="hidden sm:inline-flex items-center text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground/70 border border-border/30">
-                  Free
+                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/8 text-amber-300/70 border border-amber-500/20 hover:bg-amber-500/15 hover:text-amber-300 transition-colors">
+                  <Crown size={9} /> VIP ATIVO
                 </span>
               )}
 
