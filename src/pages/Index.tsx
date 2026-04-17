@@ -33,6 +33,7 @@ const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(false);
 
   const [showModePicker, setShowModePicker] = useState(false);
 
