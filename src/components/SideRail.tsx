@@ -67,22 +67,21 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
 
   return (
     <aside className="hidden md:flex shrink-0 flex-col z-30 relative w-[52px]">
-      {/* fundo + divisor vermelho sutil à direita */}
-      <div className="absolute inset-0 bg-sidebar/90 backdrop-blur-2xl" />
-      <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-primary/0 via-primary/35 to-primary/0" />
+      {/* divisor vermelho bem sutil à direita, sem fundo opaco */}
+      <div className="absolute top-0 right-0 bottom-0 w-px bg-primary/15" />
 
-      <div className="relative flex-1 flex flex-col items-center min-h-0 py-2.5">
-        <div className="mb-2">{logo}</div>
-        {headerExtra && <div className="mb-1.5 flex justify-center">{headerExtra}</div>}
+      <div className="relative flex-1 flex flex-col items-center min-h-0 py-3">
+        <div className="mb-3">{logo}</div>
+        {headerExtra && <div className="mb-2 flex justify-center">{headerExtra}</div>}
 
-        <nav className="flex-1 flex flex-col items-center gap-0.5 overflow-y-auto scrollbar-hide w-full">
+        <nav className="flex-1 flex flex-col items-center gap-2 overflow-y-auto scrollbar-hide w-full">
           {topItems.map(renderItem)}
         </nav>
 
         {footerExtra && (
-          <div className="mt-1.5 mb-1 flex flex-col items-center gap-1">{footerExtra}</div>
+          <div className="mt-2 mb-1 flex flex-col items-center gap-1.5">{footerExtra}</div>
         )}
-        <div className="flex flex-col items-center gap-0.5 w-full">
+        <div className="flex flex-col items-center gap-1 w-full">
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
         </div>
       </div>
