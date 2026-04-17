@@ -269,6 +269,21 @@ export default function ApiPricing() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal: entrevista (apenas plano Free) */}
+      {applyingPlan && (
+        <ApiApplicationModal
+          open={!!applyingPlan}
+          planSlug={applyingPlan.slug}
+          planName={applyingPlan.name}
+          onClose={() => setApplyingPlan(null)}
+          onApproved={(key) => {
+            setApplyingPlan(null);
+            setKeyExisted(false);
+            setIssuedKey(key);
+          }}
+        />
+      )}
     </div>
   );
 }
