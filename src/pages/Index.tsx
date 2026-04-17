@@ -214,7 +214,15 @@ const Index = () => {
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
-          {/* Top-right tiny cluster (estilo SKYNETchat): paleta + nova conversa */}
+          {/* Header centralizado estilo SKYNETchat: "SnyX V3" */}
+          <div className="hidden md:flex fixed top-0 left-0 right-0 z-20 h-12 items-center justify-center pointer-events-none">
+            <div className="flex items-center gap-1.5 text-foreground/90 text-[13px] font-medium tracking-wide">
+              <span className="font-bold">SnyX</span>
+              <span className="text-foreground/60 font-normal">V3</span>
+            </div>
+          </div>
+
+          {/* Top-right tiny cluster: paleta + nova conversa */}
           <div className="hidden md:flex fixed top-3 right-4 z-30 items-center gap-3">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("snyx:open-palette"))}
