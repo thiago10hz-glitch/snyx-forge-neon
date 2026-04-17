@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Loader2, Bot, Send, AlertTriangle, ShieldCheck, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -16,143 +14,172 @@ interface Props {
   onApproved: (apiKey: string) => void;
 }
 
+type Msg = { role: "user" | "assistant"; content: string };
+
+const PLAN_GREETINGS: Record<string, string> = {
+  free:
+    "Olá! 👋 Sou o atendente virtual da SnyX. Vou fazer umas perguntinhas rápidas pra liberar sua chave grátis. Pra começar — qual seu nome?",
+  pro:
+    "Olá! 👋 Sou o atendente da SnyX e vou te ajudar a liberar o **teste grátis do Pro** (5.000 req/dia). Antes, preciso conhecer um pouco do seu projeto. Pra começar — qual seu nome completo?",
+  business:
+    "Olá. Sou o atendente da SnyX, responsável pela liberação de **trials Business**. Vou fazer uma breve entrevista de qualificação antes de liberar a chave (50.000 req/dia, modelos premium). Por gentileza, pode me dizer seu nome completo e cargo?",
+};
+
 export function ApiApplicationModal({ open, onClose, planSlug, planName, onApproved }: Props) {
-  const [submitting, setSubmitting] = useState(false);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
   const [rejected, setRejected] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    full_name: "",
-    company_or_project: "",
-    project_url: "",
-    use_case: "",
-    estimated_volume: "",
-    category: "",
-  });
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const update = (k: keyof typeof form) => (e: any) => setForm((p) => ({ ...p, [k]: e.target.value }));
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.use_case.trim().length < 60) {
-      toast.error("Descreva o caso de uso com mais detalhes (mínimo 60 caracteres).");
-      return;
+  // Saudação inicial
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      setMessages([{ role: "assistant", content: PLAN_GREETINGS[planSlug] || PLAN_GREETINGS.free }]);
     }
-    setSubmitting(true);
-    setRejected(null);
+    if (!open) {
+      setMessages([]);
+      setInput("");
+      setRejected(null);
+    }
+  }, [open, planSlug]);
+
+  // Auto scroll
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, sending]);
+
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || sending) return;
+
+    const next: Msg[] = [...messages, { role: "user", content: text }];
+    setMessages(next);
+    setInput("");
+    setSending(true);
+
     try {
-      const { data, error } = await supabase.functions.invoke("apply-api-key", {
-        body: { plan_slug: planSlug, ...form },
+      // Envia tudo MENOS a saudação inicial scriptada (o bot já tem system prompt próprio)
+      const historyForAI = next.slice(1);
+      const { data, error } = await supabase.functions.invoke("api-trial-interview", {
+        body: { plan_slug: planSlug, messages: historyForAI },
       });
       if (error) throw error;
       const res = data as any;
-      if (res?.status === "approved") {
-        onApproved(res.api_key);
+
+      if (res?.status === "approved" && res.api_key) {
+        setMessages((p) => [
+          ...p,
+          { role: "assistant", content: `✅ Aprovado! Sua chave de API foi gerada. Vou te mostrar agora.` },
+        ]);
+        setTimeout(() => onApproved(res.api_key), 600);
       } else if (res?.status === "rejected") {
-        setRejected(res.message || "Solicitação recusada.");
+        setRejected(res.message || "Solicitação recusada após análise.");
+      } else if (res?.status === "chatting" && res.reply) {
+        setMessages((p) => [...p, { role: "assistant", content: res.reply }]);
       } else if (res?.error) {
         toast.error(res.message || res.error);
       }
     } catch (err: any) {
-      toast.error("Erro ao enviar solicitação", { description: err?.message });
+      toast.error("Erro no atendimento", { description: err?.message });
     } finally {
-      setSubmitting(false);
+      setSending(false);
     }
   };
 
   const close = () => {
-    if (submitting) return;
-    setRejected(null);
+    if (sending) return;
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && close()}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-border/40 shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-primary" />
-            Solicitar API SnyX — {planName}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]">
+              <Bot className="w-4 h-4 text-primary-foreground" />
+            </div>
+            Atendimento SnyX — Trial {planName}
           </DialogTitle>
-          <DialogDescription>
-            Pra evitar abuso, fazemos uma verificação rápida. Responda com sinceridade — nossa IA analisa cada solicitação.
+          <DialogDescription className="text-xs">
+            Conversa com nosso atendente virtual. Responda com sinceridade — ele decide a liberação na hora.
           </DialogDescription>
         </DialogHeader>
 
         {rejected ? (
-          <div className="space-y-4 py-2">
+          <div className="p-5 space-y-4">
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 flex gap-3">
               <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-              <div className="text-sm text-foreground">{rejected}</div>
+              <div className="text-sm text-foreground whitespace-pre-wrap">{rejected}</div>
             </div>
             <Button onClick={close} variant="outline" className="w-full">Entendi</Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="full_name">Nome completo *</Label>
-                <Input id="full_name" required minLength={3} maxLength={150}
-                  value={form.full_name} onChange={update("full_name")}
-                  placeholder="Ex: Maria Silva" />
-              </div>
-              <div>
-                <Label htmlFor="company_or_project">Empresa / Projeto *</Label>
-                <Input id="company_or_project" required minLength={2} maxLength={150}
-                  value={form.company_or_project} onChange={update("company_or_project")}
-                  placeholder="Ex: Acme SaaS / Meu TCC" />
-              </div>
+          <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-muted/10 min-h-[300px] max-h-[55vh]">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {m.role === "assistant" && (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-card border border-border/50 rounded-bl-md"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                  {m.role === "user" && (
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <UserIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              ))}
+              {sending && (
+                <div className="flex gap-2 justify-start">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                  </div>
+                  <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-2.5 flex gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div>
-              <Label htmlFor="project_url">Site / URL do projeto (opcional)</Label>
-              <Input id="project_url" type="url" maxLength={300}
-                value={form.project_url} onChange={update("project_url")}
-                placeholder="https://meusite.com" />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="category">Tipo de aplicação</Label>
-                <select id="category" value={form.category} onChange={update("category")}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="chatbot">Chatbot / Assistente</option>
-                  <option value="saas">SaaS / Web app</option>
-                  <option value="mobile">App mobile</option>
-                  <option value="internal">Ferramenta interna</option>
-                  <option value="research">Estudo / Pesquisa</option>
-                  <option value="other">Outro</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="estimated_volume">Volume estimado/dia</Label>
-                <select id="estimated_volume" value={form.estimated_volume} onChange={update("estimated_volume")}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="<100">Até 100 requisições</option>
-                  <option value="100-1000">100 – 1.000</option>
-                  <option value="1000-5000">1.000 – 5.000</option>
-                  <option value=">5000">Mais de 5.000</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="use_case">Como você vai usar a API? *</Label>
-              <Textarea id="use_case" required minLength={60} maxLength={2000} rows={5}
-                value={form.use_case} onChange={update("use_case")}
-                placeholder="Ex: Vou integrar a API no chatbot do meu site de e-commerce para responder dúvidas sobre produtos. Pretendo usar o modelo básico para classificar mensagens..." />
-              <p className="text-xs text-muted-foreground mt-1">
-                {form.use_case.length}/2000 — mínimo 60 caracteres. Seja específico: a IA detecta texto vago/falso.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <Button type="submit" disabled={submitting} className="flex-1">
-                {submitting ? (<><Loader2 className="w-4 h-4 animate-spin" /> Analisando...</>) : "Enviar solicitação"}
+            <div className="border-t border-border/40 p-3 flex gap-2 shrink-0 bg-background">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Digite sua resposta..."
+                disabled={sending}
+                maxLength={1000}
+                className="flex-1"
+              />
+              <Button onClick={sendMessage} disabled={sending || !input.trim()} size="icon">
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
-              <Button type="button" variant="outline" onClick={close} disabled={submitting}>Cancelar</Button>
             </div>
-          </form>
+
+            <div className="px-4 pb-3 text-[10px] text-muted-foreground/70 flex items-center gap-1.5 shrink-0">
+              <ShieldCheck className="w-3 h-3" />
+              Conversa analisada pela IA · termos serão explicados antes da liberação
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

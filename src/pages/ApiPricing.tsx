@@ -65,13 +65,12 @@ export default function ApiPricing() {
 
   const handleSubscribe = async (plan: ApiPlan) => {
     if (!user) { navigate("/auth"); return; }
+    // Free / Pro / Business: TODOS abrem entrevista pra teste grátis
+    setApplyingPlan(plan);
+  };
 
-    if (plan.price_brl === 0) {
-      // Abre modal de entrevista — IA decide se aprova
-      setApplyingPlan(plan);
-      return;
-    }
-
+  const handleBuyNow = async (plan: ApiPlan) => {
+    if (!user) { navigate("/auth"); return; }
     setActiveSlug(plan.slug);
     await openCheckout({
       title: `API SnyX — Plano ${plan.name}`,
@@ -220,14 +219,17 @@ export default function ApiPricing() {
                     variant={meta.highlight ? "default" : "outline"}
                     className="w-full"
                   >
-                    {isLoadingThis ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Abrindo checkout...</>
-                    ) : isFree ? (
-                      "Começar grátis"
-                    ) : (
-                      "Assinar agora"
-                    )}
+                    {isFree ? "Começar grátis" : "Começar teste grátis"}
                   </Button>
+                  {!isFree && (
+                    <button
+                      onClick={() => handleBuyNow(plan)}
+                      disabled={isLoadingThis}
+                      className="mt-2 text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline disabled:opacity-50"
+                    >
+                      {isLoadingThis ? "Abrindo checkout..." : "ou assinar direto"}
+                    </button>
+                  )}
                 </article>
               );
             })}
