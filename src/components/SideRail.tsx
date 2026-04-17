@@ -94,7 +94,7 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
   return (
     <aside
       className={`hidden md:flex shrink-0 flex-col z-30 relative overflow-hidden transition-[width] duration-300 ease-out ${
-        expanded ? "w-[200px]" : "w-[44px]"
+        expanded ? "w-[200px]" : "w-0"
       }`}
     >
       <div className="absolute top-0 right-0 bottom-0 w-px bg-primary/15" />
