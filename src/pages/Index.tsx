@@ -140,7 +140,7 @@ const Index = () => {
   );
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "Usuário";
-  const firstName = displayName.trim().split(/\s+/)[0];
+
 
   const modeOptions = [
     {
