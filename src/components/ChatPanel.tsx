@@ -1128,44 +1128,151 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
         />
       )}
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-64 fixed sm:relative inset-y-0 left-0 z-40 sm:z-auto' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0 bg-background sm:bg-transparent`}>
-        <div className="p-3 border-b border-border/10">
+      <div className={`${showSidebar ? 'w-80 fixed sm:relative inset-y-0 left-0 z-40 sm:z-auto' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border/10 flex flex-col shrink-0 bg-background/95 backdrop-blur-xl sm:bg-background/60`}>
+        {/* Header */}
+        <div className="p-3 border-b border-border/10 space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground/70">Histórico</h3>
+            <span className="text-[10px] text-muted-foreground/40 font-medium">{conversations.length}</span>
+          </div>
           <button
             onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); setShowSidebar(false); }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground glass-input border hover:border-primary/15 transition-all duration-300 group"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-bold text-primary-foreground bg-gradient-to-b from-primary to-primary/85 border border-primary/40 shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_6px_20px_-4px_hsl(var(--primary)/0.9)] hover:from-primary hover:to-primary transition-all duration-300 group"
           >
-            <Plus size={16} className="text-muted-foreground/40 group-hover:text-primary transition-colors duration-300" />
+            <Plus size={15} strokeWidth={2.6} />
             Nova conversa
           </button>
+          {/* Search */}
+          <div className="relative">
+            <input
+              type="text"
+              value={historySearch}
+              onChange={(e) => setHistorySearch(e.target.value)}
+              placeholder="Buscar conversas..."
+              className="w-full pl-8 pr-3 py-2 text-[12px] rounded-xl bg-muted/30 border border-border/30 text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/40 focus:bg-muted/50 transition-all"
+            />
+            <MessageCircle size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5 scrollbar-thin">
+
+        {/* Grouped conversations */}
+        <div className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
           {conversations.length === 0 ? (
-            <p className="text-xs text-muted-foreground/30 text-center py-8">Nenhuma conversa</p>
-          ) : (
-            conversations.map(conv => (
-              <div
-                key={conv.id}
-                className={`flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer rounded-xl transition-all duration-200 group ${
-                  conv.id === activeConversationId
-                    ? "bg-muted/40 text-foreground font-medium border border-border/20"
-                    : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
-                }`}
-                onClick={() => { setActiveConversationId(conv.id); setAttachment(null); setShowSidebar(false); }}
-              >
-                <MessageCircle size={14} className="shrink-0 opacity-40" />
-                <span className="truncate flex-1 text-[13px]">{conv.title}</span>
-                {(conv.mode === "premium") && (
-                  <Crown size={10} className="text-yellow-400 shrink-0" />
-                )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
-                  className="p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 transition-all"
-                >
-                  <Trash2 size={12} />
-                </button>
+            <div className="text-center py-12 px-4">
+              <div className="w-12 h-12 rounded-2xl bg-muted/30 border border-border/30 flex items-center justify-center mx-auto mb-3">
+                <MessageCircle size={20} className="text-muted-foreground/40" />
               </div>
-            ))
-          )}
+              <p className="text-xs text-muted-foreground/50 font-medium">Nenhuma conversa ainda</p>
+              <p className="text-[10px] text-muted-foreground/30 mt-1">Comece uma nova!</p>
+            </div>
+          ) : (() => {
+            const filtered = conversations.filter(c =>
+              !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())
+            );
+            if (filtered.length === 0) {
+              return <p className="text-center text-xs text-muted-foreground/40 py-8">Nada encontrado</p>;
+            }
+
+            // Group by date
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const yesterday = today - 86400000;
+            const weekAgo = today - 7 * 86400000;
+            const groups: Record<string, Conversation[]> = { Hoje: [], Ontem: [], "Esta semana": [], Anteriores: [] };
+            filtered.forEach((c) => {
+              const t = new Date(c.updated_at || c.created_at).getTime();
+              if (t >= today) groups["Hoje"].push(c);
+              else if (t >= yesterday) groups["Ontem"].push(c);
+              else if (t >= weekAgo) groups["Esta semana"].push(c);
+              else groups["Anteriores"].push(c);
+            });
+
+            const modeMeta: Record<string, { icon: typeof MessageCircle; label: string; color: string }> = {
+              friend:     { icon: Heart,   label: "Amigo",       color: "from-pink-500/30 to-rose-500/20 text-pink-300 border-pink-500/30" },
+              programmer: { icon: Code,    label: "Programador", color: "from-primary/40 to-primary/20 text-primary-foreground border-primary/40" },
+              school:     { icon: Brain,   label: "Escola",      color: "from-sky-500/30 to-blue-500/20 text-sky-300 border-sky-500/30" },
+              imagegen:   { icon: ImagePlus, label: "Imagem",    color: "from-violet-500/30 to-fuchsia-500/20 text-violet-300 border-violet-500/30" },
+              rewrite:    { icon: PenLine, label: "Reescrever",  color: "from-amber-500/30 to-orange-500/20 text-amber-300 border-amber-500/30" },
+              premium:    { icon: Crown,   label: "VIP",         color: "from-yellow-500/40 to-amber-500/20 text-amber-300 border-amber-400/40" },
+            };
+
+            const formatTime = (iso: string) => {
+              const d = new Date(iso);
+              const sameDay = d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+              if (sameDay) return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              const diffDays = Math.floor((today - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86400000);
+              if (diffDays === 1) return "Ontem";
+              if (diffDays < 7) return d.toLocaleDateString("pt-BR", { weekday: "short" });
+              return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+            };
+
+            return Object.entries(groups).filter(([, arr]) => arr.length > 0).map(([label, items]) => (
+              <div key={label} className="mb-3">
+                <div className="px-2 py-1 mb-1 flex items-center gap-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/40 to-transparent" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/40 to-transparent" />
+                </div>
+                <div className="space-y-1">
+                  {items.map((conv) => {
+                    const meta = modeMeta[conv.mode] || modeMeta.friend;
+                    const Icon = meta.icon;
+                    const active = conv.id === activeConversationId;
+                    return (
+                      <div
+                        key={conv.id}
+                        onClick={() => { setActiveConversationId(conv.id); setAttachment(null); setShowSidebar(false); }}
+                        className={`group/conv relative flex items-center gap-2.5 px-2.5 py-2.5 rounded-2xl cursor-pointer transition-all duration-200 ${
+                          active
+                            ? "bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 shadow-[0_2px_12px_-4px_hsl(var(--primary)/0.5)]"
+                            : "border border-transparent hover:bg-muted/40 hover:border-border/40"
+                        }`}
+                      >
+                        {/* Active indicator bar */}
+                        {active && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-r-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
+                        )}
+
+                        {/* Avatar circular por modo */}
+                        <div className={`relative shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br border ${meta.color}`}>
+                          <Icon size={16} strokeWidth={2.2} />
+                          {conv.mode === "premium" && (
+                            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-background flex items-center justify-center">
+                              <Crown size={6} className="text-amber-900" />
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <span className={`truncate text-[13px] font-semibold ${active ? "text-foreground" : "text-foreground/85"}`}>
+                              {conv.title}
+                            </span>
+                            <span className={`text-[10px] shrink-0 font-medium ${active ? "text-primary/80" : "text-muted-foreground/50"}`}>
+                              {formatTime(conv.updated_at || conv.created_at)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-[11px] text-muted-foreground/60">
+                              {meta.label}
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
+                              className="p-1 rounded-lg opacity-0 group-hover/conv:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                              title="Excluir"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ));
+          })()}
         </div>
       </div>
 
