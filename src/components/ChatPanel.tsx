@@ -116,7 +116,7 @@ const MODE_CONFIG = {
   },
 };
 
-export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
+export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId, forceMode }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +124,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const [vipModalPlan, setVipModalPlan] = useState<"vip" | "programmer">("vip");
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
-  const [mode, setMode] = useState<ChatMode>("friend");
+  const [mode, setMode] = useState<ChatMode>(forceMode ?? "friend");
   const [usePremium, setUsePremium] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
