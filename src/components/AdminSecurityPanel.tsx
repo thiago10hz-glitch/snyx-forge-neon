@@ -98,9 +98,6 @@ export function AdminSecurityPanel() {
               <PolicyRow table="user_roles" select="own" insert="admin" update="admin" del="admin" />
               <PolicyRow table="chat_conversations" select="own+admin" insert="own" update="own" del="own" />
               <PolicyRow table="chat_messages" select="own+admin" insert="own" update="—" del="own" />
-              <PolicyRow table="chat_shared_rooms" select="participantes+admin" insert="admin" update="—" del="—" />
-              <PolicyRow table="chat_shared_messages" select="participantes+admin" insert="participantes+admin" update="—" del="—" />
-              <PolicyRow table="chat_connections" select="own+admin" insert="own" update="admin" del="—" />
               <PolicyRow table="support_tickets" select="own+admin" insert="own" update="own+admin" del="—" />
               <PolicyRow table="support_messages" select="own+admin" insert="own+admin" update="—" del="—" />
               

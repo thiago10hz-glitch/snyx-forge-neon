@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { AdminSupportPanel } from "@/components/AdminSupportPanel";
 import { AdminNotesPanel } from "@/components/AdminNotesPanel";
-import { AdminConnectionsPanel } from "@/components/AdminConnectionsPanel";
 import { AdminSecurityPanel } from "@/components/AdminSecurityPanel";
 
 import { AdminLiveChatsPanel } from "@/components/AdminLiveChatsPanel";
@@ -43,7 +42,7 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "connections" | "security" | "livechats" | "releases";
+type AdminTab = "dashboard" | "users" | "messages" | "support" | "notes" | "security" | "livechats" | "releases";
 
 interface ChatMessage {
   id: string;
@@ -512,7 +511,6 @@ export default function Admin() {
             { key: "messages" as AdminTab, label: "Mensagens", icon: MessageCircle, activeClass: "bg-primary/15 text-primary border-primary/30", dot: true },
             { key: "support" as AdminTab, label: "Suporte", icon: ShieldCheck, activeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
             { key: "notes" as AdminTab, label: "Notas", icon: StickyNote, activeClass: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-            { key: "connections" as AdminTab, label: "Conexões", icon: Link2, activeClass: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
             { key: "security" as AdminTab, label: "Segurança", icon: Shield, activeClass: "bg-red-500/15 text-red-400 border-red-500/30" },
             
             { key: "livechats" as AdminTab, label: "Chat ao Vivo", icon: Phone, activeClass: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
@@ -1079,10 +1077,6 @@ export default function Admin() {
 
       {adminTab === "notes" && (
         <AdminNotesPanel />
-      )}
-
-      {adminTab === "connections" && (
-        <AdminConnectionsPanel />
       )}
 
       {adminTab === "security" && (
