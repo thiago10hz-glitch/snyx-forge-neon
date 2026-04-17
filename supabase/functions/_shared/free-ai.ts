@@ -1,8 +1,10 @@
-// Free AI gateway: tenta Google Gemini direto (grátis) e cai pra Groq se falhar.
+// Free AI gateway: cadeia de fallback grátis.
+// Ordem: Google Gemini -> Groq -> Pollinations Text (sem chave) -> Lovable AI.
 // Mantém formato OpenAI-compatible para drop-in replacement do gateway Lovable.
 
 const GOOGLE_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
+const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 // Mapeia "modelos lovable" -> modelo Google grátis
 function mapToGoogleModel(model?: string): string {
