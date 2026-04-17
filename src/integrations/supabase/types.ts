@@ -514,57 +514,6 @@ export type Database = {
           },
         ]
       }
-      clone_demos: {
-        Row: {
-          created_at: string
-          demo_url: string | null
-          description: string | null
-          device_fingerprint: string | null
-          expires_at: string
-          hosted_url: string | null
-          id: string
-          ip_address: string | null
-          primary_color: string
-          site_name: string
-          status: string
-          user_id: string
-          vercel_deployment_id: string | null
-          vercel_project_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          demo_url?: string | null
-          description?: string | null
-          device_fingerprint?: string | null
-          expires_at?: string
-          hosted_url?: string | null
-          id?: string
-          ip_address?: string | null
-          primary_color?: string
-          site_name: string
-          status?: string
-          user_id: string
-          vercel_deployment_id?: string | null
-          vercel_project_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          demo_url?: string | null
-          description?: string | null
-          device_fingerprint?: string | null
-          expires_at?: string
-          hosted_url?: string | null
-          id?: string
-          ip_address?: string | null
-          primary_color?: string
-          site_name?: string
-          status?: string
-          user_id?: string
-          vercel_deployment_id?: string | null
-          vercel_project_id?: string | null
-        }
-        Relationships: []
-      }
       conversation_summaries: {
         Row: {
           conversation_id: string
@@ -624,45 +573,6 @@ export type Database = {
         }
         Relationships: []
       }
-      hosted_sites: {
-        Row: {
-          created_at: string
-          custom_domain: string | null
-          html_content: string
-          id: string
-          site_name: string
-          status: string
-          updated_at: string
-          user_id: string
-          vercel_project_id: string | null
-          vercel_url: string | null
-        }
-        Insert: {
-          created_at?: string
-          custom_domain?: string | null
-          html_content: string
-          id?: string
-          site_name: string
-          status?: string
-          updated_at?: string
-          user_id: string
-          vercel_project_id?: string | null
-          vercel_url?: string | null
-        }
-        Update: {
-          created_at?: string
-          custom_domain?: string | null
-          html_content?: string
-          id?: string
-          site_name?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-          vercel_project_id?: string | null
-          vercel_url?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -674,7 +584,6 @@ export type Database = {
           display_name: string | null
           free_messages_used: number
           gender: string | null
-          hosting_tier: string
           id: string
           is_dev: boolean
           is_pack_steam: boolean
@@ -700,7 +609,6 @@ export type Database = {
           display_name?: string | null
           free_messages_used?: number
           gender?: string | null
-          hosting_tier?: string
           id?: string
           is_dev?: boolean
           is_pack_steam?: boolean
@@ -726,7 +634,6 @@ export type Database = {
           display_name?: string | null
           free_messages_used?: number
           gender?: string | null
-          hosting_tier?: string
           id?: string
           is_dev?: boolean
           is_pack_steam?: boolean
@@ -986,36 +893,6 @@ export type Database = {
         }
         Relationships: []
       }
-      video_generations: {
-        Row: {
-          created_at: string
-          id: string
-          mode: string
-          prompt: string
-          result_url: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          mode?: string
-          prompt: string
-          result_url?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          mode?: string
-          prompt?: string
-          result_url?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       voice_call_history: {
         Row: {
           created_at: string
@@ -1067,7 +944,6 @@ export type Database = {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
-      admin_revoke_hosting: { Args: { p_user_id: string }; Returns: Json }
       admin_revoke_pack_steam: {
         Args: { p_target_user_id: string }
         Returns: Json
@@ -1086,17 +962,11 @@ export type Database = {
         Returns: Json
       }
       can_send_message: { Args: never; Returns: Json }
-      can_use_demo: {
-        Args: { p_fingerprint?: string; p_ip?: string }
-        Returns: Json
-      }
       check_fingerprint: { Args: { p_fingerprint: string }; Returns: Json }
-      check_hosting_limit: { Args: never; Returns: Json }
       check_ip_duplicate: {
         Args: { p_ip: string; p_user_id?: string }
         Returns: Json
       }
-      cleanup_expired_demos: { Args: never; Returns: number }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
       get_partner_user_id: { Args: { _user_id: string }; Returns: string }
       handle_security_violation: {
