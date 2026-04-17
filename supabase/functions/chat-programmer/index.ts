@@ -150,6 +150,7 @@ Adapte TODO o conteúdo ao nicho pedido:
         stream: true,
         max_tokens: 32768,
         temperature: 0.7,
+        ...(isDev ? { tools: [{ type: "function", function: { name: "google_search" } }] } : {}),
       }),
     });
 
