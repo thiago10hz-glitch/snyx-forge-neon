@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History,
+  LogOut, ShieldCheck, Code, User, Menu, Palette, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +82,7 @@ const Index = () => {
           { icon: Crown, label: "Dono", to: "/dono", accent: true },
         ] as RailItem[])
       : []),
+    { icon: Code2, label: "API para devs", to: "/api", accent: true },
   ];
 
   const railBottomItems: RailItem[] = [
