@@ -1317,35 +1317,65 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col h-full items-center justify-center px-6 py-10">
+            <div className="relative flex flex-col h-full items-center justify-center px-6 py-10 overflow-hidden">
+              {/* Ambient background — grid + spotlights */}
+              <div className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.18),transparent_55%)]" aria-hidden />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.10),transparent_60%)]" aria-hidden />
+                <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(hsl(var(--primary))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--primary))_1px,transparent_1px)] [background-size:42px_42px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" aria-hidden />
+                {/* Floating particles */}
+                {[...Array(6)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="absolute w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_12px_hsl(var(--primary))] animate-pulse"
+                    style={{
+                      top: `${15 + (i * 13) % 70}%`,
+                      left: `${10 + (i * 17) % 80}%`,
+                      animationDelay: `${i * 0.4}s`,
+                      animationDuration: `${2.5 + (i % 3)}s`,
+                    }}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+
               <div className="relative max-w-lg w-full text-center animate-in fade-in-0 zoom-in-95 duration-700">
                 {/* Aurora glow halos */}
-                <div className="absolute -inset-10 -z-10 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.22),transparent_60%)] blur-3xl animate-pulse" aria-hidden />
-                <div className="absolute -top-8 left-1/4 -z-10 w-32 h-32 bg-primary/30 blur-3xl rounded-full opacity-60" aria-hidden />
-                <div className="absolute -bottom-8 right-1/4 -z-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full opacity-60" aria-hidden />
+                <div className="absolute -inset-12 -z-10 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_60%)] blur-3xl animate-pulse" aria-hidden />
+                <div className="absolute -top-10 left-1/4 -z-10 w-40 h-40 bg-primary/30 blur-3xl rounded-full opacity-60 animate-pulse [animation-duration:4s]" aria-hidden />
+                <div className="absolute -bottom-10 right-1/4 -z-10 w-40 h-40 bg-primary/20 blur-3xl rounded-full opacity-60 animate-pulse [animation-duration:5s]" aria-hidden />
 
-                {/* Bot avatar circle with rotating ring */}
-                <div className="relative mx-auto w-24 h-24 mb-6">
-                  <div className="absolute inset-0 rounded-3xl bg-[conic-gradient(from_0deg,hsl(var(--primary)),transparent,hsl(var(--primary)))] animate-spin [animation-duration:6s] opacity-70 blur-[2px]" aria-hidden />
-                  <div className="absolute inset-[2px] rounded-[22px] bg-background" aria-hidden />
-                  <div className="relative w-full h-full rounded-3xl flex items-center justify-center bg-gradient-to-br from-primary/30 via-primary/10 to-transparent border border-primary/40 shadow-[0_0_60px_-10px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.15)]">
-                    <Bot className="w-11 h-11 text-primary drop-shadow-[0_0_18px_hsl(var(--primary))]" strokeWidth={1.6} />
-                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-background shadow-[0_0_10px_hsl(152_76%_55%)]">
+                {/* Bot avatar — premium orb with double rotating ring */}
+                <div className="relative mx-auto w-28 h-28 mb-7">
+                  {/* Outer orbiting glow */}
+                  <div className="absolute -inset-3 rounded-full bg-[conic-gradient(from_0deg,hsl(var(--primary)/0.6),transparent_40%,hsl(var(--primary)/0.4)_70%,transparent)] animate-spin [animation-duration:8s] blur-md opacity-80" aria-hidden />
+                  {/* Inner conic ring */}
+                  <div className="absolute inset-0 rounded-3xl bg-[conic-gradient(from_180deg,hsl(var(--primary)),transparent,hsl(var(--primary)),transparent,hsl(var(--primary)))] animate-spin [animation-duration:5s] opacity-90 blur-[1px]" aria-hidden />
+                  <div className="absolute inset-[3px] rounded-[22px] bg-background" aria-hidden />
+                  <div className="relative w-full h-full rounded-3xl flex items-center justify-center bg-gradient-to-br from-primary/35 via-primary/10 to-transparent border border-primary/50 shadow-[0_0_80px_-10px_hsl(var(--primary)/0.8),inset_0_1px_0_hsl(0_0%_100%/0.2),inset_0_-20px_40px_-20px_hsl(var(--primary)/0.4)]">
+                    {/* Inner shine */}
+                    <div className="absolute inset-x-3 top-2 h-1/3 rounded-t-2xl bg-gradient-to-b from-white/15 to-transparent" aria-hidden />
+                    <Bot className="relative w-12 h-12 text-primary drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.6} />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-background shadow-[0_0_14px_hsl(152_76%_55%)]">
                       <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-70" />
                     </span>
                   </div>
                 </div>
 
-                {/* Greeting line */}
-                <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 backdrop-blur-xl">
+                {/* Status pill */}
+                <div className="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border border-primary/30 backdrop-blur-xl shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.6)]">
+                  <span className="relative flex w-1.5 h-1.5">
+                    <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                    <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  </span>
                   <Sparkles className="w-3 h-3 text-primary" strokeWidth={2.4} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
                     SnyX Bot online
                   </span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 leading-[1.05]">
-                  <span className="bg-gradient-to-br from-primary via-primary/90 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 leading-[1.02]">
+                  <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
                     SnyX
                   </span>
                   <span className="text-foreground/90">,</span>
@@ -1353,29 +1383,42 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   <span className="text-foreground/95">
                     {mode === "programmer" ? "vamos " : "seja bem-vindo ao "}
                   </span>
-                  <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
                     {mode === "programmer" ? "programar" : mode === "friend" ? "chat amigo" : "estudar juntos"}
                   </span>
                 </h1>
 
-                <p className="text-sm sm:text-[15px] text-muted-foreground/80 leading-relaxed mb-7 max-w-md mx-auto">
+                {/* Decorative divider */}
+                <div className="flex items-center justify-center gap-2 mb-5" aria-hidden>
+                  <span className="h-px w-10 bg-gradient-to-r from-transparent to-primary/50" />
+                  <span className="w-1 h-1 rounded-full bg-primary/70 shadow-[0_0_8px_hsl(var(--primary))]" />
+                  <span className="h-px w-10 bg-gradient-to-l from-transparent to-primary/50" />
+                </div>
+
+                <p className="text-sm sm:text-[15px] text-muted-foreground/85 leading-relaxed mb-8 max-w-md mx-auto">
                   {config.emptyText}
                 </p>
 
                 {/* Quick suggestions */}
-                <div className="grid gap-2">
+                <div className="grid gap-2.5">
                   {(mode === "friend"
                     ? ["Me dá um conselho 💭", "Conta uma curiosidade 🤔", "Vamos conversar 💬"]
                     : mode === "programmer"
                       ? ["Cria um site bonito 🚀", "Explica esse código 🧠", "Faz um app de lista ✅"]
                       : ["Me ajuda com matemática 📐", "Explica de forma simples 📚", "Faz um resumo ✍️"]
-                  ).map((s) => (
+                  ).map((s, idx) => (
                     <button
                       key={s}
                       onClick={() => setInput(s.replace(/\s[^\w\s]+$/, ""))}
-                      className="group text-[13px] px-4 py-2.5 rounded-2xl text-left text-foreground/80 bg-card/50 border border-border/40 hover:bg-primary/10 hover:border-primary/50 hover:text-foreground hover:shadow-[0_0_24px_-8px_hsl(var(--primary)/0.5)] hover:translate-x-0.5 transition-all backdrop-blur-sm"
+                      style={{ animationDelay: `${150 + idx * 80}ms` }}
+                      className="group relative text-[13px] px-4 py-3 rounded-2xl text-left text-foreground/85 bg-gradient-to-br from-card/70 to-card/40 border border-border/50 hover:border-primary/60 hover:text-foreground hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.6)] hover:-translate-y-0.5 transition-all duration-300 backdrop-blur-sm overflow-hidden animate-in fade-in-0 slide-in-from-bottom-2 fill-mode-both"
                     >
-                      <span className="inline-block group-hover:translate-x-0.5 transition-transform">{s}</span>
+                      {/* Hover gradient sheen */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden />
+                      <span className="relative inline-flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
+                        <Sparkles className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.4} />
+                        {s}
+                      </span>
                     </button>
                   ))}
                 </div>
