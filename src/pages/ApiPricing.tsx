@@ -34,6 +34,8 @@ export default function ApiPricing() {
   const [plans, setPlans] = useState<ApiPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+  const [keyExisted, setKeyExisted] = useState(false);
 
   useEffect(() => {
     document.title = "API SnyX — Preços e Planos";
