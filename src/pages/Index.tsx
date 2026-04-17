@@ -190,14 +190,14 @@ const Index = () => {
             </div>
 
             {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-180px)] sm:max-w-none">
-              <div className="relative flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100vw-130px)] sm:max-w-none">
+              <div className="relative flex items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-background/40 via-primary/10 to-background/40 backdrop-blur-2xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(0_0%_100%/0.08)]">
                 {/* glow halo */}
                 <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.25),transparent_70%)] blur-md" aria-hidden />
 
                 <button
                   onClick={() => setHistoryOpen((v) => !v)}
-                  className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                  className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     historyOpen
                       ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                       : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -210,7 +210,7 @@ const Index = () => {
 
                 <button
                   onClick={switchToFriend}
-                  className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                  className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                     chatMode === "friend"
                       ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                       : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -224,7 +224,7 @@ const Index = () => {
                 {isDev && (
                   <button
                     onClick={switchToProgrammer}
-                    className={`relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
+                    className={`relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-bold tracking-tight transition-all duration-300 ${
                       chatMode === "programmer"
                         ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_0_18px_-2px_hsl(var(--primary)),inset_0_1px_0_hsl(0_0%_100%/0.25)]"
                         : "text-foreground/70 hover:text-primary hover:bg-primary/15 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.6)]"
@@ -239,7 +239,7 @@ const Index = () => {
                 {isVip && (
                   <button
                     onClick={switchToFriend}
-                    className="relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
+                    className="relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
                     title="Abrir Chat VIP"
                   >
                     <Crown className="w-3.5 h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
