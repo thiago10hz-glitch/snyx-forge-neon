@@ -76,6 +76,7 @@ export default function Admin() {
   const PAGE_SIZE = 20;
 
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
@@ -498,7 +499,6 @@ export default function Admin() {
   ];
 
   const currentTab = tabs.find(t => t.key === adminTab);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
@@ -1262,6 +1262,7 @@ export default function Admin() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
