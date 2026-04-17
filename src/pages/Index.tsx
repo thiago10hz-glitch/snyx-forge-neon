@@ -149,7 +149,12 @@ const Index = () => {
               {chatMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setChatMenuOpen(false)} />
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border border-border/20 bg-card/95 backdrop-blur-2xl shadow-2xl shadow-primary/10 z-40 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 rounded-2xl border border-border/20 bg-[hsl(0_0%_7%/0.92)] backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_0_30px_-8px_hsl(var(--primary)/0.3)] z-40 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 border-b border-border/10">
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-muted-foreground/50">
+                        Trocar de conversa
+                      </p>
+                    </div>
                     <div className="p-1.5">
                       {chatOptions.map((opt) => {
                         const Icon = opt.icon;
@@ -163,18 +168,22 @@ const Index = () => {
                               handleSelectChat(opt.key);
                             }}
                             disabled={opt.locked}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                            className={`group/o w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                               active
-                                ? "bg-primary/15 text-primary"
+                                ? "bg-primary/12 text-primary border border-primary/25 shadow-[inset_0_0_20px_-8px_hsl(var(--primary)/0.4)]"
                                 : opt.locked
-                                  ? "text-muted-foreground/40 cursor-not-allowed"
-                                  : "text-foreground hover:bg-muted/20"
+                                  ? "text-muted-foreground/40 cursor-not-allowed border border-transparent"
+                                  : "text-foreground hover:bg-foreground/[0.04] hover:translate-x-0.5 border border-transparent"
                             }`}
                           >
-                            <Icon className={`w-4 h-4 ${active ? "text-primary" : opt.color}`} />
-                            <span className="flex-1 text-left font-medium">{opt.label}</span>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                              active ? "bg-primary/15" : opt.locked ? "bg-muted/10" : "bg-muted/15 group-hover/o:bg-muted/25"
+                            }`}>
+                              <Icon className={`w-4 h-4 ${active ? "text-primary" : opt.locked ? "text-muted-foreground/40" : opt.color}`} />
+                            </div>
+                            <span className="flex-1 text-left font-semibold tracking-tight">{opt.label}</span>
                             {opt.locked && <Lock className="w-3 h-3 text-muted-foreground/40" />}
-                            {active && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                            {active && <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />}
                           </button>
                         );
                       })}
