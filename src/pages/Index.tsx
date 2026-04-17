@@ -204,7 +204,7 @@ const Index = () => {
                   }`}
                   title="Histórico"
                 >
-                  <History className="w-3.5 h-3.5" strokeWidth={2.4} />
+                  <History className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
                   <span className="hidden sm:inline">Histórico</span>
                 </button>
 
@@ -217,7 +217,7 @@ const Index = () => {
                   }`}
                   title="Chat Amigo"
                 >
-                  <Heart className={`w-3.5 h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
+                  <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">Amigo</span>
                 </button>
 
@@ -231,7 +231,7 @@ const Index = () => {
                     }`}
                     title="Modo Programador"
                   >
-                    <Code className="w-3.5 h-3.5" strokeWidth={2.4} />
+                    <Code className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
                     <span className="hidden sm:inline">Programador</span>
                   </button>
                 )}
@@ -242,7 +242,7 @@ const Index = () => {
                     className="relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
                     title="Abrir Chat VIP"
                   >
-                    <Crown className="w-3.5 h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
+                    <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
                     <span className="hidden sm:inline">VIP</span>
                   </button>
                 )}
