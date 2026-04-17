@@ -218,10 +218,13 @@ const Index = () => {
           {/* (header central removido) */}
 
           {/* Toggle pra mostrar/esconder a barra lateral (desktop e mobile) */}
-          <div className="fixed top-4 left-4 z-40">
+          <div
+            className="fixed top-4 z-50 transition-[left] duration-300 ease-out"
+            style={{ left: railCollapsed ? "16px" : "208px" }}
+          >
             <button
               onClick={() => setRailCollapsed((v) => !v)}
-              className="flex items-center justify-center text-muted-foreground/60 hover:text-foreground transition-colors duration-200"
+              className="flex items-center justify-center text-muted-foreground/70 hover:text-foreground transition-colors duration-200"
               aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
               title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
             >
