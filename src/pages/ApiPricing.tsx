@@ -10,6 +10,7 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ApiApplicationModal } from "@/components/ApiApplicationModal";
+import apiHero from "@/assets/api-hero.jpg";
 
 interface ApiPlan {
   id: string;
@@ -110,6 +111,16 @@ export default function ApiPricing() {
 
         {/* Hero */}
         <header className="text-center mb-14 sm:mb-20">
+          <div className="relative mx-auto mb-8 max-w-3xl rounded-3xl overflow-hidden border border-primary/20 shadow-[0_0_60px_-15px_hsl(var(--primary)/0.5)]">
+            <img
+              src={apiHero}
+              alt="Cérebro de IA cristalino vermelho representando a API SnyX"
+              width={1920}
+              height={1080}
+              className="w-full h-auto object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
             API <span className="text-primary">SnyX</span> para devs
           </h1>
