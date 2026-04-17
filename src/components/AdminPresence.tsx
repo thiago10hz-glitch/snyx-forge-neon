@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ShieldCheck } from "lucide-react";
+import { Bot } from "lucide-react";
 
 interface AdminPresenceEntry {
   user_id: string;
