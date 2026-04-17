@@ -4,12 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 import { Navigate, Link } from "react-router-dom";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { UserTagModal } from "@/components/UserTagModal";
 
 
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,6 +65,7 @@ export default function Admin() {
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [totalMessagesCount, setTotalMessagesCount] = useState<number>(0);
+  const [tagModalUserId, setTagModalUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -668,6 +670,14 @@ export default function Admin() {
                         {u.user_id !== user!.id && (
                           <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                             <ActionButton
+                              icon={Sparkles}
+                              title="Abrir perfil / dar tag"
+                              color="text-primary hover:bg-primary/10 border-primary/25"
+                              onClick={() => setTagModalUserId(u.user_id)}
+                              loading={false}
+                              disabled={false}
+                            />
+                            <ActionButton
                               icon={Eye}
                               title="Detalhes"
                               color="text-muted-foreground hover:bg-muted/50 border-border/20"
@@ -922,6 +932,16 @@ export default function Admin() {
       )}
 
 
+      <UserTagModal
+        open={tagModalUserId !== null}
+        user={users.find((u) => u.user_id === tagModalUserId) ?? null}
+        onClose={() => setTagModalUserId(null)}
+        onUpdated={(patch) =>
+          setUsers((prev) =>
+            prev.map((u) => (u.user_id === tagModalUserId ? { ...u, ...patch } : u))
+          )
+        }
+      />
 
 
       {vipModalUser && (
