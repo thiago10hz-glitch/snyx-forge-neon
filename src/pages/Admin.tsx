@@ -254,7 +254,14 @@ function NotesTab() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const ch = supabase
+      .channel("admin_notes_rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "admin_notes" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
 
   const create = async () => {
     const q = newUser.trim();
