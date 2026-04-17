@@ -49,7 +49,7 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer" | "music";
+type ChatMode = "friend" | "programmer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
@@ -110,21 +110,6 @@ const MODE_CONFIG = {
     emptyTitle: "SnyX Programador",
     emptyText: "Crie sites, apps e código completo. Publique online!",
     emptyEmoji: "🚀",
-    premiumLabel: null,
-    premiumIcon: null,
-  },
-  music: {
-    icon: Music,
-    label: "Música",
-    color: "text-orange-400",
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/20",
-    activeTab: "bg-orange-500/10 text-orange-400",
-    bubbleColor: "bg-muted/60",
-    placeholder: "Descreva a música que deseja criar... 🎵",
-    emptyTitle: "SnyX Música",
-    emptyText: "Crie músicas originais com IA! Descreva o estilo, gênero e mood. Powered by ElevenLabs.",
-    emptyEmoji: "🎵",
     premiumLabel: null,
     premiumIcon: null,
   },
