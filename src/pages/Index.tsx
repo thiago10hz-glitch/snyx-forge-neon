@@ -126,7 +126,7 @@ const Index = () => {
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
         <AuroraBackground />
         {/* === MINI SIDEBAR (desktop) — w-14 always === */}
-        <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/60 backdrop-blur-xl z-20 relative">
+        <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/40 backdrop-blur-xl z-20 relative">
           {/* Logo */}
           <div className="h-14 flex items-center justify-center shrink-0 border-b border-border/10">
             <Link to="/" className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10 hover:scale-105 transition-transform">
