@@ -256,13 +256,36 @@ export function ChatPanel({ onCodeGenerated, onModeChange, activeCharacter, onCl
     }
   }, [messages.length, activeConversationId, activeCharacter]);
 
-  // Quando troca de personagem: cria conversa nova + injeta first_message do personagem
+  // Quando troca de personagem: abre conversa do ?conv=, ou continua a última, ou cria nova
   const lastCharIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!activeCharacter || !user) return;
     if (lastCharIdRef.current === activeCharacter.id) return;
     lastCharIdRef.current = activeCharacter.id;
     (async () => {
+      // 1. Check ?conv= URL param (from CharacterProfile page)
+      const urlConv = new URLSearchParams(window.location.search).get("conv");
+      if (urlConv) {
+        const { data: existing } = await supabase
+          .from("chat_conversations")
+          .select("id")
+          .eq("id", urlConv)
+          .eq("user_id", user.id)
+          .eq("character_id", activeCharacter.id)
+          .maybeSingle();
+        if (existing) {
+          setActiveConversationId(existing.id);
+          setConversationSummary("");
+          lastSummarizedAtRef.current = 0;
+          // Clean conv from URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete("conv");
+          window.history.replaceState({}, "", url.toString());
+          loadConversations();
+          return;
+        }
+      }
+      // 2. Otherwise create a new conversation
       const { data } = await supabase
         .from("chat_conversations")
         .insert({ user_id: user.id, mode: "rpg", title: activeCharacter.name, character_id: activeCharacter.id })

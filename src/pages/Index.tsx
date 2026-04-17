@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Lazy load heavy components
@@ -37,6 +37,7 @@ const Index = () => {
   const [activeCharacter, setActiveCharacter] = useState<{ id: string; name: string; system_prompt: string; avatar_url: string | null } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     if (!user) return;
@@ -85,6 +86,20 @@ const Index = () => {
     }
     setChatMode("friend");
   };
+
+  // Auto-open character from URL ?character=ID (set by /character/:id page)
+  useEffect(() => {
+    const charId = searchParams.get("character");
+    if (charId && hasRpgAccess && !activeCharacter) {
+      handleCharacterStartChat(charId);
+      // Clean URL but preserve conv param for ChatPanel
+      const conv = searchParams.get("conv");
+      const next = new URLSearchParams();
+      if (conv) next.set("conv", conv);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, hasRpgAccess]);
 
   const SidebarItem = ({ icon: Icon, label, onClick, active, to, className }: any) => {
     const content = (
