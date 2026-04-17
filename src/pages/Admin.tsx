@@ -10,7 +10,7 @@ import { UserTagModal } from "@/components/UserTagModal";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, Sparkles
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
