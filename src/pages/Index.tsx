@@ -182,15 +182,47 @@ const Index = () => {
               <AdminPresenceIndicator />
             </div>
 
-            {/* Center: status pill (no dropdown) */}
+            {/* Center: red pill com Amigo / Programador / VIP */}
             <div className="absolute left-1/2 -translate-x-1/2">
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/40 bg-card/50">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
-                </span>
-                <span className="text-[12px] font-semibold tracking-tight text-foreground/85">
-                  {chatMode === "programmer" ? "Programador" : isVip ? "Chat VIP" : "Chat Amigo"}
+              <div className="flex items-center gap-1 p-1 rounded-full border border-primary/40 bg-primary/10 backdrop-blur-xl shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)]">
+                <button
+                  onClick={switchToFriend}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                    chatMode === "friend"
+                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
+                      : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                  }`}
+                  title="Chat Amigo"
+                >
+                  <Heart className="w-3 h-3" strokeWidth={2.4} />
+                  <span className="hidden sm:inline">Amigo</span>
+                </button>
+
+                {isDev && (
+                  <button
+                    onClick={switchToProgrammer}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                      chatMode === "programmer"
+                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
+                        : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                    }`}
+                    title="Modo Programador"
+                  >
+                    <Code className="w-3 h-3" strokeWidth={2.4} />
+                    <span className="hidden sm:inline">Programador</span>
+                  </button>
+                )}
+
+                <span
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all ${
+                    isVip
+                      ? "bg-gradient-to-r from-amber-500/30 via-yellow-400/40 to-amber-500/30 text-amber-200 shadow-[0_0_12px_-2px_hsl(45_100%_60%/0.6)] border border-amber-300/40"
+                      : "text-primary/60 border border-primary/25"
+                  }`}
+                  title={isVip ? "VIP ativo" : "VIP inativo"}
+                >
+                  <Crown className={`w-3 h-3 ${isVip ? "fill-amber-200" : ""}`} strokeWidth={2.4} />
+                  <span className="hidden sm:inline">{isVip ? "VIP Ativo" : "VIP"}</span>
                 </span>
               </div>
             </div>
