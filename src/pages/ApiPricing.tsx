@@ -123,7 +123,7 @@ export default function ApiPricing() {
                 className="w-full h-auto object-cover animate-[zoomBreath_8s_ease-in-out_infinite]"
               />
               {/* Animated shimmer overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-foreground/10 to-transparent animate-[heroShimmer_4s_ease-in-out_infinite] pointer-events-none" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
             </div>
           </div>
