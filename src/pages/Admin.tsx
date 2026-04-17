@@ -257,9 +257,24 @@ function NotesTab() {
   useEffect(() => { load(); }, []);
 
   const create = async () => {
-    if (!newUser.trim() || !newContent.trim()) return toast.error("Preencha tudo");
+    const q = newUser.trim();
+    if (!q || !newContent.trim()) return toast.error("Preencha tudo");
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let userId = q;
+    if (!uuidRe.test(q)) {
+      // tenta resolver por email ou display_name
+      if (q.includes("@")) {
+        const { data: uid } = await supabase.rpc("find_user_by_email", { p_email: q });
+        if (!uid) return toast.error("Email não encontrado");
+        userId = uid as string;
+      } else {
+        const { data: prof } = await supabase.from("profiles").select("user_id").ilike("display_name", q).limit(1).maybeSingle();
+        if (!prof?.user_id) return toast.error("Usuário não encontrado. Use UUID, email ou nome exato.");
+        userId = prof.user_id;
+      }
+    }
     const { error } = await supabase.from("admin_notes").insert({
-      user_id: newUser.trim(), content: newContent.trim(), priority: newPriority,
+      user_id: userId, content: newContent.trim(), priority: newPriority,
     });
     if (error) return toast.error("Erro: " + error.message);
     toast.success("Nota criada");
