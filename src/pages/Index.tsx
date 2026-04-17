@@ -170,9 +170,21 @@ const Index = () => {
               <AdminPresenceIndicator />
             </div>
 
-            {/* Center: red pill com Amigo / Programador / VIP */}
+            {/* Center: red pill com Histórico / Amigo / Programador / VIP */}
             <div className="absolute left-1/2 -translate-x-1/2">
               <div className="flex items-center gap-1 p-1 rounded-full border border-primary/40 bg-primary/10 backdrop-blur-xl shadow-[0_0_18px_-4px_hsl(var(--primary)/0.5)]">
+                <button
+                  onClick={() => setHistoryOpen((v) => !v)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
+                    historyOpen
+                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_-2px_hsl(var(--primary))]"
+                      : "text-primary/80 hover:text-primary hover:bg-primary/15"
+                  }`}
+                  title="Histórico"
+                >
+                  <History className="w-3 h-3" strokeWidth={2.4} />
+                  <span className="hidden sm:inline">Histórico</span>
+                </button>
                 <button
                   onClick={switchToFriend}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all ${
