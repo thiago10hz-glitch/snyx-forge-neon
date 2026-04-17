@@ -201,7 +201,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const initialResult = await generateImage(LOVABLE_API_KEY, buildPrompt(prompt, Boolean(isPrivileged)));
+    const finalPrompt = buildPrompt(prompt, Boolean(isPrivileged));
+
+    // Primary: Pollinations (free, no API key)
+    const poll = await generateWithPollinations(finalPrompt);
+    if (poll.ok) {
+      return new Response(JSON.stringify({
+        type: "image",
+        image_url: poll.imageUrl,
+        text: isPrivileged ? "🎨 Imagem gerada! ✨" : "🎨 Imagem gerada com segurança! ✨",
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    console.error("Pollinations failed, falling back to Lovable AI:", poll.rawText);
+
+    // Fallback: Lovable AI
+    const initialResult = await generateImage(LOVABLE_API_KEY, finalPrompt);
     if (!initialResult.ok) {
       console.error("AI Gateway error:", initialResult.rawText);
       const status = initialResult.status;
