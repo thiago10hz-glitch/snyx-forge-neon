@@ -197,7 +197,7 @@ export function AdminDashboard() {
     const devActive = users.filter(u => notExpired(u.is_dev, u.dev_expires_at)).length;
     const packActive = users.filter(u => notExpired(u.is_pack_steam, u.pack_steam_expires_at)).length;
     const rpgActive = users.filter(u => notExpired(u.is_rpg_premium, u.rpg_premium_expires_at)).length;
-    const mrr = vipActive * PRICE.vip + devActive * PRICE.dev + packActive * PRICE.pack_steam + rpgActive * PRICE.rpg_premium;
+    const mrr = vipActive * PRICE.vip + devActive * PRICE.dev;
 
     // Build 14-day buckets
     const buckets: DailyPoint[] = [];
@@ -373,8 +373,6 @@ export function AdminDashboard() {
             {[
               { label: "VIP", count: stats.vipUsers, price: PRICE.vip, color: "bg-yellow-500", icon: Crown },
               { label: "DEV", count: stats.devUsers, price: PRICE.dev, color: "bg-cyan-500", icon: Code2 },
-              { label: "Pack Steam", count: stats.packSteamUsers, price: PRICE.pack_steam, color: "bg-green-500", icon: Zap },
-              { label: "RPG Premium", count: stats.rpgPremiumUsers, price: PRICE.rpg_premium, color: "bg-orange-500", icon: Swords },
             ].map((p) => {
               const total = p.count * p.price;
               const pct = stats.estimatedMRR > 0 ? (total / stats.estimatedMRR) * 100 : 0;
