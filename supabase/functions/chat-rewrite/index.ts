@@ -28,7 +28,8 @@ Deno.serve(async (req) => {
 
     let userCtx = "";
     if (display_name) {
-      userCtx = `\n\nCONTEXTO DO USUÁRIO: O nome desta pessoa é "${display_name}". Use o nome dela naturalmente quando fizer sentido.`;
+      const firstName = String(display_name).trim().split(/\s+/)[0];
+      userCtx = `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome é "${firstName}".\nREGRA ABSOLUTA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na PRIMEIRA mensagem (saudação) e usar o nome de forma natural durante a conversa quando fizer sentido.`;
       if (user_gender === "masculino") userCtx += " Trate no masculino.";
       else if (user_gender === "feminino") userCtx += " Trate no feminino.";
     }

@@ -19,7 +19,10 @@ function buildUserContext(params: any): string {
   }
 
   let ctx = "";
-  if (display_name) ctx += `\n\nCONTEXTO DO USUÁRIO: Nome: "${display_name}".`;
+  if (display_name) {
+    const firstName = String(display_name).trim().split(/\s+/)[0];
+    ctx += `\n\n=== IDENTIDADE DO USUÁRIO (OBRIGATÓRIO) ===\nO nome desta pessoa é "${display_name}". O primeiro nome é "${firstName}".\nREGRA ABSOLUTA: Você DEVE chamar a pessoa pelo primeiro nome "${firstName}" na PRIMEIRA mensagem (saudação) e usar o nome de forma natural durante a conversa quando fizer sentido. NUNCA use só "mano", "amigo" ou "parceiro" sem o nome na primeira saudação.`;
+  }
   if (user_gender === "masculino") ctx += " Gênero: masculino — use linguagem masculina (amigo, mano, irmão).";
   else if (user_gender === "feminino") ctx += " Gênero: feminino — use linguagem feminina (amiga, mana, irmã).";
   if (user_bio) ctx += ` Sobre: "${user_bio}".`;

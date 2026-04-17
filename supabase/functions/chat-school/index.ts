@@ -8,7 +8,10 @@ const corsHeaders = {
 function buildUserContext(params: any): string {
   const { display_name, user_gender } = params;
   let ctx = "";
-  if (display_name) ctx += `\n\nO nome do aluno é "${display_name}". Use o nome dele(a) naturalmente.`;
+  if (display_name) {
+    const firstName = String(display_name).trim().split(/\s+/)[0];
+    ctx += `\n\n=== IDENTIDADE DO ALUNO (OBRIGATÓRIO) ===\nO nome do aluno é "${display_name}". O primeiro nome é "${firstName}".\nREGRA ABSOLUTA: Você DEVE chamar o aluno pelo primeiro nome "${firstName}" na PRIMEIRA mensagem (saudação) e usar o nome de forma natural ao longo da conversa quando fizer sentido. NUNCA use só "aluno", "amigo" ou similar sem o nome na primeira saudação.`;
+  }
   if (user_gender === "masculino") ctx += " Trate no masculino (aluno, ele).";
   else if (user_gender === "feminino") ctx += " Trate no feminino (aluna, ela).";
   return ctx;
