@@ -340,13 +340,10 @@ function OverviewTab({ stats, recentUsers, topUsers }: { stats: PlatformStats; r
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {[
           { label: "Pack Steam", value: stats.packSteamUsers, icon: Package, color: "text-green-400" },
-          { label: "RPG Premium", value: stats.rpgPremiumUsers, icon: Swords, color: "text-orange-400" },
           { label: "Free", value: stats.freeUsers, icon: Users, color: "text-muted-foreground" },
           { label: "Banidos", value: stats.bannedUsers, icon: Ban, color: "text-red-400" },
           { label: "Conversas", value: stats.totalConversations, icon: MessageCircle, color: "text-purple-400" },
           { label: "Personagens", value: stats.totalCharacters, icon: Star, color: "text-pink-400" },
-          { label: "Conexões", value: stats.totalConnections, icon: Heart, color: "text-rose-400" },
-          { label: "Sites", value: stats.totalSites, icon: Globe, color: "text-blue-400" },
           { label: "Tickets", value: stats.openTickets, icon: ShieldCheck, color: "text-emerald-400", suffix: ` / ${stats.totalTickets}` },
           { label: "Hoje", value: stats.todaySignups, icon: TrendingUp, color: "text-emerald-400" },
           { label: "Semana", value: stats.weekSignups, icon: BarChart3, color: "text-cyan-400" },
@@ -448,12 +445,11 @@ function AnalyticsTab({ stats }: { stats: PlatformStats }) {
     { label: "VIP", value: stats.vipUsers, color: "bg-yellow-500", pct: stats.totalUsers > 0 ? (stats.vipUsers / stats.totalUsers * 100) : 0 },
     { label: "DEV", value: stats.devUsers, color: "bg-cyan-500", pct: stats.totalUsers > 0 ? (stats.devUsers / stats.totalUsers * 100) : 0 },
     { label: "Pack Steam", value: stats.packSteamUsers, color: "bg-green-500", pct: stats.totalUsers > 0 ? (stats.packSteamUsers / stats.totalUsers * 100) : 0 },
-    { label: "RPG Premium", value: stats.rpgPremiumUsers, color: "bg-orange-500", pct: stats.totalUsers > 0 ? (stats.rpgPremiumUsers / stats.totalUsers * 100) : 0 },
     { label: "Free", value: stats.freeUsers, color: "bg-muted-foreground/40", pct: stats.totalUsers > 0 ? (stats.freeUsers / stats.totalUsers * 100) : 0 },
   ];
 
   const platformMetrics = [
-    { label: "Taxa de Conversão", value: stats.totalUsers > 0 ? `${((stats.vipUsers + stats.devUsers + stats.packSteamUsers + stats.rpgPremiumUsers) / stats.totalUsers * 100).toFixed(1)}%` : "0%", desc: "Usuários pagantes", icon: TrendingUp, color: "text-emerald-400" },
+    { label: "Taxa de Conversão", value: stats.totalUsers > 0 ? `${((stats.vipUsers + stats.devUsers + stats.packSteamUsers) / stats.totalUsers * 100).toFixed(1)}%` : "0%", desc: "Usuários pagantes", icon: TrendingUp, color: "text-emerald-400" },
     { label: "Engajamento", value: `${stats.avgMessagesPerUser} msg/user`, desc: "Média por usuário", icon: Activity, color: "text-purple-400" },
     { label: "Retenção", value: `${stats.totalConversations}`, desc: "Conversas criadas", icon: MessageCircle, color: "text-blue-400" },
     { label: "Saúde", value: stats.bannedUsers === 0 ? "Ótima" : `${stats.bannedUsers} ban`, desc: "Moderação ativa", icon: ShieldCheck, color: stats.bannedUsers === 0 ? "text-emerald-400" : "text-amber-400" },
