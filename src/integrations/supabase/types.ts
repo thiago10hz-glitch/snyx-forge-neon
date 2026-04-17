@@ -324,6 +324,72 @@ export type Database = {
           },
         ]
       }
+      api_key_applications: {
+        Row: {
+          ai_reasoning: string | null
+          ai_score: number | null
+          ai_verdict: string | null
+          category: string | null
+          company_or_project: string
+          created_at: string
+          estimated_volume: string | null
+          full_name: string
+          id: string
+          ip_address: string | null
+          plan_id: string
+          project_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          use_case: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_reasoning?: string | null
+          ai_score?: number | null
+          ai_verdict?: string | null
+          category?: string | null
+          company_or_project: string
+          created_at?: string
+          estimated_volume?: string | null
+          full_name: string
+          id?: string
+          ip_address?: string | null
+          plan_id: string
+          project_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          use_case: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_reasoning?: string | null
+          ai_score?: number | null
+          ai_verdict?: string | null
+          category?: string | null
+          company_or_project?: string
+          created_at?: string
+          estimated_volume?: string | null
+          full_name?: string
+          id?: string
+          ip_address?: string | null
+          plan_id?: string
+          project_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          use_case?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       api_plans: {
         Row: {
           created_at: string
