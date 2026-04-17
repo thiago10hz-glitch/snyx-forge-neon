@@ -171,7 +171,7 @@ const Index = () => {
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-card/40 backdrop-blur-2xl relative after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/25 after:to-transparent">
+          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-transparent relative">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
