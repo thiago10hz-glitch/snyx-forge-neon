@@ -1675,7 +1675,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 <textarea
                   ref={textareaRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => { setInput(e.target.value); onUserInput?.(e.target.value); }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
