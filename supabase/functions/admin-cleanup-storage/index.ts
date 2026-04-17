@@ -5,6 +5,67 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type StorageEntry = {
+  name: string;
+  id?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+async function collectBucketFiles(
+  admin: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix = "",
+): Promise<{ files: string[]; errors: string[] }> {
+  const files: string[] = [];
+  const errors: string[] = [];
+  const queue = [prefix];
+
+  while (queue.length > 0) {
+    const currentPrefix = queue.shift() ?? "";
+    const { data, error } = await admin.storage.from(bucket).list(currentPrefix, { limit: 1000 });
+
+    if (error) {
+      errors.push(`${currentPrefix || "/"}: ${error.message}`);
+      continue;
+    }
+
+    for (const entry of (data ?? []) as StorageEntry[]) {
+      const entryPath = currentPrefix ? `${currentPrefix}/${entry.name}` : entry.name;
+      const isFolder = !entry.metadata;
+
+      if (isFolder) {
+        queue.push(entryPath);
+      } else {
+        files.push(entryPath);
+      }
+    }
+  }
+
+  return { files, errors };
+}
+
+async function removeInChunks(
+  admin: ReturnType<typeof createClient>,
+  bucket: string,
+  files: string[],
+) {
+  const removed: string[] = [];
+  const errors: string[] = [];
+
+  for (let i = 0; i < files.length; i += 100) {
+    const chunk = files.slice(i, i + 100);
+    const { error } = await admin.storage.from(bucket).remove(chunk);
+
+    if (error) {
+      errors.push(`${chunk[0]}: ${error.message}`);
+    } else {
+      removed.push(...chunk);
+    }
+  }
+
+  return { removed, errors };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -52,33 +113,22 @@ Deno.serve(async (req) => {
 
     const results: Record<string, unknown> = {};
 
-    // 1) app-downloads: remover tudo (instaladores antigos do Electron/SnyX)
-    const { data: appFiles, error: appListErr } = await admin.storage
-      .from("app-downloads")
-      .list("releases", { limit: 1000 });
+    const { files, errors: listErrors } = await collectBucketFiles(admin, "app-downloads");
+    results["app-downloads_found"] = files.length;
 
-    if (appListErr) {
-      results["app-downloads_list_error"] = appListErr.message;
-    } else if (appFiles && appFiles.length > 0) {
-      const paths = appFiles.map((f) => `releases/${f.name}`);
-      const { error: rmErr } = await admin.storage.from("app-downloads").remove(paths);
-      results["app-downloads_removed"] = rmErr ? `error: ${rmErr.message}` : paths;
-    } else {
-      results["app-downloads_removed"] = [];
+    if (listErrors.length > 0) {
+      results["app-downloads_list_errors"] = listErrors;
     }
 
-    // 2) Listar root do app-downloads também (pode ter arquivos fora de releases/)
-    const { data: rootFiles } = await admin.storage
-      .from("app-downloads")
-      .list("", { limit: 1000 });
-    if (rootFiles && rootFiles.length > 0) {
-      const rootPaths = rootFiles
-        .filter((f) => f.name && !f.id?.endsWith("/")) // skip folders
-        .map((f) => f.name);
-      if (rootPaths.length > 0) {
-        const { error: rmErr } = await admin.storage.from("app-downloads").remove(rootPaths);
-        results["app-downloads_root_removed"] = rmErr ? `error: ${rmErr.message}` : rootPaths;
+    if (files.length > 0) {
+      const { removed, errors: removeErrors } = await removeInChunks(admin, "app-downloads", files);
+      results["app-downloads_removed"] = removed;
+
+      if (removeErrors.length > 0) {
+        results["app-downloads_remove_errors"] = removeErrors;
       }
+    } else {
+      results["app-downloads_removed"] = [];
     }
 
     return new Response(JSON.stringify({ success: true, results }), {
