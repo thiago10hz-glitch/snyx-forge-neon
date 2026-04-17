@@ -1175,7 +1175,43 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="flex flex-col h-full" />
+            <div className="flex flex-col h-full items-center justify-center px-6 py-10">
+              <div className="relative max-w-md w-full text-center animate-in fade-in-0 zoom-in-95 duration-500">
+                {/* Glow halo */}
+                <div className="absolute inset-0 -z-10 bg-primary/10 blur-3xl rounded-full" aria-hidden />
+
+                {/* Avatar / emoji circle */}
+                <div className="relative mx-auto w-20 h-20 mb-5 rounded-2xl flex items-center justify-center bg-gradient-to-br from-primary/25 via-primary/10 to-transparent border border-primary/30 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.6)]">
+                  <span className="text-4xl">{currentMode.emptyEmoji}</span>
+                  <span className="absolute -inset-1 rounded-2xl bg-primary/20 blur-md -z-10 animate-pulse-ring" aria-hidden />
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text-primary mb-2">
+                  Bem-vindo ao {currentMode.emptyTitle}
+                </h2>
+                <p className="text-sm text-muted-foreground/80 leading-relaxed mb-6">
+                  {currentMode.emptyText}
+                </p>
+
+                {/* Quick suggestions */}
+                <div className="grid gap-2">
+                  {(mode === "friend"
+                    ? ["Me dá um conselho 💭", "Conta uma curiosidade 🤔", "Vamos conversar 💬"]
+                    : mode === "programmer"
+                      ? ["Cria um site bonito 🚀", "Explica esse código 🧠", "Faz um app de lista ✅"]
+                      : ["Me ajuda com matemática 📐", "Explica de forma simples 📚", "Faz um resumo ✍️"]
+                  ).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setInput(s.replace(/\s[^\w\s]+$/, ""))}
+                      className="text-[13px] px-4 py-2.5 rounded-xl text-left text-foreground/80 bg-card/40 border border-border/40 hover:bg-primary/10 hover:border-primary/40 hover:text-foreground transition-all"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           ) : (
             <div className={`${mode === "programmer" ? "max-w-3xl" : "max-w-4xl lg:max-w-5xl"} mx-auto px-3 sm:px-5 md:px-8 ${mode === "programmer" ? "py-3 sm:py-4 space-y-3 sm:space-y-4" : "py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6"}`}>
               {messages.map((rawMsg, i) => {
