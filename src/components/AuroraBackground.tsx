@@ -143,7 +143,7 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at center, transparent 40%, hsl(var(--background) / 0.7) 100%)",
+              "radial-gradient(ellipse at center, transparent 50%, hsl(var(--background) / 0.5) 100%)",
           }}
         />
 
