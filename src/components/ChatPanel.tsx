@@ -226,6 +226,28 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
+  // Auto-resume last conversation per mode (persisted in localStorage)
+  useEffect(() => {
+    if (!user || conversations.length === 0) return;
+    if (activeConversationId) return;
+    const storageKey = `snyx:lastConv:${user.id}:${mode}`;
+    const remembered = localStorage.getItem(storageKey);
+    const exists = remembered && conversations.some((c) => c.id === remembered);
+    const target = exists ? remembered! : conversations[0].id;
+    setActiveConversationId(target);
+  }, [user, mode, conversations, activeConversationId]);
+
+  // Persist active conversation per mode
+  useEffect(() => {
+    if (!user || !activeConversationId) return;
+    localStorage.setItem(`snyx:lastConv:${user.id}:${mode}`, activeConversationId);
+  }, [user, mode, activeConversationId]);
+
+  // Reset active conversation when switching mode (will auto-pick this mode's last)
+  useEffect(() => {
+    setActiveConversationId(null);
+  }, [mode]);
+
   useEffect(() => {
     if (!activeConversationId) { setMessages([]); setConversationSummary(""); return; }
     (async () => {
