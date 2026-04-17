@@ -88,15 +88,6 @@ const Index = () => {
       onClick: switchToFriend,
       active: chatMode === "friend" && !historyOpen,
     },
-    ...(isDev
-      ? [{
-          icon: Code,
-          label: "Programador",
-          onClick: switchToProgrammer,
-          active: chatMode === "programmer",
-          groupedWithPrev: true,
-        } as RailItem]
-      : []),
     ...(isAdmin
       ? ([
           { icon: ShieldCheck, label: "Admin", to: "/admin" },
@@ -205,31 +196,33 @@ const Index = () => {
             </div>
 
             {/* Right */}
-            <div className="flex items-center gap-2 flex-1 justify-end">
-              {/* Badge de status — sempre mostra "VIP Ativo" pra todos verem que existe */}
-              {profile?.is_dev ? (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                  <Code size={9} /> DEV
-                </span>
-              ) : profile?.is_vip ? (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_14px_-4px_hsl(45_100%_60%/0.5)]">
-                  <Crown size={9} className="fill-amber-300" /> VIP ATIVO
+            <div className="flex items-center gap-1.5 flex-1 justify-end">
+              {/* Badge VIP — pequenininho, sempre visível pra todos */}
+              {profile?.is_vip || profile?.is_dev ? (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_-3px_hsl(45_100%_60%/0.5)]">
+                  <Crown size={8} className="fill-amber-300" /> VIP
                 </span>
               ) : (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/8 text-amber-300/70 border border-amber-500/20 hover:bg-amber-500/15 hover:text-amber-300 transition-colors">
-                  <Crown size={9} /> VIP ATIVO
+                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-300/60 border border-amber-500/20 hover:bg-amber-500/15 hover:text-amber-300 transition-colors">
+                  <Crown size={8} /> VIP
+                </span>
+              )}
+
+              {profile?.is_dev && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  <Code size={8} /> DEV
                 </span>
               )}
 
               {(profile?.team_badge === "Dono" || profile?.team_badge === "Dona") && (
-                <span className="hidden md:inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)]">
+                <span className="hidden md:inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_-3px_hsl(45_100%_60%/0.4)]">
                   👑 {profile.team_badge}
                 </span>
               )}
 
               <button
                 onClick={() => setShowProfile(true)}
-                className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
+                className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/30 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-card/60 hover:bg-card/80 group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)] ml-1"
                 title="Minha conta"
               >
                 {profile?.avatar_url ? (
@@ -266,6 +259,34 @@ const Index = () => {
             )}
           </div>
         </div>
+
+        {/* === ABA LATERAL FLUTUANTE: PROGRAMADOR (só DEV) === */}
+        {isDev && chatMode !== "programmer" && (
+          <button
+            onClick={switchToProgrammer}
+            className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center gap-2 pl-3 pr-2.5 py-3 rounded-l-2xl bg-card/90 backdrop-blur-xl border border-r-0 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/15 hover:border-cyan-400/50 hover:shadow-[0_0_24px_-4px_hsl(190_90%_55%/0.5)] transition-all group"
+            title="Abrir Modo Programador"
+          >
+            <Code className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2.2} />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em]">
+              Programador
+            </span>
+          </button>
+        )}
+
+        {/* Botão pra VOLTAR pro Chat Amigo quando está no Programador */}
+        {isDev && chatMode === "programmer" && (
+          <button
+            onClick={switchToFriend}
+            className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center gap-2 pl-3 pr-2.5 py-3 rounded-l-2xl bg-card/90 backdrop-blur-xl border border-r-0 border-pink-500/30 text-pink-300 hover:bg-pink-500/15 hover:border-pink-400/50 hover:shadow-[0_0_24px_-4px_hsl(330_90%_65%/0.5)] transition-all group"
+            title="Voltar pro Chat Amigo"
+          >
+            <Heart className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2.2} />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em]">
+              Chat Amigo
+            </span>
+          </button>
+        )}
 
         {/* === MODE PICKER OVERLAY === */}
         {showModePicker && (
