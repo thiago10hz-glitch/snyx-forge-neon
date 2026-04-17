@@ -7,8 +7,9 @@ import { useEffect, useRef } from "react";
  * - Part\u00edculas brilhantes com halo (glow real) animadas
  * Usa o token --primary do tema, n\u00e3o cor fixa.
  */
-export function AuroraBackground() {
+export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | "subtle" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isSubtle = intensity === "subtle";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -93,63 +94,61 @@ export function AuroraBackground() {
       {/* Base preto */}
       <div className="absolute inset-0 bg-background" />
 
-      {/* Gradiente principal: vermelho no topo, vai sumindo */}
       <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 90% 70% at 50% -10%, hsl(var(--primary) / 0.55), transparent 60%)",
-        }}
-      />
+        className="absolute inset-0 transition-opacity duration-700"
+        style={{ opacity: isSubtle ? 0.35 : 1 }}
+      >
+        {/* Gradiente principal: vermelho no topo */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 90% 70% at 50% -10%, hsl(var(--primary) / 0.55), transparent 60%)",
+          }}
+        />
 
-      {/* Glow lateral esquerdo */}
-      <div
-        className="absolute -left-[20%] top-[20%] w-[60vw] h-[60vh] rounded-full blur-[140px] opacity-60 animate-[pulse_12s_ease-in-out_infinite]"
-        style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)" }}
-      />
-      {/* Glow lateral direito */}
-      <div
-        className="absolute -right-[15%] top-[40%] w-[55vw] h-[55vh] rounded-full blur-[140px] opacity-50 animate-[pulse_14s_ease-in-out_infinite_3s]"
-        style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.3), transparent 70%)" }}
-      />
-      {/* Glow inferior, mais sutil */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 -bottom-[20%] w-[80vw] h-[40vh] rounded-full blur-[160px] opacity-40 animate-[pulse_16s_ease-in-out_infinite_5s]"
-        style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%)" }}
-      />
+        <div
+          className="absolute -left-[20%] top-[20%] w-[60vw] h-[60vh] rounded-full blur-[140px] opacity-60 animate-[pulse_12s_ease-in-out_infinite]"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)" }}
+        />
+        <div
+          className="absolute -right-[15%] top-[40%] w-[55vw] h-[55vh] rounded-full blur-[140px] opacity-50 animate-[pulse_14s_ease-in-out_infinite_3s]"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.3), transparent 70%)" }}
+        />
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -bottom-[20%] w-[80vw] h-[40vh] rounded-full blur-[160px] opacity-40 animate-[pulse_16s_ease-in-out_infinite_5s]"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%)" }}
+        />
 
-      {/* Grid sutil mascarado */}
-      <div
-        className="absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
-        }}
-      />
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
+          }}
+        />
 
-      {/* Vinheta escura nas bordas */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 40%, hsl(var(--background) / 0.7) 100%)",
-        }}
-      />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, transparent 40%, hsl(var(--background) / 0.7) 100%)",
+          }}
+        />
 
-      {/* Part\u00edculas com halo */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* Grain leve */}
-      <div
-        className="absolute inset-0 opacity-[0.025] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
+        <div
+          className="absolute inset-0 opacity-[0.025] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          }}
+        />
+      </div>
     </div>
   );
 }

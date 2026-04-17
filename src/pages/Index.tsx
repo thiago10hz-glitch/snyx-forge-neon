@@ -7,10 +7,11 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { CinematicSidebar, type SidebarItem } from "@/components/CinematicSidebar";
 import { ChevronDown, Heart, Crown as CrownIcon, Code as CodeIcon, Lock } from "lucide-react";
 
 // Lazy load heavy components
@@ -66,44 +67,7 @@ const Index = () => {
 
   const handleBackToSelector = () => { setChatChoice(null); setPickedConvId(null); };
 
-  
 
-  // Mini icon-only sidebar item (w-14)
-  const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent, dot }: {
-    icon: any; label: string; onClick?: () => void; active?: boolean; to?: string;
-    danger?: boolean; accent?: boolean; dot?: boolean;
-  }) => {
-    const base = (
-      <button
-        onClick={onClick}
-        className={`relative w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all duration-200 group
-          ${active
-            ? "bg-primary/15 text-primary border border-primary/25 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.4)]"
-            : danger
-              ? "text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 border border-transparent"
-              : accent
-                ? "text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 border border-transparent"
-                : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/15 border border-transparent"
-          }`}
-      >
-        <Icon className="w-[17px] h-[17px]" strokeWidth={1.8} />
-        {active && <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />}
-        {dot && (
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))] animate-pulse" />
-        )}
-      </button>
-    );
-
-    const wrapped = (
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>{to ? <Link to={to}>{base}</Link> : base}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={10} className="text-[11px] font-medium px-2.5 py-1.5">
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    );
-    return wrapped;
-  };
 
   // Header chat title dropdown
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
@@ -124,41 +88,38 @@ const Index = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
-        {chatChoice === null && <AuroraBackground />}
-        {/* === MINI SIDEBAR (desktop) — w-14 always === */}
-        <aside className="hidden md:flex w-14 shrink-0 flex-col border-r border-border/10 bg-sidebar/40 backdrop-blur-xl z-20 relative">
-          {/* Logo */}
-          <div className="h-14 flex items-center justify-center shrink-0 border-b border-border/10">
-            <Link to="/" className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10 hover:scale-105 transition-transform">
+        <AuroraBackground intensity={chatChoice === null ? "full" : "subtle"} />
+
+        <CinematicSidebar
+          logo={
+            <Link
+              to="/"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_28px_-2px_hsl(var(--primary)/0.8)] transition-all"
+            >
               <Flame className="w-4 h-4 text-primary" />
             </Link>
-          </div>
-
-          {/* Nav */}
-          <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
-            <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
-            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} dot={chatChoice !== null} />
-
-            {isAdmin && (
-              <>
-                <div className="my-2 mx-3 h-px bg-border/20" />
-                <MiniItem to="/admin" icon={ShieldCheck} label="Admin" />
-                <MiniItem to="/dono" icon={Crown} label="Dono" accent />
-              </>
-            )}
-          </nav>
-
-          {/* Bottom */}
-          <div className="py-3 border-t border-border/10 space-y-1.5">
-            <MiniItem icon={Palette} label="Tema" onClick={() => setShowThemeModal(true)} />
-            <MiniItem icon={LogOut} label="Sair" onClick={signOut} danger />
-          </div>
-        </aside>
+          }
+          topItems={[
+            { icon: MessageSquare, label: "Conversa", onClick: handleBackToSelector, active: chatChoice === null },
+            { icon: History, label: "Histórico", onClick: () => setHistoryOpen(true), active: historyOpen, dot: chatChoice !== null },
+            ...(isAdmin
+              ? ([
+                  { icon: ShieldCheck, label: "Admin", to: "/admin" },
+                  { icon: Crown, label: "Dono", to: "/dono", accent: true },
+                ] as SidebarItem[])
+              : []),
+          ]}
+          groupDivider={isAdmin ? [{ afterIndex: 1, label: "Equipe" }] : []}
+          bottomItems={[
+            { icon: Palette, label: "Tema", onClick: () => setShowThemeModal(true) },
+            { icon: LogOut, label: "Sair", onClick: signOut, danger: true },
+          ]}
+        />
 
         {/* === MAIN === */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="h-12 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-border/10 bg-card/20 backdrop-blur-xl relative">
+          <header className="h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-[hsl(0_0%_5%/0.7)] backdrop-blur-2xl relative after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/30 after:to-transparent">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -173,19 +134,27 @@ const Index = () => {
             <div className="absolute left-1/2 -translate-x-1/2">
               <button
                 onClick={() => setChatMenuOpen((v) => !v)}
-                className="group flex items-center gap-1.5 px-3 py-1 rounded-full hover:bg-muted/15 transition-colors"
+                className="group flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/15 bg-[hsl(0_0%_8%/0.6)] hover:border-primary/30 hover:bg-[hsl(0_0%_10%/0.7)] hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.4)] transition-all duration-300"
               >
-                <Flame className="w-3.5 h-3.5 text-primary" />
-                <span className="text-sm font-bold tracking-tight text-foreground">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+                </span>
+                <span className="text-[13px] font-bold tracking-tight text-foreground">
                   {currentChatLabel}
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground/60 transition-transform ${chatMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-300 ${chatMenuOpen ? "rotate-180 text-primary" : ""}`} />
               </button>
 
               {chatMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setChatMenuOpen(false)} />
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border border-border/20 bg-card/95 backdrop-blur-2xl shadow-2xl shadow-primary/10 z-40 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 rounded-2xl border border-border/20 bg-[hsl(0_0%_7%/0.92)] backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_0_30px_-8px_hsl(var(--primary)/0.3)] z-40 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 border-b border-border/10">
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-muted-foreground/50">
+                        Trocar de conversa
+                      </p>
+                    </div>
                     <div className="p-1.5">
                       {chatOptions.map((opt) => {
                         const Icon = opt.icon;
@@ -199,18 +168,22 @@ const Index = () => {
                               handleSelectChat(opt.key);
                             }}
                             disabled={opt.locked}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                            className={`group/o w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                               active
-                                ? "bg-primary/15 text-primary"
+                                ? "bg-primary/12 text-primary border border-primary/25 shadow-[inset_0_0_20px_-8px_hsl(var(--primary)/0.4)]"
                                 : opt.locked
-                                  ? "text-muted-foreground/40 cursor-not-allowed"
-                                  : "text-foreground hover:bg-muted/20"
+                                  ? "text-muted-foreground/40 cursor-not-allowed border border-transparent"
+                                  : "text-foreground hover:bg-foreground/[0.04] hover:translate-x-0.5 border border-transparent"
                             }`}
                           >
-                            <Icon className={`w-4 h-4 ${active ? "text-primary" : opt.color}`} />
-                            <span className="flex-1 text-left font-medium">{opt.label}</span>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                              active ? "bg-primary/15" : opt.locked ? "bg-muted/10" : "bg-muted/15 group-hover/o:bg-muted/25"
+                            }`}>
+                              <Icon className={`w-4 h-4 ${active ? "text-primary" : opt.locked ? "text-muted-foreground/40" : opt.color}`} />
+                            </div>
+                            <span className="flex-1 text-left font-semibold tracking-tight">{opt.label}</span>
                             {opt.locked && <Lock className="w-3 h-3 text-muted-foreground/40" />}
-                            {active && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                            {active && <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />}
                           </button>
                         );
                       })}
@@ -244,14 +217,15 @@ const Index = () => {
 
               <button
                 onClick={() => setShowProfile(true)}
-                className="w-8 h-8 rounded-xl overflow-hidden border border-border/20 hover:border-primary/40 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 group hover:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.4)]"
+                className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/25 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-[hsl(0_0%_8%/0.6)] hover:bg-[hsl(0_0%_10%/0.7)] group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
                 title="Minha conta"
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+                  <User className="w-4 h-4 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
                 )}
+                <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-foreground/5 pointer-events-none" />
               </button>
             </div>
           </header>
