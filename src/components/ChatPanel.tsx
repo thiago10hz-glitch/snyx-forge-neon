@@ -1262,7 +1262,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
         </div>
 
 
-        {false ? null : (
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
             <div className={`flex flex-col items-center justify-center h-full px-5 sm:px-8 ${mode === "programmer" ? "py-4 sm:py-6" : "py-8 sm:py-12"}`}>
