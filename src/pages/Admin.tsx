@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -9,7 +9,7 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import {
   Loader2, ShieldCheck, UserX, ArrowLeft, Trash2, Ban, ShieldOff, KeyRound,
   Crown, Users, Search, RefreshCw, MessageCircle, Menu, X,
-  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords, LogOut
+  Clock, TrendingUp, Eye, Copy, Check, ChevronDown, ChevronUp, Code2, Package, Swords
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,17 +36,8 @@ type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
 
-type AdminTab = "dashboard" | "users" | "messages";
+type AdminTab = "dashboard" | "users";
 
-interface ChatMessage {
-  id: string;
-  conversation_id: string;
-  role: string;
-  content: string;
-  created_at: string;
-  conversation?: { user_id: string; mode: string; title: string };
-  user_display_name?: string;
-}
 
 export default function Admin() {
   const { user, loading: authLoading, isAdmin: cachedIsAdmin } = useAuth();
@@ -72,63 +63,7 @@ export default function Admin() {
 
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [userNames, setUserNames] = useState<Record<string, string>>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [totalMessagesCount, setTotalMessagesCount] = useState<number>(0);
-
-  const fetchMessages = async () => {
-    setLoadingMessages(true);
-    // Get total count of all messages
-    const { count: totalCount } = await supabase
-      .from("chat_messages")
-      .select("id", { count: "exact", head: true });
-    if (totalCount !== null) setTotalMessagesCount(totalCount);
-
-    // Get recent messages with conversation info
-    const { data: msgs, error } = await supabase
-      .from("chat_messages")
-      .select("id, conversation_id, role, content, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error) {
-      toast.error("Erro ao carregar mensagens");
-      setLoadingMessages(false);
-      return;
-    }
-
-    if (msgs && msgs.length > 0) {
-      const convIds = [...new Set(msgs.map(m => m.conversation_id))];
-      const { data: convs } = await supabase
-        .from("chat_conversations")
-        .select("id, user_id, mode, title")
-        .in("id", convIds);
-
-      const userIds = [...new Set((convs || []).map(c => c.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name")
-        .in("user_id", userIds);
-
-      const namesMap: Record<string, string> = {};
-      (profiles || []).forEach(p => { namesMap[p.user_id] = p.display_name || "Sem nome"; });
-      setUserNames(namesMap);
-
-      const convsMap: Record<string, { user_id: string; mode: string; title: string }> = {};
-      (convs || []).forEach(c => { convsMap[c.id] = { user_id: c.user_id, mode: c.mode, title: c.title }; });
-
-      const enriched: ChatMessage[] = msgs.map(m => ({
-        ...m,
-        conversation: convsMap[m.conversation_id],
-        user_display_name: convsMap[m.conversation_id] ? namesMap[convsMap[m.conversation_id].user_id] : undefined,
-      }));
-
-      setMessages(enriched.reverse());
-    }
-    setLoadingMessages(false);
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -144,55 +79,7 @@ export default function Admin() {
     }
   }, [user, cachedIsAdmin]);
 
-  // Realtime subscription for messages
-  useEffect(() => {
-    if (!isAdmin || adminTab !== "messages") return;
-    fetchMessages();
-
-    const channel = supabase
-      .channel("admin-messages-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages" },
-        async (payload) => {
-          const newMsg = payload.new as { id: string; conversation_id: string; role: string; content: string; created_at: string };
-          // Enrich with conversation/user info
-          const { data: conv } = await supabase
-            .from("chat_conversations")
-            .select("id, user_id, mode, title")
-            .eq("id", newMsg.conversation_id)
-            .single();
-
-          let displayName = "Desconhecido";
-          if (conv) {
-            const cached = userNames[conv.user_id];
-            if (cached) {
-              displayName = cached;
-            } else {
-              const { data: profile } = await supabase
-                .from("profiles")
-                .select("display_name")
-                .eq("user_id", conv.user_id)
-                .single();
-              displayName = profile?.display_name || "Sem nome";
-              setUserNames(prev => ({ ...prev, [conv.user_id]: displayName }));
-            }
-          }
-
-          const enriched: ChatMessage = {
-            ...newMsg,
-            conversation: conv ? { user_id: conv.user_id, mode: conv.mode, title: conv.title } : undefined,
-            user_display_name: displayName,
-          };
-
-          setMessages(prev => [...prev.slice(-199), enriched]);
-          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [isAdmin, adminTab]);
+  // (Mensagens em tempo real removido)
 
   const checkAdmin = async () => {
     const { data } = await supabase.rpc("has_role", { _user_id: user!.id, _role: "admin" });
@@ -486,7 +373,6 @@ export default function Admin() {
   const tabs: { key: AdminTab; label: string; icon: any; color: string; dot?: boolean }[] = [
     { key: "dashboard", label: "Dashboard", icon: TrendingUp, color: "text-primary" },
     { key: "users", label: "Usuários", icon: Users, color: "text-primary" },
-    { key: "messages", label: "Mensagens", icon: MessageCircle, color: "text-primary", dot: true },
   ];
 
   const currentTab = tabs.find(t => t.key === adminTab);
@@ -1035,78 +921,6 @@ export default function Admin() {
       </div>
       )}
 
-      {/* Messages Tab */}
-      {adminTab === "messages" && (
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <h2 className="text-sm font-bold">Mensagens em Tempo Real</h2>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            </div>
-            <button
-              onClick={fetchMessages}
-              className="p-2 rounded-xl bg-muted/20 border border-border/20 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
-              title="Atualizar"
-            >
-              <RefreshCw size={14} />
-            </button>
-          </div>
-
-          {loadingMessages ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center py-16">
-              <MessageCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground/50">Nenhuma mensagem ainda</p>
-            </div>
-          ) : (
-            <div className="space-y-1 max-h-[calc(100vh-180px)] overflow-y-auto rounded-xl border border-border/20 bg-muted/5 p-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 p-3 rounded-xl transition-all ${
-                    msg.role === "user"
-                      ? "bg-primary/5 border border-primary/10"
-                      : "bg-muted/20 border border-border/10"
-                  }`}
-                >
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    msg.role === "user" ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"
-                  }`}>
-                    {msg.role === "user" ? <Users className="w-3.5 h-3.5" /> : <Code2 className="w-3.5 h-3.5" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-[11px] font-medium text-foreground">
-                        {msg.role === "user" ? (msg.user_display_name || "Usuário") : "IA"}
-                      </span>
-                      {msg.conversation?.mode && (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-medium ${
-                          msg.conversation.mode === "programmer" ? "bg-cyan-500/10 text-cyan-400" :
-                          msg.conversation.mode === "vip" ? "bg-emerald-500/10 text-emerald-400" :
-                          "bg-muted/40 text-muted-foreground"
-                        }`}>
-                          {msg.conversation.mode}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-muted-foreground/40">
-                        {new Date(msg.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                      </span>
-                    </div>
-                    <p className="text-xs text-foreground/80 whitespace-pre-wrap break-words line-clamp-3">
-                      {msg.content}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-      )}
 
 
 
