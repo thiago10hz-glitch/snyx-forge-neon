@@ -65,8 +65,12 @@ export default function ApiPricing() {
 
   const handleSubscribe = async (plan: ApiPlan) => {
     if (!user) { navigate("/auth"); return; }
-    // Free / Pro / Business: TODOS abrem entrevista pra teste grátis
-    setApplyingPlan(plan);
+    // Apenas o plano Free passa pela entrevista; Pro e Business vão direto pro checkout pago.
+    if (plan.slug === "free" || Number(plan.price_brl) === 0) {
+      setApplyingPlan(plan);
+      return;
+    }
+    await handleBuyNow(plan);
   };
 
   const handleBuyNow = async (plan: ApiPlan) => {
@@ -219,17 +223,8 @@ export default function ApiPricing() {
                     variant={meta.highlight ? "default" : "outline"}
                     className="w-full"
                   >
-                    {isFree ? "Começar grátis" : "Começar teste grátis"}
+                    {isFree ? "Começar grátis" : (isLoadingThis ? "Abrindo checkout..." : "Assinar agora")}
                   </Button>
-                  {!isFree && (
-                    <button
-                      onClick={() => handleBuyNow(plan)}
-                      disabled={isLoadingThis}
-                      className="mt-2 text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline disabled:opacity-50"
-                    >
-                      {isLoadingThis ? "Abrindo checkout..." : "ou assinar direto"}
-                    </button>
-                  )}
                 </article>
               );
             })}
