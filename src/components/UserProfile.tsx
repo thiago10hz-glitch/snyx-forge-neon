@@ -75,8 +75,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             return { count: count || 0 };
           }),
         ]).then(([convRes, msgRes]: any) => {
-          const created = profile.created_at ? new Date(profile.created_at) : new Date();
-          const days = Math.max(1, Math.floor((Date.now() - created.getTime()) / 86400000));
+          const createdAt = (profile as any)?.created_at ? new Date((profile as any).created_at) : new Date();
+          const days = Math.max(1, Math.floor((Date.now() - createdAt.getTime()) / 86400000));
           setStats({
             conversations: convRes.count || 0,
             messages: msgRes.count || 0,
