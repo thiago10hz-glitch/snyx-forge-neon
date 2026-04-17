@@ -21,7 +21,7 @@ import Downloads from "./pages/Downloads";
 import PackSteam from "./pages/PackSteam";
 import NotFound from "./pages/NotFound";
 import SiteManage from "./pages/SiteManage";
-import Explore from "./pages/Explore";
+
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Accelerator from "./pages/Accelerator";
 import Optimization from "./pages/Optimization";
