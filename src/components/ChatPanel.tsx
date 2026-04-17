@@ -147,6 +147,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const { profile, user } = useAuth();
   const [messageLimit, setMessageLimit] = useState<MessageLimitState | null>(null);
 
+  // Auto-enable premium for VIP/DEV — no toggle needed, they get full power immediately
+  useEffect(() => {
+    if (profile?.is_vip || profile?.is_dev) setUsePremium(true);
+  }, [profile?.is_vip, profile?.is_dev]);
+
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
 
@@ -1105,7 +1110,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
     setMode(newMode);
     onModeChange?.(newMode);
-    setUsePremium(false);
+    setUsePremium(!!(profile?.is_vip || profile?.is_dev));
     setPendingAction(null);
     setActiveConversationId(null);
     setMessages([]);

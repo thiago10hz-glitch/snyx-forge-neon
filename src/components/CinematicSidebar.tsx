@@ -1,6 +1,6 @@
-import { useState, ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, GripVertical } from "lucide-react";
 
 export interface SidebarItem {
   icon: LucideIcon;
@@ -21,14 +21,60 @@ interface CinematicSidebarProps {
   groupDivider?: { afterIndex: number; label: string }[];
 }
 
+const COLLAPSED_W = 64;
+const EXPANDED_W = 256;
+const SNAP_THRESHOLD = 140;
+
 /**
- * Sidebar cinemática: w-16 quando idle, expande pra w-64 no hover.
- * - Glassmorphism, glow vermelho sutil, divisores etéreos
- * - Labels com fade-in conforme expande
- * - Pill ativo com barra lateral primary
+ * Sidebar com alça arrastável (drawer style):
+ * - Alça vertical na borda direita: arrasta pra abrir/fechar
+ * - Clique simples na alça também alterna
+ * - Sem hover-expand: só ação intencional
  */
 export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [] }: CinematicSidebarProps) {
   const [expanded, setExpanded] = useState(false);
+  const [width, setWidth] = useState(COLLAPSED_W);
+  const [dragging, setDragging] = useState(false);
+  const dragStartXRef = useRef<number | null>(null);
+  const startWidthRef = useRef(COLLAPSED_W);
+  const movedRef = useRef(false);
+
+  // Sync width when expanded toggles externally (click)
+  useEffect(() => {
+    if (!dragging) setWidth(expanded ? EXPANDED_W : COLLAPSED_W);
+  }, [expanded, dragging]);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    dragStartXRef.current = e.clientX;
+    startWidthRef.current = width;
+    movedRef.current = false;
+    setDragging(true);
+  }, [width]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (dragStartXRef.current === null) return;
+    const dx = e.clientX - dragStartXRef.current;
+    if (Math.abs(dx) > 4) movedRef.current = true;
+    const next = Math.max(COLLAPSED_W, Math.min(EXPANDED_W + 32, startWidthRef.current + dx));
+    setWidth(next);
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging) return;
+    setDragging(false);
+    dragStartXRef.current = null;
+    if (!movedRef.current) {
+      // treat as click → toggle
+      setExpanded((v) => !v);
+      return;
+    }
+    // snap based on final width
+    const shouldOpen = width > SNAP_THRESHOLD;
+    setExpanded(shouldOpen);
+    setWidth(shouldOpen ? EXPANDED_W : COLLAPSED_W);
+  }, [dragging, width]);
 
   const renderItem = (item: SidebarItem, idx: number) => {
     const Icon = item.icon;
@@ -41,7 +87,7 @@ export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [
           : "text-muted-foreground/70 group-hover/it:text-foreground";
 
     const bgTone = item.active
-      ? "bg-primary/12 border-primary/30 shadow-[0_0_24px_-6px_hsl(var(--primary)/0.5)]"
+      ? "bg-primary/10 border-primary/25 shadow-[0_0_24px_-8px_hsl(var(--primary)/0.55)]"
       : item.danger
         ? "border-transparent group-hover/it:bg-destructive/8 group-hover/it:border-destructive/20"
         : item.accent
@@ -53,13 +99,11 @@ export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [
         className={`group/it relative h-11 mx-2 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${bgTone}`}
         onClick={item.onClick}
       >
-        {/* active rail */}
         {item.active && (
           <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-primary shadow-[0_0_12px_hsl(var(--primary))]" />
         )}
 
         <div className="relative h-full flex items-center">
-          {/* icon column - always w-12 to keep alignment */}
           <div className="w-12 shrink-0 flex items-center justify-center">
             <div className="relative">
               <Icon className={`w-[18px] h-[18px] transition-colors ${baseTone}`} strokeWidth={1.8} />
@@ -69,7 +113,6 @@ export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [
             </div>
           </div>
 
-          {/* label - fades + slides in */}
           <span
             className={`text-[13px] font-medium tracking-tight whitespace-nowrap transition-all duration-300 ${
               expanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none"
@@ -118,20 +161,18 @@ export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [
 
   return (
     <aside
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      className={`hidden md:flex shrink-0 flex-col z-30 relative transition-[width] duration-300 ease-out ${
-        expanded ? "w-64" : "w-16"
-      }`}
+      style={{ width }}
+      className={`hidden md:flex shrink-0 flex-col z-30 relative ${
+        dragging ? "transition-none" : "transition-[width] duration-300 ease-out"
+      } select-none`}
     >
       {/* Glass shell */}
-      <div className="absolute inset-0 bg-[hsl(0_0%_6%/0.85)] backdrop-blur-2xl border-r border-border/15" />
-      {/* Soft inner glow on right edge */}
+      <div className="absolute inset-0 bg-sidebar/85 backdrop-blur-2xl border-r border-sidebar-border/50" />
       <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent" />
 
       <div className="relative flex-1 flex flex-col min-h-0">
         {/* Logo header */}
-        <div className="h-16 shrink-0 flex items-center px-3.5 border-b border-border/10 overflow-hidden">
+        <div className="h-16 shrink-0 flex items-center px-3.5 border-b border-sidebar-border/40 overflow-hidden">
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{logo}</div>
           <span
             className={`ml-3 text-[15px] font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent whitespace-nowrap transition-all duration-300 ${
@@ -146,16 +187,36 @@ export function CinematicSidebar({ logo, topItems, bottomItems, groupDivider = [
           {topItems.map(renderItem)}
         </nav>
 
-        <div className="py-3 border-t border-border/10 space-y-1">
+        <div className="py-3 border-t border-sidebar-border/40 space-y-1">
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
         </div>
+      </div>
 
-        {/* Hover hint dot pill on edge when collapsed */}
+      {/* === DRAG HANDLE === */}
+      <div
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className={`absolute top-1/2 -translate-y-1/2 -right-3 h-20 w-6 flex items-center justify-center cursor-ew-resize z-40 group ${
+          dragging ? "" : "transition-transform"
+        }`}
+        title="Arraste pra abrir/fechar — clique pra alternar"
+        aria-label="Alternar barra lateral"
+      >
         <div
-          className={`absolute right-[-4px] top-1/2 -translate-y-1/2 w-1 h-10 rounded-full bg-primary/0 transition-all duration-300 ${
-            expanded ? "bg-primary/0" : "bg-primary/30 shadow-[0_0_10px_hsl(var(--primary)/0.5)]"
+          className={`h-16 w-2 rounded-full border transition-all duration-300 flex items-center justify-center ${
+            expanded
+              ? "bg-primary/20 border-primary/40 shadow-[0_0_16px_-2px_hsl(var(--primary)/0.6)]"
+              : "bg-sidebar/90 border-sidebar-border/60 group-hover:bg-primary/15 group-hover:border-primary/40 group-hover:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.5)]"
           }`}
-        />
+        >
+          <GripVertical
+            className={`w-3 h-3 transition-colors ${
+              expanded ? "text-primary" : "text-muted-foreground/60 group-hover:text-primary"
+            }`}
+          />
+        </div>
       </div>
     </aside>
   );
