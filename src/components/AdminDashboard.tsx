@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Users, Crown, MessageCircle, TrendingUp, Ban, Clock,
+  Users, Crown, MessageCircle, TrendingUp,
   ShieldCheck, Activity, BarChart3, ArrowUpRight,
   Swords, Flame, Trash2, DollarSign, Trophy, ShieldAlert,
   AlertTriangle, Sparkles, Zap, Code2,
