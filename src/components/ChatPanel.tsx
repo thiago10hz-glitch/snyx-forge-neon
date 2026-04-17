@@ -158,6 +158,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const skipNextLoadRef = useRef<string | null>(null);
   const { profile, user } = useAuth();
   const [messageLimit, setMessageLimit] = useState<MessageLimitState | null>(null);
 
