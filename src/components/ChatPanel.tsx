@@ -242,15 +242,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   }, [forceMode]);
 
   // Auto-resume last conversation per mode (persisted in localStorage)
-  useEffect(() => {
-    if (!user || conversations.length === 0) return;
-    if (activeConversationId) return;
-    const storageKey = `snyx:lastConv:${user.id}:${mode}`;
-    const remembered = localStorage.getItem(storageKey);
-    const exists = remembered && conversations.some((c) => c.id === remembered);
-    const target = exists ? remembered! : conversations[0].id;
-    setActiveConversationId(target);
-  }, [user, mode, conversations, activeConversationId]);
+  // Não auto-seleciona conversa: ao entrar em qualquer modo, mostra a tela de boas-vindas.
+  // O usuário escolhe manualmente uma conversa antiga na sidebar ou começa nova digitando.
 
   // Persist active conversation per mode
   useEffect(() => {
