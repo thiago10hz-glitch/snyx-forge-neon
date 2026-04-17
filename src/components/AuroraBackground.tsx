@@ -91,62 +91,48 @@ export function AuroraBackground({ intensity = "full" }: { intensity?: "full" | 
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* Base preto */}
+      {/* Base preto puro */}
       <div className="absolute inset-0 bg-background" />
 
       <div
         className="absolute inset-0 transition-opacity duration-700"
-        style={{ opacity: isSubtle ? 0.35 : 1 }}
+        style={{ opacity: isSubtle ? 0.2 : 0.5 }}
       >
-        {/* Vermelho forte cobrindo toda a lateral esquerda */}
+        {/* Glow vermelho discreto só no canto superior esquerdo (igual à referência) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to right, hsl(var(--primary) / 0.55) 0%, hsl(var(--primary) / 0.28) 25%, hsl(var(--primary) / 0.08) 50%, transparent 70%)",
+              "radial-gradient(ellipse 35% 30% at 5% 0%, hsl(var(--primary) / 0.22), transparent 65%)",
           }}
-        />
-        {/* Brilho concentrado no topo esquerdo */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 60% 70% at 0% 20%, hsl(var(--primary) / 0.65), transparent 60%)",
-          }}
-        />
-        {/* Glow grande pulsante no lado esquerdo */}
-        <div
-          className="absolute -left-[10%] top-[15%] w-[55vw] h-[70vh] rounded-full blur-[160px] opacity-70 animate-[pulse_12s_ease-in-out_infinite]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.45), transparent 70%)" }}
-        />
-        <div
-          className="absolute -left-[15%] bottom-[5%] w-[45vw] h-[50vh] rounded-full blur-[160px] opacity-50 animate-[pulse_14s_ease-in-out_infinite_3s]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.3), transparent 70%)" }}
         />
 
+        {/* Grid sutil */}
         <div
-          className="absolute inset-0 opacity-[0.05]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
               "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
             backgroundSize: "64px 64px",
-            maskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
-            WebkitMaskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
+            maskImage: "radial-gradient(ellipse at center, black 20%, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 20%, transparent 70%)",
           }}
         />
 
+        {/* Vinheta escura nas bordas */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at center, transparent 50%, hsl(var(--background) / 0.5) 100%)",
+              "radial-gradient(ellipse at center, transparent 40%, hsl(var(--background) / 0.7) 100%)",
           }}
         />
 
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-40" />
 
+        {/* Grão sutil */}
         <div
-          className="absolute inset-0 opacity-[0.025] mix-blend-overlay"
+          className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
           style={{
             backgroundImage:
               "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
