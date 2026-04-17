@@ -139,7 +139,7 @@ const Index = () => {
     </button>
   );
 
-  const displayName = profile?.display_name || user?.email?.split("@")[0] || "Usuário";
+  
 
 
   const modeOptions = [
