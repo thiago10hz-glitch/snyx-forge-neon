@@ -216,12 +216,12 @@ const Index = () => {
                 <span
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all ${
                     isVip
-                      ? "bg-gradient-to-r from-amber-500/30 via-yellow-400/40 to-amber-500/30 text-amber-200 shadow-[0_0_12px_-2px_hsl(45_100%_60%/0.6)] border border-amber-300/40"
+                      ? "bg-primary text-primary-foreground shadow-[0_0_14px_-2px_hsl(var(--primary))] border border-primary"
                       : "text-primary/60 border border-primary/25"
                   }`}
                   title={isVip ? "VIP ativo" : "VIP inativo"}
                 >
-                  <Crown className={`w-3 h-3 ${isVip ? "fill-amber-200" : ""}`} strokeWidth={2.4} />
+                  <Crown className={`w-3 h-3 ${isVip ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">{isVip ? "VIP Ativo" : "VIP"}</span>
                 </span>
               </div>
