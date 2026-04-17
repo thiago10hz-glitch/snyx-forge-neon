@@ -13,36 +13,36 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 45% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 88% 52%;
+    --primary: 0 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 0 95% 65%;
+    --primary-glow: 0 100% 62%;
     --secondary: 0 30% 10%;
     --secondary-foreground: 0 0% 95%;
     --muted: 0 0% 9%;
     --muted-foreground: 0 5% 62%;
-    --accent: 0 95% 60%;
+    --accent: 0 100% 55%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 88% 52%;
+    --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 40% 12%;
     --input: 0 30% 9%;
-    --ring: 0 88% 52%;
+    --ring: 0 100% 50%;
     --radius: 1rem;
     --sidebar-background: 0 0% 3%;
     --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 0 88% 52%;
+    --sidebar-primary: 0 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 50% 7%;
     --sidebar-accent-foreground: 0 0% 96%;
     --sidebar-border: 0 35% 9%;
-    --sidebar-ring: 0 88% 52%;
+    --sidebar-ring: 0 100% 50%;
 
     /* Glow tokens — vermelho cinematográfico */
-    --neon-glow: 0 0 18px hsl(0 88% 52% / 0.45), 0 0 48px hsl(0 88% 52% / 0.18);
-    --neon-glow-strong: 0 0 24px hsl(0 88% 52% / 0.65), 0 0 64px hsl(0 95% 65% / 0.32), 0 0 130px hsl(0 88% 52% / 0.18);
-    --neon-glow-soft: 0 0 14px hsl(0 95% 65% / 0.28), 0 0 32px hsl(0 88% 52% / 0.10);
-    --gradient-primary: linear-gradient(135deg, hsl(0 88% 52%), hsl(0 95% 65%));
-    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(0 88% 52% / 0.22), transparent 70%);
+    --neon-glow: 0 0 18px hsl(0 100% 50% / 0.45), 0 0 48px hsl(0 100% 50% / 0.18);
+    --neon-glow-strong: 0 0 24px hsl(0 100% 50% / 0.65), 0 0 64px hsl(0 100% 62% / 0.32), 0 0 130px hsl(0 100% 50% / 0.18);
+    --neon-glow-soft: 0 0 14px hsl(0 100% 62% / 0.28), 0 0 32px hsl(0 100% 50% / 0.10);
+    --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(0 100% 62%));
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(0 100% 50% / 0.22), transparent 70%);
     --gradient-card: linear-gradient(145deg, hsl(0 40% 8% / 0.88), hsl(0 0% 4% / 0.96));
     /* Fundo cinematográfico estilo SkynetChat — gradiente vertical vivo→bordô→preto */
     --gradient-app-bg: linear-gradient(180deg, hsl(0 85% 32%) 0%, hsl(0 80% 22%) 35%, hsl(0 75% 14%) 65%, hsl(0 0% 5%) 100%);
