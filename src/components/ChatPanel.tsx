@@ -1049,7 +1049,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       await consumeFreeMessage();
     } catch (err) {
       console.error("Chat error:", err);
-      setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao contactar a IA. Tente novamente." }]);
+      const errMsg = "❌ Erro ao contactar a IA. Tente novamente.";
+      setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
+      // Persist the error so user sees something on reload instead of an orphan user message
+      if (convId) await saveMessage(convId, "assistant", errMsg).catch(() => {});
       // Re-check limit on error to restore accurate state
       void checkMessageLimit();
     } finally {
