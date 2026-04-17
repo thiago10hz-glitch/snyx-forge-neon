@@ -91,57 +91,95 @@
 }
 
 @layer components {
-  /* === Glass effects (opaque bg, no backdrop-blur for performance) === */
+  /* === Glass effects (carmim premium) === */
   .glass {
-    background: rgba(10, 10, 15, 0.85);
-    border-color: rgba(255, 255, 255, 0.06);
+    background: linear-gradient(145deg, hsl(345 33% 8% / 0.78), hsl(240 24% 5% / 0.88));
+    border: 1px solid hsl(350 100% 54% / 0.12);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
   .glass-elevated {
-    background: rgba(10, 10, 15, 0.92);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: linear-gradient(145deg, hsl(345 33% 10% / 0.92), hsl(240 24% 6% / 0.96));
+    border: 1px solid hsl(350 100% 54% / 0.18);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow:
+      0 12px 48px hsl(350 100% 30% / 0.25),
+      0 2px 16px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(345 100% 66% / 0.08);
   }
   .glass-subtle {
-    background: rgba(10, 10, 15, 0.75);
-    border-color: rgba(255, 255, 255, 0.04);
+    background: hsl(345 33% 7% / 0.7);
+    border: 1px solid hsl(350 100% 54% / 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .glass-input {
-    background: rgba(255, 255, 255, 0.035);
-    border-color: rgba(255, 255, 255, 0.07);
+    background: hsl(345 25% 10% / 0.6);
+    border: 1px solid hsl(350 100% 54% / 0.14);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .glass-input:focus-within {
+    border-color: hsl(350 100% 54% / 0.55);
+    box-shadow: 0 0 0 3px hsl(350 100% 54% / 0.15), var(--neon-glow-soft);
   }
 
   /* === Neon effects === */
   .neon-border {
-    border-color: hsl(var(--primary));
+    border: 1px solid hsl(350 100% 54% / 0.55);
     box-shadow: var(--neon-glow);
   }
   .neon-text {
-    color: hsl(var(--primary));
-    text-shadow: 0 0 8px hsl(16 82% 57% / 0.4);
+    color: hsl(345 100% 70%);
+    text-shadow: 0 0 10px hsl(350 100% 54% / 0.5), 0 0 24px hsl(345 100% 66% / 0.25);
   }
   .neon-glow-strong {
     box-shadow: var(--neon-glow-strong);
   }
+  .neon-pulse {
+    animation: neon-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes neon-pulse {
+    0%, 100% { box-shadow: var(--neon-glow); }
+    50% { box-shadow: var(--neon-glow-strong); }
+  }
 
   /* === Cards === */
   .card-premium {
-    background: linear-gradient(145deg, hsl(0 0% 14%) 0%, hsl(0 0% 9%) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    background: var(--gradient-card);
+    border: 1px solid hsl(350 100% 54% / 0.14);
+    box-shadow:
+      0 8px 40px hsl(350 100% 30% / 0.18),
+      0 2px 12px hsl(0 0% 0% / 0.35),
+      inset 0 1px 0 hsl(345 100% 66% / 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .card-premium:hover {
+    border-color: hsl(350 100% 54% / 0.35);
+    box-shadow:
+      0 16px 56px hsl(350 100% 30% / 0.32),
+      0 4px 20px hsl(350 100% 54% / 0.12),
+      inset 0 1px 0 hsl(345 100% 66% / 0.12);
+    transform: translateY(-2px);
   }
 
   /* === Gradients === */
   .gradient-text-primary {
-    background: linear-gradient(135deg, hsl(16 82% 65%), hsl(16 82% 45%));
+    background: linear-gradient(135deg, hsl(345 100% 70%) 0%, hsl(350 100% 54%) 50%, hsl(345 100% 66%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .gradient-text-subtle {
-    background: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 60%));
+    background: linear-gradient(135deg, hsl(0 0% 98%), hsl(345 8% 62%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+  .gradient-bg-primary {
+    background: var(--gradient-primary);
   }
 
   /* === Badges === */
