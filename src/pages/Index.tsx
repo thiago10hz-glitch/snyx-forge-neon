@@ -228,10 +228,11 @@ const Index = () => {
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* (header central removido) */}
 
-          {/* Toggle pra mostrar/esconder a barra lateral (topo esquerdo, sobre a sidebar quando aberta) */}
+          {/* Toggle pra mostrar/esconder a barra lateral (fora da sidebar, no topo da \u00e1rea principal) */}
           <button
             onClick={() => setRailCollapsed((v) => !v)}
-            className="fixed top-3 left-3 z-[60] w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors active:scale-95"
+            style={{ left: railCollapsed ? "0.75rem" : "calc(260px + 0.75rem)" }}
+            className="fixed top-3 z-[60] w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-card/60 transition-[left,colors] duration-300 ease-out active:scale-95"
             aria-label={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
             title={railCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
           >
