@@ -184,7 +184,7 @@ const Index = () => {
   return (
     <TooltipProvider delayDuration={200}>
       <div className="h-[100dvh] flex bg-background overflow-hidden relative">
-        <AuroraBackground intensity="subtle" />
+        <AuroraBackground intensity="full" />
 
         {/* Sidebar lateral — desktop, pra todo mundo */}
         <SideRail
