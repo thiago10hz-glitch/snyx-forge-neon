@@ -263,14 +263,7 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Mobile floating menu button */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden fixed top-3 left-3 z-30 w-10 h-10 rounded-2xl flex items-center justify-center bg-card/80 backdrop-blur-xl border border-border/40 text-foreground shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.4)] hover:border-primary/50 transition-all"
-            aria-label="Abrir menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          {/* (botão mobile antigo removido — agora o toggle PanelLeft cuida disso) */}
 
           {/* Content — chat opens DIRECTLY, no header */}
           <div className="flex-1 flex overflow-hidden">
