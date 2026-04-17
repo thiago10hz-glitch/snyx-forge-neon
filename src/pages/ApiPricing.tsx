@@ -223,17 +223,8 @@ export default function ApiPricing() {
                     variant={meta.highlight ? "default" : "outline"}
                     className="w-full"
                   >
-                    {isFree ? "Começar grátis" : "Começar teste grátis"}
+                    {isFree ? "Começar grátis" : (isLoadingThis ? "Abrindo checkout..." : "Assinar agora")}
                   </Button>
-                  {!isFree && (
-                    <button
-                      onClick={() => handleBuyNow(plan)}
-                      disabled={isLoadingThis}
-                      className="mt-2 text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline disabled:opacity-50"
-                    >
-                      {isLoadingThis ? "Abrindo checkout..." : "ou assinar direto"}
-                    </button>
-                  )}
                 </article>
               );
             })}
