@@ -174,11 +174,11 @@ const Index = () => {
                 <Menu className="w-4 h-4" />
               </button>
 
-              {/* Logo SnyX — aparece quando não há SideRail (não-admins) ou no mobile */}
+              {/* Logo SnyX — esconde em mobile (menu já tem branding); aparece em desktop quando não há SideRail */}
               <Link
                 to="/"
                 title="SnyX"
-                className={`group relative w-9 h-9 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 ${isAdmin ? "md:hidden" : ""}`}
+                className={`group relative w-9 h-9 rounded-2xl items-center justify-center transition-all duration-500 hover:scale-110 hidden sm:flex ${isAdmin ? "md:hidden" : ""}`}
               >
                 <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 transition-all duration-500" aria-hidden />
                 <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
@@ -204,7 +204,7 @@ const Index = () => {
                   }`}
                   title="Histórico"
                 >
-                  <History className="w-3.5 h-3.5" strokeWidth={2.4} />
+                  <History className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
                   <span className="hidden sm:inline">Histórico</span>
                 </button>
 
@@ -217,7 +217,7 @@ const Index = () => {
                   }`}
                   title="Chat Amigo"
                 >
-                  <Heart className={`w-3.5 h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
+                  <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${chatMode === "friend" ? "fill-primary-foreground" : ""}`} strokeWidth={2.4} />
                   <span className="hidden sm:inline">Amigo</span>
                 </button>
 
@@ -231,7 +231,7 @@ const Index = () => {
                     }`}
                     title="Modo Programador"
                   >
-                    <Code className="w-3.5 h-3.5" strokeWidth={2.4} />
+                    <Code className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.4} />
                     <span className="hidden sm:inline">Programador</span>
                   </button>
                 )}
@@ -242,7 +242,7 @@ const Index = () => {
                     className="relative flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 bg-gradient-to-b from-primary/95 to-primary/75 text-primary-foreground border border-primary/60 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.7)] hover:shadow-[0_0_22px_-2px_hsl(var(--primary)/0.85)]"
                     title="Abrir Chat VIP"
                   >
-                    <Crown className="w-3.5 h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
+                    <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-primary-foreground/90" strokeWidth={2.4} />
                     <span className="hidden sm:inline">VIP</span>
                   </button>
                 )}
