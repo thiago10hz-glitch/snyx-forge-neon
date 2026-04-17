@@ -1,8 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  LogOut, ShieldCheck, MonitorPlay, Code, User, Download,
-  Menu, Gamepad2, Palette, Crown, MessageSquare, Flame, X, Loader2,
+  LogOut, ShieldCheck, Code, User,
+  Menu, Palette, Crown, MessageSquare, Flame, X, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,11 +42,7 @@ const Index = () => {
 
   useAdminHeartbeat();
 
-  const navItems = [
-    { to: "/iptv", icon: MonitorPlay, label: "TV" },
-    { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
-    { to: "/downloads", icon: Download, label: "App" },
-  ];
+  const navItems: { to: string; icon: any; label: string }[] = [];
 
   // Mini icon-only sidebar item (w-14)
   const MiniItem = ({ icon: Icon, label, onClick, active, to, danger, accent }: {
@@ -97,12 +93,6 @@ const Index = () => {
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
             <MiniItem icon={MessageSquare} label="Chat" onClick={() => setChatMode("friend")} active={chatMode === "friend" || chatMode === "programmer"} />
-
-            <div className="my-2 mx-3 h-px bg-border/20" />
-
-            {navItems.map(({ to, icon, label }) => (
-              <MiniItem key={to} to={to} icon={icon} label={label} />
-            ))}
 
             {isAdmin && (
               <>
@@ -221,16 +211,6 @@ const Index = () => {
                   <MessageSquare className="w-4 h-4 text-primary" />
                   <span>Chat</span>
                 </button>
-
-                <div className="px-3 pt-3 pb-1">
-                  <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Serviços</span>
-                </div>
-                {navItems.map(({ to, icon: Icon, label }) => (
-                  <Link key={to} to={to} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/20 transition-colors">
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                    <span>{label}</span>
-                  </Link>
-                ))}
 
                 {isAdmin && (
                   <>

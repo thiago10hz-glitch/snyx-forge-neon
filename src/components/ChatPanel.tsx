@@ -1223,17 +1223,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
             )}
           </div>
 
-          {/* Voice Call Button (friend mode) */}
-          {false && mode === "friend" && (
-            <button
-              onClick={() => {}}
-              className="hidden"
-              title="-"
-            >
-              <Phone size={14} className="sm:hidden" />
-              <Phone size={15} className="hidden sm:block" />
-            </button>
-          )}
+          {/* Voice Call removed */}
 
           {/* Chat Settings Button */}
           <button
