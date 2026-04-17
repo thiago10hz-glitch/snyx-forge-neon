@@ -115,6 +115,7 @@ const Index = () => {
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
             <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
+            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} />
 
             {isAdmin && (
               <>
@@ -210,8 +211,11 @@ const Index = () => {
                   <div className="flex-1 min-h-0">
                     <Suspense fallback={<PanelLoader />}>
                       <ChatPanel
+                        key={chatChoice}
                         onCodeGenerated={setCode}
-                        onModeChange={(mode) => setChatMode(mode)}
+                        onModeChange={(mode) => setChatMode(mode as "friend" | "programmer")}
+                        initialConversationId={pickedConvId}
+                        forceMode={chatMode}
                       />
                     </Suspense>
                   </div>
@@ -251,6 +255,13 @@ const Index = () => {
                   <MessageSquare className="w-4 h-4 text-primary" />
                   <span>Trocar de chat</span>
                 </button>
+                <button
+                  onClick={() => { setHistoryOpen(true); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/20 transition-colors"
+                >
+                  <History className="w-4 h-4 text-primary" />
+                  <span>Histórico</span>
+                </button>
 
                 {isAdmin && (
                   <>
@@ -285,6 +296,13 @@ const Index = () => {
           <VipModal open={showVipModal} onClose={() => {}} />
           <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
         </Suspense>
+
+        <HistorySidebar
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          onPickConversation={handlePickFromHistory}
+          onNewChat={(choice) => { handleSelectChat(choice); }}
+        />
       </div>
     </TooltipProvider>
   );
