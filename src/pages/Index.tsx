@@ -217,16 +217,27 @@ const Index = () => {
 
               <button
                 onClick={() => setShowProfile(true)}
-                className="w-8 h-8 rounded-xl overflow-hidden border border-border/20 hover:border-primary/40 transition-all duration-300 flex items-center justify-center bg-muted/10 hover:bg-muted/20 group hover:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.4)]"
+                className="relative w-9 h-9 rounded-2xl overflow-hidden border border-border/25 hover:border-primary/50 transition-all duration-300 flex items-center justify-center bg-[hsl(0_0%_8%/0.6)] hover:bg-[hsl(0_0%_10%/0.7)] group hover:shadow-[0_0_22px_-4px_hsl(var(--primary)/0.5)]"
                 title="Minha conta"
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+                  <User className="w-4 h-4 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
                 )}
+                <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-foreground/5 pointer-events-none" />
               </button>
             </div>
+          </header>
+
+          {/* Content */}
+          <div className="flex-1 flex overflow-hidden">
+            {chatChoice === null ? (
+              <ChatSelector onSelect={handleSelectChat} />
+            ) : (
+              <>
+                <div className={`w-full flex flex-col ${chatMode === "programmer" ? "md:w-[480px] md:min-w-[380px] md:shrink-0 md:border-r md:border-border/10" : ""}`}>
+                  <div className="flex-1 min-h-0 bg-[hsl(0_0%_5%/0.4)]">
           </header>
 
           {/* Content */}
