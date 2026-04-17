@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Flame, Lock, Swords, Wand2, ShieldCheck, Scroll, Gem, Skull, Star } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Search, Sparkles, Crown, Flame, Lock, Swords, Wand2, ShieldCheck, Scroll, Gem, Skull, Star, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { resolveCharacterAvatar } from "@/lib/characterAvatars";
 import { VipModal } from "@/components/VipModal";
+import { ChubImportModal } from "@/components/ChubImportModal";
 
 type Character = {
   id: string;
@@ -42,6 +43,7 @@ const Characters = () => {
   const [category, setCategory] = useState("all");
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showVipModal, setShowVipModal] = useState(false);
+  const [showChubImport, setShowChubImport] = useState(false);
 
   const hasAccess = profile?.is_rpg_premium || profile?.is_vip || profile?.is_dev || isAdmin;
   const accessReady = !authLoading && profile !== null;
@@ -255,14 +257,31 @@ const Characters = () => {
               <p className="text-[9px] text-amber-500/40 tracking-[0.3em] uppercase font-mono">⚔ {characters.length} heróis ⚔</p>
             </div>
           </div>
-          <div className="relative w-44 md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500/40" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar herói..."
-              className="pl-9 h-10 bg-purple-950/30 border-amber-500/15 focus-visible:border-amber-400/40 focus-visible:ring-amber-400/20 text-sm rounded-xl placeholder:text-amber-500/30"
-            />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowChubImport(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3 h-10 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-purple-950 text-xs font-black hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] active:scale-95 transition-all"
+              title="Importar do Chub.ai"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Importar
+            </button>
+            <button
+              onClick={() => setShowChubImport(true)}
+              className="sm:hidden w-10 h-10 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-purple-950 flex items-center justify-center"
+              title="Importar"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+            <div className="relative w-44 md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500/40" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar herói..."
+                className="pl-9 h-10 bg-purple-950/30 border-amber-500/15 focus-visible:border-amber-400/40 focus-visible:ring-amber-400/20 text-sm rounded-xl placeholder:text-amber-500/30"
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -447,6 +466,7 @@ const Characters = () => {
       </div>
 
       <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} />
+      <ChubImportModal open={showChubImport} onClose={() => setShowChubImport(false)} onImported={fetchCharacters} />
     </div>
   );
 };
