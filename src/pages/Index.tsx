@@ -52,7 +52,6 @@ const Index = () => {
     { to: "/videos", icon: Film, label: "Vídeos AI" },
     { to: "/pack-steam", icon: Gamepad2, label: "Pack Steam" },
     { to: "/downloads", icon: Download, label: "App" },
-    { to: "/accelerator", icon: Zap, label: "Accelerator" },
   ];
 
   const SidebarItem = ({ icon: Icon, label, onClick, active, to, className }: any) => {

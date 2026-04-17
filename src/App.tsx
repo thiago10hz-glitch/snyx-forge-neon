@@ -23,8 +23,6 @@ import NotFound from "./pages/NotFound";
 import SiteManage from "./pages/SiteManage";
 
 import CheckoutReturn from "./pages/CheckoutReturn";
-import Accelerator from "./pages/Accelerator";
-import Optimization from "./pages/Optimization";
 import CloneSite from "./pages/CloneSite";
 import Videos from "./pages/Videos";
 import { CommandPalette } from "./components/CommandPalette";
