@@ -192,8 +192,8 @@ const Index = () => {
           logo={railLogo}
           topItems={railTopItems}
           bottomItems={railBottomItems}
-          headerExtra={<AdminPresenceIndicator />}
           footerExtra={railFooterExtra}
+          collapsed={railCollapsed}
         />
 
         {/* Toggleable history panel */}
