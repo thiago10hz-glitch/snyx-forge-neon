@@ -148,6 +148,17 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
 
+  // Read-only when user opens a conversation from a chat tier they no longer have access to
+  const activeConv = conversations.find(c => c.id === activeConversationId);
+  const convMode = activeConv?.mode;
+  const isReadOnly = !!convMode && (
+    ((convMode === "premium") && !profile?.is_vip && !profile?.is_dev) ||
+    ((convMode === "code" || convMode === "programmer") && !profile?.is_dev)
+  );
+  const readOnlyTier: "vip" | "programmer" | null = isReadOnly
+    ? (convMode === "premium" ? "vip" : "programmer")
+    : null;
+
   const checkMessageLimit = useCallback(async (): Promise<MessageLimitState | null> => {
     if (!user || profile?.is_vip || profile?.is_dev) {
       setMessageLimit(null);
@@ -1669,8 +1680,30 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
           </div>
         )}
 
+        {/* Read-only banner */}
+        {isReadOnly && (
+          <div className="px-3 sm:px-4 md:px-6 pt-2">
+            <div className={`max-w-3xl lg:max-w-4xl mx-auto flex items-center gap-2.5 rounded-xl border px-3 py-2 text-[11px] ${
+              readOnlyTier === "programmer"
+                ? "border-cyan-500/25 bg-cyan-500/8 text-cyan-300"
+                : "border-amber-500/25 bg-amber-500/8 text-amber-300"
+            }`}>
+              <Crown className="w-3.5 h-3.5 shrink-0" />
+              <span className="flex-1 font-medium">
+                Conversa em modo leitura — sua tag {readOnlyTier === "programmer" ? "DEV" : "VIP"} expirou. Histórico salvo, mas envio bloqueado.
+              </span>
+              <button
+                onClick={() => { setVipModalPlan(readOnlyTier === "programmer" ? "programmer" : "vip"); setShowVipModal(true); }}
+                className="px-2.5 py-1 rounded-lg bg-background/40 hover:bg-background/60 border border-border/30 font-bold text-[10px] uppercase tracking-wider transition-all"
+              >
+                Reativar
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Input area */}
-        {mode !== "music" && (
+        {mode !== "music" && !isReadOnly && (
         <div className={`${mode === "programmer" ? "p-1.5 sm:p-2" : "px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 pt-2"} safe-bottom`}>
           <div className={`${mode === "programmer" ? "max-w-2xl" : "max-w-3xl lg:max-w-4xl"} mx-auto`}>
             {/* Main input container */}
