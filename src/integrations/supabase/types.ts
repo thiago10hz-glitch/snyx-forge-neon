@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      accelerator_keys: {
-        Row: {
-          activated_at: string | null
-          activated_by: string | null
-          activation_key: string
-          created_at: string
-          created_by: string
-          expires_at: string | null
-          id: string
-          linked_imei: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          activated_at?: string | null
-          activated_by?: string | null
-          activation_key: string
-          created_at?: string
-          created_by: string
-          expires_at?: string | null
-          id?: string
-          linked_imei?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          activated_at?: string | null
-          activated_by?: string | null
-          activation_key?: string
-          created_at?: string
-          created_by?: string
-          expires_at?: string | null
-          id?: string
-          linked_imei?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       admin_live_chats: {
         Row: {
           admin_id: string | null
@@ -1085,95 +1046,11 @@ export type Database = {
         }
         Relationships: []
       }
-      vpn_peers: {
-        Row: {
-          activated_with_key: string | null
-          assigned_ip: string
-          created_at: string
-          dns_servers: string
-          id: string
-          is_active: boolean
-          peer_private_key: string
-          peer_public_key: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          activated_with_key?: string | null
-          assigned_ip: string
-          created_at?: string
-          dns_servers?: string
-          id?: string
-          is_active?: boolean
-          peer_private_key: string
-          peer_public_key: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          activated_with_key?: string | null
-          assigned_ip?: string
-          created_at?: string
-          dns_servers?: string
-          id?: string
-          is_active?: boolean
-          peer_private_key?: string
-          peer_public_key?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vpn_peers_activated_with_key_fkey"
-            columns: ["activated_with_key"]
-            isOneToOne: false
-            referencedRelation: "accelerator_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vpn_server_config: {
-        Row: {
-          created_at: string
-          id: string
-          is_setup: boolean
-          listen_port: number
-          server_ip: string
-          server_private_key: string
-          server_public_key: string
-          server_subnet: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_setup?: boolean
-          listen_port?: number
-          server_ip: string
-          server_private_key: string
-          server_public_key: string
-          server_subnet?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_setup?: boolean
-          listen_port?: number
-          server_ip?: string
-          server_private_key?: string
-          server_public_key?: string
-          server_subnet?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      activate_accelerator_key: { Args: { p_key: string }; Returns: Json }
       admin_force_set_dev: {
         Args: { p_expires_at?: string; p_is_dev: boolean; p_user_id: string }
         Returns: undefined
@@ -1221,11 +1098,6 @@ export type Database = {
       }
       cleanup_expired_demos: { Args: never; Returns: number }
       find_user_by_email: { Args: { p_email: string }; Returns: string }
-      generate_accelerator_key: {
-        Args: { p_expires_months?: number }
-        Returns: Json
-      }
-      get_my_vpn_config: { Args: never; Returns: Json }
       get_partner_user_id: { Args: { _user_id: string }; Returns: string }
       handle_security_violation: {
         Args: { p_reason?: string; p_user_id: string }
