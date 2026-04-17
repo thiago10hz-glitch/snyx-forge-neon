@@ -229,7 +229,6 @@ const Index = () => {
               </button>
             </div>
           </header>
-          </header>
 
           {/* Content */}
           <div className="flex-1 flex overflow-hidden">
