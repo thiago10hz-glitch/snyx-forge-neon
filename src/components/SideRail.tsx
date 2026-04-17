@@ -93,7 +93,7 @@ export function SideRail({ logo, topItems, bottomItems, headerExtra, footerExtra
 
   return (
     <aside
-      className={`hidden md:flex shrink-0 flex-col z-30 relative overflow-hidden transition-[width] duration-300 ease-out ${
+      className={`flex shrink-0 flex-col z-30 relative overflow-hidden transition-[width] duration-300 ease-out bg-background ${
         expanded ? "w-[200px]" : "w-0"
       }`}
     >
