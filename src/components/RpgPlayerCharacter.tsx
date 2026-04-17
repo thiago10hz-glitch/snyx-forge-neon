@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Swords, Shield, User, Pencil, Trash2, Plus, Check, Upload, Loader2, Crown, Sparkles, X } from "lucide-react";
+// Note: campos `class` e `race` permanecem no banco com valores padrão; UI agora pede só Nome, Aparência, Descrição e Foto.
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -18,8 +19,6 @@ interface PlayerCharacter {
   is_active: boolean;
 }
 
-const CLASSES = ["Guerreiro", "Mago", "Arqueiro", "Assassino", "Paladino", "Necromante", "Druida", "Bardo", "Monge", "Ladino"];
-const RACES = ["Humano", "Elfo", "Anão", "Orc", "Meio-Elfo", "Tiefling", "Draconato", "Halfling", "Gnomo", "Drow", "Emochi"];
 
 interface RpgPlayerCharacterProps {
   onClose: () => void;
@@ -36,10 +35,8 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
 
   const [form, setForm] = useState({
     name: "",
-    class: "Guerreiro",
-    race: "Humano",
-    backstory: "",
-    personality: "",
+    backstory: "",   // Descrição
+    personality: "", // Aparência
     avatar_url: "",
   });
 
@@ -85,8 +82,8 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
     setSaving(true);
     const payload = {
       name: form.name.trim(),
-      class: form.class,
-      race: form.race,
+      class: "Aventureiro",
+      race: "Humano",
       backstory: form.backstory.trim(),
       personality: form.personality.trim(),
       avatar_url: form.avatar_url || null,
@@ -111,7 +108,7 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
     }
     setEditing(false);
     setEditingId(null);
-    setForm({ name: "", class: "Guerreiro", race: "Humano", backstory: "", personality: "", avatar_url: "" });
+    setForm({ name: "", backstory: "", personality: "", avatar_url: "" });
     setSaving(false);
     fetchCharacters();
   };
@@ -119,8 +116,6 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
   const handleEdit = (char: PlayerCharacter) => {
     setForm({
       name: char.name,
-      class: char.class,
-      race: char.race,
       backstory: char.backstory || "",
       personality: char.personality || "",
       avatar_url: char.avatar_url || "",
@@ -226,49 +221,25 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
                 />
               </div>
 
-              {/* Class & Race */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Classe</label>
-                  <select
-                    value={form.class}
-                    onChange={e => setForm(f => ({ ...f, class: e.target.value }))}
-                    className="w-full rounded-lg bg-muted/10 border border-border/10 px-3 py-2 text-sm text-foreground"
-                  >
-                    {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Raça</label>
-                  <select
-                    value={form.race}
-                    onChange={e => setForm(f => ({ ...f, race: e.target.value }))}
-                    className="w-full rounded-lg bg-muted/10 border border-border/10 px-3 py-2 text-sm text-foreground"
-                  >
-                    {RACES.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* Backstory */}
+              {/* Descrição */}
               <div>
-                <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">História de Fundo</label>
+                <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Descrição</label>
                 <Textarea
                   value={form.backstory}
                   onChange={e => setForm(f => ({ ...f, backstory: e.target.value }))}
-                  placeholder="De onde ele veio? Qual sua motivação? O que busca?"
+                  placeholder="Quem é você? O que faz? Qual sua história?"
                   className="bg-muted/10 border-border/10 min-h-[80px] text-sm"
                   maxLength={500}
                 />
               </div>
 
-              {/* Personality */}
+              {/* Aparência */}
               <div>
-                <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Personalidade</label>
+                <label className="text-xs font-medium text-muted-foreground/60 mb-1.5 block">Aparência</label>
                 <Textarea
                   value={form.personality}
                   onChange={e => setForm(f => ({ ...f, personality: e.target.value }))}
-                  placeholder="Corajoso, sarcástico, gentil, misterioso..."
+                  placeholder="Como você se parece? Cabelo, olhos, roupas, traços marcantes..."
                   className="bg-muted/10 border-border/10 min-h-[60px] text-sm"
                   maxLength={300}
                 />
@@ -339,7 +310,7 @@ export function RpgPlayerCharacter({ onClose }: RpgPlayerCharacterProps) {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground/60 mt-0.5">
-                            {char.race} • {char.class} • Nível {char.level}
+                            Nível {char.level}
                           </p>
                           {char.backstory && (
                             <p className="text-[11px] text-muted-foreground/40 mt-1 line-clamp-2">{char.backstory}</p>
