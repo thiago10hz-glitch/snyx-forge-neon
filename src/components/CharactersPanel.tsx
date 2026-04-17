@@ -454,36 +454,46 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {sorted.map((char) => (
-                  <button
+                  <div
                     key={char.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => openCharacter(char)}
-                    className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 text-left"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openCharacter(char);
+                      }
+                    }}
+                    className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/10 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 text-left cursor-pointer"
                   >
                     <CharacterImg src={char.avatar_url ?? ""} alt={char.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
 
-                    {/* Top badges */}
                     <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
                       <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur text-[10px] text-white font-medium">
                         <MessageCircle className="w-3 h-3" />
                         {formatCount(char.chat_count)}
                       </div>
-                      <button
-                        onClick={(e) => toggleFav(char.id, e)}
-                        className={`w-8 h-8 rounded-full backdrop-blur flex items-center justify-center transition-all ${favIds.has(char.id) ? "bg-yellow-500/80 hover:bg-yellow-500" : "bg-black/50 hover:bg-black/70"}`}
-                        title={favIds.has(char.id) ? "Remover favorito" : "Favoritar"}
-                      >
-                        <Sparkles className={`w-4 h-4 ${favIds.has(char.id) ? "fill-white text-white" : "text-white/70"}`} />
-                      </button>
-                      <button
-                        onClick={(e) => toggleLike(char.id, e)}
-                        className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center hover:bg-black/70 transition-all"
-                      >
-                        <Heart className={`w-4 h-4 transition-all ${likedIds.has(char.id) ? "fill-red-500 text-red-500 scale-110" : "text-white/70"}`} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFav(char.id, e)}
+                          className={`w-8 h-8 rounded-full backdrop-blur flex items-center justify-center transition-all ${favIds.has(char.id) ? "bg-yellow-500/80 hover:bg-yellow-500" : "bg-black/50 hover:bg-black/70"}`}
+                          title={favIds.has(char.id) ? "Remover favorito" : "Favoritar"}
+                        >
+                          <Sparkles className={`w-4 h-4 ${favIds.has(char.id) ? "fill-white text-white" : "text-white/70"}`} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => toggleLike(char.id, e)}
+                          className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center hover:bg-black/70 transition-all"
+                        >
+                          <Heart className={`w-4 h-4 transition-all ${likedIds.has(char.id) ? "fill-red-500 text-red-500 scale-110" : "text-white/70"}`} />
+                        </button>
+                      </div>
                     </div>
 
-                    {/* NSFW lock */}
                     {char.is_nsfw && !isVip && (
                       <div className="absolute inset-0 bg-black/70 backdrop-blur-md flex flex-col items-center justify-center gap-2">
                         <Lock className="w-8 h-8 text-yellow-400" />
@@ -496,7 +506,6 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                       </div>
                     )}
 
-                    {/* Bottom info */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className="text-sm font-bold text-white truncate">{char.name}</h3>
                       <p className="text-[10px] text-white/60 line-clamp-2 mt-0.5 leading-snug">{char.description}</p>
@@ -508,7 +517,7 @@ export const CharactersPanel = ({ onBack, onStartChat }: CharactersPanelProps) =
                         </div>
                       )}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
