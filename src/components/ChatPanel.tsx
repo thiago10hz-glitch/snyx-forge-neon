@@ -1412,16 +1412,15 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-[1.05]">
                   {mode === "friend" ? (
                     <>
-                      <span className="text-foreground/95">Oi, eu sou o </span>
                       <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
                         SnyX
                       </span>
                       <br />
-                      <span className="text-foreground/95">seu </span>
+                      <span className="text-foreground/95">Seja Bem Vindo Ao Seu </span>
                       <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
-                        amigo
+                        Melhor Amigo
                       </span>
-                      <span className="text-foreground/95"> sempre 💖</span>
+                      <span className="text-foreground/95"> 💖</span>
                     </>
                   ) : (
                     <>
