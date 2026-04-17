@@ -583,104 +583,24 @@ export default function Admin() {
                           </div>
                         </div>
 
-                        {/* Actions */}
+                        {/* Actions: tudo dentro do perfil */}
                         {u.user_id !== user!.id && (
-                          <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
-                            <ActionButton
-                              icon={Sparkles}
-                              title="Abrir perfil / dar tag"
-                              color="text-primary hover:bg-primary/10 border-primary/25"
-                              onClick={() => setTagModalUserId(u.user_id)}
-                              loading={false}
-                              disabled={false}
-                            />
-                            <ActionButton
-                              icon={Eye}
-                              title="Detalhes"
-                              color="text-muted-foreground hover:bg-muted/50 border-border/20"
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
                               onClick={() => setExpandedUser(isExpanded ? null : u.user_id)}
-                              loading={false}
-                              disabled={false}
-                            />
-                            <ActionButton
-                              icon={Crown}
-                              title="Dar VIP"
-                              color="text-yellow-400 hover:bg-yellow-500/10 border-yellow-500/20"
-                              onClick={() => setVipModalUser(u.user_id)}
-                              loading={false}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_vip && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar VIP"
-                                color="text-destructive hover:bg-destructive/10 border-destructive/20"
-                                onClick={() => revokeVip(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_vip"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            <ActionButton
-                              icon={Code2}
-                              title="Dar DEV"
-                              color="text-cyan-400 hover:bg-cyan-500/10 border-cyan-500/20"
-                              onClick={() => setDevModalUser(u.user_id)}
-                              loading={false}
-                              disabled={actionLoading !== null}
-                            />
-                            {u.is_dev && (
-                              <ActionButton
-                                icon={UserX}
-                                title="Revogar DEV"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => revokeDev(u.user_id)}
-                                loading={actionLoading === u.user_id + "-revoke_dev"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            
-                            <ActionButton
-                              icon={ShieldCheck}
-                              title="Badge SnyX"
-                              color="text-primary hover:bg-primary/10 border-primary/20"
-                              onClick={() => {
-                                const badge = prompt("Badge da equipe (ex: SnyX, Primeira-Dama)\nDeixe vazio para remover:");
-                                setTeamBadge(u.user_id, badge?.trim() || null);
-                              }}
-                              loading={actionLoading === u.user_id + "-badge"}
-                              disabled={actionLoading !== null}
-                            />
-                            {isBanned(u) ? (
-                              <ActionButton
-                                icon={ShieldOff}
-                                title="Desbanir"
-                                color="text-emerald-400 hover:bg-emerald-500/10 border-emerald-500/20"
-                                onClick={() => adminAction("unban", u.user_id)}
-                                loading={actionLoading === u.user_id + "-unban"}
-                                disabled={actionLoading !== null}
-                              />
-                            ) : (
-                              <ActionButton
-                                icon={Ban}
-                                title="Banir"
-                                color="text-orange-400 hover:bg-orange-500/10 border-orange-500/20"
-                                onClick={() => adminAction("ban", u.user_id, banHoursInput[u.user_id] || 24)}
-                                loading={actionLoading === u.user_id + "-ban"}
-                                disabled={actionLoading !== null}
-                              />
-                            )}
-                            <ActionButton
-                              icon={Trash2}
-                              title="Excluir"
-                              color="text-destructive hover:bg-destructive/10 border-destructive/20"
-                              onClick={() => {
-                                if (confirm("Excluir este usuário? Isso é irreversível!")) {
-                                  adminAction("delete", u.user_id);
-                                }
-                              }}
-                              loading={actionLoading === u.user_id + "-delete"}
-                              disabled={actionLoading !== null}
-                            />
+                              className="p-2 rounded-xl border border-border/20 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
+                              title="Ver detalhes técnicos"
+                            >
+                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => setTagModalUserId(u.user_id)}
+                              className="px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center gap-1.5 text-xs font-bold"
+                              title="Abrir perfil de admin"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Abrir perfil</span>
+                            </button>
                           </div>
                         )}
                       </div>
