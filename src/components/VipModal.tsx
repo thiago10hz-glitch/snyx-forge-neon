@@ -172,7 +172,7 @@ export function VipModal({ open, onClose, highlightPlan = "vip" }: VipModalProps
         </div>
 
         {/* Plans */}
-        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
+        <div className="p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto flex-1 scrollbar-thin">
           {/* VIP Plan */}
           <div className={`rounded-2xl border p-3 sm:p-5 transition-all flex flex-col ${
             highlightPlan === "vip"
