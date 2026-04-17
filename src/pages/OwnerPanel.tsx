@@ -120,12 +120,12 @@ export default function OwnerPanel() {
       supabase.from("chat_conversations").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
-      supabase.from("hosted_sites").select("id", { count: "exact", head: true }).eq("status", "active"),
       supabase.from("ai_characters").select("id", { count: "exact", head: true }),
       supabase.from("chat_connections").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("display_name, created_at, is_vip, is_dev, team_badge").order("created_at", { ascending: false }).limit(10),
       supabase.from("profiles").select("display_name, free_messages_used, is_vip").order("free_messages_used", { ascending: false }).limit(5),
     ]);
+    const siteCount = 0;
 
     const users = profiles || [];
     const notExpired = (flag: boolean, exp: string | null) => flag && (!exp || new Date(exp) > now);
