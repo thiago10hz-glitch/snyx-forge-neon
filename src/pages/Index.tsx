@@ -137,7 +137,7 @@ const Index = () => {
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-1.5 overflow-y-auto scrollbar-hide">
             <MiniItem icon={MessageSquare} label="Chats" onClick={handleBackToSelector} active={chatChoice === null} />
-            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} />
+            <MiniItem icon={History} label="Histórico" onClick={() => setHistoryOpen(true)} active={historyOpen} dot={chatChoice !== null} />
 
             {isAdmin && (
               <>
