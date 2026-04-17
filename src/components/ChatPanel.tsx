@@ -158,6 +158,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const skipNextLoadRef = useRef<string | null>(null);
   const { profile, user } = useAuth();
   const [messageLimit, setMessageLimit] = useState<MessageLimitState | null>(null);
 
@@ -250,6 +251,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
 
   useEffect(() => {
     if (!activeConversationId) { setMessages([]); setConversationSummary(""); return; }
+    // If this conversation was just created locally, skip the reload (would wipe in-flight messages)
+    if (skipNextLoadRef.current === activeConversationId) {
+      skipNextLoadRef.current = null;
+      return;
+    }
     (async () => {
       const [msgsRes, sumRes] = await Promise.all([
         supabase.from("chat_messages").select("role, content").eq("conversation_id", activeConversationId).order("created_at", { ascending: true }),
@@ -789,6 +795,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
     if (!convId) {
       convId = await createConversation();
       if (!convId) { toast.error("Erro ao criar conversa"); return; }
+      skipNextLoadRef.current = convId;
       setActiveConversationId(convId);
     }
 
@@ -1042,7 +1049,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       await consumeFreeMessage();
     } catch (err) {
       console.error("Chat error:", err);
-      setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao contactar a IA. Tente novamente." }]);
+      const errMsg = "❌ Erro ao contactar a IA. Tente novamente.";
+      setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
+      // Persist the error so user sees something on reload instead of an orphan user message
+      if (convId) await saveMessage(convId, "assistant", errMsg).catch(() => {});
       // Re-check limit on error to restore accurate state
       void checkMessageLimit();
     } finally {
