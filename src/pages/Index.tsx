@@ -174,11 +174,11 @@ const Index = () => {
                 <Menu className="w-4 h-4" />
               </button>
 
-              {/* Logo SnyX — aparece quando não há SideRail (não-admins) ou no mobile */}
+              {/* Logo SnyX — esconde em mobile (menu já tem branding); aparece em desktop quando não há SideRail */}
               <Link
                 to="/"
                 title="SnyX"
-                className={`group relative w-9 h-9 rounded-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 ${isAdmin ? "md:hidden" : ""}`}
+                className={`group relative w-9 h-9 rounded-2xl items-center justify-center transition-all duration-500 hover:scale-110 hidden sm:flex ${isAdmin ? "md:hidden" : ""}`}
               >
                 <span className="absolute inset-0 rounded-2xl bg-primary/30 blur-lg opacity-60 group-hover:opacity-100 transition-all duration-500" aria-hidden />
                 <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.25)]" aria-hidden />
