@@ -275,16 +275,24 @@ Deno.serve(async (req) => {
 
     const finalPrompt = buildPrompt(prompt, Boolean(isPrivileged));
 
-    // Primary: Pollinations (free, no API key)
-    const poll = await generateWithPollinations(finalPrompt);
-    if (poll.ok) {
-      return new Response(JSON.stringify({
-        type: "image",
-        image_url: poll.imageUrl,
-        text: isPrivileged ? "🎨 Imagem gerada! ✨" : "🎨 Imagem gerada com segurança! ✨",
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Provider chain: Pollinations -> Hugging Face -> DeepAI -> Lovable AI
+    const providers: Array<{ name: string; fn: () => Promise<{ ok: true; imageUrl: string } | { ok: false; status: number; rawText: string }> }> = [
+      { name: "Pollinations", fn: () => generateWithPollinations(finalPrompt) },
+      { name: "HuggingFace", fn: () => generateWithHuggingFace(finalPrompt) },
+      { name: "DeepAI", fn: () => generateWithDeepAI(finalPrompt) },
+    ];
+
+    for (const p of providers) {
+      const r = await p.fn();
+      if (r.ok) {
+        return new Response(JSON.stringify({
+          type: "image",
+          image_url: r.imageUrl,
+          text: isPrivileged ? "🎨 Imagem gerada! ✨" : "🎨 Imagem gerada com segurança! ✨",
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      console.error(`${p.name} failed:`, r.rawText);
     }
-    console.error("Pollinations failed, falling back to Lovable AI:", poll.rawText);
 
     // Fallback: Lovable AI
     const initialResult = await generateImage(LOVABLE_API_KEY, finalPrompt);
