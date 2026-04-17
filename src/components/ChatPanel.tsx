@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Music, Palette, Archive, PenLine, Rocket, Copy, Check } from "lucide-react";
+import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCircle, Clock, Crown, Sparkles, Globe, Loader2, Bot, PanelLeftClose, PanelLeft, Mic, MicOff, Brain, Settings, ImagePlus, Camera, Palette, Archive, PenLine, Rocket, Copy, Check } from "lucide-react";
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 
 import ReactMarkdown from "react-markdown";
@@ -48,7 +48,7 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer" | "music";
+type ChatMode = "friend" | "programmer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
@@ -659,8 +659,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange }: ChatPanelProps) {
       }
     }
     
-    // Music mode requires VIP or DEV
-    if (mode === "music" && !profile?.is_vip && !profile?.is_dev) {
+    // (música removida)
+    if (false) {
       setVipModalPlan("vip");
       setShowVipModal(true);
       return;
