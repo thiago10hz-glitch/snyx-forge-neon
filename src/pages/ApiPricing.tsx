@@ -113,7 +113,7 @@ export default function ApiPricing() {
         <header className="text-center mb-14 sm:mb-20">
           <div className="relative mx-auto mb-8 max-w-3xl rounded-3xl overflow-hidden border border-primary/30 shadow-[0_0_80px_-10px_hsl(var(--primary)/0.7)] animate-[float_6s_ease-in-out_infinite]">
             {/* Pulsing glow ring */}
-            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary via-pink-500 to-primary opacity-60 blur-2xl animate-pulse pointer-events-none" />
+            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary via-primary/60 to-primary opacity-60 blur-2xl animate-pulse pointer-events-none" />
             <div className="relative">
               <img
                 src={apiHero}
