@@ -193,7 +193,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
             {/* Badges */}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
               {profile?.is_dev ? (
-                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/12 text-cyan-400 font-bold border border-cyan-500/15">
+                <span className="inline-flex items-center gap-0.5 text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/40 shadow-[0_0_12px_rgba(34,211,238,0.5),inset_0_0_8px_rgba(34,211,238,0.15)] animate-pulse" style={{ animationDuration: '2.5s' }}>
                   <Code size={8} /> DEV
                 </span>
               ) : profile?.is_rpg_premium ? (
@@ -208,7 +208,7 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
                 <span className="badge-free !text-[9px] !px-2 !py-0.5">Free</span>
               )}
               {profile?.team_badge && (profile.team_badge === "Dono" || profile.team_badge === "Dona") ? (
-                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 text-amber-300 font-black border border-amber-400/20 animate-pulse" style={{ animationDuration: '3s' }}>
+                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/25 to-amber-500/25 text-amber-200 font-black border border-amber-400/50 shadow-[0_0_16px_rgba(251,191,36,0.6),inset_0_0_10px_rgba(251,191,36,0.2)] animate-pulse" style={{ animationDuration: '2.5s' }}>
                   👑 {profile.team_badge}
                 </span>
               ) : profile?.team_badge ? (
