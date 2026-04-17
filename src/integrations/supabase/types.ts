@@ -202,42 +202,6 @@ export type Database = {
         }
         Relationships: []
       }
-      app_releases: {
-        Row: {
-          changelog: string | null
-          created_at: string
-          file_size: number | null
-          file_url: string
-          id: string
-          platform: string
-          updated_at: string
-          uploaded_by: string
-          version: string
-        }
-        Insert: {
-          changelog?: string | null
-          created_at?: string
-          file_size?: number | null
-          file_url: string
-          id?: string
-          platform?: string
-          updated_at?: string
-          uploaded_by: string
-          version: string
-        }
-        Update: {
-          changelog?: string | null
-          created_at?: string
-          file_size?: number | null
-          file_url?: string
-          id?: string
-          platform?: string
-          updated_at?: string
-          uploaded_by?: string
-          version?: string
-        }
-        Relationships: []
-      }
       character_favorites: {
         Row: {
           character_id: string
@@ -295,39 +259,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      chat_connections: {
-        Row: {
-          approved_by: string | null
-          created_at: string
-          id: string
-          requester_id: string
-          status: string
-          target_email: string
-          target_user_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          approved_by?: string | null
-          created_at?: string
-          id?: string
-          requester_id: string
-          status?: string
-          target_email: string
-          target_user_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          approved_by?: string | null
-          created_at?: string
-          id?: string
-          requester_id?: string
-          status?: string
-          target_email?: string
-          target_user_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       chat_conversations: {
         Row: {
@@ -437,79 +368,6 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "chat_conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_shared_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          role: string
-          room_id: string
-          sender_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          role?: string
-          room_id: string
-          sender_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          role?: string
-          room_id?: string
-          sender_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_shared_messages_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "chat_shared_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_shared_rooms: {
-        Row: {
-          connection_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          title: string
-          user1_id: string
-          user2_id: string
-        }
-        Insert: {
-          connection_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          title?: string
-          user1_id: string
-          user2_id: string
-        }
-        Update: {
-          connection_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          title?: string
-          user1_id?: string
-          user2_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_shared_rooms_connection_id_fkey"
-            columns: ["connection_id"]
-            isOneToOne: false
-            referencedRelation: "chat_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -651,51 +509,6 @@ export type Database = {
         }
         Relationships: []
       }
-      rpg_player_characters: {
-        Row: {
-          avatar_url: string | null
-          backstory: string | null
-          class: string
-          created_at: string
-          id: string
-          is_active: boolean
-          level: number
-          name: string
-          personality: string | null
-          race: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          backstory?: string | null
-          class?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          level?: number
-          name: string
-          personality?: string | null
-          race?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          avatar_url?: string | null
-          backstory?: string | null
-          class?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          level?: number
-          name?: string
-          personality?: string | null
-          race?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       security_audit_log: {
         Row: {
           created_at: string
@@ -728,54 +541,6 @@ export type Database = {
           resource?: string | null
           severity?: string
           user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      subscriptions: {
-        Row: {
-          cancel_at_period_end: boolean | null
-          created_at: string | null
-          current_period_end: string | null
-          current_period_start: string | null
-          environment: string
-          id: string
-          price_id: string
-          product_id: string
-          status: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          cancel_at_period_end?: boolean | null
-          created_at?: string | null
-          current_period_end?: string | null
-          current_period_start?: string | null
-          environment?: string
-          id?: string
-          price_id: string
-          product_id: string
-          status?: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          cancel_at_period_end?: boolean | null
-          created_at?: string | null
-          current_period_end?: string | null
-          current_period_start?: string | null
-          environment?: string
-          id?: string
-          price_id?: string
-          product_id?: string
-          status?: string
-          stripe_customer_id?: string
-          stripe_subscription_id?: string
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -893,36 +658,6 @@ export type Database = {
         }
         Relationships: []
       }
-      voice_call_history: {
-        Row: {
-          created_at: string
-          gender: string
-          id: string
-          messages: Json
-          updated_at: string
-          user_id: string
-          voice_id: string
-        }
-        Insert: {
-          created_at?: string
-          gender?: string
-          id?: string
-          messages?: Json
-          updated_at?: string
-          user_id: string
-          voice_id: string
-        }
-        Update: {
-          created_at?: string
-          gender?: string
-          id?: string
-          messages?: Json
-          updated_at?: string
-          user_id?: string
-          voice_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -972,10 +707,6 @@ export type Database = {
       handle_security_violation: {
         Args: { p_reason?: string; p_user_id: string }
         Returns: Json
-      }
-      has_active_subscription: {
-        Args: { check_env?: string; user_uuid: string }
-        Returns: boolean
       }
       has_role: {
         Args: {
