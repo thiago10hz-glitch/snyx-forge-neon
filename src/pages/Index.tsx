@@ -10,6 +10,8 @@ import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSelector, type ChatChoice } from "@/components/ChatSelector";
 import { HistorySidebar } from "@/components/HistorySidebar";
+import { AuroraBackground } from "@/components/AuroraBackground";
+import { ChevronDown, Heart, Crown as CrownIcon, Code as CodeIcon, Lock } from "lucide-react";
 
 // Lazy load heavy components
 const ChatPanel = lazy(() => import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel })));
