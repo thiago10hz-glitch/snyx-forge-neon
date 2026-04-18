@@ -1498,6 +1498,21 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                     : config.emptyText}
                 </p>
 
+                {/* Botão VIP unificado: ativa modo VIP+18 (ou abre modal de upgrade) */}
+                {mode === "friend" && onUpgradeToVip && (
+                  <button
+                    onClick={onUpgradeToVip}
+                    className="group relative mb-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/20 via-primary/15 to-primary/20 border border-primary/40 text-primary text-[13px] font-semibold tracking-wide hover:from-primary/30 hover:to-primary/30 hover:border-primary/60 hover:shadow-[0_0_30px_-6px_hsl(var(--primary)/0.7)] transition-all duration-300 backdrop-blur-sm"
+                    title={isVipUser ? "Trocar para o modo VIP +18" : "Desbloquear VIP +18"}
+                  >
+                    <Crown className="w-4 h-4 fill-primary/30" strokeWidth={2.2} />
+                    <span>
+                      {isVipUser ? "Ativar modo VIP +18" : "Desbloquear VIP +18 🔒"}
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity" strokeWidth={2.2} />
+                  </button>
+                )}
+
                 {/* Quick suggestions */}
                 <div className="grid gap-2.5">
                   {(mode === "friend"
