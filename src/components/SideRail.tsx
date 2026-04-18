@@ -77,6 +77,11 @@ export function SideRail({
 
     return (
       <div key={idx} className={`w-full ${item.groupedWithPrev ? "-mt-0.5" : ""}`}>
+        {item.sectionLabel && (
+          <div className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/50">
+            {item.sectionLabel}
+          </div>
+        )}
         {wrapper}
       </div>
     );
