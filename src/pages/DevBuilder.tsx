@@ -24,7 +24,8 @@ interface ChatMsg { role: "user" | "assistant"; content: string }
 export default function DevBuilder() {
   const { user, profile, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const isDev = !!profile?.is_dev && (!profile.dev_expires_at || new Date(profile.dev_expires_at) > new Date());
+  const devExpires = (profile as any)?.dev_expires_at as string | null | undefined;
+  const isDev = !!profile?.is_dev && (!devExpires || new Date(devExpires) > new Date());
   const allowed = isAdmin || isDev;
 
   const [projects, setProjects] = useState<DevProject[]>([]);
