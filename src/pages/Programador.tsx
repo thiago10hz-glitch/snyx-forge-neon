@@ -165,27 +165,38 @@ export default function Programador() {
   const activeMode = MODES.find(m => m.id === mode)!;
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground">
+      {/* Aurora background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-primary/25 blur-[140px] animate-pulse" style={{ animationDuration: "8s" }} />
+        <div className="absolute top-1/3 -right-32 h-[420px] w-[420px] rounded-full bg-primary/15 blur-[140px] animate-pulse" style={{ animationDuration: "11s", animationDelay: "2s" }} />
+        <div className="absolute -bottom-40 left-1/3 h-[460px] w-[460px] rounded-full bg-primary/10 blur-[160px] animate-pulse" style={{ animationDuration: "13s", animationDelay: "4s" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.08),transparent_60%)]" />
+      </div>
+
       {/* Header */}
-      <header className="relative flex items-center justify-between border-b border-border/60 bg-background/60 px-4 py-3 backdrop-blur-xl">
+      <header className="relative z-10 flex items-center justify-between border-b border-white/5 bg-background/40 px-4 py-3 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/")}
-            className="h-9 w-9 rounded-lg hover:bg-muted"
+            className="h-9 w-9 rounded-lg hover:bg-white/5"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-2.5">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/30">
-              <Code2 className="h-4.5 w-4.5 text-primary-foreground" />
-              <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md -z-10" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-primary/80 to-primary/40 shadow-lg shadow-primary/40">
+              <Code2 className="h-5 w-5 text-primary-foreground" />
+              <div className="absolute inset-0 rounded-xl bg-primary/40 blur-xl -z-10 animate-pulse" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight">SnyX Programador</h1>
-              <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-                Construa sites com IA · {activeMode.label}
+              <h1 className="text-sm font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                SnyX Programador
+              </h1>
+              <p className="text-[10px] text-muted-foreground leading-none mt-0.5 flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Construindo com IA · {activeMode.label}
               </p>
             </div>
           </div>
@@ -211,22 +222,25 @@ export default function Programador() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative z-10 flex flex-1 overflow-hidden">
         {/* Chat */}
         <section
-          className={`${view === "chat" ? "flex" : "hidden"} md:flex w-full flex-col border-r border-border/60 bg-background/40 md:w-[480px]`}
+          className={`${view === "chat" ? "flex" : "hidden"} md:flex w-full flex-col border-r border-white/5 bg-background/30 backdrop-blur-xl md:w-[480px]`}
         >
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-5">
             {chat.length === 0 && (
-              <div className="space-y-5 animate-fade-in">
-                <div className="text-center pt-4">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 mb-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
+              <div className="space-y-6 animate-fade-in">
+                <div className="text-center pt-6">
+                  <div className="relative inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 via-primary/15 to-transparent border border-primary/40 mb-4 shadow-2xl shadow-primary/20">
+                    <Sparkles className="h-7 w-7 text-primary" />
+                    <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl -z-10 animate-pulse" />
                   </div>
-                  <h2 className="text-lg font-bold tracking-tight">O que vamos criar?</h2>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Descreva sua ideia e veja o site nascer ao lado
+                  <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+                    O que vamos criar?
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+                    Descreva sua ideia e veja o site nascer ao lado em tempo real
                   </p>
                 </div>
 
@@ -236,10 +250,11 @@ export default function Programador() {
                       key={s}
                       onClick={() => sendPrompt(s)}
                       disabled={busy}
-                      className="group flex items-center gap-2 rounded-xl border border-border/60 bg-card/40 px-3 py-2.5 text-left text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-card hover:text-foreground hover:shadow-md hover:shadow-primary/10 disabled:opacity-50"
+                      className="group relative flex items-center gap-2.5 overflow-hidden rounded-xl border border-white/5 bg-card/30 px-3.5 py-3 text-left text-xs text-muted-foreground backdrop-blur transition-all hover:border-primary/40 hover:bg-card/60 hover:text-foreground hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 disabled:opacity-50"
                     >
-                      <Sparkles className="h-3.5 w-3.5 text-primary/60 shrink-0 group-hover:text-primary transition-colors" />
-                      <span>{s}</span>
+                      <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+                      <Sparkles className="relative h-3.5 w-3.5 text-primary/60 shrink-0 transition-all group-hover:text-primary group-hover:scale-110" />
+                      <span className="relative">{s}</span>
                     </button>
                   ))}
                 </div>
@@ -253,39 +268,39 @@ export default function Programador() {
                   className={`flex gap-2.5 animate-fade-in ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                 >
                   <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-md ${
                       m.role === "user"
-                        ? "bg-primary/20 text-primary"
-                        : "bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md shadow-primary/20"
+                        ? "bg-gradient-to-br from-primary/30 to-primary/10 text-primary border border-primary/30"
+                        : "bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-primary/30"
                     }`}
                   >
                     {m.role === "user" ? (
-                      <UserIcon className="h-3.5 w-3.5" />
+                      <UserIcon className="h-4 w-4" />
                     ) : (
-                      <Sparkles className="h-3.5 w-3.5" />
+                      <Sparkles className="h-4 w-4" />
                     )}
                   </div>
 
                   <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap shadow-sm ${
+                    className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap shadow-lg backdrop-blur ${
                       m.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-tr-sm shadow-primary/20"
                         : m.thinking
-                          ? "bg-muted/60 italic text-muted-foreground rounded-tl-sm border border-border/40"
-                          : "bg-card text-foreground rounded-tl-sm border border-border/60"
+                          ? "bg-muted/40 italic text-muted-foreground rounded-tl-sm border border-white/5"
+                          : "bg-card/60 text-foreground rounded-tl-sm border border-white/10"
                     }`}
                   >
                     {m.content || (m.thinking ? "pensando..." : "")}
                     {m.thinking && (
                       <span className="ml-1.5 inline-flex gap-0.5 align-middle">
-                        <span className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "300ms" }} />
                       </span>
                     )}
                     {m.htmlSaved && (
-                      <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-500 not-italic font-medium">
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20">
+                      <div className="mt-2.5 flex items-center gap-1.5 text-xs text-emerald-400 not-italic font-medium">
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40">
                           <Check className="h-2.5 w-2.5" />
                         </div>
                         Site atualizado no preview
@@ -299,8 +314,8 @@ export default function Programador() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-border/60 bg-background/60 p-3 backdrop-blur-xl">
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-2 shadow-lg shadow-black/5 transition-all focus-within:border-primary/50 focus-within:shadow-primary/10">
+          <div className="border-t border-white/5 bg-background/40 p-3 backdrop-blur-2xl">
+            <div className="rounded-2xl border border-white/10 bg-card/40 p-2 shadow-xl shadow-black/20 backdrop-blur transition-all focus-within:border-primary/50 focus-within:shadow-primary/20 focus-within:bg-card/60">
               <Textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -323,8 +338,8 @@ export default function Programador() {
                         title={m.desc}
                         className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
                           active
-                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 scale-105"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/40 scale-105"
+                            : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                         }`}
                       >
                         <Icon className="h-3 w-3" />
@@ -337,7 +352,7 @@ export default function Programador() {
                   onClick={() => sendPrompt()}
                   disabled={busy || !input.trim()}
                   size="icon"
-                  className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none"
+                  className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 hover:scale-105 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none disabled:scale-100"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
@@ -350,16 +365,16 @@ export default function Programador() {
         </section>
 
         {/* Preview */}
-        <section className={`${view === "preview" ? "flex" : "hidden"} md:flex flex-1 flex-col bg-muted/20 p-3`}>
-          <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-white shadow-2xl shadow-black/20">
+        <section className={`${view === "preview" ? "flex" : "hidden"} md:flex flex-1 flex-col p-3`}>
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white shadow-2xl shadow-black/40 ring-1 ring-primary/10">
             {/* Browser chrome */}
-            <div className="flex items-center gap-2 border-b border-border/40 bg-muted/40 px-3 py-2">
+            <div className="flex items-center gap-2 border-b border-border/40 bg-gradient-to-b from-muted/60 to-muted/30 px-3 py-2.5">
               <div className="flex gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-                <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
-                <div className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
+                <div className="h-3 w-3 rounded-full bg-red-400/90 shadow-sm" />
+                <div className="h-3 w-3 rounded-full bg-yellow-400/90 shadow-sm" />
+                <div className="h-3 w-3 rounded-full bg-green-400/90 shadow-sm" />
               </div>
-              <div className="ml-2 flex-1 rounded-md bg-background/60 px-2.5 py-1 text-[11px] text-muted-foreground">
+              <div className="ml-2 flex-1 rounded-md bg-background/80 px-3 py-1 text-[11px] text-muted-foreground font-mono">
                 preview · seu-site.snyx.app
               </div>
             </div>
