@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+type BuilderErrorCode = "AI_CREDITS_EXHAUSTED" | "AI_RATE_LIMITED" | "AI_UNAVAILABLE" | "UNAUTHORIZED" | "BAD_REQUEST";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -25,25 +27,56 @@ REGRAS DO HTML:
 - Se for alteração pequena, mantenha tudo que já existe e mude só o necessário.
 - Nunca escreva nada DEPOIS de <<<END>>>.`;
 
+function jsonResponse(payload: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function handledError(code: BuilderErrorCode, message: string, status = 200, details?: string) {
+  return jsonResponse(
+    {
+      ok: false,
+      handled: true,
+      code,
+      error: message,
+      details,
+    },
+    status,
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurado");
+    if (!LOVABLE_API_KEY) {
+      return handledError("AI_UNAVAILABLE", "IA não configurada no momento.");
+    }
 
-    const supaUrl = Deno.env.get("SUPABASE_URL")!;
-    const userClient = createClient(supaUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const supaUrl = Deno.env.get("SUPABASE_URL");
+    const supaAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supaUrl || !supaAnonKey) {
+      return handledError("AI_UNAVAILABLE", "Backend indisponível no momento.");
+    }
+
+    const userClient = createClient(supaUrl, supaAnonKey, {
       global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) throw new Error("Não autenticado");
+    if (userErr || !userData.user) {
+      return handledError("UNAUTHORIZED", "Não autenticado", 401);
+    }
 
     const { prompt, current_html, history, mode } = await req.json();
-    if (!prompt) throw new Error("prompt obrigatório");
+    if (!prompt) {
+      return handledError("BAD_REQUEST", "prompt obrigatório", 400);
+    }
 
     let model = "google/gemini-3-flash-preview";
-    let reasoning: { effort: string } | undefined = undefined;
+    let reasoning: { effort: string } | undefined;
     if (mode === "pro") {
       model = "google/gemini-2.5-pro";
     } else if (mode === "think") {
@@ -60,7 +93,7 @@ Deno.serve(async (req) => {
       },
     ];
 
-    const body: any = { model, messages, stream: true };
+    const body: Record<string, unknown> = { model, messages, stream: true };
     if (reasoning) body.reasoning = reasoning;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -72,10 +105,11 @@ Deno.serve(async (req) => {
       body: JSON.stringify(body),
     });
 
-    // Fallback automático para Groq quando Lovable AI falha (sem créditos / rate limit / 5xx)
     if (aiRes.status === 402 || aiRes.status === 429 || aiRes.status >= 500) {
+      const lovableDetails = await aiRes.text();
       const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
       console.warn(`[programmer-builder] Lovable AI ${aiRes.status} → fallback Groq`);
+
       if (GROQ_API_KEY) {
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
@@ -91,6 +125,7 @@ Deno.serve(async (req) => {
             temperature: 0.7,
           }),
         });
+
         if (groqRes.ok && groqRes.body) {
           return new Response(groqRes.body, {
             headers: {
@@ -100,33 +135,56 @@ Deno.serve(async (req) => {
             },
           });
         }
-        console.error("[programmer-builder] Groq fallback falhou:", groqRes.status);
+
+        const groqDetails = await groqRes.text();
+        console.error(`[programmer-builder] Groq fallback falhou: ${groqRes.status}`, groqDetails);
       }
-      // Sem fallback disponível → devolve erro original
-      const errMsg = aiRes.status === 402
-        ? "Créditos da IA esgotados e Groq indisponível."
-        : aiRes.status === 429
-          ? "Limite de requisições. Aguarde um momento."
-          : "IA temporariamente indisponível.";
-      return new Response(JSON.stringify({ error: errMsg }), {
-        status: aiRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+      if (aiRes.status === 402) {
+        return handledError(
+          "AI_CREDITS_EXHAUSTED",
+          "Os créditos da IA acabaram no momento. Tente novamente depois de recarregar os créditos.",
+          200,
+          lovableDetails,
+        );
+      }
+
+      if (aiRes.status === 429) {
+        return handledError(
+          "AI_RATE_LIMITED",
+          "A IA está com muitas requisições agora. Aguarde alguns segundos e tente de novo.",
+          200,
+          lovableDetails,
+        );
+      }
+
+      return handledError(
+        "AI_UNAVAILABLE",
+        "A IA está temporariamente indisponível. Tente novamente em instantes.",
+        200,
+        lovableDetails,
+      );
     }
 
     if (!aiRes.ok || !aiRes.body) {
       const t = await aiRes.text();
       console.error("AI error:", aiRes.status, t);
-      throw new Error("Erro na IA");
+      return handledError("AI_UNAVAILABLE", "Erro na IA", 200, t);
     }
 
     return new Response(aiRes.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "lovable" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+        "X-AI-Provider": "lovable",
+      },
     });
   } catch (e) {
     console.error("programmer-builder error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    return handledError(
+      "AI_UNAVAILABLE",
+      e instanceof Error ? e.message : "Erro desconhecido",
+      200,
     );
   }
 });
