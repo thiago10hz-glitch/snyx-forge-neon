@@ -81,16 +81,40 @@ Deno.serve(async (req) => {
       body: JSON.stringify(body),
     });
 
-    if (aiRes.status === 429) {
-      return new Response(JSON.stringify({ error: "Limite de requisições. Aguarde um momento." }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Fallback automático para Groq se Lovable AI falhar (402 sem crédito / 429 rate limit / 5xx)
+    if (aiRes.status === 402 || aiRes.status === 429 || aiRes.status >= 500) {
+      console.warn(`Lovable AI retornou ${aiRes.status}, caindo para Groq...`);
+      const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+      if (!GROQ_API_KEY) {
+        return new Response(
+          JSON.stringify({ error: aiRes.status === 402 ? "Créditos da IA esgotados e Groq não configurado." : "IA indisponível." }),
+          { status: aiRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages,
+          stream: true,
+        }),
+      });
+      if (!groqRes.ok || !groqRes.body) {
+        const t = await groqRes.text();
+        console.error("Groq fallback error:", groqRes.status, t);
+        return new Response(JSON.stringify({ error: "Falha no fallback Groq: " + t.slice(0, 200) }), {
+          status: groqRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(groqRes.body, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "groq" },
       });
     }
-    if (aiRes.status === 402) {
-      return new Response(JSON.stringify({ error: "Créditos da IA esgotados." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+
     if (!aiRes.ok || !aiRes.body) {
       const t = await aiRes.text();
       console.error("AI error:", aiRes.status, t);
@@ -98,7 +122,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(aiRes.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "lovable" },
     });
   } catch (e) {
     console.error("dev-chat-builder error:", e);
