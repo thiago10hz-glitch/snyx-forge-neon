@@ -1,0 +1,1 @@
+UPDATE public.ai_provider_keys SET label = 'SnyX Core Engine' WHERE provider = 'lovable' AND api_key = '__LOVABLE_GATEWAY__';
