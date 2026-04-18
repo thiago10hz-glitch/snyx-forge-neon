@@ -15,6 +15,7 @@ import {
   Heart,
   User as UserIcon,
   Search,
+  LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -254,11 +255,18 @@ export default function MyRpg() {
               </div>
             </div>
 
-            <Button asChild className="gap-2">
-              <Link to="/rpg/criar">
-                <Plus className="h-4 w-4" /> Criar personagem
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild variant="outline" className="gap-2">
+                <Link to="/">
+                  <LogOut className="h-4 w-4" /> Sair do RPG
+                </Link>
+              </Button>
+              <Button asChild className="gap-2">
+                <Link to="/rpg/criar">
+                  <Plus className="h-4 w-4" /> Criar personagem
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
