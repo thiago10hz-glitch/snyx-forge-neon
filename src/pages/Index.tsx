@@ -30,7 +30,7 @@ const Index = () => {
   const { profile, user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [chatMode, setChatMode] = useState<"friend" | "programmer" | "writer">("friend");
+  const [chatMode, setChatMode] = useState<"friend" | "vip" | "programmer" | "writer">("friend");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
@@ -77,7 +77,9 @@ const Index = () => {
   const isVip = !!(profile?.is_vip || profile?.is_dev);
 
   const handlePickFromHistory = (choice: ChatChoice, conversationId: string) => {
-    setChatMode(choice === "programmer" && isDev ? "programmer" : "friend");
+    if (choice === "programmer" && isDev) setChatMode("programmer");
+    else if (choice === "vip" && isVip) setChatMode("vip");
+    else setChatMode("friend");
     setPickedConvId(conversationId);
   };
 
@@ -86,6 +88,16 @@ const Index = () => {
     setPickedConvId(null);
     setShowModePicker(false);
   }, []);
+
+  const switchToVip = useCallback(() => {
+    if (!isVip) {
+      setShowVipModal(true);
+      return;
+    }
+    setChatMode("vip");
+    setPickedConvId(null);
+    setShowModePicker(false);
+  }, [isVip]);
 
   const switchToProgrammer = useCallback(() => {
     if (!isDev) return;
@@ -111,18 +123,14 @@ const Index = () => {
   const railTopItems: RailItem[] = [
     // Conversa
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
-    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" && !isVip },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
     {
       icon: Crown,
       label: isVip ? "Chat VIP" : "Chat VIP 🔒",
       onClick: () => {
-        if (isVip) {
-          switchToFriend(); // VIP/DEV já são roteados pro chat-vip automaticamente
-        } else {
-          setShowVipModal(true);
-        }
+        switchToVip();
       },
-      active: chatMode === "friend" && isVip,
+      active: chatMode === "vip",
     },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
 
@@ -179,16 +187,28 @@ const Index = () => {
   const modeOptions = [
     {
       key: "friend" as const,
-      title: isVip ? "Chat VIP" : "Chat Amigo",
-      desc: isVip
-        ? "Premium ativo automaticamente. Memória estendida, respostas mais inteligentes e sem limite."
-        : "Conversa sobre tudo, dá conselhos e te ouve. Como um amigo de verdade.",
-      icon: isVip ? Crown : Heart,
-      color: isVip ? "text-amber-300" : "text-pink-300",
-      bg: isVip ? "bg-amber-500/10" : "bg-pink-500/10",
-      border: isVip ? "border-amber-400/25" : "border-pink-500/25",
+      title: "Chat Amigo",
+      desc: "Conversa sobre tudo, dá conselhos e te ouve. Como um amigo de verdade.",
+      icon: Heart,
+      color: "text-pink-300",
+      bg: "bg-pink-500/10",
+      border: "border-pink-500/25",
       onClick: switchToFriend,
       active: chatMode === "friend",
+      visible: true,
+    },
+    {
+      key: "vip" as const,
+      title: isVip ? "Chat VIP" : "Chat VIP",
+      desc: isVip
+        ? "Premium ativo. Respostas mais fortes, contexto especial e modo VIP real."
+        : "Desbloqueie o modo VIP com respostas premium e acesso especial.",
+      icon: Crown,
+      color: "text-amber-300",
+      bg: "bg-amber-500/10",
+      border: "border-amber-400/25",
+      onClick: switchToVip,
+      active: chatMode === "vip",
       visible: true,
     },
     {
@@ -240,6 +260,7 @@ const Index = () => {
           }}
           onNewChat={(choice) => {
             if (choice === "programmer" && isDev) setChatMode("programmer");
+            else if (choice === "vip" && isVip) setChatMode("vip");
             else setChatMode("friend");
             setPickedConvId(null);
             setHistoryOpen(false);
@@ -291,7 +312,7 @@ const Index = () => {
                   <ChatPanel
                     key={`${chatMode}-${chatNonce}`}
                     onCodeGenerated={setCode}
-                    onModeChange={(m) => setChatMode(m as "friend" | "programmer" | "writer")}
+                    onModeChange={(m) => setChatMode(m as "friend" | "vip" | "programmer" | "writer")}
                     initialConversationId={pickedConvId}
                     forceMode={chatMode}
                     onUserInput={handleUserInput}
@@ -395,8 +416,15 @@ const Index = () => {
                   onClick={() => { switchToFriend(); setMobileMenuOpen(false); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${chatMode === "friend" ? "bg-primary/10 text-primary" : "hover:bg-muted/30"}`}
                 >
-                  {isVip ? <Crown className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
-                  <span>{isVip ? "Chat VIP" : "Chat Amigo"}</span>
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat Amigo</span>
+                </button>
+                <button
+                  onClick={() => { switchToVip(); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${chatMode === "vip" ? "bg-primary/10 text-primary" : "hover:bg-muted/30"}`}
+                >
+                  <Crown className="w-4 h-4" />
+                  <span>{isVip ? "Chat VIP" : "Chat VIP 🔒"}</span>
                 </button>
                 {isDev && (
                   <button
