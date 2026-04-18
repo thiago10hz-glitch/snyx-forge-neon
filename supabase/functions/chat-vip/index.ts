@@ -100,6 +100,9 @@ FORMATAÇÃO DE TEXTO:
       { role: "system", content: systemPrompt },
     ];
 
+    // Lembrete dinâmico do nome — injetado como reforço final logo antes da resposta
+    const firstName = body?.display_name ? String(body.display_name).trim().split(/\s+/)[0] : null;
+
     for (const msg of messages.slice(-30)) {
       if (msg.role === "user") {
         if (msg.imageData) {
@@ -126,6 +129,14 @@ FORMATAÇÃO DE TEXTO:
         }
         aiMessages.push({ role: "assistant", content });
       }
+    }
+
+    // Reforço final: lembrete imediato pra não esquecer o nome em respostas curtas
+    if (firstName && !body?.is_admin && !body?.team_badge) {
+      aiMessages.push({
+        role: "system",
+        content: `🔔 LEMBRETE FINAL antes de responder: inclua "${firstName}" na sua próxima mensagem (em qualquer posição). Mesmo que a resposta seja só "oi", escreva "Oi ${firstName}!". Isso é OBRIGATÓRIO.`,
+      });
     }
 
     const response = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
