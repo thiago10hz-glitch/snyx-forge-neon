@@ -9,8 +9,9 @@ import {
   RefreshCw, MessageCircle, Menu, X, TrendingUp, Copy, Check,
   ChevronDown, ChevronUp, Sparkles, LifeBuoy, ScrollText,
   KeySquare, Trash2, CheckCircle2, XCircle, AlertTriangle,
-  Send, Plus, ChevronLeft, ChevronRight,
+  Send, Plus, ChevronLeft, ChevronRight, Settings2,
 } from "lucide-react";
+import ChatSettings from "@/components/ChatSettings";
 import { toast } from "sonner";
 
 interface UserProfile {
