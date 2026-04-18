@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone, Drama,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -137,7 +137,8 @@ const Index = () => {
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", iconColor: "text-sky-400" },
 
     // Ferramentas
-    { icon: Code, label: "Programador IA", to: "/programador", sectionLabel: "Ferramentas", iconColor: "text-cyan-400" },
+    { icon: Drama, label: "RPG", to: "/rpg", sectionLabel: "Ferramentas", iconColor: "text-fuchsia-400" },
+    { icon: Code, label: "Programador IA", to: "/programador", iconColor: "text-cyan-400" },
     { icon: Phone, label: "Atendimento", to: "/atendimento", iconColor: "text-emerald-400" },
 
     // Admin (só pra admin)
