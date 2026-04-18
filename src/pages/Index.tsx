@@ -109,8 +109,7 @@ const Index = () => {
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen },
     { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer" },
-    ...(isDev ? [{ icon: Code, label: "Programador", onClick: switchToProgrammer, active: chatMode === "programmer" } as RailItem] : []),
-    { icon: Sparkles, label: "Programador IA", to: "/programador", accent: true },
+    { icon: Code, label: "Programador IA", to: "/programador", accent: true },
     { icon: Code2, label: "API para devs", to: "/api" },
     ...(isAdmin
       ? ([
