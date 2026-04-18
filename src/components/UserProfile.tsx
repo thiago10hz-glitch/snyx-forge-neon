@@ -458,6 +458,13 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           {tab === "config" && (
             <div className="space-y-2">
               <ConfigButton
+                icon={Bot}
+                label="Personalizar bot"
+                hint="Nome, avatar, cores e personalidade do seu assistente"
+                onClick={() => setBotSettingsOpen(true)}
+              />
+
+              <ConfigButton
                 icon={Palette}
                 label="Trocar tema"
                 hint="Cores, fonte e estilo do app"
@@ -488,6 +495,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           )}
         </div>
       </div>
+
+      <ChatSettings open={botSettingsOpen} onClose={() => setBotSettingsOpen(false)} />
     </div>
   );
 }
