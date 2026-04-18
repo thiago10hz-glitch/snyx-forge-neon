@@ -826,6 +826,36 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_music: {
+        Row: {
+          audio_url: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          model: string
+          prompt: string
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          model?: string
+          prompt: string
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          model?: string
+          prompt?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_verified: boolean
