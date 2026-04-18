@@ -356,10 +356,14 @@ export async function freeAIChat(_url: string, init: RequestInit): Promise<Respo
   } else {
     // Modelos legados (lovable-style) -> rota padrão balanceada
     routes = [
-      { provider: "groq", model: "llama-3.3-70b-versatile" },
       { provider: "google", model: mapToGoogleModel(model) },
+      { provider: "groq", model: "llama-3.3-70b-versatile" },
+      { provider: "groq", model: "llama-3.1-8b-instant" },
+      { provider: "pollinations", model: "openai" },
       { provider: "pollinations", model: "openai-large" },
+      { provider: "pollinations", model: "mistral" },
       { provider: "pollinations", model: "deepseek" },
+      { provider: "pollinations", model: "llama" },
     ];
   }
 
