@@ -6,49 +6,47 @@
 
 @layer base {
   :root {
-    /* === Midnight Indigo — premium minimalista === */
-    --background: 240 28% 5%;         /* #0a0a1a */
-    --foreground: 230 25% 94%;        /* texto claro levemente azulado */
-    --card: 235 32% 9%;               /* #141432 */
-    --card-foreground: 230 25% 94%;
-    --popover: 235 32% 8%;
-    --popover-foreground: 230 25% 94%;
-    --primary: 243 76% 59%;           /* #4f46e5 indigo */
+    /* === Pink Glow + Mint Accent === */
+    --background: 0 0% 4%;            /* #0a0a0a */
+    --foreground: 0 0% 94%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 94%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 330 85% 60%;           /* rosa/magenta vibrante */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 245 90% 70%;
-    --secondary: 237 30% 14%;
-    --secondary-foreground: 230 25% 94%;
-    --muted: 237 26% 13%;
-    --muted-foreground: 230 14% 62%;
-    --accent: 245 60% 22%;
-    --accent-foreground: 230 25% 96%;
+    --primary-glow: 325 95% 72%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 94%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 160 70% 45%;            /* verde menta — "online" / FAB */
+    --accent-foreground: 0 0% 8%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 237 28% 18%;
-    --input: 237 28% 14%;
-    --ring: 243 76% 65%;
+    --border: 0 0% 16%;
+    --input: 0 0% 13%;
+    --ring: 330 85% 65%;
     --radius: 0.875rem;
-    --sidebar-background: 240 32% 7%;
-    --sidebar-foreground: 230 18% 80%;
-    --sidebar-primary: 243 76% 65%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 82%;
+    --sidebar-primary: 330 85% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 28% 12%;
-    --sidebar-accent-foreground: 230 25% 96%;
-    --sidebar-border: 240 24% 16%;
-    --sidebar-ring: 243 76% 65%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 330 85% 65%;
 
-    /* Glow tokens — indigo sutil */
-    --neon-glow: 0 0 0 1px hsl(243 76% 59% / 0.18);
-    --neon-glow-strong: 0 8px 32px hsl(243 76% 40% / 0.45), 0 0 0 1px hsl(243 76% 65% / 0.25);
-    --neon-glow-soft: 0 0 0 1px hsl(243 76% 65% / 0.10);
-    --gradient-primary: linear-gradient(135deg, hsl(243 76% 59%) 0%, hsl(255 80% 65%) 100%);
-    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(243 76% 50% / 0.18), transparent 70%);
-    --gradient-card: linear-gradient(145deg, hsl(235 32% 11% / 0.92), hsl(240 30% 6% / 0.96));
-    /* Fundo cinematográfico com aura indigo no topo */
+    /* Glow tokens — rosa */
+    --neon-glow: 0 0 0 1px hsl(330 85% 60% / 0.22);
+    --neon-glow-strong: 0 8px 32px hsl(330 85% 50% / 0.45), 0 0 0 1px hsl(325 95% 70% / 0.30);
+    --neon-glow-soft: 0 0 0 1px hsl(325 95% 70% / 0.12);
+    --gradient-primary: linear-gradient(135deg, hsl(330 85% 60%) 0%, hsl(310 80% 55%) 100%);
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(330 85% 50% / 0.12), transparent 70%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 10% / 0.92), hsl(0 0% 5% / 0.96));
     --gradient-app-bg:
-      radial-gradient(80% 60% at 50% 0%, hsl(243 70% 22% / 0.35), transparent 70%),
-      radial-gradient(60% 50% at 90% 100%, hsl(255 70% 28% / 0.18), transparent 70%),
-      linear-gradient(180deg, hsl(240 28% 5%) 0%, hsl(240 32% 4%) 100%);
+      radial-gradient(60% 50% at 50% 0%, hsl(330 80% 25% / 0.18), transparent 70%),
+      linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 3%) 100%);
   }
 }
 
