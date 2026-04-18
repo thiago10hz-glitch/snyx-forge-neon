@@ -139,6 +139,28 @@ FORMATAÇÃO DE TEXTO:
       });
     }
 
+    // Tool: pesquisa na web (Google grounding via Gemini) — VIP only
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "search_web",
+          description: "Pesquisa informações atualizadas na internet. Use quando o usuário perguntar sobre fatos recentes, notícias, preços, resultados de jogos, lançamentos, dados que podem ter mudado, ou qualquer coisa que você não tem certeza. NÃO use para conversa casual, opinião, ou perguntas sobre o próprio usuário.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Query de busca em português, otimizada pra Google. Ex: 'resultado Flamengo x Vasco hoje', 'preço iPhone 15 Brasil 2025'",
+              },
+            },
+            required: ["query"],
+            additionalProperties: false,
+          },
+        },
+      },
+    ];
+
     const response = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -151,6 +173,7 @@ FORMATAÇÃO DE TEXTO:
         stream: true,
         max_tokens: 4096,
         temperature: 0.8,
+        tools,
       }),
     });
 
