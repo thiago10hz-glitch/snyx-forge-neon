@@ -14,6 +14,8 @@ export interface RailItem {
   red?: boolean;
   dot?: boolean;
   groupedWithPrev?: boolean;
+  /** Tailwind text color class for the icon, e.g. "text-pink-400" */
+  iconColor?: string;
   /** Rótulo de seção exibido ACIMA deste item */
   sectionLabel?: string;
 }
