@@ -107,13 +107,13 @@ const Index = () => {
   // === Sidebar items — organizados por seções ===
   const railTopItems: RailItem[] = [
     // Conversa
-    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, sectionLabel: "Conversa" },
+    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
     { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
-    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer" },
+    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
 
     // Ferramentas
     { icon: Code, label: "Programador IA", to: "/programador", red: true, sectionLabel: "Ferramentas" },
-    { icon: Phone, label: "Atendimento", to: "/atendimento" },
+    { icon: Phone, label: "Atendimento", to: "/atendimento", red: true },
 
     // Admin (só pra admin)
     ...(isAdmin
