@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, MessageCircle, Sparkles, Flame, Loader2, User as UserIcon } from "lucide-react";
+import { Search, Plus, MessageCircle, Sparkles, Flame, Loader2, User as UserIcon, FolderHeart } from "lucide-react";
 import { AgeGateModal } from "@/components/AgeGateModal";
 import { toast } from "sonner";
 
@@ -135,6 +135,12 @@ export default function RpgCatalog() {
                 className="pl-9 bg-card/60 backdrop-blur border-border/50"
               />
             </div>
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/rpg/minha-conta">
+                <FolderHeart className="h-4 w-4" />
+                Minha Conta RPG
+              </Link>
+            </Button>
             <Button asChild className="gap-2">
               <Link to="/rpg/criar">
                 <Plus className="h-4 w-4" />
