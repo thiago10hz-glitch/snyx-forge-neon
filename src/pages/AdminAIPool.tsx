@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, ArrowLeft, Activity } from "lucide-react";
+import { Plus, Trash2, RefreshCw, ArrowLeft, Activity, Sparkles, Layers } from "lucide-react";
 
 interface AIKey {
   id: string;
@@ -29,9 +30,9 @@ interface AIKey {
 }
 
 const PROVIDERS = [
+  { value: "lovable", label: "Lovable AI Gateway (incluso)", model: "google/gemini-3-flash-preview", limit: 3000 },
   { value: "groq", label: "Groq (14.4k req/dia)", model: "llama-3.3-70b-versatile", limit: 14400 },
   { value: "google", label: "Google AI (1.5k req/dia)", model: "gemini-2.0-flash-exp", limit: 1500 },
-  { value: "lovable", label: "Lovable AI (~3k/mês)", model: "google/gemini-2.5-flash", limit: 3000 },
   { value: "cerebras", label: "Cerebras (14.4k req/dia)", model: "llama-3.3-70b", limit: 14400 },
   { value: "openrouter", label: "OpenRouter (Free tier)", model: "meta-llama/llama-3.3-70b-instruct:free", limit: 200 },
   { value: "mistral", label: "Mistral (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
@@ -47,6 +48,9 @@ export default function AdminAIPool() {
   const [keys, setKeys] = useState<AIKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [form, setForm] = useState({
     provider: "groq",
     label: "",
