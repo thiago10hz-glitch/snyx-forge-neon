@@ -92,8 +92,6 @@ export default function Musica() {
     } finally {
       setLoading(false);
     }
-      setLoading(false);
-    }
   };
 
   const removeTrack = async (id: string, audioUrl: string) => {
