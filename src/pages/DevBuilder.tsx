@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,6 +54,21 @@ export default function DevBuilder() {
   const [newName, setNewName] = useState("");
   const [mode, setMode] = useState<Mode>("default");
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const loadProjects = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("dev_projects")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    setProjects((data || []) as DevProject[]);
+    setActiveId((current) => current ?? data?.[0]?.id ?? null);
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -111,26 +126,11 @@ export default function DevBuilder() {
 
   useEffect(() => {
     if (user && accessState === "allowed") loadProjects();
-  }, [user, accessState]);
+  }, [user, accessState, loadProjects]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
-
-  async function loadProjects() {
-    const { data, error } = await supabase
-      .from("dev_projects")
-      .select("*")
-      .order("updated_at", { ascending: false });
-
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    setProjects((data || []) as DevProject[]);
-    if (!activeId && data && data.length > 0) setActiveId(data[0].id);
-  }
 
   async function createProject() {
     if (!newName.trim()) {
