@@ -276,7 +276,7 @@ const Index = () => {
               <div className="flex-1 min-h-0">
                 <Suspense fallback={<PanelLoader />}>
                   <ChatPanel
-                    key={chatMode}
+                    key={`${chatMode}-${chatNonce}`}
                     onCodeGenerated={setCode}
                     onModeChange={(m) => setChatMode(m as "friend" | "programmer" | "writer")}
                     initialConversationId={pickedConvId}
