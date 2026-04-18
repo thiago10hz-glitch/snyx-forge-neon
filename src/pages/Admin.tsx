@@ -11,7 +11,7 @@ import {
   KeySquare, Trash2, CheckCircle2, XCircle, AlertTriangle,
   Send, Plus, ChevronLeft, ChevronRight, Settings2,
 } from "lucide-react";
-import ChatSettings from "@/components/ChatSettings";
+import { ChatSettings } from "@/components/ChatSettings";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -496,6 +496,7 @@ export default function Admin() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tagModalUserId, setTagModalUserId] = useState<string | null>(null);
   const [counts, setCounts] = useState({ tickets: 0, apps: 0 });
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
