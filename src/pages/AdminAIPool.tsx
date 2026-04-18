@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, ArrowLeft, Activity, Sparkles, Layers } from "lucide-react";
+import { maskProvider, maskLabel } from "@/lib/providerMask";
 
 interface AIKey {
   id: string;
@@ -124,10 +125,10 @@ export default function AdminAIPool() {
 
   async function addLovableAI() {
     const existing = keys.find(k => k.provider === "lovable" && k.api_key === "__LOVABLE_GATEWAY__");
-    if (existing) { toast.info("Lovable AI já está no pool"); return; }
+    if (existing) { toast.info("SnyX Core já está no pool"); return; }
     const { error } = await supabase.from("ai_provider_keys").insert({
       provider: "lovable",
-      label: "Lovable AI Gateway (auto)",
+      label: "SnyX Core Engine",
       api_key: "__LOVABLE_GATEWAY__",
       model_default: "google/gemini-3-flash-preview",
       daily_limit: 3000,
@@ -135,7 +136,7 @@ export default function AdminAIPool() {
       created_by: user!.id,
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("Lovable AI adicionada ao pool!");
+    toast.success("SnyX Core ativada no pool!");
     loadKeys();
   }
 
@@ -211,7 +212,7 @@ export default function AdminAIPool() {
             <Trash2 className="h-4 w-4 mr-2" />Limpar duplicatas
           </Button>
           <Button variant="outline" onClick={addLovableAI} className="border-primary/40 text-primary-glow">
-            <Sparkles className="h-4 w-4 mr-2" />Ativar Lovable AI
+            <Sparkles className="h-4 w-4 mr-2" />Ativar SnyX Core
           </Button>
           <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
             <DialogTrigger asChild>
@@ -302,8 +303,8 @@ export default function AdminAIPool() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant={k.status === "active" ? "default" : k.status === "exhausted" ? "secondary" : "destructive"}>{k.status}</Badge>
-                        <span className="font-semibold">{k.label}</span>
-                        <span className="text-xs text-muted-foreground">({k.provider})</span>
+                        <span className="font-semibold">{maskLabel(k.provider, k.label)}</span>
+                        <span className={`text-xs font-mono ${maskProvider(k.provider).color}`}>[{maskProvider(k.provider).tier}]</span>
                         <Badge variant="outline" className="text-xs">prio {k.priority}</Badge>
                       </div>
                       <div className="flex gap-1">
