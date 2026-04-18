@@ -83,11 +83,12 @@ const Index = () => {
     setPickedConvId(conversationId);
   };
 
+  // Chat Amigo unificado: VIP usa modo "vip", demais usam "friend"
   const switchToFriend = useCallback(() => {
-    setChatMode("friend");
+    setChatMode(isVip ? "vip" : "friend");
     setPickedConvId(null);
     setShowModePicker(false);
-  }, []);
+  }, [isVip]);
 
   const switchToVip = useCallback(() => {
     if (!isVip) {
@@ -97,6 +98,15 @@ const Index = () => {
     setChatMode("vip");
     setPickedConvId(null);
     setShowModePicker(false);
+  }, [isVip]);
+
+  // Para o botão dentro do chat amigo (não-VIP abre modal de upgrade)
+  const handleUpgradeToVip = useCallback(() => {
+    if (isVip) {
+      setChatMode("vip");
+    } else {
+      setShowVipModal(true);
+    }
   }, [isVip]);
 
   const switchToProgrammer = useCallback(() => {
