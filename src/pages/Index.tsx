@@ -83,11 +83,12 @@ const Index = () => {
     setPickedConvId(conversationId);
   };
 
+  // Chat Amigo unificado: VIP usa modo "vip", demais usam "friend"
   const switchToFriend = useCallback(() => {
-    setChatMode("friend");
+    setChatMode(isVip ? "vip" : "friend");
     setPickedConvId(null);
     setShowModePicker(false);
-  }, []);
+  }, [isVip]);
 
   const switchToVip = useCallback(() => {
     if (!isVip) {
@@ -97,6 +98,15 @@ const Index = () => {
     setChatMode("vip");
     setPickedConvId(null);
     setShowModePicker(false);
+  }, [isVip]);
+
+  // Para o botão dentro do chat amigo (não-VIP abre modal de upgrade)
+  const handleUpgradeToVip = useCallback(() => {
+    if (isVip) {
+      setChatMode("vip");
+    } else {
+      setShowVipModal(true);
+    }
   }, [isVip]);
 
   const switchToProgrammer = useCallback(() => {
@@ -123,15 +133,7 @@ const Index = () => {
   const railTopItems: RailItem[] = [
     // Conversa
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
-    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
-    {
-      icon: Crown,
-      label: isVip ? "Chat VIP" : "Chat VIP 🔒",
-      onClick: () => {
-        switchToVip();
-      },
-      active: chatMode === "vip",
-    },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip" },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
 
     // Ferramentas
@@ -316,6 +318,8 @@ const Index = () => {
                     initialConversationId={pickedConvId}
                     forceMode={chatMode}
                     onUserInput={handleUserInput}
+                    onUpgradeToVip={handleUpgradeToVip}
+                    isVipUser={isVip}
                   />
                 </Suspense>
               </div>
