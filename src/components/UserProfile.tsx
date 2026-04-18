@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   X, Camera, Loader2, Save, User, Crown, Code, Sparkles, KeyRound, Heart, ImagePlus,
-  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield,
+  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield, Bot,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ChatSettings } from "@/components/ChatSettings";
 
 interface UserProfileProps {
   open: boolean;
@@ -17,6 +18,7 @@ type TabKey = "perfil" | "vip" | "config";
 export function UserProfile({ open, onClose }: UserProfileProps) {
   const { user, profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<TabKey>("perfil");
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -456,6 +458,13 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           {tab === "config" && (
             <div className="space-y-2">
               <ConfigButton
+                icon={Bot}
+                label="Personalizar bot"
+                hint="Nome, avatar, cores e personalidade do seu assistente"
+                onClick={() => setBotSettingsOpen(true)}
+              />
+
+              <ConfigButton
                 icon={Palette}
                 label="Trocar tema"
                 hint="Cores, fonte e estilo do app"
@@ -486,6 +495,8 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           )}
         </div>
       </div>
+
+      <ChatSettings open={botSettingsOpen} onClose={() => setBotSettingsOpen(false)} />
     </div>
   );
 }
