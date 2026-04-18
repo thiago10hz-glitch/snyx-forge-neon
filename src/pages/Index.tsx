@@ -471,6 +471,8 @@ const Index = () => {
           <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
           <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
         </Suspense>
+
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="vip" />
       </div>
     </TooltipProvider>
   );
