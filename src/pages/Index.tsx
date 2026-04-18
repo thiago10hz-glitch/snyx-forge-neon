@@ -35,6 +35,7 @@ const Index = () => {
   const [pickedConvId, setPickedConvId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [chatNonce, setChatNonce] = useState(0);
 
   const [showModePicker, setShowModePicker] = useState(false);
 
@@ -50,7 +51,7 @@ const Index = () => {
     const onNewChat = () => {
       setPickedConvId(null);
       // Force ChatPanel remount to clear current conversation state
-      setChatMode((m) => m);
+      setChatNonce((n) => n + 1);
     };
     const onToggleHistory = () => setHistoryOpen((v) => !v);
     const onOpenTheme = () => setShowThemeModal(true);
