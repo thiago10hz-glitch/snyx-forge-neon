@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ChatSettings } from "@/components/ChatSettings";
 import ApiClientsManager from "@/components/ApiClientsManager";
+import ApiLiveMonitor from "@/components/ApiLiveMonitor";
 import { toast } from "sonner";
 
 /* ════════════════════════════════════════════════════════════════
@@ -877,6 +878,11 @@ function RevenueTab({ stats }: { stats: PlatformStats }) {
           <p className="text-[10px] text-muted-foreground/60 mt-1">Aguardando revisão</p>
         </NeonCard>
       </div>
+
+      {/* Live Monitor — IPs/origens em tempo real */}
+      <NeonCard className="p-5">
+        <ApiLiveMonitor />
+      </NeonCard>
 
       {/* Gerenciador de API Keys */}
       <NeonCard className="p-5">

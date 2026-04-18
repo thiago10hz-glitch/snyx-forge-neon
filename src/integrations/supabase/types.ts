@@ -438,6 +438,8 @@ export type Database = {
       api_usage_logs: {
         Row: {
           api_client_id: string
+          city: string | null
+          country: string | null
           created_at: string
           endpoint: string
           error_message: string | null
@@ -445,15 +447,22 @@ export type Database = {
           ip_address: string | null
           latency_ms: number | null
           model: string | null
+          origin: string | null
           provider: string
           provider_key_id: string | null
+          referer: string | null
+          region: string | null
+          request_id: string | null
           status_code: number
           tokens_in: number | null
           tokens_out: number | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
           api_client_id: string
+          city?: string | null
+          country?: string | null
           created_at?: string
           endpoint?: string
           error_message?: string | null
@@ -461,15 +470,22 @@ export type Database = {
           ip_address?: string | null
           latency_ms?: number | null
           model?: string | null
+          origin?: string | null
           provider: string
           provider_key_id?: string | null
+          referer?: string | null
+          region?: string | null
+          request_id?: string | null
           status_code: number
           tokens_in?: number | null
           tokens_out?: number | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
           api_client_id?: string
+          city?: string | null
+          country?: string | null
           created_at?: string
           endpoint?: string
           error_message?: string | null
@@ -477,11 +493,16 @@ export type Database = {
           ip_address?: string | null
           latency_ms?: number | null
           model?: string | null
+          origin?: string | null
           provider?: string
           provider_key_id?: string | null
+          referer?: string | null
+          region?: string | null
+          request_id?: string | null
           status_code?: number
           tokens_in?: number | null
           tokens_out?: number | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
