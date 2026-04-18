@@ -261,23 +261,34 @@ REGRAS:
       }),
     });
 
+    const contentType = res.headers.get("content-type") || "";
+
     if (!res.ok) {
       const errText = await res.text();
       console.error("Lovable AI error:", res.status, errText.slice(0, 300));
 
+      let errorMessage = "Erro na API de IA. Tente novamente.";
       if (res.status === 429) {
-        return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento e tente novamente." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (res.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Entre em contato com o administrador." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        errorMessage = "Muitas requisições. Aguarde um momento e tente novamente.";
+      } else if (res.status === 402) {
+        errorMessage = "Créditos de IA esgotados. Entre em contato com o administrador.";
       }
 
-      return new Response(JSON.stringify({ error: "Erro na API de IA. Tente novamente." }), {
-        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({
+        error: errorMessage,
+        fallback: true,
+        upstream_status: res.status,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (contentType.includes("application/json")) {
+      const jsonText = await res.text();
+      return new Response(jsonText, {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -288,8 +299,8 @@ REGRAS:
     });
   } catch (err) {
     console.error("Error:", err);
-    return new Response(JSON.stringify({ error: "Erro interno" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ error: "Erro interno", fallback: true }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
