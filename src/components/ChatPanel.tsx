@@ -1876,7 +1876,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   className={`p-1.5 rounded-lg transition-all duration-200 ${
                     isRecording
                       ? "bg-destructive/15 text-destructive animate-pulse"
-                      : "text-muted-foreground/30 hover:text-foreground/60 hover:bg-muted/10"
+                      : "text-primary hover:text-primary hover:bg-primary/10 drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]"
                   }`}
                   title={isRecording ? "Parar gravação" : "Gravar áudio"}
                 >
