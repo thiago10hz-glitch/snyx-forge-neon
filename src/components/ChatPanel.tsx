@@ -50,7 +50,7 @@ type MessageLimitState = {
   is_vip?: boolean;
 };
 
-type ChatMode = "friend" | "programmer" | "writer";
+type ChatMode = "friend" | "vip" | "programmer" | "writer";
 type PendingAction = "school" | "imagegen" | "rewrite" | null;
 
 interface ChatPanelProps {
@@ -101,6 +101,21 @@ const MODE_CONFIG = {
     emptyEmoji: "💬",
     premiumLabel: "Premium",
     premiumIcon: Crown,
+  },
+  vip: {
+    icon: Crown,
+    label: "VIP",
+    color: "text-amber-400",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/20",
+    activeTab: "bg-amber-500/10 text-amber-400",
+    bubbleColor: "bg-muted/60",
+    placeholder: "Fala comigo no VIP... 👑",
+    emptyTitle: "SnyX VIP",
+    emptyText: "Seu modo premium com respostas especiais e contexto VIP.",
+    emptyEmoji: "👑",
+    premiumLabel: null,
+    premiumIcon: null,
   },
   programmer: {
     icon: Code,
@@ -165,7 +180,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
   const { profile, user } = useAuth();
   const [messageLimit, setMessageLimit] = useState<MessageLimitState | null>(null);
   const hasPremiumAccess = !!(profile?.is_vip || profile?.is_dev);
-  const usePremium = mode === "friend" && hasPremiumAccess;
+  const usePremium = mode === "vip" && hasPremiumAccess;
 
   const config = MODE_CONFIG[mode];
   const ModeIcon = config.icon;
@@ -230,8 +245,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
   const loadConversations = useCallback(async () => {
     if (!user) return;
-    // Load conversations for current mode. For friend mode, also load premium conversations
-    const modes = mode === "friend" ? ["friend", "premium"] : mode === "programmer" ? ["code", "programmer"] : [mode];
+    const modes = mode === "friend"
+      ? ["friend"]
+      : mode === "vip"
+        ? ["premium"]
+        : mode === "programmer"
+          ? ["code", "programmer"]
+          : [mode];
     const { data } = await supabase
       .from("chat_conversations")
       .select("id, title, mode, created_at")
