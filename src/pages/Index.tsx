@@ -133,15 +133,7 @@ const Index = () => {
   const railTopItems: RailItem[] = [
     // Conversa
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
-    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
-    {
-      icon: Crown,
-      label: isVip ? "Chat VIP" : "Chat VIP 🔒",
-      onClick: () => {
-        switchToVip();
-      },
-      active: chatMode === "vip",
-    },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip" },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
 
     // Ferramentas
