@@ -739,6 +739,45 @@ export type Database = {
           },
         ]
       }
+      dev_projects: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          last_deployed_at: string | null
+          name: string
+          updated_at: string
+          user_id: string
+          vercel_project_id: string | null
+          vercel_project_name: string | null
+          vercel_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          last_deployed_at?: string | null
+          name?: string
+          updated_at?: string
+          user_id: string
+          vercel_project_id?: string | null
+          vercel_project_name?: string | null
+          vercel_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          last_deployed_at?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+          vercel_project_id?: string | null
+          vercel_project_name?: string | null
+          vercel_url?: string | null
+        }
+        Relationships: []
+      }
       fraud_attempts: {
         Row: {
           attempt_type: string

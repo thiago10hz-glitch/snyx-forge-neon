@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ApiPricing from "./pages/ApiPricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
+import DevBuilder from "./pages/DevBuilder";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -121,6 +122,7 @@ const App = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/api" element={<ApiPricing />} />
                 <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
+                <Route path="/dev-builder" element={<ProtectedRoute><DevBuilder /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeProvider>
