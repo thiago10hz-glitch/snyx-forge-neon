@@ -59,6 +59,8 @@ interface ChatPanelProps {
   initialConversationId?: string | null;
   forceMode?: ChatMode;
   onUserInput?: (text: string) => void;
+  onUpgradeToVip?: () => void;
+  isVipUser?: boolean;
 }
 
 const TEXT_FILE_EXTENSIONS = [
