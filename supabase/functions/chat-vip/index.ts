@@ -199,32 +199,165 @@ FORMATAÇÃO DE TEXTO:
     }
 
     const encoder = new TextEncoder();
+
+    // Helper: executa tool e retorna resultado em texto
+    async function execTool(name: string, args: any): Promise<string> {
+      if (name === "search_web") {
+        const query = String(args?.query || "").trim();
+        if (!query) return "Query vazia.";
+        try {
+          const sres = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-3-flash-preview",
+              messages: [
+                { role: "system", content: "Você é um buscador. Responda em português BR de forma factual, direta e curta (2-4 parágrafos). Inclua datas, números e fontes quando possível. Não invente." },
+                { role: "user", content: `Pesquise e me responda: ${query}` },
+              ],
+              max_tokens: 1024,
+              temperature: 0.3,
+              tools: [{ type: "google_search" }],
+            }),
+          });
+          if (!sres.ok) {
+            return `Não consegui pesquisar agora (${sres.status}).`;
+          }
+          const sdata = await sres.json();
+          const txt = sdata?.choices?.[0]?.message?.content || "";
+          return txt || "Sem resultado.";
+        } catch (e) {
+          console.error("[search_web] err:", e);
+          return "Erro ao pesquisar.";
+        }
+      }
+      return "Tool desconhecida.";
+    }
+
+    // Stream com suporte a tool calls
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+        let currentResponse = response;
+        let currentMessages = aiMessages;
+        let toolRound = 0;
+        const MAX_TOOL_ROUNDS = 2;
+
         try {
           while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || trimmed === "data: [DONE]") continue;
-              if (!trimmed.startsWith("data: ")) continue;
-              try {
-                const json = JSON.parse(trimmed.slice(6));
-                const content = json.choices?.[0]?.delta?.content;
-                if (content) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
-              } catch { /* skip */ }
+            const reader = currentResponse.body!.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            let toolCalls: Array<{ id: string; name: string; args: string }> = [];
+            let assistantText = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed === "data: [DONE]") continue;
+                if (!trimmed.startsWith("data: ")) continue;
+                try {
+                  const json = JSON.parse(trimmed.slice(6));
+                  const delta = json.choices?.[0]?.delta;
+                  if (!delta) continue;
+
+                  // Acumula tool calls
+                  if (delta.tool_calls) {
+                    for (const tc of delta.tool_calls) {
+                      const idx = tc.index ?? 0;
+                      if (!toolCalls[idx]) toolCalls[idx] = { id: tc.id || "", name: "", args: "" };
+                      if (tc.id) toolCalls[idx].id = tc.id;
+                      if (tc.function?.name) toolCalls[idx].name += tc.function.name;
+                      if (tc.function?.arguments) toolCalls[idx].args += tc.function.arguments;
+                    }
+                  }
+
+                  // Stream texto
+                  if (delta.content) {
+                    assistantText += delta.content;
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta.content })}\n\n`));
+                  }
+                } catch { /* skip */ }
+              }
+            }
+
+            // Se não tem tool calls, terminou
+            if (toolCalls.length === 0 || toolRound >= MAX_TOOL_ROUNDS) {
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              break;
+            }
+
+            toolRound++;
+            // Avisa o cliente que está pesquisando
+            const queries = toolCalls.map(tc => {
+              try { return JSON.parse(tc.args)?.query || ""; } catch { return ""; }
+            }).filter(Boolean);
+            if (queries.length > 0) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ tool: "search", queries })}\n\n`));
+            }
+
+            // Executa todas as tools
+            const toolResults = await Promise.all(toolCalls.map(async (tc) => {
+              let parsed: any = {};
+              try { parsed = JSON.parse(tc.args); } catch { /* ignore */ }
+              const result = await execTool(tc.name, parsed);
+              return { tool_call_id: tc.id, name: tc.name, content: result };
+            }));
+
+            // Monta mensagens de continuação
+            currentMessages = [
+              ...currentMessages,
+              {
+                role: "assistant",
+                content: assistantText || null,
+                tool_calls: toolCalls.map(tc => ({
+                  id: tc.id,
+                  type: "function",
+                  function: { name: tc.name, arguments: tc.args },
+                })),
+              },
+              ...toolResults.map(r => ({
+                role: "tool",
+                tool_call_id: r.tool_call_id,
+                content: r.content,
+              })),
+            ];
+
+            // Nova chamada com resultados
+            currentResponse = await freeAIChat("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-3-flash-preview",
+                messages: currentMessages,
+                stream: true,
+                max_tokens: 4096,
+                temperature: 0.8,
+                tools,
+              }),
+            });
+
+            if (!currentResponse.ok) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: "\n\n_(erro ao processar resultado da busca)_" })}\n\n`));
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              break;
             }
           }
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        } catch (e) { console.error("Stream error:", e); }
-        finally { controller.close(); }
+        } catch (e) {
+          console.error("Stream error:", e);
+        } finally {
+          controller.close();
+        }
       },
     });
 
