@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,19 +104,27 @@ const Index = () => {
     }
   }, []);
 
-  // === Sidebar items ===
+  // === Sidebar items — organizados por seções ===
   const railTopItems: RailItem[] = [
-    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen },
+    // Conversa
+    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, sectionLabel: "Conversa" },
     { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer" },
-    { icon: Code, label: "Programador IA", to: "/programador", accent: true },
-    { icon: Code2, label: "API para devs", to: "/api" },
+
+    // Ferramentas
+    { icon: Code, label: "Programador IA", to: "/programador", accent: true, sectionLabel: "Ferramentas" },
+    { icon: Phone, label: "Atendimento", to: "/atendimento" },
+
+    // Admin (só pra admin)
     ...(isAdmin
       ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin" },
+          { icon: ShieldCheck, label: "Admin", to: "/admin", sectionLabel: "Administração" },
+          { icon: Code2, label: "API para devs", to: "/api" },
           { icon: Crown, label: "Dono", to: "/dono", accent: true },
         ] as RailItem[])
-      : []),
+      : [
+          { icon: Code2, label: "API para devs", to: "/api", sectionLabel: "Mais" },
+        ] as RailItem[]),
   ];
 
   const railBottomItems: RailItem[] = [];
