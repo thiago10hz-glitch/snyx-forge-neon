@@ -192,16 +192,60 @@ function messagesToFlatPrompt(messages: any[]): string {
   return parts.join("\n\n");
 }
 
-async function callPollinationsNonStream(messages: any[]): Promise<any> {
-  const prompt = messagesToFlatPrompt(messages);
-  const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
-  const res = await fetch(url);
+// Lista ordenada de modelos Pollinations (todos sem API key, sem limite).
+// Ordem prioriza qualidade/velocidade. Se um falhar, tenta o próximo.
+const POLLINATIONS_MODELS = [
+  "openai-large",       // GPT-4o
+  "openai",             // GPT-4o-mini
+  "deepseek",           // DeepSeek V3
+  "deepseek-reasoner",  // DeepSeek R1 (raciocínio)
+  "llama",              // Llama 3.3 70B
+  "mistral",            // Mistral Nemo
+  "qwen-coder",         // Qwen 2.5 Coder
+  "gemini",             // Gemini 2.0 Flash
+  "openai-reasoning",   // o1-mini
+  "searchgpt",          // GPT com busca web
+];
+
+async function callPollinationsModel(model: string, messages: any[]): Promise<string> {
+  // Endpoint POST OpenAI-compatible do Pollinations (suporta histórico).
+  const res = await fetch("https://text.pollinations.ai/openai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages, private: true }),
+  });
   if (!res.ok) {
     const t = await res.text();
-    throw new Error(`pollinations_${res.status}:${t.slice(0, 200)}`);
+    throw new Error(`pollinations_${model}_${res.status}:${t.slice(0, 200)}`);
   }
-  const text = await res.text();
-  return { choices: [{ message: { role: "assistant", content: text } }] };
+  const data = await res.json().catch(() => null);
+  if (data?.choices?.[0]?.message?.content) return data.choices[0].message.content;
+  // Fallback: alguns modelos retornam texto puro
+  const text = typeof data === "string" ? data : await res.clone().text().catch(() => "");
+  if (!text) throw new Error(`pollinations_${model}_empty`);
+  return text;
+}
+
+async function callPollinationsNonStream(messages: any[]): Promise<any> {
+  let lastErr: Error | null = null;
+  for (const model of POLLINATIONS_MODELS) {
+    try {
+      const text = await callPollinationsModel(model, messages);
+      console.log(`[free-ai] Pollinations OK via ${model}`);
+      return { choices: [{ message: { role: "assistant", content: text } }] };
+    } catch (e) {
+      lastErr = e as Error;
+      console.warn(`[free-ai] Pollinations ${model} falhou:`, lastErr.message);
+    }
+  }
+  // Último recurso: GET legacy com prompt flat
+  const prompt = messagesToFlatPrompt(messages);
+  const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`);
+  if (res.ok) {
+    const text = await res.text();
+    return { choices: [{ message: { role: "assistant", content: text } }] };
+  }
+  throw lastErr || new Error("pollinations_all_failed");
 }
 
 async function callPollinationsStream(messages: any[]): Promise<Response> {
