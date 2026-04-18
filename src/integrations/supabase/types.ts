@@ -1037,6 +1037,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_api_client: { Args: { p_client_id: string }; Returns: Json }
       admin_force_set_dev: {
         Args: { p_expires_at?: string; p_is_dev: boolean; p_user_id: string }
         Returns: undefined
@@ -1053,6 +1054,15 @@ export type Database = {
         Args: { p_months: number; p_target_user_id: string }
         Returns: Json
       }
+      admin_reactivate_api_client: {
+        Args: { p_client_id: string }
+        Returns: Json
+      }
+      admin_reset_api_client_usage: {
+        Args: { p_client_id: string }
+        Returns: Json
+      }
+      admin_revoke_api_client: { Args: { p_client_id: string }; Returns: Json }
       admin_revoke_pack_steam: {
         Args: { p_target_user_id: string }
         Returns: Json

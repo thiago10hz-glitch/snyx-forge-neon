@@ -13,6 +13,7 @@ import {
   ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy, Settings2,
 } from "lucide-react";
 import { ChatSettings } from "@/components/ChatSettings";
+import ApiClientsManager from "@/components/ApiClientsManager";
 import { toast } from "sonner";
 
 /* ════════════════════════════════════════════════════════════════
@@ -876,6 +877,11 @@ function RevenueTab({ stats }: { stats: PlatformStats }) {
           <p className="text-[10px] text-muted-foreground/60 mt-1">Aguardando revisão</p>
         </NeonCard>
       </div>
+
+      {/* Gerenciador de API Keys */}
+      <NeonCard className="p-5">
+        <ApiClientsManager />
+      </NeonCard>
 
       {/* Plans table */}
       <NeonCard className="p-5">
