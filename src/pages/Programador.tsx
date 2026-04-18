@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Loader2, ArrowLeft, Send, Sparkles, Brain, Zap, Code2, Eye, MessageSquare,
-  Check, User as UserIcon,
+  Check, User as UserIcon, Mic, MicOff,
 } from "lucide-react";
 
 type Mode = "default" | "pro" | "think";
@@ -53,7 +53,44 @@ export default function Programador() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<Mode>("default");
   const [view, setView] = useState<"chat" | "preview">("chat");
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      toast.error("Seu navegador não suporta gravação por voz.");
+      return;
+    }
+    const recognition = new SR();
+    recognition.lang = "pt-BR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognitionRef.current = recognition;
+    let finalText = input;
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += t + " ";
+        else interim += t;
+      }
+      setInput((finalText + interim).trim());
+    };
+    recognition.onerror = (event: any) => {
+      if (event.error === "not-allowed") toast.error("Permita o acesso ao microfone.");
+      setIsRecording(false);
+    };
+    recognition.onend = () => setIsRecording(false);
+    recognition.start();
+    setIsRecording(true);
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -233,7 +270,7 @@ export default function Programador() {
             size="sm"
             variant={view === "preview" ? "default" : "outline"}
             onClick={() => setView("preview")}
-            className="h-8"
+            className={`h-8 ${view === "preview" ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/40" : "border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"}`}
           >
             <Eye className="h-3.5 w-3.5" />
           </Button>
@@ -366,14 +403,28 @@ export default function Programador() {
                     );
                   })}
                 </div>
-                <Button
-                  onClick={() => sendPrompt()}
-                  disabled={busy || !input.trim()}
-                  size="icon"
-                  className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 hover:scale-105 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none disabled:scale-100"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={toggleRecording}
+                    title={isRecording ? "Parar gravação" : "Falar (microfone)"}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                      isRecording
+                        ? "bg-destructive/20 text-destructive animate-pulse shadow-lg shadow-destructive/30"
+                        : "bg-primary/10 text-primary hover:bg-primary/20 shadow-md shadow-primary/20 hover:shadow-primary/40"
+                    }`}
+                  >
+                    {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                  <Button
+                    onClick={() => sendPrompt()}
+                    disabled={busy || !input.trim()}
+                    size="icon"
+                    className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 hover:scale-105 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none disabled:scale-100"
+                  >
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             </div>
             <p className="mt-2 text-center text-[10px] text-muted-foreground/60">
