@@ -6,46 +6,46 @@
 
 @layer base {
   :root {
-    /* SkynetChat Red — vermelho saturado puro, gradiente vertical (vivo→bordô) */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-    --card: 0 50% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 45% 8%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 0 100% 62%;
-    --secondary: 0 30% 10%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 9%;
-    --muted-foreground: 0 5% 62%;
-    --accent: 0 100% 55%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 100% 50%;
+    /* === ChatGPT-like monochrome theme === */
+    --background: 0 0% 4%;            /* #0a0a0a — quase preto */
+    --foreground: 0 0% 92%;           /* #ececec — branco suave */
+    --card: 0 0% 9%;                  /* #171717 — grafite */
+    --card-foreground: 0 0% 92%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 92%;
+    --primary: 0 0% 92%;              /* branco — destaque sem cor saturada */
+    --primary-foreground: 0 0% 8%;    /* texto preto sobre branco */
+    --primary-glow: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 84% 60%;         /* vermelho APENAS para erros reais */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 40% 12%;
-    --input: 0 30% 9%;
-    --ring: 0 100% 50%;
-    --radius: 1rem;
-    --sidebar-background: 0 0% 3%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 0 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 50% 7%;
+    --border: 0 0% 18%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 60%;
+    --radius: 0.875rem;
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 0 0% 86%;
+    --sidebar-primary: 0 0% 92%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 14%;
     --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 35% 9%;
-    --sidebar-ring: 0 100% 50%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 0 0% 60%;
 
-    /* Glow tokens — vermelho cinematográfico */
-    --neon-glow: 0 0 18px hsl(0 100% 50% / 0.45), 0 0 48px hsl(0 100% 50% / 0.18);
-    --neon-glow-strong: 0 0 24px hsl(0 100% 50% / 0.65), 0 0 64px hsl(0 100% 62% / 0.32), 0 0 130px hsl(0 100% 50% / 0.18);
-    --neon-glow-soft: 0 0 14px hsl(0 100% 62% / 0.28), 0 0 32px hsl(0 100% 50% / 0.10);
-    --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(0 100% 62%));
-    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(0 100% 50% / 0.22), transparent 70%);
-    --gradient-card: linear-gradient(145deg, hsl(0 40% 8% / 0.88), hsl(0 0% 4% / 0.96));
-    /* Fundo cinematográfico estilo SkynetChat — gradiente vertical vivo→bordô→preto */
-    --gradient-app-bg: linear-gradient(180deg, hsl(0 85% 32%) 0%, hsl(0 80% 22%) 35%, hsl(0 75% 14%) 65%, hsl(0 0% 5%) 100%);
+    /* Glow tokens — sutil, sem cor */
+    --neon-glow: 0 0 0 1px hsl(0 0% 100% / 0.06);
+    --neon-glow-strong: 0 4px 20px hsl(0 0% 0% / 0.5), 0 0 0 1px hsl(0 0% 100% / 0.08);
+    --neon-glow-soft: 0 0 0 1px hsl(0 0% 100% / 0.04);
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 96%), hsl(0 0% 80%));
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(0 0% 100% / 0.04), transparent 70%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 10% / 0.92), hsl(0 0% 6% / 0.96));
+    /* Fundo plano estilo ChatGPT */
+    --gradient-app-bg: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 4%) 100%);
   }
 }
 

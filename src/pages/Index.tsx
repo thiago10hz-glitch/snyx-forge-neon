@@ -133,13 +133,12 @@ const Index = () => {
   const railLogo = (
     <Link
       to="/"
-      className="group relative w-8 h-8 flex items-center justify-center transition-transform duration-300 hover:scale-110"
+      className="group relative w-8 h-8 flex items-center justify-center"
       title="SnyX"
     >
       <Flame
-        className="w-[20px] h-[20px] text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.7)] group-hover:drop-shadow-[0_0_12px_hsl(var(--primary))] transition-all"
+        className="w-[18px] h-[18px] text-foreground/85"
         strokeWidth={1.6}
-        fill="hsl(var(--primary) / 0.25)"
       />
     </Link>
   );
