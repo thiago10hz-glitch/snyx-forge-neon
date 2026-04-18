@@ -89,8 +89,9 @@ export default function Musica() {
         ? "Modelo carregando, tenta de novo em ~30s 🔄"
         : rawMessage;
       toast.error(msg);
-    }
     } finally {
+      setLoading(false);
+    }
       setLoading(false);
     }
   };
