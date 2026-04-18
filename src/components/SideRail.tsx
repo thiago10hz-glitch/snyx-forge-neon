@@ -55,13 +55,17 @@ export function SideRail({
       ? "text-foreground bg-white/[0.06]"
       : "text-foreground/70 hover:text-foreground hover:bg-white/[0.04]";
 
+    const iconColorClass = item.iconColor
+      ? `${item.iconColor} drop-shadow-[0_0_6px_currentColor]`
+      : "";
+
     const inner = (
       <button
         onClick={item.onClick}
         className={`group relative flex items-center w-full h-9 px-3 gap-3 rounded-md transition-colors duration-150 ${tone}`}
         aria-label={item.label}
       >
-        <Icon className="w-[15px] h-[15px] shrink-0" strokeWidth={1.7} />
+        <Icon className={`w-[15px] h-[15px] shrink-0 ${iconColorClass}`} strokeWidth={1.9} />
         <span className="text-[13px] font-medium truncate">{item.label}</span>
         {item.dot && (
           <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-foreground/70" />
