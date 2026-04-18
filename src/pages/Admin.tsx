@@ -598,8 +598,7 @@ export default function Admin() {
     { key: "users", label: "Usuários", icon: Users },
     { key: "tickets", label: "Tickets", icon: LifeBuoy, badge: counts.tickets },
     { key: "apikeys", label: "API Keys", icon: KeySquare, badge: counts.apps },
-    { key: "logs", label: "Logs", icon: ScrollText },
-    { key: "notes", label: "Notas", icon: StickyNote },
+    { key: "audit", label: "Auditoria", icon: ScrollText },
   ];
 
   const currentTab = tabs.find(t => t.key === adminTab);
@@ -680,8 +679,12 @@ export default function Admin() {
         <div className="flex-1 overflow-y-auto">
           {adminTab === "dashboard" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><AdminDashboard /></div>}
           {adminTab === "tickets" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><TicketsTab /></div>}
-          {adminTab === "logs" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><LogsTab /></div>}
-          {adminTab === "notes" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><NotesTab /></div>}
+          {adminTab === "audit" && (
+            <div className="max-w-7xl mx-auto px-4 py-6 w-full space-y-6">
+              <LogsTab />
+              <NotesTab />
+            </div>
+          )}
           {adminTab === "apikeys" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><ApiKeysTab /></div>}
 
           {adminTab === "users" && (
