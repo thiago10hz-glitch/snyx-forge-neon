@@ -132,23 +132,23 @@ const Index = () => {
   // === Sidebar items — organizados por seções ===
   const railTopItems: RailItem[] = [
     // Conversa
-    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
-    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip" },
-    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
+    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, sectionLabel: "Conversa", iconColor: "text-violet-400" },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip", iconColor: "text-pink-400" },
+    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", iconColor: "text-sky-400" },
 
     // Ferramentas
-    { icon: Code, label: "Programador IA", to: "/programador", red: true, sectionLabel: "Ferramentas" },
-    { icon: Phone, label: "Atendimento", to: "/atendimento", red: true },
+    { icon: Code, label: "Programador IA", to: "/programador", sectionLabel: "Ferramentas", iconColor: "text-cyan-400" },
+    { icon: Phone, label: "Atendimento", to: "/atendimento", iconColor: "text-emerald-400" },
 
     // Admin (só pra admin)
     ...(isAdmin
       ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin", red: true, sectionLabel: "Administração" },
-          { icon: Code2, label: "API para devs", to: "/api", red: true },
-          { icon: Crown, label: "Dono", to: "/dono", red: true },
+          { icon: ShieldCheck, label: "Admin", to: "/admin", sectionLabel: "Administração", iconColor: "text-red-400" },
+          { icon: Code2, label: "API para devs", to: "/api", iconColor: "text-orange-400" },
+          { icon: Crown, label: "Dono", to: "/dono", iconColor: "text-amber-400" },
         ] as RailItem[])
       : [
-          { icon: Code2, label: "API para devs", to: "/api", red: true, sectionLabel: "Mais" },
+          { icon: Code2, label: "API para devs", to: "/api", sectionLabel: "Mais", iconColor: "text-orange-400" },
         ] as RailItem[]),
   ];
 
