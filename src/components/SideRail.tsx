@@ -13,6 +13,8 @@ export interface RailItem {
   accent?: boolean;
   dot?: boolean;
   groupedWithPrev?: boolean;
+  /** Rótulo de seção exibido ACIMA deste item */
+  sectionLabel?: string;
 }
 
 interface SideRailProps {
