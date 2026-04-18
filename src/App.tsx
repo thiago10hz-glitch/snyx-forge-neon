@@ -25,6 +25,7 @@ import Atendimento from "./pages/Atendimento";
 import RpgCatalog from "./pages/RpgCatalog";
 import RpgCreate from "./pages/RpgCreate";
 import RpgChat from "./pages/RpgChat";
+import MyRpg from "./pages/MyRpg";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -133,6 +134,7 @@ const App = () => {
                 <Route path="/promo" element={<Promo />} />
                 <Route path="/atendimento" element={<ProtectedRoute><Atendimento /></ProtectedRoute>} />
                 <Route path="/rpg" element={<ProtectedRoute><RpgCatalog /></ProtectedRoute>} />
+                <Route path="/rpg/minha-conta" element={<ProtectedRoute><MyRpg /></ProtectedRoute>} />
                 <Route path="/rpg/criar" element={<ProtectedRoute><RpgCreate /></ProtectedRoute>} />
                 <Route path="/rpg/c/:id" element={<ProtectedRoute><RpgChat /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
