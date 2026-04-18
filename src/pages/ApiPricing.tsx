@@ -25,8 +25,19 @@ interface ApiPlan {
 
 const PLAN_META: Record<string, { icon: any; tag?: string; highlight?: boolean }> = {
   free: { icon: Sparkles },
-  pro: { icon: Zap, tag: "Mais popular", highlight: true },
+  starter: { icon: Zap },
+  pro: { icon: Crown, tag: "Mais popular", highlight: true },
   business: { icon: Crown },
+};
+
+// Descrição amigável de cada modelo SnyX (sem revelar provider real)
+const SNYX_MODEL_INFO: Record<string, { label: string; desc: string }> = {
+  "snyx-fast": { label: "SnyX Fast", desc: "Respostas instantâneas, ideal para chat" },
+  "snyx-pro": { label: "SnyX Pro", desc: "Raciocínio avançado, qualidade GPT-4 class" },
+  "snyx-coder": { label: "SnyX Coder", desc: "Especializado em código e debugging" },
+  "snyx-reasoning": { label: "SnyX Reasoning", desc: "Problemas complexos, matemática, lógica" },
+  "snyx-vision": { label: "SnyX Vision", desc: "Análise de imagens e multimodal" },
+  "snyx-search": { label: "SnyX Search", desc: "Respostas com busca em tempo real" },
 };
 
 export default function ApiPricing() {
@@ -199,11 +210,7 @@ export default function ApiPricing() {
                     </li>
                     <li className="flex gap-2">
                       <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <span><strong>{plan.rate_limit_per_minute}</strong> req/minuto</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <span>Modelos: {plan.models_allowed.join(", ")}</span>
+                      <span><strong>{plan.models_allowed.length}</strong> modelo{plan.models_allowed.length > 1 ? "s" : ""} SnyX inclusos</span>
                     </li>
                     <li className="flex gap-2">
                       <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -216,6 +223,19 @@ export default function ApiPricing() {
                       </li>
                     )}
                   </ul>
+
+                  {/* Lista de modelos inclusos */}
+                  <div className="mb-5 p-3 rounded-xl bg-muted/30 border border-border/40 space-y-1.5">
+                    {plan.models_allowed.map((m) => {
+                      const info = SNYX_MODEL_INFO[m] || { label: m, desc: "" };
+                      return (
+                        <div key={m} className="flex items-start gap-2 text-xs">
+                          <span className="font-mono text-primary font-semibold shrink-0">{info.label}</span>
+                          <span className="text-muted-foreground">— {info.desc}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
 
                   <Button
                     onClick={() => handleSubscribe(plan)}
