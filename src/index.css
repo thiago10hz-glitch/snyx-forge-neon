@@ -6,46 +6,49 @@
 
 @layer base {
   :root {
-    /* === ChatGPT-like monochrome theme === */
-    --background: 0 0% 4%;            /* #0a0a0a — quase preto */
-    --foreground: 0 0% 92%;           /* #ececec — branco suave */
-    --card: 0 0% 9%;                  /* #171717 — grafite */
-    --card-foreground: 0 0% 92%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 92%;
-    --primary: 0 0% 92%;              /* branco — destaque sem cor saturada */
-    --primary-foreground: 0 0% 8%;    /* texto preto sobre branco */
-    --primary-glow: 0 0% 100%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 92%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 16%;
-    --accent-foreground: 0 0% 96%;
-    --destructive: 0 84% 60%;         /* vermelho APENAS para erros reais */
+    /* === Midnight Indigo — premium minimalista === */
+    --background: 240 28% 5%;         /* #0a0a1a */
+    --foreground: 230 25% 94%;        /* texto claro levemente azulado */
+    --card: 235 32% 9%;               /* #141432 */
+    --card-foreground: 230 25% 94%;
+    --popover: 235 32% 8%;
+    --popover-foreground: 230 25% 94%;
+    --primary: 243 76% 59%;           /* #4f46e5 indigo */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 245 90% 70%;
+    --secondary: 237 30% 14%;
+    --secondary-foreground: 230 25% 94%;
+    --muted: 237 26% 13%;
+    --muted-foreground: 230 14% 62%;
+    --accent: 245 60% 22%;
+    --accent-foreground: 230 25% 96%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 18%;
-    --input: 0 0% 14%;
-    --ring: 0 0% 60%;
+    --border: 237 28% 18%;
+    --input: 237 28% 14%;
+    --ring: 243 76% 65%;
     --radius: 0.875rem;
-    --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 0 0% 86%;
-    --sidebar-primary: 0 0% 92%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 0 0% 60%;
+    --sidebar-background: 240 32% 7%;
+    --sidebar-foreground: 230 18% 80%;
+    --sidebar-primary: 243 76% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 28% 12%;
+    --sidebar-accent-foreground: 230 25% 96%;
+    --sidebar-border: 240 24% 16%;
+    --sidebar-ring: 243 76% 65%;
 
-    /* Glow tokens — sutil, sem cor */
-    --neon-glow: 0 0 0 1px hsl(0 0% 100% / 0.06);
-    --neon-glow-strong: 0 4px 20px hsl(0 0% 0% / 0.5), 0 0 0 1px hsl(0 0% 100% / 0.08);
-    --neon-glow-soft: 0 0 0 1px hsl(0 0% 100% / 0.04);
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 96%), hsl(0 0% 80%));
-    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(0 0% 100% / 0.04), transparent 70%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 10% / 0.92), hsl(0 0% 6% / 0.96));
-    /* Fundo plano estilo ChatGPT */
-    --gradient-app-bg: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 4%) 100%);
+    /* Glow tokens — indigo sutil */
+    --neon-glow: 0 0 0 1px hsl(243 76% 59% / 0.18);
+    --neon-glow-strong: 0 8px 32px hsl(243 76% 40% / 0.45), 0 0 0 1px hsl(243 76% 65% / 0.25);
+    --neon-glow-soft: 0 0 0 1px hsl(243 76% 65% / 0.10);
+    --gradient-primary: linear-gradient(135deg, hsl(243 76% 59%) 0%, hsl(255 80% 65%) 100%);
+    --gradient-radial: radial-gradient(circle at 50% 0%, hsl(243 76% 50% / 0.18), transparent 70%);
+    --gradient-card: linear-gradient(145deg, hsl(235 32% 11% / 0.92), hsl(240 30% 6% / 0.96));
+    /* Fundo cinematográfico com aura indigo no topo */
+    --gradient-app-bg:
+      radial-gradient(80% 60% at 50% 0%, hsl(243 70% 22% / 0.35), transparent 70%),
+      radial-gradient(60% 50% at 90% 100%, hsl(255 70% 28% / 0.18), transparent 70%),
+      linear-gradient(180deg, hsl(240 28% 5%) 0%, hsl(240 32% 4%) 100%);
   }
 }
 
@@ -96,49 +99,49 @@
 }
 
 @layer components {
-  /* === Glass effects (carmim premium) === */
+  /* === Glass effects (Midnight Indigo) === */
   .glass {
-    background: linear-gradient(145deg, hsl(345 33% 8% / 0.78), hsl(240 24% 5% / 0.88));
-    border: 1px solid hsl(350 100% 54% / 0.12);
+    background: linear-gradient(145deg, hsl(240 30% 10% / 0.78), hsl(240 32% 5% / 0.88));
+    border: 1px solid hsl(243 76% 65% / 0.14);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
   .glass-elevated {
-    background: linear-gradient(145deg, hsl(345 33% 10% / 0.92), hsl(240 24% 6% / 0.96));
-    border: 1px solid hsl(350 100% 54% / 0.18);
+    background: linear-gradient(145deg, hsl(240 30% 12% / 0.92), hsl(240 32% 6% / 0.96));
+    border: 1px solid hsl(243 76% 65% / 0.20);
     backdrop-filter: blur(18px) saturate(150%);
     -webkit-backdrop-filter: blur(18px) saturate(150%);
     box-shadow:
-      0 12px 48px hsl(350 100% 30% / 0.25),
-      0 2px 16px hsl(0 0% 0% / 0.4),
-      inset 0 1px 0 hsl(345 100% 66% / 0.08);
+      0 12px 48px hsl(243 76% 30% / 0.35),
+      0 2px 16px hsl(0 0% 0% / 0.45),
+      inset 0 1px 0 hsl(243 90% 80% / 0.08);
   }
   .glass-subtle {
-    background: hsl(345 33% 7% / 0.7);
-    border: 1px solid hsl(350 100% 54% / 0.08);
+    background: hsl(240 30% 8% / 0.7);
+    border: 1px solid hsl(243 76% 65% / 0.10);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
   .glass-input {
-    background: hsl(345 25% 10% / 0.6);
-    border: 1px solid hsl(350 100% 54% / 0.14);
+    background: hsl(240 28% 10% / 0.6);
+    border: 1px solid hsl(243 76% 65% / 0.16);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
   .glass-input:focus-within {
-    border-color: hsl(350 100% 54% / 0.55);
-    box-shadow: 0 0 0 3px hsl(350 100% 54% / 0.15), var(--neon-glow-soft);
+    border-color: hsl(243 76% 65% / 0.55);
+    box-shadow: 0 0 0 3px hsl(243 76% 59% / 0.18), var(--neon-glow-soft);
   }
 
-  /* === Neon effects === */
+  /* === Neon effects (indigo) === */
   .neon-border {
-    border: 1px solid hsl(350 100% 54% / 0.55);
+    border: 1px solid hsl(243 76% 65% / 0.55);
     box-shadow: var(--neon-glow);
   }
   .neon-text {
-    color: hsl(345 100% 70%);
-    text-shadow: 0 0 10px hsl(350 100% 54% / 0.5), 0 0 24px hsl(345 100% 66% / 0.25);
+    color: hsl(245 90% 78%);
+    text-shadow: 0 0 10px hsl(243 76% 60% / 0.5), 0 0 24px hsl(245 90% 70% / 0.25);
   }
   .neon-glow-strong {
     box-shadow: var(--neon-glow-strong);
@@ -154,31 +157,31 @@
   /* === Cards === */
   .card-premium {
     background: var(--gradient-card);
-    border: 1px solid hsl(350 100% 54% / 0.14);
+    border: 1px solid hsl(243 76% 65% / 0.14);
     box-shadow:
-      0 8px 40px hsl(350 100% 30% / 0.18),
-      0 2px 12px hsl(0 0% 0% / 0.35),
-      inset 0 1px 0 hsl(345 100% 66% / 0.06);
+      0 8px 40px hsl(243 76% 30% / 0.22),
+      0 2px 12px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(243 90% 80% / 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   }
   .card-premium:hover {
-    border-color: hsl(350 100% 54% / 0.35);
+    border-color: hsl(243 76% 65% / 0.40);
     box-shadow:
-      0 16px 56px hsl(350 100% 30% / 0.32),
-      0 4px 20px hsl(350 100% 54% / 0.12),
-      inset 0 1px 0 hsl(345 100% 66% / 0.12);
+      0 16px 56px hsl(243 76% 30% / 0.40),
+      0 4px 20px hsl(243 76% 60% / 0.18),
+      inset 0 1px 0 hsl(243 90% 80% / 0.12);
     transform: translateY(-2px);
   }
 
   /* === Gradients === */
   .gradient-text-primary {
-    background: linear-gradient(135deg, hsl(345 100% 70%) 0%, hsl(350 100% 54%) 50%, hsl(345 100% 66%) 100%);
+    background: linear-gradient(135deg, hsl(245 90% 78%) 0%, hsl(243 76% 60%) 50%, hsl(255 80% 70%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .gradient-text-subtle {
-    background: linear-gradient(135deg, hsl(0 0% 98%), hsl(345 8% 62%));
+    background: linear-gradient(135deg, hsl(230 25% 96%), hsl(230 14% 62%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -243,29 +246,29 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  /* === Chat bubbles — Crimson premium === */
+  /* === Chat bubbles — Midnight Indigo === */
   .chat-bubble-user {
     @apply rounded-2xl rounded-br-md;
-    background: linear-gradient(135deg, hsl(350 100% 56%) 0%, hsl(350 100% 48%) 55%, hsl(345 100% 42%) 100%);
+    background: linear-gradient(135deg, hsl(243 76% 59%) 0%, hsl(248 78% 52%) 55%, hsl(255 76% 46%) 100%);
     color: hsl(0 0% 100%);
-    border: 1px solid hsl(345 100% 70% / 0.35);
+    border: 1px solid hsl(245 90% 78% / 0.35);
     box-shadow:
-      0 6px 24px hsl(350 100% 45% / 0.45),
-      0 0 0 1px hsl(345 100% 70% / 0.15),
+      0 6px 24px hsl(243 76% 35% / 0.50),
+      0 0 0 1px hsl(245 90% 78% / 0.18),
       inset 0 1px 0 hsl(0 0% 100% / 0.18),
-      inset 0 -8px 20px hsl(345 100% 40% / 0.35);
+      inset 0 -8px 20px hsl(248 78% 30% / 0.40);
     text-shadow: 0 1px 1px hsl(0 0% 0% / 0.18);
   }
   .chat-bubble-ai {
     @apply rounded-2xl rounded-bl-md;
-    background: linear-gradient(145deg, hsl(345 28% 10% / 0.85), hsl(240 24% 6% / 0.92));
-    border: 1px solid hsl(350 100% 54% / 0.18);
+    background: linear-gradient(145deg, hsl(240 30% 11% / 0.88), hsl(240 32% 6% / 0.94));
+    border: 1px solid hsl(243 76% 65% / 0.18);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     box-shadow:
-      0 4px 20px hsl(0 0% 0% / 0.35),
-      0 0 0 1px hsl(350 100% 54% / 0.08),
-      inset 0 1px 0 hsl(345 100% 66% / 0.06);
+      0 4px 20px hsl(0 0% 0% / 0.40),
+      0 0 0 1px hsl(243 76% 65% / 0.10),
+      inset 0 1px 0 hsl(243 90% 80% / 0.06);
   }
 
   /* === Decorative bubble styles === */
