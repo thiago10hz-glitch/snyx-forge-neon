@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Volume2, VolumeX, RotateCcw, Loader2 } from "lucide-react";
+import { Play, Volume2, VolumeX, RotateCcw, Loader2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
