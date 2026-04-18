@@ -253,6 +253,153 @@ Deno.serve(async (req) => {
         console.error("[programmer-builder] DuckDuckGo exception:", e);
       }
 
+      // 5) Cloudflare Workers AI (Llama 3.3) — free tier sem cartão (se chave configurada)
+      const CF_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
+      const CF_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN");
+      if (CF_ACCOUNT_ID && CF_API_TOKEN) {
+        try {
+          const cfRes = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/v1/chat/completions`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${CF_API_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+                messages,
+                stream: true,
+                max_tokens: 8192,
+              }),
+            },
+          );
+          if (cfRes.ok && cfRes.body) {
+            return new Response(cfRes.body, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "cloudflare" },
+            });
+          }
+          console.error(`[programmer-builder] Cloudflare falhou: ${cfRes.status}`);
+        } catch (e) {
+          console.error("[programmer-builder] Cloudflare exception:", e);
+        }
+      }
+
+      // 6) Phind — grátis, sem chave (modelo próprio focado em código)
+      try {
+        const phindRes = await fetch("https://https.extension.phind.com/agent/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "",
+            "Accept": "*/*",
+          },
+          body: JSON.stringify({
+            additional_extension_context: "",
+            allow_magic_buttons: true,
+            is_vscode_extension: true,
+            message_history: messages.map((m: any) => ({ role: m.role, content: m.content })),
+            requested_model: "Phind-70B",
+            user_input: messages[messages.length - 1]?.content ?? "",
+          }),
+        });
+        if (phindRes.ok && phindRes.body) {
+          const transformed = new ReadableStream({
+            async start(controller) {
+              const reader = phindRes.body!.getReader();
+              const decoder = new TextDecoder();
+              const encoder = new TextEncoder();
+              let buf = "";
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = buf.indexOf("\n")) !== -1) {
+                  const line = buf.slice(0, idx).trim();
+                  buf = buf.slice(idx + 1);
+                  if (!line.startsWith("data:")) continue;
+                  const data = line.slice(5).trim();
+                  if (!data || data === "[DONE]") continue;
+                  try {
+                    const j = JSON.parse(data);
+                    const content = j.choices?.[0]?.delta?.content ?? "";
+                    if (content) {
+                      const chunk = { choices: [{ delta: { content } }] };
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                    }
+                  } catch { /* ignore */ }
+                }
+              }
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            },
+          });
+          return new Response(transformed, {
+            headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "phind" },
+          });
+        }
+        console.error(`[programmer-builder] Phind falhou: ${phindRes.status}`);
+      } catch (e) {
+        console.error("[programmer-builder] Phind exception:", e);
+      }
+
+      // 7) Blackbox AI — grátis, sem chave
+      try {
+        const bbRes = await fetch("https://www.blackbox.ai/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0",
+          },
+          body: JSON.stringify({
+            messages: messages.map((m: any, i: number) => ({
+              id: `msg-${i}`,
+              role: m.role,
+              content: m.content,
+            })),
+            previewToken: null,
+            userId: null,
+            codeModelMode: true,
+            agentMode: {},
+            trendingAgentMode: {},
+            isMicMode: false,
+            maxTokens: 8192,
+            playgroundTopP: 0.9,
+            playgroundTemperature: 0.7,
+            isChromeExt: false,
+            githubToken: null,
+          }),
+        });
+        if (bbRes.ok && bbRes.body) {
+          // Blackbox retorna texto puro (não SSE) → transformar em SSE OpenAI
+          const transformed = new ReadableStream({
+            async start(controller) {
+              const reader = bbRes.body!.getReader();
+              const decoder = new TextDecoder();
+              const encoder = new TextEncoder();
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const text = decoder.decode(value, { stream: true });
+                if (text) {
+                  const chunk = { choices: [{ delta: { content: text } }] };
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                }
+              }
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            },
+          });
+          return new Response(transformed, {
+            headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "blackbox" },
+          });
+        }
+        console.error(`[programmer-builder] Blackbox falhou: ${bbRes.status}`);
+      } catch (e) {
+        console.error("[programmer-builder] Blackbox exception:", e);
+      }
+
       if (aiRes.status === 402) {
         return handledError(
           "AI_CREDITS_EXHAUSTED",
