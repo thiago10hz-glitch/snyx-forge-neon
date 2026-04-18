@@ -48,26 +48,21 @@ export function SideRail({
 
   const renderItem = (item: RailItem, idx: number) => {
     const Icon = item.icon;
+    // Tom único, neutro, estilo ChatGPT — ignora red/accent/danger antigos
     const tone = item.active
-      ? "text-primary bg-primary/10"
-      : item.red
-        ? "text-primary hover:text-primary hover:bg-primary/10 drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]"
-        : item.danger
-          ? "text-muted-foreground/65 hover:text-destructive hover:bg-card/40"
-          : item.accent
-            ? "text-amber-300/80 hover:text-amber-200 hover:bg-card/40"
-            : "text-muted-foreground/70 hover:text-foreground hover:bg-card/40";
+      ? "text-foreground bg-white/[0.06]"
+      : "text-foreground/70 hover:text-foreground hover:bg-white/[0.04]";
 
     const inner = (
       <button
         onClick={item.onClick}
-        className={`group relative flex items-center w-full h-9 px-3 gap-3 rounded-md transition-colors duration-200 ${tone}`}
+        className={`group relative flex items-center w-full h-9 px-3 gap-3 rounded-md transition-colors duration-150 ${tone}`}
         aria-label={item.label}
       >
         <Icon className="w-[15px] h-[15px] shrink-0" strokeWidth={1.7} />
         <span className="text-[13px] font-medium truncate">{item.label}</span>
         {item.dot && (
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary))] animate-pulse" />
+          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-foreground/70" />
         )}
       </button>
     );
@@ -81,7 +76,7 @@ export function SideRail({
     return (
       <div key={idx} className={`w-full ${item.groupedWithPrev ? "-mt-0.5" : ""}`}>
         {item.sectionLabel && (
-          <div className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/50">
+          <div className="px-3 pt-3 pb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/55">
             {item.sectionLabel}
           </div>
         )}

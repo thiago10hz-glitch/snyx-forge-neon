@@ -1168,11 +1168,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
           <button
             onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); setShowSidebar(false); }}
-            className="relative w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12.5px] font-semibold text-primary-foreground bg-gradient-to-b from-primary via-primary to-primary/90 shadow-[0_6px_20px_-6px_hsl(var(--primary)/0.8),inset_0_1px_0_hsl(0_0%_100%/0.18)] hover:shadow-[0_8px_28px_-6px_hsl(var(--primary)/1),inset_0_1px_0_hsl(0_0%_100%/0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 overflow-hidden group/new"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[13px] font-medium text-background bg-foreground hover:bg-foreground/90 transition-colors duration-150"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover/new:translate-x-full transition-transform duration-700" />
-            <Plus size={14} strokeWidth={2.8} className="relative" />
-            <span className="relative tracking-tight">Nova conversa</span>
+            <Plus size={14} strokeWidth={2.4} />
+            <span>Nova conversa</span>
           </button>
 
           {/* Search */}
@@ -1873,10 +1872,10 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 </button>
                 <button
                   onClick={toggleRecording}
-                  className={`p-1.5 rounded-lg transition-all duration-200 ${
+                  className={`p-1.5 rounded-lg transition-colors duration-150 ${
                     isRecording
                       ? "bg-destructive/15 text-destructive animate-pulse"
-                      : "text-primary hover:text-primary hover:bg-primary/10 drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]"
+                      : "text-foreground/55 hover:text-foreground hover:bg-white/[0.05]"
                   }`}
                   title={isRecording ? "Parar gravação" : "Gravar áudio"}
                 >
