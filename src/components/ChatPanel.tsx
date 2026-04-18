@@ -1498,19 +1498,39 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                     : config.emptyText}
                 </p>
 
-                {/* Botão VIP unificado: ativa modo VIP+18 (ou abre modal de upgrade) */}
+                {/* Botão VIP unificado — premium glassmorphism com glow dourado/vermelho */}
                 {mode === "friend" && onUpgradeToVip && (
-                  <button
-                    onClick={onUpgradeToVip}
-                    className="group relative mb-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/20 via-primary/15 to-primary/20 border border-primary/40 text-primary text-[13px] font-semibold tracking-wide hover:from-primary/30 hover:to-primary/30 hover:border-primary/60 hover:shadow-[0_0_30px_-6px_hsl(var(--primary)/0.7)] transition-all duration-300 backdrop-blur-sm"
-                    title={isVipUser ? "Trocar para o modo VIP +18" : "Desbloquear VIP +18"}
-                  >
-                    <Crown className="w-4 h-4 fill-primary/30" strokeWidth={2.2} />
-                    <span>
-                      {isVipUser ? "Ativar modo VIP +18" : "Desbloquear VIP +18 🔒"}
-                    </span>
-                    <Sparkles className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity" strokeWidth={2.2} />
-                  </button>
+                  <div className="relative mb-7 flex justify-center">
+                    {/* halo externo pulsante */}
+                    <div className="absolute inset-0 -m-2 rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.45),transparent_70%)] blur-2xl animate-pulse pointer-events-none" aria-hidden />
+                    <button
+                      onClick={onUpgradeToVip}
+                      className="group relative inline-flex items-center gap-2.5 pl-5 pr-6 py-3 rounded-full overflow-hidden transition-all duration-500 hover:scale-[1.03] active:scale-[0.98]"
+                      title={isVipUser ? "Trocar para o modo VIP +18" : "Desbloquear VIP +18"}
+                    >
+                      {/* fundo gradiente animado */}
+                      <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-amber-500 to-primary bg-[length:200%_100%] animate-[gradient-x_3s_linear_infinite] opacity-90" aria-hidden />
+                      {/* camada de brilho interno */}
+                      <span className="absolute inset-[1.5px] rounded-full bg-gradient-to-b from-background/80 via-background/60 to-background/80 backdrop-blur-xl" aria-hidden />
+                      {/* shine sweep no hover */}
+                      <span className="absolute inset-0 rounded-full overflow-hidden" aria-hidden>
+                        <span className="absolute -inset-y-2 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-[400%] transition-transform duration-1000" />
+                      </span>
+                      {/* borda interna luminosa */}
+                      <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10 group-hover:ring-white/20 transition-all" aria-hidden />
+                      {/* shadow externa dourada */}
+                      <span className="absolute inset-0 rounded-full shadow-[0_8px_32px_-4px_hsl(var(--primary)/0.6),0_0_0_1px_hsl(var(--primary)/0.3)] group-hover:shadow-[0_8px_40px_-2px_hsl(var(--primary)/0.85),0_0_0_1px_hsl(45_90%_60%/0.4)] transition-shadow duration-500" aria-hidden />
+
+                      {/* conteúdo */}
+                      <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 via-primary to-primary/70 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.4),0_0_12px_hsl(var(--primary)/0.6)]">
+                        <Crown className="w-3.5 h-3.5 text-background fill-background/90" strokeWidth={2.4} />
+                      </span>
+                      <span className="relative text-[13px] font-bold tracking-wide bg-gradient-to-r from-amber-200 via-white to-amber-100 bg-clip-text text-transparent drop-shadow-[0_1px_2px_hsl(0_0%_0%/0.5)]">
+                        {isVipUser ? "Ativar modo VIP +18" : "Desbloquear VIP +18"}
+                      </span>
+                      <Sparkles className="relative w-3.5 h-3.5 text-amber-200 drop-shadow-[0_0_6px_hsl(45_90%_60%)] animate-pulse" strokeWidth={2.4} />
+                    </button>
+                  </div>
                 )}
 
                 {/* Quick suggestions */}
