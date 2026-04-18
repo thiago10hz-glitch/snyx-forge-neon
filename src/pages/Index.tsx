@@ -112,18 +112,18 @@ const Index = () => {
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer" },
 
     // Ferramentas
-    { icon: Code, label: "Programador IA", to: "/programador", accent: true, sectionLabel: "Ferramentas" },
+    { icon: Code, label: "Programador IA", to: "/programador", red: true, sectionLabel: "Ferramentas" },
     { icon: Phone, label: "Atendimento", to: "/atendimento" },
 
     // Admin (só pra admin)
     ...(isAdmin
       ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin", sectionLabel: "Administração" },
-          { icon: Code2, label: "API para devs", to: "/api" },
-          { icon: Crown, label: "Dono", to: "/dono", accent: true },
+          { icon: ShieldCheck, label: "Admin", to: "/admin", red: true, sectionLabel: "Administração" },
+          { icon: Code2, label: "API para devs", to: "/api", red: true },
+          { icon: Crown, label: "Dono", to: "/dono", red: true },
         ] as RailItem[])
       : [
-          { icon: Code2, label: "API para devs", to: "/api", sectionLabel: "Mais" },
+          { icon: Code2, label: "API para devs", to: "/api", red: true, sectionLabel: "Mais" },
         ] as RailItem[]),
   ];
 

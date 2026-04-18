@@ -11,6 +11,7 @@ export interface RailItem {
   active?: boolean;
   danger?: boolean;
   accent?: boolean;
+  red?: boolean;
   dot?: boolean;
   groupedWithPrev?: boolean;
   /** Rótulo de seção exibido ACIMA deste item */
@@ -49,11 +50,13 @@ export function SideRail({
     const Icon = item.icon;
     const tone = item.active
       ? "text-primary bg-primary/10"
-      : item.danger
-        ? "text-muted-foreground/65 hover:text-destructive hover:bg-card/40"
-        : item.accent
-          ? "text-amber-300/80 hover:text-amber-200 hover:bg-card/40"
-          : "text-muted-foreground/70 hover:text-foreground hover:bg-card/40";
+      : item.red
+        ? "text-primary hover:text-primary hover:bg-primary/10 drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]"
+        : item.danger
+          ? "text-muted-foreground/65 hover:text-destructive hover:bg-card/40"
+          : item.accent
+            ? "text-amber-300/80 hover:text-amber-200 hover:bg-card/40"
+            : "text-muted-foreground/70 hover:text-foreground hover:bg-card/40";
 
     const inner = (
       <button
