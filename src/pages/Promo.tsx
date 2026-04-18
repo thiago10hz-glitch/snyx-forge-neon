@@ -345,10 +345,26 @@ export default function Promo() {
                 {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 {muted ? "Som desligado" : "Som ligado"}
               </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDownload}
+                disabled={recording || loadingAudio}
+                className="h-14 gap-2"
+              >
+                {recording ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Gravando...</>
+                ) : (
+                  <><Download className="w-5 h-5" /> Baixar vídeo</>
+                )}
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground/60">
               Voz feminina real gerada por IA • Use fones para a melhor experiência
+            </p>
+            <p className="text-[11px] text-muted-foreground/50 max-w-md mx-auto leading-relaxed">
+              Ao baixar: selecione <strong>esta aba</strong> na janela que aparecer e marque <strong>"Compartilhar áudio da aba"</strong>. O filme tocará automaticamente e o WebM será baixado ao final (~30s).
             </p>
           </div>
         )}
