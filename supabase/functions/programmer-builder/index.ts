@@ -72,16 +72,47 @@ Deno.serve(async (req) => {
       body: JSON.stringify(body),
     });
 
-    if (aiRes.status === 429) {
-      return new Response(JSON.stringify({ error: "Limite de requisições. Aguarde um momento." }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Fallback automático para Groq quando Lovable AI falha (sem créditos / rate limit / 5xx)
+    if (aiRes.status === 402 || aiRes.status === 429 || aiRes.status >= 500) {
+      const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+      console.warn(`[programmer-builder] Lovable AI ${aiRes.status} → fallback Groq`);
+      if (GROQ_API_KEY) {
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages,
+            stream: true,
+            max_tokens: 8192,
+            temperature: 0.7,
+          }),
+        });
+        if (groqRes.ok && groqRes.body) {
+          return new Response(groqRes.body, {
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "text/event-stream",
+              "X-AI-Provider": "groq",
+            },
+          });
+        }
+        console.error("[programmer-builder] Groq fallback falhou:", groqRes.status);
+      }
+      // Sem fallback disponível → devolve erro original
+      const errMsg = aiRes.status === 402
+        ? "Créditos da IA esgotados e Groq indisponível."
+        : aiRes.status === 429
+          ? "Limite de requisições. Aguarde um momento."
+          : "IA temporariamente indisponível.";
+      return new Response(JSON.stringify({ error: errMsg }), {
+        status: aiRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (aiRes.status === 402) {
-      return new Response(JSON.stringify({ error: "Créditos da IA esgotados." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+
     if (!aiRes.ok || !aiRes.body) {
       const t = await aiRes.text();
       console.error("AI error:", aiRes.status, t);
@@ -89,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(aiRes.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "lovable" },
     });
   } catch (e) {
     console.error("programmer-builder error:", e);
