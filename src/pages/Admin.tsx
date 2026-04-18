@@ -607,14 +607,15 @@ export default function Admin() {
   const currentTab = tabs.find(t => t.key === adminTab);
 
   return (
-    <div className="min-h-screen text-foreground flex relative overflow-hidden bg-[#040b14]">
-      {/* Operational aurora — cyan + teal ambient backdrop (Admin) */}
+    <div className="min-h-screen text-foreground flex relative overflow-hidden bg-[#0d0306]">
+      {/* Crimson aurora — vermelho carmim com brasa quente (Admin) */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-32 w-[640px] h-[640px] rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.22),transparent_60%)] blur-3xl" />
-        <div className="absolute top-1/4 -right-40 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_60%)] blur-3xl" />
-        <div className="absolute bottom-[-200px] left-1/3 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12),transparent_65%)] blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,11,20,0.35)_0%,rgba(4,11,20,0.85)_100%)]" />
-        <div className="absolute inset-0 opacity-[0.035] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")" }} />
+        <div className="absolute -top-48 -left-32 w-[680px] h-[680px] rounded-full bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.30),transparent_60%)] blur-3xl" />
+        <div className="absolute top-1/4 -right-40 w-[760px] h-[760px] rounded-full bg-[radial-gradient(circle_at_center,rgba(159,18,57,0.26),transparent_60%)] blur-3xl" />
+        <div className="absolute bottom-[-220px] left-1/3 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.12),transparent_65%)] blur-3xl" />
+        <div className="absolute top-2/3 right-1/4 w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.16),transparent_65%)] blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,3,6,0.35)_0%,rgba(8,2,4,0.9)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")" }} />
       </div>
       {/* neon ambient bg */}
       <div className="fixed inset-0 pointer-events-none">
