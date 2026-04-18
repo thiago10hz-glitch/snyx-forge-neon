@@ -13,6 +13,7 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 import { SideRail, type RailItem } from "@/components/SideRail";
 import { ChatPanel } from "@/components/ChatPanel";
 import { SidebarConversations } from "@/components/SidebarConversations";
+import { VipModal } from "@/components/VipModal";
 
 const CodeEditor = lazy(() => import("@/components/CodeEditor").then(m => ({ default: m.CodeEditor })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
@@ -38,6 +39,7 @@ const Index = () => {
   const [chatNonce, setChatNonce] = useState(0);
 
   const [showModePicker, setShowModePicker] = useState(false);
+  const [showVipModal, setShowVipModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -109,7 +111,19 @@ const Index = () => {
   const railTopItems: RailItem[] = [
     // Conversa
     { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, red: true, sectionLabel: "Conversa" },
-    { icon: isVip ? Crown : Heart, label: isVip ? "Chat VIP" : "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" && !isVip },
+    {
+      icon: Crown,
+      label: isVip ? "Chat VIP" : "Chat VIP 🔒",
+      onClick: () => {
+        if (isVip) {
+          switchToFriend(); // VIP/DEV já são roteados pro chat-vip automaticamente
+        } else {
+          setShowVipModal(true);
+        }
+      },
+      active: chatMode === "friend" && isVip,
+    },
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", red: true },
 
     // Ferramentas
@@ -457,6 +471,8 @@ const Index = () => {
           <UserProfile open={showProfile} onClose={() => setShowProfile(false)} />
           <ThemeSelector externalOpen={showThemeModal} onExternalClose={() => setShowThemeModal(false)} hideButton />
         </Suspense>
+
+        <VipModal open={showVipModal} onClose={() => setShowVipModal(false)} highlightPlan="vip" />
       </div>
     </TooltipProvider>
   );
