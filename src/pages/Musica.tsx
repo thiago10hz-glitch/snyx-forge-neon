@@ -70,7 +70,12 @@ export default function Musica() {
       const { data, error } = await supabase.functions.invoke("generate-music", {
         body: { prompt, duration },
       });
-      if (error) throw error;
+      if (error) {
+        const detailedMessage = typeof error.context === "string"
+          ? error.context
+          : error.message;
+        throw new Error(detailedMessage || "Erro ao gerar");
+      }
       if (data?.error) {
         toast.error(data.error);
         return;
@@ -79,10 +84,12 @@ export default function Musica() {
       setPrompt("");
       await loadHistory();
     } catch (e: any) {
-      const msg = e?.message?.includes("503") || e?.context?.status === 503
+      const rawMessage = e?.message || "Erro ao gerar";
+      const msg = rawMessage.includes("503")
         ? "Modelo carregando, tenta de novo em ~30s 🔄"
-        : e?.message || "Erro ao gerar";
+        : rawMessage;
       toast.error(msg);
+    }
     } finally {
       setLoading(false);
     }
