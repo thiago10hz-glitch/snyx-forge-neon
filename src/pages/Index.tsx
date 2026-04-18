@@ -318,6 +318,8 @@ const Index = () => {
                     initialConversationId={pickedConvId}
                     forceMode={chatMode}
                     onUserInput={handleUserInput}
+                    onUpgradeToVip={handleUpgradeToVip}
+                    isVipUser={isVip}
                   />
                 </Suspense>
               </div>
