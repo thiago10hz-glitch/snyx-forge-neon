@@ -10,8 +10,9 @@ import {
   BarChart3, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
   AlertTriangle, Star, Radio, Volume2, Menu, X,
   DollarSign, KeyRound, FileText, Cpu, Flame, Search,
-  ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy,
+  ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy, Settings2,
 } from "lucide-react";
+import { ChatSettings } from "@/components/ChatSettings";
 import { toast } from "sonner";
 
 /* ════════════════════════════════════════════════════════════════
@@ -104,6 +105,7 @@ export default function OwnerPanel() {
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
 
   useEffect(() => { if (user) checkAdmin(); }, [user]);
 
