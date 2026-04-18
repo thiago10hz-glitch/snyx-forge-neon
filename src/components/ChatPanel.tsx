@@ -1167,16 +1167,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
 
         {/* Header */}
         <div className="px-4 pt-4 pb-3 space-y-3 relative">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_12px_-2px_hsl(var(--primary)/0.5)]">
-                <Archive size={13} className="text-primary" strokeWidth={2.4} />
-              </div>
-              <div>
-                <h3 className="text-[13px] font-bold tracking-tight text-foreground leading-none">Histórico</h3>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5 leading-none">{conversations.length} conversas</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-end">
             <button
               onClick={() => setShowSidebar(false)}
               className="sm:hidden w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/40 transition-all"
@@ -1185,14 +1176,6 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
               <PanelLeftClose size={14} />
             </button>
           </div>
-
-          <button
-            onClick={() => { setActiveConversationId(null); setMessages([]); setAttachment(null); setShowSidebar(false); }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[13px] font-medium text-background bg-foreground hover:bg-foreground/90 transition-colors duration-150"
-          >
-            <Plus size={14} strokeWidth={2.4} />
-            <span>Nova conversa</span>
-          </button>
 
           {/* Search */}
           <div className="relative group/search">
