@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, ArrowLeft, Activity } from "lucide-react";
+import { Plus, Trash2, RefreshCw, ArrowLeft, Activity, Sparkles, Layers } from "lucide-react";
 
 interface AIKey {
   id: string;
@@ -29,9 +30,9 @@ interface AIKey {
 }
 
 const PROVIDERS = [
+  { value: "lovable", label: "Lovable AI Gateway (incluso)", model: "google/gemini-3-flash-preview", limit: 3000 },
   { value: "groq", label: "Groq (14.4k req/dia)", model: "llama-3.3-70b-versatile", limit: 14400 },
   { value: "google", label: "Google AI (1.5k req/dia)", model: "gemini-2.0-flash-exp", limit: 1500 },
-  { value: "lovable", label: "Lovable AI (~3k/mês)", model: "google/gemini-2.5-flash", limit: 3000 },
   { value: "cerebras", label: "Cerebras (14.4k req/dia)", model: "llama-3.3-70b", limit: 14400 },
   { value: "openrouter", label: "OpenRouter (Free tier)", model: "meta-llama/llama-3.3-70b-instruct:free", limit: 200 },
   { value: "mistral", label: "Mistral (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
@@ -47,6 +48,9 @@ export default function AdminAIPool() {
   const [keys, setKeys] = useState<AIKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [form, setForm] = useState({
     provider: "groq",
     label: "",
@@ -118,6 +122,55 @@ export default function AdminAIPool() {
     else { toast.success("Reativada"); loadKeys(); }
   }
 
+  async function addLovableAI() {
+    // Cadastra Lovable AI Gateway no pool. A chave real (LOVABLE_API_KEY) fica no edge function.
+    // Aqui só registramos um placeholder p/ o roteador saber que pode usar via gateway.
+    const { error } = await supabase.from("ai_provider_keys").insert({
+      provider: "lovable",
+      label: "Lovable AI Gateway (auto)",
+      api_key: "__LOVABLE_GATEWAY__",
+      model_default: "google/gemini-3-flash-preview",
+      daily_limit: 3000,
+      priority: 10, // alta prioridade — usa primeiro
+      created_by: user!.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Lovable AI adicionada ao pool!");
+    loadKeys();
+  }
+
+  async function addBulkKeys() {
+    const lines = bulkText.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) { toast.error("Cole pelo menos uma linha"); return; }
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    for (const line of lines) {
+      // formato: provider|label|api_key  (ou)  provider|api_key
+      const parts = line.split("|").map(p => p.trim());
+      let provider = "", label = "", api_key = "";
+      if (parts.length === 3) [provider, label, api_key] = parts;
+      else if (parts.length === 2) { [provider, api_key] = parts; label = `${provider} #${ok + fail + 1}`; }
+      else { fail++; continue; }
+      const p = PROVIDERS.find(pr => pr.value === provider.toLowerCase());
+      if (!p || !api_key) { fail++; continue; }
+      const { error } = await supabase.from("ai_provider_keys").insert({
+        provider: p.value,
+        label,
+        api_key,
+        model_default: p.model,
+        daily_limit: p.limit,
+        priority: 100,
+        created_by: user!.id,
+      });
+      if (error) fail++; else ok++;
+    }
+    setBulkBusy(false);
+    setBulkText("");
+    setBulkOpen(false);
+    toast.success(`${ok} chaves adicionadas${fail ? ` · ${fail} falharam` : ""}`);
+    loadKeys();
+  }
+
   if (isAdmin === null) return <div className="p-8 text-center text-muted-foreground">Verificando...</div>;
 
   const totalCapacity = keys.filter(k => k.status === "active").reduce((s, k) => s + k.daily_limit, 0);
@@ -135,8 +188,35 @@ export default function AdminAIPool() {
             <p className="text-sm text-muted-foreground">Gerencie chaves de provedores com failover automático</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={resetUsage}><RefreshCw className="h-4 w-4 mr-2" />Reset diário</Button>
+          <Button variant="outline" onClick={addLovableAI} className="border-primary/40 text-primary-glow">
+            <Sparkles className="h-4 w-4 mr-2" />Ativar Lovable AI
+          </Button>
+          <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline"><Layers className="h-4 w-4 mr-2" />Adicionar várias</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Adicionar várias chaves de uma vez</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Cole uma chave por linha no formato: <code className="text-amber-300">provider|label|api_key</code> (label é opcional).
+                  Providers válidos: <code>groq, google, cerebras, openrouter, mistral, github, together, cloudflare, lovable</code>
+                </p>
+                <Textarea
+                  rows={10}
+                  className="font-mono text-xs"
+                  placeholder={"groq|Conta principal|gsk_xxxxx\ngoogle|Gemini 1|AIzaxxxxx\nopenrouter|sk-or-xxxxx"}
+                  value={bulkText}
+                  onChange={e => setBulkText(e.target.value)}
+                />
+                <Button onClick={addBulkKeys} disabled={bulkBusy} className="w-full">
+                  {bulkBusy ? "Processando..." : "Cadastrar todas"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" />Adicionar chave</Button>
