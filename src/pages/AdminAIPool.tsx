@@ -122,6 +122,55 @@ export default function AdminAIPool() {
     else { toast.success("Reativada"); loadKeys(); }
   }
 
+  async function addLovableAI() {
+    // Cadastra Lovable AI Gateway no pool. A chave real (LOVABLE_API_KEY) fica no edge function.
+    // Aqui só registramos um placeholder p/ o roteador saber que pode usar via gateway.
+    const { error } = await supabase.from("ai_provider_keys").insert({
+      provider: "lovable",
+      label: "Lovable AI Gateway (auto)",
+      api_key: "__LOVABLE_GATEWAY__",
+      model_default: "google/gemini-3-flash-preview",
+      daily_limit: 3000,
+      priority: 10, // alta prioridade — usa primeiro
+      created_by: user!.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Lovable AI adicionada ao pool!");
+    loadKeys();
+  }
+
+  async function addBulkKeys() {
+    const lines = bulkText.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) { toast.error("Cole pelo menos uma linha"); return; }
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    for (const line of lines) {
+      // formato: provider|label|api_key  (ou)  provider|api_key
+      const parts = line.split("|").map(p => p.trim());
+      let provider = "", label = "", api_key = "";
+      if (parts.length === 3) [provider, label, api_key] = parts;
+      else if (parts.length === 2) { [provider, api_key] = parts; label = `${provider} #${ok + fail + 1}`; }
+      else { fail++; continue; }
+      const p = PROVIDERS.find(pr => pr.value === provider.toLowerCase());
+      if (!p || !api_key) { fail++; continue; }
+      const { error } = await supabase.from("ai_provider_keys").insert({
+        provider: p.value,
+        label,
+        api_key,
+        model_default: p.model,
+        daily_limit: p.limit,
+        priority: 100,
+        created_by: user!.id,
+      });
+      if (error) fail++; else ok++;
+    }
+    setBulkBusy(false);
+    setBulkText("");
+    setBulkOpen(false);
+    toast.success(`${ok} chaves adicionadas${fail ? ` · ${fail} falharam` : ""}`);
+    loadKeys();
+  }
+
   if (isAdmin === null) return <div className="p-8 text-center text-muted-foreground">Verificando...</div>;
 
   const totalCapacity = keys.filter(k => k.status === "active").reduce((s, k) => s + k.daily_limit, 0);
