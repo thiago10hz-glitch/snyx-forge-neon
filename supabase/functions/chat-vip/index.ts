@@ -132,7 +132,7 @@ FORMATAÇÃO DE TEXTO:
     }
 
     // Reforço final: lembrete imediato pra não esquecer o nome em respostas curtas
-    if (firstName && !body?.is_admin && !body?.team_badge) {
+    if (firstName) {
       aiMessages.push({
         role: "system",
         content: `🔔 LEMBRETE FINAL antes de responder: inclua "${firstName}" na sua próxima mensagem (em qualquer posição). Mesmo que a resposta seja só "oi", escreva "Oi ${firstName}!". Isso é OBRIGATÓRIO.`,
