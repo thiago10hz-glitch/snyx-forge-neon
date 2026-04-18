@@ -3,11 +3,72 @@
 // Estratégia: dispara N providers ao mesmo tempo, usa o primeiro que responder
 // com sucesso. Cancela os demais via AbortController.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getRoutesForModel, isSnyxModel, type ProviderRoute } from "./snyx-models.ts";
 
 const GOOGLE_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+type AiPoolKey = {
+  id: string;
+  api_key: string;
+  model_default?: string | null;
+  priority?: number;
+  daily_used?: number;
+};
+
+const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+  : null;
+
+function shuffleKeys<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+async function getLovablePoolKeys(limit = 8): Promise<AiPoolKey[]> {
+  if (!supabaseAdmin) return [];
+
+  const { data, error } = await supabaseAdmin
+    .from("ai_provider_keys")
+    .select("id, api_key, model_default, priority, daily_used")
+    .eq("provider", "lovable")
+    .eq("status", "active")
+    .order("priority", { ascending: true })
+    .order("daily_used", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error("[free-ai] erro ao carregar pool de chaves:", error.message);
+    return [];
+  }
+
+  return shuffleKeys((data as AiPoolKey[] | null) ?? []);
+}
+
+async function incrementPoolKeyUsage(keyId: string) {
+  if (!supabaseAdmin) return;
+  const { error } = await supabaseAdmin.rpc("increment_ai_key_usage", { p_key_id: keyId });
+  if (error) console.warn("[free-ai] erro ao incrementar uso da chave:", error.message);
+}
+
+async function markPoolKeyFailure(keyId: string, reason: string) {
+  if (!supabaseAdmin) return;
+  const { error } = await supabaseAdmin.rpc("mark_ai_key_error", {
+    p_key_id: keyId,
+    p_error: reason.slice(0, 240),
+  });
+  if (error) console.warn("[free-ai] erro ao marcar falha da chave:", error.message);
+}
 
 // ===== Helpers =====
 function encodeSSE(text: string): string {
@@ -225,18 +286,40 @@ async function raceProviders(
 }
 
 // ===== Lovable AI Gateway (último recurso, gasta créditos) =====
-async function callLovable(model: string | undefined, body: any): Promise<Response> {
-  if (!LOVABLE_KEY) throw new Error("no_lovable_key");
+async function callLovableWithKey(apiKey: string, model: string | undefined, body: any): Promise<Response> {
   const finalBody = { ...body, model: model || "google/gemini-3-flash-preview" };
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify(finalBody),
   });
   if (!res.ok) throw new Error(`lovable_${res.status}`);
   if (body.stream) return new Response(res.body, { headers: { "Content-Type": "text/event-stream" } });
   const data = await res.json();
   return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+}
+
+async function callLovable(model: string | undefined, body: any): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (const key of await getLovablePoolKeys()) {
+    try {
+      const res = await callLovableWithKey(key.api_key, model || key.model_default || undefined, body);
+      await incrementPoolKeyUsage(key.id);
+      console.log(`[free-ai] Lovable pool ok: ${key.id}`);
+      return res;
+    } catch (e) {
+      const err = e as Error;
+      lastError = err;
+      console.warn(`[free-ai] Lovable pool key falhou ${key.id}: ${err.message}`);
+      if (["lovable_401", "lovable_402", "lovable_403"].includes(err.message)) {
+        await markPoolKeyFailure(key.id, err.message);
+      }
+    }
+  }
+
+  if (!LOVABLE_KEY) throw lastError ?? new Error("no_lovable_key");
+  return await callLovableWithKey(LOVABLE_KEY, model, body);
 }
 
 // ===== Stream simulado (Pollinations/Google non-stream -> SSE) =====
@@ -281,7 +364,7 @@ export async function freeAIChat(_url: string, init: RequestInit): Promise<Respo
   }
 
   // 1. Lovable AI primeiro (estável, sem rate-limit dos grátis)
-  if (LOVABLE_KEY) {
+  if (LOVABLE_KEY || supabaseAdmin) {
     try {
       const res = await callLovable(model, body);
       console.log("[free-ai] Lovable AI ok");
