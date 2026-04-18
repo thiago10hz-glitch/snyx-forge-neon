@@ -3,6 +3,7 @@ import { Send, User, Paperclip, Download, Heart, Code, Plus, Trash2, MessageCirc
 import { ChatSettings, getBubbleClass, getUserBubbleClass } from "./ChatSettings";
 
 import ReactMarkdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { VipModal } from "./VipModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -1102,11 +1103,11 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
     }
   };
 
+  const navigate = useNavigate();
   const switchMode = (newMode: ChatMode) => {
-    // Block access to locked modes — show payment modal instead
-    if (newMode === "programmer" && !profile?.is_dev) {
-      setVipModalPlan("programmer");
-      setShowVipModal(true);
+    // Modo Programador agora usa página dedicada estilo Lovable (streaming + 3 modos + preview)
+    if (newMode === "programmer") {
+      navigate("/programador");
       return;
     }
 

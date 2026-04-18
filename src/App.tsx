@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import ApiPricing from "./pages/ApiPricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import DevBuilder from "./pages/DevBuilder";
+import Programador from "./pages/Programador";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -123,6 +124,7 @@ const App = () => {
                 <Route path="/api" element={<ApiPricing />} />
                 <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
                 <Route path="/dev-builder" element={<ProtectedRoute><DevBuilder /></ProtectedRoute>} />
+                <Route path="/programador" element={<ProtectedRoute><Programador /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeProvider>
