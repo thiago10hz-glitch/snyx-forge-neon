@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   X, Camera, Loader2, Save, User, Crown, Code, Sparkles, KeyRound, Heart, ImagePlus,
-  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield, Bot,
+  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield, Bot, Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ChatSettings } from "@/components/ChatSettings";
@@ -17,6 +18,7 @@ type TabKey = "perfil" | "vip" | "config";
 
 export function UserProfile({ open, onClose }: UserProfileProps) {
   const { user, profile, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<TabKey>("perfil");
   const [botSettingsOpen, setBotSettingsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -476,6 +478,20 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
 
           {tab === "config" && (
             <div className="space-y-2">
+              <ConfigButton
+                icon={Wand2}
+                label="Criar personagem RPG"
+                hint="Monte sua própria persona com IA"
+                onClick={() => { onClose(); navigate("/rpg/criar"); }}
+              />
+
+              <ConfigButton
+                icon={Sparkles}
+                label="Meus personagens"
+                hint="Veja e edite os personagens que você criou"
+                onClick={() => { onClose(); navigate("/rpg?meus=1"); }}
+              />
+
               <ConfigButton
                 icon={Bot}
                 label="Personalizar bot"

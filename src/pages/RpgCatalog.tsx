@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, MessageCircle, Sparkles, Flame, Loader2 } from "lucide-react";
+import { Search, Plus, MessageCircle, Sparkles, Flame, Loader2, User as UserIcon } from "lucide-react";
 import { AgeGateModal } from "@/components/AgeGateModal";
 import { toast } from "sonner";
 
@@ -26,6 +26,7 @@ interface Character {
 const CATEGORIES = [
   { id: "all", label: "Explorar", icon: Sparkles },
   { id: "trending", label: "Bombando", icon: Flame },
+  { id: "meus", label: "Meus", icon: UserIcon },
   { id: "romance", label: "Romance" },
   { id: "drama", label: "Drama" },
   { id: "fantasia", label: "Fantasia" },
@@ -37,12 +38,13 @@ const CATEGORIES = [
 ];
 
 export default function RpgCatalog() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [chars, setChars] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeCat, setActiveCat] = useState("all");
+  const [activeCat, setActiveCat] = useState(searchParams.get("meus") === "1" ? "meus" : "all");
   const [ageGateOpen, setAgeGateOpen] = useState(false);
 
   const ageVerified = !!(profile as any)?.age_verified;
@@ -75,6 +77,8 @@ export default function RpgCatalog() {
     let list = chars;
     if (activeCat === "trending") {
       list = [...list].sort((a, b) => b.chat_count - a.chat_count).slice(0, 24);
+    } else if (activeCat === "meus") {
+      list = user ? list.filter((c) => c.creator_id === user.id) : [];
     } else if (activeCat !== "all") {
       list = list.filter((c) => c.category === activeCat);
     }
@@ -87,7 +91,7 @@ export default function RpgCatalog() {
       );
     }
     return list;
-  }, [chars, activeCat, search]);
+  }, [chars, activeCat, search, user]);
 
   const handleClickChar = (c: Character) => {
     if (c.is_nsfw && !ageVerified) {
