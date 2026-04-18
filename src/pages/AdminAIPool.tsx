@@ -30,15 +30,15 @@ interface AIKey {
 }
 
 const PROVIDERS = [
-  { value: "lovable", label: "Lovable AI Gateway (incluso)", model: "google/gemini-3-flash-preview", limit: 3000 },
-  { value: "groq", label: "Groq (14.4k req/dia)", model: "llama-3.3-70b-versatile", limit: 14400 },
-  { value: "google", label: "Google AI (1.5k req/dia)", model: "gemini-2.0-flash-exp", limit: 1500 },
-  { value: "cerebras", label: "Cerebras (14.4k req/dia)", model: "llama-3.3-70b", limit: 14400 },
-  { value: "openrouter", label: "OpenRouter (Free tier)", model: "meta-llama/llama-3.3-70b-instruct:free", limit: 200 },
-  { value: "mistral", label: "Mistral (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
-  { value: "github", label: "GitHub Models (150 req/dia)", model: "gpt-4o-mini", limit: 150 },
-  { value: "together", label: "Together AI ($5 free)", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", limit: 5000 },
-  { value: "cloudflare", label: "Cloudflare Workers AI (10k/dia)", model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", limit: 10000 },
+  { value: "lovable", label: "SnyX Core (incluso)", model: "google/gemini-3-flash-preview", limit: 3000 },
+  { value: "groq", label: "SnyX Turbo (14.4k req/dia)", model: "llama-3.3-70b-versatile", limit: 14400 },
+  { value: "google", label: "SnyX Vision (1.5k req/dia)", model: "gemini-2.0-flash-exp", limit: 1500 },
+  { value: "cerebras", label: "SnyX Quantum (14.4k req/dia)", model: "llama-3.3-70b", limit: 14400 },
+  { value: "openrouter", label: "SnyX Mesh (Free tier)", model: "meta-llama/llama-3.3-70b-instruct:free", limit: 200 },
+  { value: "mistral", label: "SnyX Wind (1M tokens/mês)", model: "mistral-small-latest", limit: 1000 },
+  { value: "github", label: "SnyX Forge (150 req/dia)", model: "gpt-4o-mini", limit: 150 },
+  { value: "together", label: "SnyX Unity ($5 free)", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", limit: 5000 },
+  { value: "cloudflare", label: "SnyX Edge (10k/dia)", model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", limit: 10000 },
 ];
 
 export default function AdminAIPool() {
