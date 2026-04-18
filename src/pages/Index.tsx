@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone, Drama, Music,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone, Drama, Music, MessageCircle, Gamepad2, Headphones, Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { type ChatChoice } from "@/components/ChatSelector";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { SideRail, type RailItem } from "@/components/SideRail";
+import { SideRail, type RailItem, type RailGroup } from "@/components/SideRail";
 import { ChatPanel } from "@/components/ChatPanel";
 import { SidebarConversations } from "@/components/SidebarConversations";
 import { VipModal } from "@/components/VipModal";
@@ -129,35 +129,56 @@ const Index = () => {
     }
   }, []);
 
-  // === Sidebar items — organizados por seções ===
-  const railTopItems: RailItem[] = [
-    // Conversa
-    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, sectionLabel: "Conversa", iconColor: "text-violet-400" },
-    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip", iconColor: "text-pink-400" },
-    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", iconColor: "text-sky-400" },
+  // === Sidebar — grupos colapsáveis ===
+  const railGroups: RailGroup[] = [
+    { key: "conversas", label: "Conversas", icon: MessageCircle, defaultOpen: true },
+    ...((isVip || isAdmin)
+      ? [{ key: "entretenimento", label: "Entretenimento", icon: Gamepad2, defaultOpen: true } as RailGroup]
+      : []),
+    ...((isDev || isAdmin)
+      ? [{ key: "programacao", label: "Programação", icon: Code, defaultOpen: true } as RailGroup]
+      : []),
+    { key: "atendimento", label: "Atendimento", icon: Headphones, defaultOpen: true },
+    ...(isAdmin
+      ? [{ key: "admin", label: "Administração", icon: Settings, defaultOpen: false } as RailGroup]
+      : []),
+  ];
 
-    // Ferramentas
-    { icon: Phone, label: "Atendimento", to: "/atendimento", sectionLabel: "Ferramentas", iconColor: "text-emerald-400" },
+  const railTopItems: RailItem[] = [
+    // Conversas
+    { icon: History, label: "Histórico", onClick: () => setHistoryOpen((v) => !v), active: historyOpen, group: "conversas", iconColor: "text-violet-400" },
+    { icon: Heart, label: "Chat Amigo", onClick: switchToFriend, active: chatMode === "friend" || chatMode === "vip", group: "conversas", iconColor: "text-pink-400" },
+    { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", group: "conversas", iconColor: "text-sky-400" },
+
+    // Entretenimento (VIP/Admin)
     ...((isVip || isAdmin)
       ? ([
-          { icon: Drama, label: "RPG", to: "/rpg", iconColor: "text-fuchsia-400" },
-          { icon: Music, label: "Música IA", to: "/musica", iconColor: "text-amber-400" },
+          { icon: Drama, label: "RPG", to: "/rpg", group: "entretenimento", iconColor: "text-fuchsia-400" },
+          { icon: Music, label: "Música IA", to: "/musica", group: "entretenimento", iconColor: "text-amber-400" },
         ] as RailItem[])
-      : []),
-    ...(isDev || isAdmin
-      ? ([{ icon: Code, label: "Programador IA", to: "/programador", iconColor: "text-cyan-400" }] as RailItem[])
       : []),
 
-    // Admin (só pra admin)
+    // Programação (DEV/Admin) — IA + API juntos
+    ...((isDev || isAdmin)
+      ? ([
+          { icon: Code, label: "Programador IA", to: "/programador", group: "programacao", iconColor: "text-cyan-400" },
+          { icon: Code2, label: "API para devs", to: "/api", group: "programacao", iconColor: "text-orange-400" },
+        ] as RailItem[])
+      : ([
+          // Free vê API só como link informativo (pricing)
+          { icon: Code2, label: "API para devs", to: "/api", group: "atendimento", iconColor: "text-orange-400" },
+        ] as RailItem[])),
+
+    // Atendimento
+    { icon: Phone, label: "Atendimento", to: "/atendimento", group: "atendimento", iconColor: "text-emerald-400" },
+
+    // Administração (admin only)
     ...(isAdmin
       ? ([
-          { icon: ShieldCheck, label: "Admin", to: "/admin", sectionLabel: "Administração", iconColor: "text-red-400" },
-          { icon: Code2, label: "API para devs", to: "/api", iconColor: "text-orange-400" },
-          { icon: Crown, label: "Dono", to: "/dono", iconColor: "text-amber-400" },
+          { icon: ShieldCheck, label: "Admin", to: "/admin", group: "admin", iconColor: "text-red-400" },
+          { icon: Crown, label: "Dono", to: "/dono", group: "admin", iconColor: "text-amber-400" },
         ] as RailItem[])
-      : [
-          { icon: Code2, label: "API para devs", to: "/api", sectionLabel: "Mais", iconColor: "text-orange-400" },
-        ] as RailItem[]),
+      : []),
   ];
 
   const railBottomItems: RailItem[] = [];
@@ -175,20 +196,38 @@ const Index = () => {
     </Link>
   );
 
-  // Footer: avatar minúsculo, sem badges (estilo SKYNETchat)
+  // Footer: contador free (se aplicável) + avatar
+  const showFreeCounter = !isVip && !isAdmin;
+  const freeRemaining = Math.max(0, 5 - (profile?.free_messages_used ?? 0));
+
   const railFooterExtra = (
-    <button
-      onClick={() => setShowProfile(true)}
-      className="relative w-7 h-7 rounded-full overflow-hidden border border-border/40 hover:border-primary/50 transition-all flex items-center justify-center bg-muted/30 hover:bg-muted/60"
-      title="Minha conta"
-      aria-label="Minha conta"
-    >
-      {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-      ) : (
-        <User className="w-3.5 h-3.5 text-muted-foreground/70" />
+    <div className="flex items-center justify-between gap-2 pt-1">
+      {showFreeCounter && (
+        <button
+          onClick={() => setShowVipModal(true)}
+          className="flex-1 group flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-foreground/[0.04] hover:bg-primary/10 border border-border/30 hover:border-primary/30 transition-all"
+          title="Mensagens grátis (resetam a cada 24h). Clique pra virar VIP."
+        >
+          <MessageSquare className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" strokeWidth={2} />
+          <span className="text-[11px] font-bold text-foreground/80 group-hover:text-primary transition-colors">
+            {freeRemaining}<span className="text-muted-foreground/60">/5</span>
+          </span>
+          <span className="ml-auto text-[9px] uppercase tracking-wider text-muted-foreground/50 group-hover:text-primary/70">VIP</span>
+        </button>
       )}
-    </button>
+      <button
+        onClick={() => setShowProfile(true)}
+        className={`relative w-7 h-7 rounded-full overflow-hidden border border-border/40 hover:border-primary/50 transition-all flex items-center justify-center bg-muted/30 hover:bg-muted/60 ${showFreeCounter ? "" : "ml-auto"}`}
+        title="Minha conta"
+        aria-label="Minha conta"
+      >
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <User className="w-3.5 h-3.5 text-muted-foreground/70" />
+        )}
+      </button>
+    </div>
   );
 
   
@@ -248,6 +287,7 @@ const Index = () => {
           bottomItems={railBottomItems}
           footerExtra={railFooterExtra}
           collapsed={railCollapsed}
+          groups={railGroups}
         >
           <SidebarConversations
             activeConversationId={pickedConvId}

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ChevronDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 export interface RailItem {
   icon: LucideIcon;
@@ -16,8 +16,17 @@ export interface RailItem {
   groupedWithPrev?: boolean;
   /** Tailwind text color class for the icon, e.g. "text-pink-400" */
   iconColor?: string;
-  /** Rótulo de seção exibido ACIMA deste item */
+  /** Rótulo de seção exibido ACIMA deste item (legado, sem colapsar) */
   sectionLabel?: string;
+  /** Chave de grupo colapsável; itens com mesma key viram grupo */
+  group?: string;
+}
+
+export interface RailGroup {
+  key: string;
+  label: string;
+  icon?: LucideIcon;
+  defaultOpen?: boolean;
 }
 
 interface SideRailProps {
@@ -29,13 +38,10 @@ interface SideRailProps {
   footerExtra?: ReactNode;
   children?: ReactNode;
   collapsed?: boolean;
+  /** Grupos colapsáveis. Itens sem group ficam soltos no topo. */
+  groups?: RailGroup[];
 }
 
-/**
- * Sidebar com dois modos:
- * - collapsed=true (oculta, w=0)
- * - collapsed=false (expandida ~240px com logo, ícones+rótulos e lista de conversas)
- */
 export function SideRail({
   logo,
   brandName = "SnyX",
@@ -45,12 +51,25 @@ export function SideRail({
   footerExtra,
   children,
   collapsed = false,
+  groups = [],
 }: SideRailProps) {
   const expanded = !collapsed;
 
-  const renderItem = (item: RailItem, idx: number) => {
+  // Estado dos grupos: começa com defaultOpen ou true se contém item ativo
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    groups.forEach((g) => {
+      const hasActive = topItems.some((i) => i.group === g.key && i.active);
+      init[g.key] = hasActive || g.defaultOpen !== false;
+    });
+    return init;
+  });
+
+  const toggleGroup = (key: string) =>
+    setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const renderItem = (item: RailItem, idx: number, indent = false) => {
     const Icon = item.icon;
-    // Tom único, neutro, estilo ChatGPT — ignora red/accent/danger antigos
     const tone = item.active
       ? "text-foreground bg-white/[0.06]"
       : "text-foreground/70 hover:text-foreground hover:bg-white/[0.04]";
@@ -62,7 +81,7 @@ export function SideRail({
     const inner = (
       <button
         onClick={item.onClick}
-        className={`group relative flex items-center w-full h-9 px-3 gap-3 rounded-md transition-colors duration-150 ${tone}`}
+        className={`group relative flex items-center w-full h-9 ${indent ? "pl-6 pr-3" : "px-3"} gap-3 rounded-md transition-colors duration-150 ${tone}`}
         aria-label={item.label}
       >
         <Icon className={`w-[15px] h-[15px] shrink-0 ${iconColorClass}`} strokeWidth={1.9} />
@@ -97,9 +116,15 @@ export function SideRail({
     );
   }
 
+  // Separa itens soltos vs por grupo
+  const looseItems = topItems.filter((i) => !i.group);
+  const itemsByGroup: Record<string, RailItem[]> = {};
+  groups.forEach((g) => {
+    itemsByGroup[g.key] = topItems.filter((i) => i.group === g.key);
+  });
+
   return (
     <aside className="flex shrink-0 flex-col z-30 relative overflow-hidden transition-[width] duration-300 ease-out w-[260px] bg-sidebar-background border-r border-border/40">
-      {/* Header: logo + nome (espaço pro botão de toggle no topo) */}
       <div className="flex items-center gap-2.5 px-3 pt-3.5 pb-3 pl-12">
         <div className="shrink-0">{logo}</div>
         <span className="text-[15px] font-semibold tracking-tight text-foreground">{brandName}</span>
@@ -107,19 +132,43 @@ export function SideRail({
 
       {headerExtra && <div className="px-2 pb-2">{headerExtra}</div>}
 
-      {/* Itens de navegação */}
       <nav className="flex flex-col gap-0.5 px-2 pb-2">
-        {topItems.map(renderItem)}
+        {looseItems.map((item, i) => renderItem(item, i))}
+
+        {groups.map((g) => {
+          const items = itemsByGroup[g.key] || [];
+          if (items.length === 0) return null;
+          const isOpen = !!openGroups[g.key];
+          const GroupIcon = g.icon;
+          return (
+            <div key={g.key} className="mt-2">
+              <button
+                onClick={() => toggleGroup(g.key)}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60 hover:text-foreground/80 transition-colors rounded-md"
+              >
+                {GroupIcon && <GroupIcon className="w-3 h-3" strokeWidth={2.2} />}
+                <span className="flex-1 text-left">{g.label}</span>
+                <ChevronDown
+                  className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-0" : "-rotate-90"}`}
+                  strokeWidth={2.2}
+                />
+              </button>
+              {isOpen && (
+                <div className="flex flex-col gap-0.5 mt-0.5">
+                  {items.map((item, i) => renderItem(item, 100 + i, true))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
-      {/* Lista de conversas (estilo ChatGPT) */}
       {children && (
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide px-2 border-t border-border/30 pt-2">
           {children}
         </div>
       )}
 
-      {/* Footer */}
       {(footerExtra || bottomItems.length > 0) && (
         <div className="border-t border-border/30 px-2 py-2 flex flex-col gap-1">
           {bottomItems.map((item, idx) => renderItem(item, 1000 + idx))}
@@ -130,5 +179,4 @@ export function SideRail({
   );
 }
 
-// Compat: tooltip removido (não usado mais no modo expandido)
 export const _UnusedTooltip = { Tooltip, TooltipContent, TooltipTrigger };
