@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   X, Camera, Loader2, Save, User, Crown, Code, Sparkles, KeyRound, Heart, ImagePlus,
-  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield,
+  MessageSquare, MessagesSquare, Calendar, Palette, Flame, Shield, Bot,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ChatSettings } from "@/components/ChatSettings";
 
 interface UserProfileProps {
   open: boolean;
