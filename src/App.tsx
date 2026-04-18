@@ -21,6 +21,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import DevBuilder from "./pages/DevBuilder";
 import Programador from "./pages/Programador";
 import Promo from "./pages/Promo";
+import Atendimento from "./pages/Atendimento";
 import { CommandPalette } from "./components/CommandPalette";
 
 const queryClient = new QueryClient({
@@ -127,6 +128,7 @@ const App = () => {
                 <Route path="/dev-builder" element={<ProtectedRoute><DevBuilder /></ProtectedRoute>} />
                 <Route path="/programador" element={<ProtectedRoute><Programador /></ProtectedRoute>} />
                 <Route path="/promo" element={<Promo />} />
+                <Route path="/atendimento" element={<ProtectedRoute><Atendimento /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeProvider>
