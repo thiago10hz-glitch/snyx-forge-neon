@@ -10,7 +10,7 @@ import {
   BarChart3, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
   AlertTriangle, Star, Radio, Volume2, Menu, X,
   DollarSign, KeyRound, FileText, Cpu, Flame, Search,
-  ArrowUpRight, Gauge,
+  ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -83,19 +83,27 @@ function formatRelative(dateStr: string): string {
 }
 
 type OwnerTab =
-  | "overview" | "analytics" | "revenue" | "live" | "health"
-  | "admins" | "broadcast" | "actions" | "platform" | "aichat";
+  | "operation" | "revenue" | "system"
+  | "broadcast" | "admins" | "aichat";
+
+// Sub-abas de "operation" (Visão Geral + Tempo Real + Analytics)
+type OperationView = "overview" | "live" | "analytics";
+// Sub-abas de "system" (Saúde + Serviços + Ações)
+type SystemView = "health" | "platform" | "actions";
 
 export default function OwnerPanel() {
   const { user, profile, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<OwnerTab>("overview");
+  const [activeTab, setActiveTab] = useState<OwnerTab>("operation");
+  const [operationView, setOperationView] = useState<OperationView>("overview");
+  const [systemView, setSystemView] = useState<SystemView>("health");
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [topUsers, setTopUsers] = useState<TopUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => { if (user) checkAdmin(); }, [user]);
 
