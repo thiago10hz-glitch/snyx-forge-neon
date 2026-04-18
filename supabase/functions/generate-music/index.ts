@@ -69,12 +69,14 @@ Deno.serve(async (req) => {
 
     console.log(`[generate-music] user=${user.id} prompt="${prompt.slice(0, 60)}" dur=${dur}s`);
 
-    // Chama HuggingFace MusicGen — retorna áudio WAV binário
-    const hfRes = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+    // Chama HuggingFace via novo router (Inference Providers) — retorna áudio binário
+    const hfRes = await fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${HF_KEY}`,
         "Content-Type": "application/json",
+        "Accept": "audio/wav",
+        "x-wait-for-model": "true",
       },
       body: JSON.stringify({
         inputs: prompt,
