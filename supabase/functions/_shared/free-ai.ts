@@ -280,7 +280,18 @@ export async function freeAIChat(_url: string, init: RequestInit): Promise<Respo
     ];
   }
 
-  // 1. Race paralelo entre os providers grátis
+  // 1. Lovable AI primeiro (estável, sem rate-limit dos grátis)
+  if (LOVABLE_KEY) {
+    try {
+      const res = await callLovable(model, body);
+      console.log("[free-ai] Lovable AI ok");
+      return res;
+    } catch (e) {
+      console.warn("[free-ai] Lovable falhou, tentando providers grátis:", (e as Error).message);
+    }
+  }
+
+  // 2. Fallback: race paralelo entre os providers grátis
   try {
     const { text } = await raceProviders(routes, messages, temperature, max_tokens, jsonMode);
     if (stream) return textToSSEStream(text);
@@ -289,16 +300,7 @@ export async function freeAIChat(_url: string, init: RequestInit): Promise<Respo
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (e) {
-    console.warn("[free-ai] race falhou, indo pro Lovable:", (e as Error).message);
-  }
-
-  // 2. Lovable AI (último recurso, gasta créditos)
-  if (LOVABLE_KEY) {
-    try {
-      return await callLovable(model, body);
-    } catch (e) {
-      console.error("[free-ai] Lovable também falhou:", (e as Error).message);
-    }
+    console.error("[free-ai] todos providers falharam:", (e as Error).message);
   }
 
   return new Response(JSON.stringify({ error: "Todos os provedores de IA falharam" }), {
