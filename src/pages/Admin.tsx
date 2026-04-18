@@ -9,7 +9,7 @@ import {
   RefreshCw, MessageCircle, Menu, X, TrendingUp, Copy, Check,
   ChevronDown, ChevronUp, Sparkles, LifeBuoy, ScrollText,
   StickyNote, KeySquare, Trash2, AlertTriangle, CheckCircle2, XCircle,
-  Send, Plus,
+  Send, Plus, ChevronLeft, ChevronRight, Activity,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,7 +35,7 @@ interface UserProfile {
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
-type AdminTab = "dashboard" | "users" | "tickets" | "logs" | "notes" | "apikeys";
+type AdminTab = "dashboard" | "users" | "tickets" | "audit" | "apikeys";
 
 // ============ NEON CARD ============
 function NeonCard({ children, className = "", glow = false }: { children: React.ReactNode; className?: string; glow?: boolean }) {
