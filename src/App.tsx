@@ -53,6 +53,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function VipRoute({ children }: { children: React.ReactNode }) {
+  const { user, profile, isAdmin, loading } = useAuth();
+  if (loading) return <PageLoader />;
+  if (!user) return <Navigate to="/auth" replace />;
+  const allowed = isAdmin || !!profile?.is_vip || !!profile?.is_dev;
+  if (!allowed) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <PageLoader />;
@@ -134,11 +143,11 @@ const App = () => {
                 <Route path="/programador" element={<ProtectedRoute><Programador /></ProtectedRoute>} />
                 <Route path="/promo" element={<Promo />} />
                 <Route path="/atendimento" element={<ProtectedRoute><Atendimento /></ProtectedRoute>} />
-                <Route path="/rpg" element={<ProtectedRoute><RpgCatalog /></ProtectedRoute>} />
-                <Route path="/rpg/minha-conta" element={<ProtectedRoute><MyRpg /></ProtectedRoute>} />
-                <Route path="/rpg/criar" element={<ProtectedRoute><RpgCreate /></ProtectedRoute>} />
-                <Route path="/rpg/c/:id" element={<ProtectedRoute><RpgChat /></ProtectedRoute>} />
-                <Route path="/musica" element={<ProtectedRoute><Musica /></ProtectedRoute>} />
+                <Route path="/rpg" element={<VipRoute><RpgCatalog /></VipRoute>} />
+                <Route path="/rpg/minha-conta" element={<VipRoute><MyRpg /></VipRoute>} />
+                <Route path="/rpg/criar" element={<VipRoute><RpgCreate /></VipRoute>} />
+                <Route path="/rpg/c/:id" element={<VipRoute><RpgChat /></VipRoute>} />
+                <Route path="/musica" element={<VipRoute><Musica /></VipRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeProvider>
