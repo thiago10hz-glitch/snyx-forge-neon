@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Volume2, VolumeX, RotateCcw, Loader2 } from "lucide-react";
+import { Play, Volume2, VolumeX, RotateCcw, Loader2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -70,10 +70,88 @@ export default function Promo() {
   const [currentScene, setCurrentScene] = useState(-1);
   const [progress, setProgress] = useState(0);
   const [loadingAudio, setLoadingAudio] = useState(false);
+  const [recording, setRecording] = useState(false);
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number>();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCacheRef = useRef<Map<number, string>>(new Map());
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const recordStreamRef = useRef<MediaStream | null>(null);
+
+  const handleDownload = async () => {
+    if (recording) return;
+    if (!("MediaRecorder" in window) || !navigator.mediaDevices?.getDisplayMedia) {
+      toast.error("Seu navegador não suporta gravação de tela. Use Chrome, Edge ou Firefox no desktop.");
+      return;
+    }
+    try {
+      await preloadAudio();
+      toast.info("Selecione esta aba e marque 'Compartilhar áudio da aba' para gravar.", { duration: 6000 });
+      // @ts-ignore - preferCurrentTab is Chromium-only but harmless elsewhere
+      const displayStream: MediaStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 30 } as any,
+        audio: true,
+        // @ts-ignore
+        preferCurrentTab: true,
+        // @ts-ignore
+        selfBrowserSurface: "include",
+      });
+
+      const hasAudio = displayStream.getAudioTracks().length > 0;
+      if (!hasAudio) {
+        displayStream.getTracks().forEach((t) => t.stop());
+        toast.error("Você precisa marcar 'Compartilhar áudio da aba' para incluir a narração.");
+        return;
+      }
+
+      recordStreamRef.current = displayStream;
+      const mimeOptions = [
+        "video/webm;codecs=vp9,opus",
+        "video/webm;codecs=vp8,opus",
+        "video/webm",
+      ];
+      const mime = mimeOptions.find((m) => MediaRecorder.isTypeSupported(m)) || "video/webm";
+      const recorder = new MediaRecorder(displayStream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+      recordedChunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `snyx-promo-${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        toast.success("Vídeo baixado! Verifique sua pasta de downloads.");
+      };
+      // If the user stops sharing manually, finalize
+      displayStream.getVideoTracks()[0].onended = () => {
+        if (recorder.state !== "inactive") recorder.stop();
+        setRecording(false);
+      };
+
+      setRecording(true);
+      recorder.start();
+      recorderRef.current = recorder;
+
+      // Auto-start playback right after recording begins
+      setTimeout(() => start(), 400);
+
+      // Stop recording shortly after the film ends
+      setTimeout(() => {
+        if (recorder.state !== "inactive") recorder.stop();
+        displayStream.getTracks().forEach((t) => t.stop());
+        setRecording(false);
+      }, TOTAL_DURATION + 1500);
+    } catch (e: any) {
+      console.error(e);
+      if (e?.name !== "NotAllowedError") toast.error("Não foi possível iniciar a gravação.");
+      setRecording(false);
+    }
+  };
 
   // Pre-generate all narration audio with Gemini TTS
   const preloadAudio = async () => {
@@ -267,10 +345,26 @@ export default function Promo() {
                 {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 {muted ? "Som desligado" : "Som ligado"}
               </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDownload}
+                disabled={recording || loadingAudio}
+                className="h-14 gap-2"
+              >
+                {recording ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Gravando...</>
+                ) : (
+                  <><Download className="w-5 h-5" /> Baixar vídeo</>
+                )}
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground/60">
               Voz feminina real gerada por IA • Use fones para a melhor experiência
+            </p>
+            <p className="text-[11px] text-muted-foreground/50 max-w-md mx-auto leading-relaxed">
+              Ao baixar: selecione <strong>esta aba</strong> na janela que aparecer e marque <strong>"Compartilhar áudio da aba"</strong>. O filme tocará automaticamente e o WebM será baixado ao final (~30s).
             </p>
           </div>
         )}
