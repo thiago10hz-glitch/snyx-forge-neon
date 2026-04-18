@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, Plus, MessageCircle, Heart, Sparkles, Flame, Loader2 } from "lucide-react";
+import { Search, Plus, MessageCircle, Sparkles, Flame, Loader2 } from "lucide-react";
 import { AgeGateModal } from "@/components/AgeGateModal";
 import { toast } from "sonner";
 
@@ -38,7 +37,7 @@ const CATEGORIES = [
 ];
 
 export default function RpgCatalog() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [chars, setChars] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
