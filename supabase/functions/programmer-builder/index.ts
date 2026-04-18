@@ -169,25 +169,88 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 3) Pollinations.ai — 100% grátis, sem API key (último recurso garantido)
-      try {
-        const pollRes = await fetch("https://text.pollinations.ai/openai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "openai",
-            messages,
-            stream: true,
-          }),
-        });
-        if (pollRes.ok && pollRes.body) {
-          return new Response(pollRes.body, {
-            headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "pollinations" },
+      // 3) Pollinations.ai — 100% grátis, sem API key
+      const pollinationsModels = ["openai", "openai-large", "mistral", "llama"];
+      for (const pmodel of pollinationsModels) {
+        try {
+          const pollRes = await fetch("https://text.pollinations.ai/openai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: pmodel, messages, stream: true }),
           });
+          if (pollRes.ok && pollRes.body) {
+            return new Response(pollRes.body, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": `pollinations-${pmodel}` },
+            });
+          }
+          console.error(`[programmer-builder] Pollinations(${pmodel}) falhou: ${pollRes.status}`);
+        } catch (e) {
+          console.error(`[programmer-builder] Pollinations(${pmodel}) exception:`, e);
         }
-        console.error(`[programmer-builder] Pollinations falhou: ${pollRes.status}`, await pollRes.text());
+      }
+
+      // 4) DuckDuckGo AI Chat — grátis, sem cadastro (GPT-4o-mini / Claude Haiku / Llama)
+      try {
+        const statusRes = await fetch("https://duckduckgo.com/duckchat/v1/status", {
+          headers: { "x-vqd-accept": "1", "User-Agent": "Mozilla/5.0" },
+        });
+        const vqd = statusRes.headers.get("x-vqd-4");
+        if (vqd) {
+          const ddgRes = await fetch("https://duckduckgo.com/duckchat/v1/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-vqd-4": vqd,
+              "User-Agent": "Mozilla/5.0",
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+            }),
+          });
+          if (ddgRes.ok && ddgRes.body) {
+            // DDG returns SSE in its own format → transform to OpenAI delta format
+            const transformed = new ReadableStream({
+              async start(controller) {
+                const reader = ddgRes.body!.getReader();
+                const decoder = new TextDecoder();
+                const encoder = new TextEncoder();
+                let buf = "";
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  buf += decoder.decode(value, { stream: true });
+                  let idx;
+                  while ((idx = buf.indexOf("\n")) !== -1) {
+                    const line = buf.slice(0, idx).trim();
+                    buf = buf.slice(idx + 1);
+                    if (!line.startsWith("data:")) continue;
+                    const data = line.slice(5).trim();
+                    if (data === "[DONE]") {
+                      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                      continue;
+                    }
+                    try {
+                      const j = JSON.parse(data);
+                      const content = j.message ?? "";
+                      if (content) {
+                        const chunk = { choices: [{ delta: { content } }] };
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                      }
+                    } catch { /* ignore */ }
+                  }
+                }
+                controller.close();
+              },
+            });
+            return new Response(transformed, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "duckduckgo" },
+            });
+          }
+          console.error(`[programmer-builder] DuckDuckGo falhou: ${ddgRes.status}`);
+        }
       } catch (e) {
-        console.error("[programmer-builder] Pollinations exception:", e);
+        console.error("[programmer-builder] DuckDuckGo exception:", e);
       }
 
       if (aiRes.status === 402) {
