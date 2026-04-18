@@ -188,8 +188,35 @@ export default function AdminAIPool() {
             <p className="text-sm text-muted-foreground">Gerencie chaves de provedores com failover automático</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={resetUsage}><RefreshCw className="h-4 w-4 mr-2" />Reset diário</Button>
+          <Button variant="outline" onClick={addLovableAI} className="border-primary/40 text-primary-glow">
+            <Sparkles className="h-4 w-4 mr-2" />Ativar Lovable AI
+          </Button>
+          <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline"><Layers className="h-4 w-4 mr-2" />Adicionar várias</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Adicionar várias chaves de uma vez</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Cole uma chave por linha no formato: <code className="text-amber-300">provider|label|api_key</code> (label é opcional).
+                  Providers válidos: <code>groq, google, cerebras, openrouter, mistral, github, together, cloudflare, lovable</code>
+                </p>
+                <Textarea
+                  rows={10}
+                  className="font-mono text-xs"
+                  placeholder={"groq|Conta principal|gsk_xxxxx\ngoogle|Gemini 1|AIzaxxxxx\nopenrouter|sk-or-xxxxx"}
+                  value={bulkText}
+                  onChange={e => setBulkText(e.target.value)}
+                />
+                <Button onClick={addBulkKeys} disabled={bulkBusy} className="w-full">
+                  {bulkBusy ? "Processando..." : "Cadastrar todas"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" />Adicionar chave</Button>
