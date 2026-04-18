@@ -1509,7 +1509,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                       title={isVipUser ? "Trocar para o modo VIP +18" : "Desbloquear VIP +18"}
                     >
                       {/* fundo gradiente animado */}
-                      <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-amber-500 to-primary bg-[length:200%_100%] animate-[gradient-x_3s_linear_infinite] opacity-90" aria-hidden />
+                      <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-amber-500 to-primary bg-[length:200%_100%] animate-shimmer opacity-90" aria-hidden />
                       {/* camada de brilho interno */}
                       <span className="absolute inset-[1.5px] rounded-full bg-gradient-to-b from-background/80 via-background/60 to-background/80 backdrop-blur-xl" aria-hidden />
                       {/* shine sweep no hover */}
