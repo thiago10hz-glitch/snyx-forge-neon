@@ -196,6 +196,11 @@ export default function DevBuilder() {
         } catch {
           // noop
         }
+        if (resp.status === 402) {
+          msg = "Créditos da IA esgotados. Adicione saldo em Settings → Workspace → Usage.";
+        } else if (resp.status === 429) {
+          msg = "Muitas requisições. Espere alguns segundos e tente de novo.";
+        }
         throw new Error(msg);
       }
 
