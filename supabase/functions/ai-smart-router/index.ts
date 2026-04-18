@@ -1,13 +1,24 @@
 // SnyX AI Smart Router - OpenAI-compatible endpoint para a API pública.
 // Aceita modelos "snyx-*" e roteia para múltiplos providers em race paralelo.
-// Se cliente pedir um modelo desconhecido, cai no snyx-fast.
+// Branding total: headers X-SnyX-*, captura IP/geo/referer/origin pra rastreamento.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getRoutesForModel, isSnyxModel, SNYX_MODELS, type ProviderRoute } from "../_shared/snyx-models.ts";
+
+const SNYX_REGIONS = ["snyx-br-sp", "snyx-br-rj", "snyx-us-east", "snyx-eu-west"];
+
+function pickRegion(ip: string | null): string {
+  // Determinístico baseado no IP pra parecer "região fixa do cliente"
+  if (!ip) return SNYX_REGIONS[0];
+  let hash = 0;
+  for (const c of ip) hash = (hash * 31 + c.charCodeAt(0)) | 0;
+  return SNYX_REGIONS[Math.abs(hash) % SNYX_REGIONS.length];
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Expose-Headers": "X-SnyX-Request-ID, X-SnyX-Region, X-SnyX-Latency, X-SnyX-Model, X-SnyX-Node, X-RateLimit-Remaining, X-RateLimit-Reset",
 };
 
 const GOOGLE_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
@@ -21,6 +32,26 @@ interface ChatRequest {
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
+}
+
+// ===== GeoIP via ipapi.co (grátis ~1k/dia) =====
+async function lookupGeo(ip: string | null): Promise<{ country?: string; city?: string; region?: string }> {
+  if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) return {};
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`, {
+      signal: AbortSignal.timeout(2000),
+      headers: { "User-Agent": "SnyX-API/1.0" },
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return {
+      country: data.country_name || data.country,
+      city: data.city,
+      region: data.region,
+    };
+  } catch {
+    return {};
+  }
 }
 
 // ===== Provider callers =====
@@ -141,6 +172,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const startTime = Date.now();
+  const requestId = `req_${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}`;
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || null;
+  const userAgent = req.headers.get("user-agent") || null;
+  const referer = req.headers.get("referer") || req.headers.get("referrer") || null;
+  const origin = req.headers.get("origin") || null;
+  const region = pickRegion(ip);
+  const node = `snyx-node-${Math.abs((ip || "x").charCodeAt(0)) % 12 + 1}`;
+
+  const brandHeaders: Record<string, string> = {
+    ...corsHeaders,
+    "Content-Type": "application/json",
+    "X-SnyX-Request-ID": requestId,
+    "X-SnyX-Region": region,
+    "X-SnyX-Node": node,
+    "Server": "SnyX-Edge/1.0",
+  };
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -151,24 +199,25 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const apiKey = authHeader.replace(/^Bearer\s+/i, "").trim();
     if (!apiKey || !apiKey.startsWith("snyx_sk_")) {
-      return jsonResponse({ error: { message: "Invalid API key. Use 'Authorization: Bearer snyx_sk_...'", type: "auth_error" } }, 401);
+      brandHeaders["X-SnyX-Latency"] = `${Date.now() - startTime}ms`;
+      return new Response(JSON.stringify({ error: { message: "Invalid API key. Use 'Authorization: Bearer snyx_sk_...'", type: "auth_error" } }), { status: 401, headers: brandHeaders });
     }
 
     const { data: validation, error: vErr } = await supabase.rpc("validate_api_client", { p_api_key: apiKey });
     if (vErr || !validation?.valid) {
-      return jsonResponse({ error: { message: validation?.reason || "invalid_key", type: "auth_error" } }, 401);
+      brandHeaders["X-SnyX-Latency"] = `${Date.now() - startTime}ms`;
+      return new Response(JSON.stringify({ error: { message: validation?.reason || "invalid_key", type: "auth_error" } }), { status: 401, headers: brandHeaders });
     }
 
     // 2. Parse body
     const body = (await req.json()) as ChatRequest;
     if (!body?.messages?.length) {
-      return jsonResponse({ error: { message: "messages array required", type: "invalid_request" } }, 400);
+      return new Response(JSON.stringify({ error: { message: "messages array required", type: "invalid_request" } }), { status: 400, headers: brandHeaders });
     }
 
-    // 3. Validar modelo: precisa ser snyx-* e estar liberado no plano
+    // 3. Validar modelo
     let requestedModel = body.model || "snyx-fast";
     if (!isSnyxModel(requestedModel)) {
-      // Aceita aliases simples (gpt-4o -> snyx-pro, etc)
       const m = requestedModel.toLowerCase();
       if (m.includes("reason") || m.includes("o1") || m.includes("r1")) requestedModel = "snyx-reasoning";
       else if (m.includes("cod") || m.includes("qwen")) requestedModel = "snyx-coder";
@@ -181,17 +230,19 @@ Deno.serve(async (req) => {
 
     const allowedModels = (validation.models_allowed || []) as string[];
     if (allowedModels.length > 0 && !allowedModels.includes(requestedModel) && !allowedModels.includes("*")) {
-      return jsonResponse({
+      return new Response(JSON.stringify({
         error: {
           message: `Modelo '${requestedModel}' não está incluído no seu plano. Modelos disponíveis: ${allowedModels.join(", ")}`,
           type: "model_not_allowed",
         },
-      }, 403);
+      }), { status: 403, headers: brandHeaders });
     }
+
+    brandHeaders["X-SnyX-Model"] = requestedModel;
 
     const routes = getRoutesForModel(requestedModel);
 
-    // 4. Race paralelo entre os providers
+    // 4. Race paralelo
     let winner: { text: string; usage: any; route: ProviderRoute } | null = null;
     let lastError = "race_failed";
     try {
@@ -200,7 +251,7 @@ Deno.serve(async (req) => {
       lastError = (e as Error).message;
     }
 
-    // 5. Fallback para Lovable se race falhou totalmente
+    // 5. Fallback Lovable
     if (!winner && LOVABLE_KEY) {
       try {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -221,39 +272,67 @@ Deno.serve(async (req) => {
       }
     }
 
+    // GeoIP em paralelo (não bloqueia resposta)
+    const geoPromise = lookupGeo(ip);
+
     if (!winner) {
+      const geo = await geoPromise;
+      const latency = Date.now() - startTime;
       await supabase.from("api_usage_logs").insert({
         api_client_id: validation.client_id,
         user_id: validation.user_id,
-        provider: "none",
+        provider: "snyx",
         model: requestedModel,
-        latency_ms: Date.now() - startTime,
+        latency_ms: latency,
         status_code: 503,
         error_message: lastError,
+        ip_address: ip,
+        user_agent: userAgent,
+        referer,
+        origin,
+        request_id: requestId,
+        country: geo.country,
+        city: geo.city,
+        region: geo.region,
       });
-      return jsonResponse({ error: { message: `All providers failed: ${lastError}`, type: "upstream_error" } }, 503);
+      brandHeaders["X-SnyX-Latency"] = `${latency}ms`;
+      return new Response(JSON.stringify({ error: { message: `All providers failed: ${lastError}`, type: "upstream_error" } }), { status: 503, headers: brandHeaders });
     }
 
-    // 6. Sucesso: incrementar uso e logar (mascara o provider real)
+    // 6. Sucesso
+    const latency = Date.now() - startTime;
     await supabase.rpc("increment_api_client_usage", { p_client_id: validation.client_id });
+
+    const geo = await geoPromise;
     await supabase.from("api_usage_logs").insert({
       api_client_id: validation.client_id,
       user_id: validation.user_id,
-      provider: "snyx", // mascarado nos logs do cliente
+      provider: "snyx",
       model: requestedModel,
       tokens_in: winner.usage?.prompt_tokens || 0,
       tokens_out: winner.usage?.completion_tokens || 0,
-      latency_ms: Date.now() - startTime,
+      latency_ms: latency,
       status_code: 200,
-      ip_address: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+      ip_address: ip,
+      user_agent: userAgent,
+      referer,
+      origin,
+      request_id: requestId,
+      country: geo.country,
+      city: geo.city,
+      region: geo.region,
     });
 
-    // 7. Resposta OpenAI-compatible (modelo retornado = snyx-*, esconde o real)
+    brandHeaders["X-SnyX-Latency"] = `${latency}ms`;
+    brandHeaders["X-RateLimit-Remaining"] = String(validation.daily_remaining ?? 0);
+    brandHeaders["X-RateLimit-Reset"] = String(Math.floor(Date.now() / 1000) + 86400);
+
     const response = {
       id: `chatcmpl-${crypto.randomUUID()}`,
       object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
       model: requestedModel,
+      system_fingerprint: `snyx_${region}_${node}`,
       choices: [{
         index: 0,
         message: { role: "assistant", content: winner.text },
@@ -266,19 +345,12 @@ Deno.serve(async (req) => {
       },
     };
 
-    return jsonResponse(response, 200);
+    return new Response(JSON.stringify(response), { status: 200, headers: brandHeaders });
   } catch (err) {
     console.error("Smart router error:", err);
-    return jsonResponse({ error: { message: String(err), type: "internal_error" } }, 500);
+    brandHeaders["X-SnyX-Latency"] = `${Date.now() - startTime}ms`;
+    return new Response(JSON.stringify({ error: { message: String(err), type: "internal_error" } }), { status: 500, headers: brandHeaders });
   }
 });
 
-function jsonResponse(data: unknown, status: number) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-// Endpoint auxiliar para listar modelos disponíveis (não usado aqui mas útil)
 export const AVAILABLE_MODELS = SNYX_MODELS;
