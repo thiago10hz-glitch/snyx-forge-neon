@@ -201,9 +201,7 @@ export default function OwnerPanel() {
     {
       label: "Operação",
       tabs: [
-        { key: "overview", label: "Visão Geral", icon: Eye },
-        { key: "live", label: "Tempo Real", icon: Activity },
-        { key: "analytics", label: "Analytics", icon: BarChart3 },
+        { key: "operation", label: "Operação", icon: Eye },
       ],
     },
     {
@@ -216,9 +214,7 @@ export default function OwnerPanel() {
     {
       label: "Sistema",
       tabs: [
-        { key: "health", label: "Saúde", icon: Gauge },
-        { key: "platform", label: "Serviços", icon: Server },
-        { key: "actions", label: "Ações", icon: Zap },
+        { key: "system", label: "Sistema", icon: Server },
       ],
     },
     {
@@ -232,6 +228,18 @@ export default function OwnerPanel() {
 
   const allTabs = navGroups.flatMap(g => g.tabs);
   const currentTab = allTabs.find(t => t.key === activeTab);
+
+  // Sub-abas das seções fundidas
+  const operationViews: { key: OperationView; label: string; icon: typeof Crown }[] = [
+    { key: "overview", label: "Visão Geral", icon: Eye },
+    { key: "live", label: "Tempo Real", icon: Activity },
+    { key: "analytics", label: "Analytics", icon: BarChart3 },
+  ];
+  const systemViews: { key: SystemView; label: string; icon: typeof Crown }[] = [
+    { key: "health", label: "Saúde", icon: Gauge },
+    { key: "platform", label: "Serviços", icon: Server },
+    { key: "actions", label: "Ações", icon: Zap },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex relative overflow-hidden">
@@ -247,70 +255,79 @@ export default function OwnerPanel() {
 
       {/* ═══ SIDEBAR ═══ */}
       <aside className={`
-        fixed md:sticky top-0 left-0 h-[100dvh] w-[260px] shrink-0 z-50 md:z-10
+        fixed md:sticky top-0 left-0 h-[100dvh] shrink-0 z-50 md:z-10
         bg-gradient-to-b from-card/90 via-background/95 to-background/95 backdrop-blur-2xl
-        border-r border-primary/15 flex flex-col transition-transform duration-300
+        border-r border-primary/15 flex flex-col transition-all duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${sidebarCollapsed ? 'w-16' : 'w-[260px]'}
       `}>
         {/* Brand */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-primary/10 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
+        <div className="h-16 flex items-center justify-between px-3 border-b border-primary/10 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative shrink-0">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary-glow to-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
                 <Crown className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
             </div>
-            <div>
-              <h1 className="text-sm font-black bg-gradient-to-r from-primary-glow via-primary to-primary-glow bg-clip-text text-transparent tracking-tight">
-                SnyX Command
-              </h1>
-              <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase">Owner Console</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div className="min-w-0">
+                <h1 className="text-sm font-black bg-gradient-to-r from-primary-glow via-primary to-primary-glow bg-clip-text text-transparent tracking-tight truncate">
+                  SnyX Command
+                </h1>
+                <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase truncate">Owner Console</p>
+              </div>
+            )}
           </div>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30">
             <X className="w-4 h-4" />
           </button>
+          <button onClick={() => setSidebarCollapsed(c => !c)} className="hidden md:flex p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30" title={sidebarCollapsed ? "Expandir" : "Recolher"}>
+            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
 
         {/* Owner pill */}
-        <div className="px-3 pt-3">
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-sm font-black text-primary-glow shadow-inner">
-              {(profile?.display_name || "O")[0].toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate flex items-center gap-1">
-                {profile?.display_name || "Owner"}
-                <Crown className="w-3 h-3 text-primary-glow" />
-              </p>
-              <p className="text-[9px] text-primary/70 truncate font-semibold">{profile?.team_badge || "Dono"} · Full Access</p>
+        {!sidebarCollapsed && (
+          <div className="px-3 pt-3">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-sm font-black text-primary-glow shadow-inner">
+                {(profile?.display_name || "O")[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold truncate flex items-center gap-1">
+                  {profile?.display_name || "Owner"}
+                  <Crown className="w-3 h-3 text-primary-glow" />
+                </p>
+                <p className="text-[9px] text-primary/70 truncate font-semibold">{profile?.team_badge || "Dono"} · Full Access</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+        <nav className="flex-1 p-2 space-y-3 overflow-y-auto">
           {navGroups.map(group => (
             <div key={group.label} className="space-y-1">
-              <p className="px-3 pt-1 pb-1 text-[9px] font-black text-primary/40 uppercase tracking-[0.2em]">{group.label}</p>
+              {!sidebarCollapsed && <p className="px-3 pt-1 pb-1 text-[9px] font-black text-primary/40 uppercase tracking-[0.2em]">{group.label}</p>}
               {group.tabs.map(tab => {
                 const active = activeTab === tab.key;
                 return (
                   <button
                     key={tab.key}
                     onClick={() => { setActiveTab(tab.key); setSidebarOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative group ${
+                    title={sidebarCollapsed ? tab.label : undefined}
+                    className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2.5 rounded-xl text-sm font-medium transition-all relative group ${
                       active
                         ? "bg-gradient-to-r from-primary/25 via-primary/10 to-transparent text-primary-glow border border-primary/30 shadow-[0_0_25px_-8px_hsl(var(--primary)/0.7)]"
                         : "text-muted-foreground/70 hover:text-foreground hover:bg-card/50 border border-transparent"
                     }`}
                   >
                     {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-primary shadow-[0_0_12px_hsl(var(--primary))]" />}
-                    <tab.icon className={`w-4 h-4 ${active ? "drop-shadow-[0_0_4px_hsl(var(--primary))]" : ""}`} />
-                    <span className="flex-1 text-left">{tab.label}</span>
+                    <tab.icon className={`w-4 h-4 shrink-0 ${active ? "drop-shadow-[0_0_4px_hsl(var(--primary))]" : ""}`} />
+                    {!sidebarCollapsed && <span className="flex-1 text-left">{tab.label}</span>}
                     {tab.badge !== undefined && tab.badge > 0 && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary-glow font-black border border-primary/30 min-w-[18px] text-center">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary-glow font-black border border-primary/30 min-w-[18px] text-center ${sidebarCollapsed ? "absolute -top-0.5 -right-0.5" : ""}`}>
                         {tab.badge}
                       </span>
                     )}
@@ -322,32 +339,49 @@ export default function OwnerPanel() {
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-primary/10 space-y-1 shrink-0">
-          <Link to="/admin" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all">
-            <ShieldCheck className="w-3.5 h-3.5" /><span>Admin Console</span>
+        <div className="p-2 border-t border-primary/10 space-y-1 shrink-0">
+          <Link to="/admin" title={sidebarCollapsed ? "Admin Console" : undefined} className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all`}>
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />{!sidebarCollapsed && <span>Admin Console</span>}
           </Link>
-          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all">
-            <ArrowLeft className="w-3.5 h-3.5" /><span>Voltar ao app</span>
+          <Link to="/" title={sidebarCollapsed ? "Voltar" : undefined} className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-card/50 transition-all`}>
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />{!sidebarCollapsed && <span>Voltar ao app</span>}
           </Link>
         </div>
       </aside>
 
       {/* ═══ MAIN ═══ */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-primary/10 bg-background/85 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 border-b border-primary/10 bg-background/85 backdrop-blur-xl">
+          <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/50">
               <Menu className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2">
-              {currentTab && <currentTab.icon className="w-4 h-4 text-primary-glow drop-shadow-[0_0_4px_hsl(var(--primary))]" />}
-              <h2 className="text-sm font-bold">{currentTab?.label}</h2>
+            <div className="flex items-center gap-2 min-w-0">
+              {currentTab && <currentTab.icon className="w-4 h-4 text-primary-glow drop-shadow-[0_0_4px_hsl(var(--primary))] shrink-0" />}
+              <h2 className="text-sm font-bold truncate">{currentTab?.label}</h2>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Stats strip */}
+          <div className="hidden lg:flex items-center gap-2">
+            {stats && [
+              { label: "Receita", value: `R$${Math.round(stats.monthlyRevenue)}`, icon: DollarSign, color: "text-emerald-400" },
+              { label: "Users", value: stats.totalUsers.toLocaleString("pt-BR"), icon: Users, color: "text-cyan-400" },
+              { label: "Tickets", value: stats.openTickets, icon: LifeBuoy, color: "text-amber-400" },
+              { label: "API Pend.", value: stats.pendingApplications, icon: KeyRound, color: "text-primary-glow" },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card/40 border border-primary/10">
+                <s.icon className={`w-3 h-3 ${s.color}`} />
+                <span className="text-[10px] text-muted-foreground/70 font-medium">{s.label}</span>
+                <span className={`text-xs font-black ${s.color}`}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold text-emerald-400">SISTEMA OK</span>
+              <span className="text-[10px] font-bold text-emerald-400">OK</span>
             </div>
             <button
               onClick={() => fetchAll()}
@@ -367,14 +401,45 @@ export default function OwnerPanel() {
             </div>
           ) : (
             <>
-              {activeTab === "overview" && stats && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
-              {activeTab === "live" && stats && <LiveTab stats={stats} />}
-              {activeTab === "analytics" && stats && <AnalyticsTab stats={stats} />}
+              {activeTab === "operation" && stats && (
+                <div className="space-y-4">
+                  {/* Sub-tabs internas */}
+                  <div className="flex gap-1 p-1 rounded-xl bg-card/40 border border-primary/10 w-fit">
+                    {operationViews.map(v => {
+                      const active = operationView === v.key;
+                      return (
+                        <button key={v.key} onClick={() => setOperationView(v.key)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${active ? "bg-primary/20 text-primary-glow border border-primary/30 shadow-[0_0_12px_-4px_hsl(var(--primary))]" : "text-muted-foreground/70 hover:text-foreground"}`}>
+                          <v.icon className="w-3.5 h-3.5" />
+                          {v.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {operationView === "overview" && <OverviewTab stats={stats} recentUsers={recentUsers} topUsers={topUsers} />}
+                  {operationView === "live" && <LiveTab stats={stats} />}
+                  {operationView === "analytics" && <AnalyticsTab stats={stats} />}
+                </div>
+              )}
+              {activeTab === "system" && stats && (
+                <div className="space-y-4">
+                  <div className="flex gap-1 p-1 rounded-xl bg-card/40 border border-primary/10 w-fit">
+                    {systemViews.map(v => {
+                      const active = systemView === v.key;
+                      return (
+                        <button key={v.key} onClick={() => setSystemView(v.key)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${active ? "bg-primary/20 text-primary-glow border border-primary/30 shadow-[0_0_12px_-4px_hsl(var(--primary))]" : "text-muted-foreground/70 hover:text-foreground"}`}>
+                          <v.icon className="w-3.5 h-3.5" />
+                          {v.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {systemView === "health" && <HealthTab stats={stats} />}
+                  {systemView === "platform" && <PlatformTab stats={stats} />}
+                  {systemView === "actions" && <ActionsTab onRefresh={fetchAll} />}
+                </div>
+              )}
               {activeTab === "revenue" && stats && <RevenueTab stats={stats} />}
-              {activeTab === "health" && stats && <HealthTab stats={stats} />}
               {activeTab === "broadcast" && <BroadcastTab />}
-              {activeTab === "actions" && <ActionsTab onRefresh={fetchAll} />}
-              {activeTab === "platform" && stats && <PlatformTab stats={stats} />}
               {activeTab === "admins" && <AdminsTab />}
               {activeTab === "aichat" && <OwnerChat />}
             </>
