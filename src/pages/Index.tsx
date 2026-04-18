@@ -287,6 +287,7 @@ const Index = () => {
           bottomItems={railBottomItems}
           footerExtra={railFooterExtra}
           collapsed={railCollapsed}
+          groups={railGroups}
         >
           <SidebarConversations
             activeConversationId={pickedConvId}
