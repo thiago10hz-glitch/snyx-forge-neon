@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,11 +23,13 @@ interface DevProject {
 }
 
 type Mode = "default" | "pro" | "think";
+type AccessState = "checking" | "allowed" | "denied";
+
 interface ChatMsg {
   role: "user" | "assistant";
-  content: string;        // texto visível (pensamento)
-  thinking?: boolean;     // mostra spinner enquanto streama
-  htmlSaved?: boolean;    // se o HTML foi extraído e salvo
+  content: string;
+  thinking?: boolean;
+  htmlSaved?: boolean;
 }
 
 const MODES: { id: Mode; label: string; icon: any; desc: string }[] = [
@@ -37,15 +39,13 @@ const MODES: { id: Mode; label: string; icon: any; desc: string }[] = [
 ];
 
 export default function DevBuilder() {
-  const { user, profile, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const devExpires = (profile as any)?.dev_expires_at as string | null | undefined;
-  const isDev = !!profile?.is_dev && (!devExpires || new Date(devExpires) > new Date());
-  const allowed = isAdmin || isDev;
 
+  const [accessState, setAccessState] = useState<AccessState>("checking");
   const [projects, setProjects] = useState<DevProject[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const active = projects.find(p => p.id === activeId) || null;
+  const active = projects.find((p) => p.id === activeId) || null;
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -55,29 +55,89 @@ export default function DevBuilder() {
   const [mode, setMode] = useState<Mode>("default");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/auth");
-    if (!loading && user && !allowed) {
-      toast.error("Acesso restrito a DEV ou Admin");
-      navigate("/");
-    }
-  }, [loading, user, allowed, navigate]);
-
-  useEffect(() => { if (user && allowed) loadProjects(); /* eslint-disable-next-line */ }, [user, allowed]);
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat]);
-
-  async function loadProjects() {
+  const loadProjects = useCallback(async () => {
     const { data, error } = await supabase
       .from("dev_projects")
       .select("*")
       .order("updated_at", { ascending: false });
-    if (error) { toast.error(error.message); return; }
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
     setProjects((data || []) as DevProject[]);
-    if (!activeId && data && data.length > 0) setActiveId(data[0].id);
-  }
+    setActiveId((current) => current ?? data?.[0]?.id ?? null);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) navigate("/auth");
+  }, [loading, user, navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function validateAccess() {
+      if (loading) return;
+      if (!user) {
+        setAccessState("denied");
+        return;
+      }
+
+      setAccessState("checking");
+
+      const [{ data: profile, error: profileError }, { data: isAdmin, error: roleError }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("is_dev, dev_expires_at")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase.rpc("has_role", { _user_id: user.id, _role: "admin" as const }),
+      ]);
+
+      if (cancelled) return;
+
+      if (profileError || roleError) {
+        toast.error("Não foi possível validar seu acesso ao DEV Builder");
+        setAccessState("denied");
+        navigate("/");
+        return;
+      }
+
+      const isDev = !!profile?.is_dev && (!profile.dev_expires_at || new Date(profile.dev_expires_at) > new Date());
+      const allowed = !!isAdmin || isDev;
+
+      if (!allowed) {
+        toast.error("Acesso restrito a DEV ou Admin");
+        setAccessState("denied");
+        navigate("/");
+        return;
+      }
+
+      setAccessState("allowed");
+    }
+
+    validateAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (user && accessState === "allowed") loadProjects();
+  }, [user, accessState, loadProjects]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
 
   async function createProject() {
-    if (!newName.trim()) { toast.error("Dá um nome pro projeto"); return; }
+    if (!newName.trim()) {
+      toast.error("Dá um nome pro projeto");
+      return;
+    }
+
     setCreating(true);
     const { data, error } = await supabase
       .from("dev_projects")
@@ -85,7 +145,12 @@ export default function DevBuilder() {
       .select()
       .single();
     setCreating(false);
-    if (error) { toast.error(error.message); return; }
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
     setNewName("");
     await loadProjects();
     setActiveId(data.id);
@@ -95,6 +160,7 @@ export default function DevBuilder() {
 
   async function sendPrompt() {
     if (!active || !input.trim() || busy) return;
+
     const userMsg = input.trim();
     setInput("");
 
@@ -103,6 +169,7 @@ export default function DevBuilder() {
     setBusy(true);
 
     let fullText = "";
+
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -116,7 +183,7 @@ export default function DevBuilder() {
         body: JSON.stringify({
           prompt: userMsg,
           current_html: active.html_content,
-          history: chat.slice(-6).map(m => ({ role: m.role, content: m.content })),
+          history: chat.slice(-6).map((m) => ({ role: m.role, content: m.content })),
           mode,
         }),
       });
@@ -124,7 +191,11 @@ export default function DevBuilder() {
       if (!resp.ok || !resp.body) {
         const t = await resp.text();
         let msg = "Erro na IA";
-        try { msg = JSON.parse(t).error || msg; } catch { /* */ }
+        try {
+          msg = JSON.parse(t).error || msg;
+        } catch {
+          // noop
+        }
         throw new Error(msg);
       }
 
@@ -145,15 +216,17 @@ export default function DevBuilder() {
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (!line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
+          if (json === "[DONE]") {
+            done = true;
+            break;
+          }
           try {
             const parsed = JSON.parse(json);
             const delta = parsed.choices?.[0]?.delta?.content;
             if (delta) {
               fullText += delta;
-              // Mostra só o pensamento (antes do <<<HTML>>>)
               const visible = fullText.split("<<<HTML>>>")[0];
-              setChat(prev => {
+              setChat((prev) => {
                 const copy = [...prev];
                 copy[copy.length - 1] = { role: "assistant", content: visible, thinking: true };
                 return copy;
@@ -166,7 +239,6 @@ export default function DevBuilder() {
         }
       }
 
-      // Extrai HTML
       const htmlMatch = fullText.match(/<<<HTML>>>([\s\S]*?)<<<END>>>/);
       const finalThinking = fullText.split("<<<HTML>>>")[0].trim();
 
@@ -176,15 +248,22 @@ export default function DevBuilder() {
           .from("dev_projects")
           .update({ html_content: html })
           .eq("id", active.id);
+
         if (upErr) throw upErr;
-        setProjects(prev => prev.map(p => p.id === active.id ? { ...p, html_content: html } : p));
-        setChat(prev => {
+
+        setProjects((prev) => prev.map((p) => (p.id === active.id ? { ...p, html_content: html } : p)));
+        setChat((prev) => {
           const copy = [...prev];
-          copy[copy.length - 1] = { role: "assistant", content: finalThinking || "Pronto.", thinking: false, htmlSaved: true };
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: finalThinking || "Pronto.",
+            thinking: false,
+            htmlSaved: true,
+          };
           return copy;
         });
       } else {
-        setChat(prev => {
+        setChat((prev) => {
           const copy = [...prev];
           copy[copy.length - 1] = { role: "assistant", content: finalThinking || fullText, thinking: false };
           return copy;
@@ -192,7 +271,7 @@ export default function DevBuilder() {
       }
     } catch (e: any) {
       toast.error(e.message || "Erro ao gerar");
-      setChat(prev => {
+      setChat((prev) => {
         const copy = [...prev];
         copy[copy.length - 1] = { role: "assistant", content: "❌ " + (e.message || "Erro"), thinking: false };
         return copy;
@@ -204,6 +283,7 @@ export default function DevBuilder() {
 
   async function publish() {
     if (!active || deploying) return;
+
     setDeploying(true);
     try {
       const { data, error } = await supabase.functions.invoke("dev-deploy-vercel", {
@@ -222,15 +302,25 @@ export default function DevBuilder() {
     }
   }
 
-  if (loading || !user || !allowed) {
-    return <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loading || !user || accessState === "checking") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (accessState !== "allowed") {
+    return null;
   }
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <div>
             <h1 className="text-base font-semibold">DEV Builder</h1>
             <p className="text-xs text-muted-foreground">{active?.name || "Selecione ou crie um projeto"}</p>
@@ -238,7 +328,7 @@ export default function DevBuilder() {
         </div>
         <div className="flex items-center gap-2">
           {active?.vercel_url && (
-            <Button variant="outline" size="sm" onClick={() => window.open(active.vercel_url!, "_blank")}>
+            <Button variant="outline" size="sm" onClick={() => window.open(active.vercel_url, "_blank")}>
               <ExternalLink className="mr-1 h-3 w-3" /> Ver site
             </Button>
           )}
@@ -252,20 +342,32 @@ export default function DevBuilder() {
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden w-64 flex-col border-r border-border md:flex">
           <div className="space-y-2 border-b border-border p-3">
-            <Input placeholder="Nome do novo site" value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && createProject()} />
+            <Input
+              placeholder="Nome do novo site"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && createProject()}
+            />
             <Button size="sm" className="w-full" onClick={createProject} disabled={creating}>
               {creating ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Plus className="mr-1 h-3 w-3" />} Novo projeto
             </Button>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
-            {projects.map(p => (
+            {projects.map((p) => (
               <button
                 key={p.id}
-                onClick={() => { setActiveId(p.id); setChat([]); }}
+                onClick={() => {
+                  setActiveId(p.id);
+                  setChat([]);
+                }}
                 className={`mb-1 w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${activeId === p.id ? "bg-primary/15 text-primary" : "hover:bg-muted"}`}
               >
                 <div className="truncate font-medium">{p.name}</div>
-                {p.vercel_url && <div className="flex items-center gap-1 text-xs text-muted-foreground"><Globe className="h-3 w-3" /> publicado</div>}
+                {p.vercel_url && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Globe className="h-3 w-3" /> publicado
+                  </div>
+                )}
               </button>
             ))}
             {projects.length === 0 && <p className="px-2 py-4 text-center text-xs text-muted-foreground">Nenhum projeto ainda</p>}
@@ -283,17 +385,17 @@ export default function DevBuilder() {
             <div className="space-y-3">
               {chat.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : m.thinking
-                        ? "bg-muted/60 italic text-muted-foreground"
-                        : "bg-muted"
-                  }`}>
+                  <div
+                    className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ${
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : m.thinking
+                          ? "bg-muted/60 italic text-muted-foreground"
+                          : "bg-muted"
+                    }`}
+                  >
                     {m.content || (m.thinking ? "pensando..." : "")}
-                    {m.thinking && (
-                      <Loader2 className="ml-2 inline h-3 w-3 animate-spin align-middle" />
-                    )}
+                    {m.thinking && <Loader2 className="ml-2 inline h-3 w-3 animate-spin align-middle" />}
                     {m.htmlSaved && (
                       <div className="mt-2 flex items-center gap-1 text-xs text-emerald-500 not-italic">
                         ✓ site atualizado no preview
@@ -306,13 +408,17 @@ export default function DevBuilder() {
             </div>
           </div>
 
-          {/* Input + seletor de modo (estilo Lovable) */}
           <div className="border-t border-border p-2">
             <div className="rounded-xl border border-border bg-background/60 p-2">
               <Textarea
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendPrompt(); } }}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendPrompt();
+                  }
+                }}
                 placeholder="O que você quer mudar?"
                 rows={2}
                 className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -320,9 +426,9 @@ export default function DevBuilder() {
               />
               <div className="mt-1 flex items-center justify-between gap-2">
                 <div className="flex gap-1">
-                  {MODES.map(m => {
+                  {MODES.map((m) => {
                     const Icon = m.icon;
-                    const active = mode === m.id;
+                    const activeMode = mode === m.id;
                     return (
                       <button
                         key={m.id}
@@ -330,7 +436,7 @@ export default function DevBuilder() {
                         onClick={() => setMode(m.id)}
                         title={m.desc}
                         className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                          active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                          activeMode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                         }`}
                       >
                         <Icon className="h-3 w-3" />
