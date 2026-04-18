@@ -11,11 +11,21 @@ import {
 } from "lucide-react";
 
 type Mode = "default" | "pro" | "think";
+type BuilderErrorCode = "AI_CREDITS_EXHAUSTED" | "AI_RATE_LIMITED" | "AI_UNAVAILABLE" | "UNAUTHORIZED" | "BAD_REQUEST";
+
 interface ChatMsg {
   role: "user" | "assistant";
   content: string;
   thinking?: boolean;
   htmlSaved?: boolean;
+}
+
+interface BuilderErrorPayload {
+  ok?: boolean;
+  handled?: boolean;
+  code?: BuilderErrorCode;
+  error?: string;
+  details?: string;
 }
 
 const MODES: { id: Mode; label: string; icon: any; desc: string }[] = [
@@ -78,6 +88,14 @@ export default function Programador() {
           mode,
         }),
       });
+
+      const contentType = resp.headers.get("content-type") || "";
+      const isJson = contentType.includes("application/json");
+
+      if (isJson) {
+        const payload = await resp.json() as BuilderErrorPayload;
+        throw new Error(payload.error || "Erro na IA");
+      }
 
       if (!resp.ok || !resp.body) {
         const t = await resp.text();
