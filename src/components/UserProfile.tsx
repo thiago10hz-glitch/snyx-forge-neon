@@ -175,101 +175,120 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-lg max-h-[94vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/90 backdrop-blur-xl sm:rounded-3xl rounded-t-3xl border border-primary/20 shadow-[0_0_60px_-15px_hsl(var(--primary)/0.5)] animate-scale-in"
+        className="w-full sm:max-w-xl max-h-[96vh] sm:max-h-[92vh] overflow-y-auto scrollbar-hide bg-card/80 backdrop-blur-2xl sm:rounded-[28px] rounded-t-[28px] border border-primary/25 shadow-[0_0_80px_-15px_hsl(var(--primary)/0.6),inset_0_1px_0_0_hsl(var(--primary)/0.15)] animate-scale-in relative"
         onClick={e => e.stopPropagation()}
       >
-        {/* === BANNER === */}
+        {/* === CINEMATIC BANNER === */}
         <div className="relative">
-          <div className="h-36 sm:h-44 relative overflow-hidden">
+          <div className="h-44 sm:h-52 relative overflow-hidden">
             {backgroundUrl ? (
-              <img src={backgroundUrl} alt="Fundo" className="w-full h-full object-cover" />
+              <>
+                <img src={backgroundUrl} alt="Fundo" className="w-full h-full object-cover scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-card" />
+              </>
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/50 via-primary/20 to-background relative">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,hsl(var(--primary)/0.5),transparent_55%)]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,hsl(var(--primary)/0.4),transparent_55%)]" />
-                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,hsl(var(--primary)/0.15)_50%,transparent_100%)] animate-pulse" />
+              <div className="w-full h-full bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.6),transparent_60%)] relative">
+                <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,hsl(var(--primary)/0.4)_0%,transparent_25%,hsl(var(--primary)/0.3)_50%,transparent_75%,hsl(var(--primary)/0.4)_100%)] animate-[spin_20s_linear_infinite] opacity-60" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,hsl(var(--primary)/0.7),transparent_45%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,hsl(var(--primary)/0.5),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--background))_100%)]" />
+                {/* Grid overlay */}
+                <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:32px_32px]" />
               </div>
             )}
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/80 to-transparent" />
 
-            <button
-              onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
-              disabled={uploadingBg}
-              className="absolute bottom-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-background/70 backdrop-blur text-foreground/80 text-[10px] font-medium hover:bg-background/90 transition-all border border-primary/30 shadow-[0_0_12px_-2px_hsl(var(--primary)/0.4)]"
-            >
-              {uploadingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
-              {backgroundUrl ? "Trocar fundo" : "Adicionar fundo"}
-            </button>
-            <input ref={bgInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
-          </div>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-background/70 backdrop-blur text-muted-foreground hover:text-primary hover:bg-background/90 transition-all border border-primary/20 hover:border-primary/50 hover:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.5)]"
-          >
-            <X size={16} />
-          </button>
-
-          {/* Avatar */}
-          <div className="flex flex-col items-center -mt-16 relative z-10 pb-4 px-5">
-            <div className="relative group">
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-primary via-primary/50 to-primary/30 blur-md opacity-70 group-hover:opacity-100 transition-opacity" />
-              <div className="relative w-28 h-28 rounded-3xl overflow-hidden bg-card border-[3px] border-card shadow-[0_18px_50px_-10px_hsl(var(--primary)/0.6)] flex items-center justify-center">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-muted/40 flex items-center justify-center">
-                    <User className="w-12 h-12 text-primary/50" />
-                  </div>
-                )}
-              </div>
+            {/* Top-right action cluster */}
+            <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
               <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
+                disabled={uploadingBg}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/60 backdrop-blur-md text-foreground/80 text-[10px] font-semibold hover:bg-background/90 transition-all border border-primary/20 hover:border-primary/50 hover:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.6)]"
               >
-                {uploading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white" />}
+                {uploadingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
+                <span className="hidden sm:inline">{backgroundUrl ? "Trocar fundo" : "Fundo"}</span>
               </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              <input ref={bgInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
+
+              <button
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-background/60 backdrop-blur-md text-muted-foreground hover:text-primary hover:bg-background/90 transition-all border border-primary/20 hover:border-primary/50 hover:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.6)]"
+              >
+                <X size={14} />
+              </button>
             </div>
 
-            <h3 className="text-xl font-bold text-foreground mt-3 tracking-tight bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-              {profile?.display_name || "Usuário"}
-            </h3>
-            <p className="text-[11px] text-muted-foreground/60 truncate max-w-[260px]">{user.email}</p>
-
-            {/* Badges */}
-            <div className="flex items-center gap-1.5 mt-3 flex-wrap justify-center">
+            {/* Floating tier chip top-left */}
+            <div className="absolute top-3 left-3 z-20">
               {profile?.is_dev ? (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/40 shadow-[0_0_14px_-2px_rgba(34,211,238,0.5)]">
+                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/20 backdrop-blur-md text-cyan-200 font-black border border-cyan-400/40 shadow-[0_0_18px_-2px_rgba(34,211,238,0.6)] uppercase tracking-wider">
                   <Code size={10} /> DEV
                 </span>
               ) : profile?.is_vip ? (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 font-bold border border-amber-400/40 shadow-[0_0_14px_-2px_rgba(245,158,11,0.5)]">
+                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-amber-500/20 backdrop-blur-md text-amber-200 font-black border border-amber-400/40 shadow-[0_0_18px_-2px_rgba(245,158,11,0.6)] uppercase tracking-wider">
                   <Crown size={10} /> VIP
                 </span>
               ) : (
-                <span className="inline-flex items-center text-[10px] px-2.5 py-1 rounded-full bg-muted/30 text-muted-foreground/70 font-semibold border border-border/30">
+                <span className="inline-flex items-center text-[10px] px-2.5 py-1 rounded-full bg-background/60 backdrop-blur-md text-muted-foreground font-bold border border-border/40 uppercase tracking-wider">
                   Free
                 </span>
               )}
-              {profile?.team_badge && (profile.team_badge === "Dono" || profile.team_badge === "Dona") ? (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/30 to-amber-500/30 text-amber-200 font-black border border-amber-400/50 shadow-[0_0_18px_rgba(251,191,36,0.5)]">
-                  👑 {profile.team_badge}
-                </span>
-              ) : profile?.team_badge ? (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-primary/15 text-primary font-bold border border-primary/30">
-                  🛡️ {profile.team_badge}
-                </span>
-              ) : null}
+            </div>
+          </div>
+
+          {/* === IDENTITY BLOCK === */}
+          <div className="px-5 -mt-20 relative z-10 pb-4">
+            <div className="flex items-end gap-4">
+              {/* Avatar with rotating neon ring */}
+              <div className="relative group shrink-0">
+                <div className="absolute -inset-[3px] rounded-2xl bg-[conic-gradient(from_0deg,hsl(var(--primary)),hsl(var(--primary)/0.3),hsl(var(--primary)),hsl(var(--primary)/0.3),hsl(var(--primary)))] animate-[spin_4s_linear_infinite] opacity-90 blur-[2px]" />
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary via-primary/40 to-primary/60 blur-lg opacity-70 group-hover:opacity-100 transition-opacity" />
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-card border-[3px] border-card shadow-[0_20px_50px_-10px_hsl(var(--primary)/0.7)]">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/30 to-muted/40 flex items-center justify-center">
+                      <User className="w-10 h-10 text-primary/60" />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  >
+                    {uploading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white" />}
+                  </button>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </div>
+
+              {/* Name + email + team badge */}
+              <div className="flex-1 min-w-0 pb-1">
+                <h3 className="text-2xl font-black tracking-tight bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-none truncate">
+                  {profile?.display_name || "Usuário"}
+                </h3>
+                <p className="text-[11px] text-muted-foreground/60 truncate mt-1">{user.email}</p>
+                {profile?.team_badge && (
+                  <div className="mt-2">
+                    {profile.team_badge === "Dono" || profile.team_badge === "Dona" ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/30 to-amber-500/30 text-amber-200 font-black border border-amber-400/50 shadow-[0_0_18px_rgba(251,191,36,0.5)]">
+                        👑 {profile.team_badge}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/30">
+                        🛡️ {profile.team_badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-2 w-full mt-5">
+            <div className="grid grid-cols-3 gap-2 mt-5">
               <StatCard icon={MessageSquare} value={stats.messages} label="Mensagens" />
               <StatCard icon={MessagesSquare} value={stats.conversations} label="Conversas" />
               <StatCard icon={Calendar} value={stats.daysActive} label="Dias ativo" />
@@ -277,9 +296,9 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
           </div>
         </div>
 
-        {/* === TABS === */}
-        <div className="px-5 pt-1">
-          <div className="flex gap-1 p-1 rounded-2xl bg-background/40 border border-border/30 backdrop-blur-sm">
+        {/* === TABS (segmented neon rail) === */}
+        <div className="px-5 sticky top-0 z-20 bg-gradient-to-b from-card/95 to-card/80 backdrop-blur-xl pt-2 pb-3 border-b border-primary/10">
+          <div className="relative flex gap-1 p-1 rounded-2xl bg-background/60 border border-primary/15 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
             {([
               { key: "perfil", label: "Perfil", icon: User },
               { key: "vip", label: "Status", icon: Crown },
@@ -288,10 +307,10 @@ export function UserProfile({ open, onClose }: UserProfileProps) {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                   tab === key
-                    ? "bg-primary/15 text-primary shadow-[0_0_14px_-3px_hsl(var(--primary)/0.7)] border border-primary/30"
-                    : "text-muted-foreground/60 hover:text-foreground/80 border border-transparent"
+                    ? "bg-gradient-to-b from-primary/25 to-primary/10 text-primary shadow-[0_0_20px_-4px_hsl(var(--primary)/0.8),inset_0_1px_0_hsl(var(--primary)/0.3)] border border-primary/40"
+                    : "text-muted-foreground/60 hover:text-foreground/90 border border-transparent hover:bg-background/40"
                 }`}
               >
                 <Icon size={13} /> {label}
