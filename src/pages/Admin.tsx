@@ -8,8 +8,8 @@ import {
   Loader2, ShieldCheck, ArrowLeft, Ban, KeyRound, Crown, Users, Search,
   RefreshCw, MessageCircle, Menu, X, TrendingUp, Copy, Check,
   ChevronDown, ChevronUp, Sparkles, LifeBuoy, ScrollText,
-  StickyNote, KeySquare, Trash2, AlertTriangle, CheckCircle2, XCircle,
-  Send, Plus,
+  KeySquare, Trash2, CheckCircle2, XCircle, AlertTriangle,
+  Send, Plus, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,7 +35,7 @@ interface UserProfile {
 type SortField = "created_at" | "display_name" | "free_messages_used";
 type SortDir = "asc" | "desc";
 type FilterType = "all" | "vip" | "dev" | "pack_steam" | "rpg_premium" | "free" | "banned" | "expired";
-type AdminTab = "dashboard" | "users" | "tickets" | "logs" | "notes" | "apikeys";
+type AdminTab = "dashboard" | "users" | "tickets" | "audit" | "apikeys";
 
 // ============ NEON CARD ============
 function NeonCard({ children, className = "", glow = false }: { children: React.ReactNode; className?: string; glow?: boolean }) {
@@ -492,6 +492,7 @@ export default function Admin() {
 
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tagModalUserId, setTagModalUserId] = useState<string | null>(null);
   const [counts, setCounts] = useState({ tickets: 0, apps: 0 });
 
@@ -598,8 +599,7 @@ export default function Admin() {
     { key: "users", label: "Usuários", icon: Users },
     { key: "tickets", label: "Tickets", icon: LifeBuoy, badge: counts.tickets },
     { key: "apikeys", label: "API Keys", icon: KeySquare, badge: counts.apps },
-    { key: "logs", label: "Logs", icon: ScrollText },
-    { key: "notes", label: "Notas", icon: StickyNote },
+    { key: "audit", label: "Auditoria", icon: ScrollText },
   ];
 
   const currentTab = tabs.find(t => t.key === adminTab);
@@ -615,63 +615,83 @@ export default function Admin() {
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* SIDEBAR */}
-      <aside className={`fixed md:sticky top-0 left-0 h-[100dvh] w-64 shrink-0 z-50 md:z-10 bg-sidebar/90 backdrop-blur-2xl border-r border-primary/15 flex flex-col transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
-        <div className="h-14 flex items-center justify-between px-4 border-b border-primary/10 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary/40 to-primary/5 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.6)]">
+      <aside className={`fixed md:sticky top-0 left-0 h-[100dvh] shrink-0 z-50 md:z-10 bg-sidebar/90 backdrop-blur-2xl border-r border-primary/15 flex flex-col transition-all duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${sidebarCollapsed ? "w-16" : "w-64"}`}>
+        <div className="h-14 flex items-center justify-between px-3 border-b border-primary/10 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-primary/40 to-primary/5 flex items-center justify-center border border-primary/30 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.6)]">
               <ShieldCheck className="w-4 h-4 text-primary" />
             </div>
-            <div>
-              <h1 className="text-sm font-black tracking-tight bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">ADMIN</h1>
-              <p className="text-[9px] text-primary/60 font-bold uppercase tracking-widest">SnyX Console</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div className="min-w-0">
+                <h1 className="text-sm font-black tracking-tight bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">ADMIN</h1>
+                <p className="text-[9px] text-primary/60 font-bold uppercase tracking-widest truncate">SnyX Console</p>
+              </div>
+            )}
           </div>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20"><X className="w-4 h-4" /></button>
+          <button onClick={() => setSidebarCollapsed(c => !c)} className="hidden md:flex p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20" title={sidebarCollapsed ? "Expandir" : "Recolher"}>
+            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <p className="px-3 pb-2 text-[9px] font-black text-primary/40 uppercase tracking-widest">Painel</p>
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+          {!sidebarCollapsed && <p className="px-3 pb-2 pt-1 text-[9px] font-black text-primary/40 uppercase tracking-widest">Painel</p>}
           {tabs.map(tab => {
             const active = adminTab === tab.key;
             return (
-              <button key={tab.key} onClick={() => { setAdminTab(tab.key); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${active ? "bg-gradient-to-r from-primary/15 to-transparent text-primary border border-primary/25 shadow-[0_0_20px_-8px_hsl(var(--primary)/0.5)]" : "text-muted-foreground hover:text-foreground hover:bg-primary/5 border border-transparent"}`}>
+              <button key={tab.key} onClick={() => { setAdminTab(tab.key); setSidebarOpen(false); }} title={sidebarCollapsed ? tab.label : undefined} className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2.5 rounded-xl text-sm font-medium transition-all group relative ${active ? "bg-gradient-to-r from-primary/15 to-transparent text-primary border border-primary/25 shadow-[0_0_20px_-8px_hsl(var(--primary)/0.5)]" : "text-muted-foreground hover:text-foreground hover:bg-primary/5 border border-transparent"}`}>
                 {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />}
-                <tab.icon className="w-4 h-4" />
-                <span className="flex-1 text-left">{tab.label}</span>
+                <tab.icon className="w-4 h-4 shrink-0" />
+                {!sidebarCollapsed && <span className="flex-1 text-left">{tab.label}</span>}
                 {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground min-w-[18px] text-center">{tab.badge}</span>
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground min-w-[18px] text-center ${sidebarCollapsed ? "absolute -top-0.5 -right-0.5" : ""}`}>{tab.badge}</span>
                 )}
               </button>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-primary/10 space-y-1 shrink-0">
-          <Link to="/owner-panel" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-amber-400 hover:bg-amber-500/10 transition-all border border-amber-500/20 bg-amber-500/5">
-            <Crown className="w-3.5 h-3.5" /><span className="font-bold">Painel do Dono</span>
+        <div className="p-2 border-t border-primary/10 space-y-1 shrink-0">
+          <Link to="/owner-panel" title={sidebarCollapsed ? "Painel do Dono" : undefined} className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2 rounded-xl text-xs text-amber-400 hover:bg-amber-500/10 transition-all border border-amber-500/20 bg-amber-500/5`}>
+            <Crown className="w-3.5 h-3.5 shrink-0" />{!sidebarCollapsed && <span className="font-bold">Painel do Dono</span>}
           </Link>
-          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all">
-            <ArrowLeft className="w-3.5 h-3.5" /><span>Voltar ao app</span>
+          <Link to="/" title={sidebarCollapsed ? "Voltar" : undefined} className={`w-full flex items-center gap-3 ${sidebarCollapsed ? "justify-center px-0" : "px-3"} py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/15 transition-all`}>
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />{!sidebarCollapsed && <span>Voltar ao app</span>}
           </Link>
-          <div className="px-3 py-2 rounded-xl bg-muted/10 border border-border/10">
-            <p className="text-[10px] text-muted-foreground/50 truncate">{user.email}</p>
-          </div>
+          {!sidebarCollapsed && (
+            <div className="px-3 py-2 rounded-xl bg-muted/10 border border-border/10">
+              <p className="text-[10px] text-muted-foreground/50 truncate">{user.email}</p>
+            </div>
+          )}
         </div>
       </aside>
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col min-w-0 relative">
-        <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 border-b border-primary/10 bg-background/80 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 border-b border-primary/10 bg-background/80 backdrop-blur-xl">
+          <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20"><Menu className="w-4 h-4" /></button>
-            <div className="flex items-center gap-2">
-              {currentTab && <currentTab.icon className="w-4 h-4 text-primary" />}
-              <h2 className="text-sm font-black tracking-tight">{currentTab?.label || "Admin"}</h2>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 ml-1">v2</span>
+            <div className="flex items-center gap-2 min-w-0">
+              {currentTab && <currentTab.icon className="w-4 h-4 text-primary shrink-0" />}
+              <h2 className="text-sm font-black tracking-tight truncate">{currentTab?.label || "Admin"}</h2>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hidden sm:inline">v2</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
+
+          {/* Stats strip */}
+          <div className="hidden md:flex items-center gap-2">
+            {[
+              { label: "Usuários", value: users.length, icon: Users, color: "text-cyan-400" },
+              { label: "Tickets", value: counts.tickets, icon: LifeBuoy, color: "text-emerald-400" },
+              { label: "API Pend.", value: counts.apps, icon: KeySquare, color: "text-amber-400" },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card/40 border border-primary/10">
+                <s.icon className={`w-3 h-3 ${s.color}`} />
+                <span className="text-[10px] text-muted-foreground/70 font-medium">{s.label}</span>
+                <span className={`text-xs font-black ${s.color}`}>{s.value}</span>
+              </div>
+            ))}
+            <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[10px] text-emerald-400 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />ONLINE
             </span>
           </div>
@@ -680,8 +700,12 @@ export default function Admin() {
         <div className="flex-1 overflow-y-auto">
           {adminTab === "dashboard" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><AdminDashboard /></div>}
           {adminTab === "tickets" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><TicketsTab /></div>}
-          {adminTab === "logs" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><LogsTab /></div>}
-          {adminTab === "notes" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><NotesTab /></div>}
+          {adminTab === "audit" && (
+            <div className="max-w-7xl mx-auto px-4 py-6 w-full space-y-6">
+              <LogsTab />
+              <NotesTab />
+            </div>
+          )}
           {adminTab === "apikeys" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><ApiKeysTab /></div>}
 
           {adminTab === "users" && (
