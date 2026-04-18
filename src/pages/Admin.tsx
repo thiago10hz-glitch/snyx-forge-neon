@@ -607,7 +607,15 @@ export default function Admin() {
   const currentTab = tabs.find(t => t.key === adminTab);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex relative overflow-hidden">
+    <div className="min-h-screen text-foreground flex relative overflow-hidden bg-[#040b14]">
+      {/* Operational aurora — cyan + teal ambient backdrop (Admin) */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-40 -left-32 w-[640px] h-[640px] rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.22),transparent_60%)] blur-3xl" />
+        <div className="absolute top-1/4 -right-40 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_60%)] blur-3xl" />
+        <div className="absolute bottom-[-200px] left-1/3 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12),transparent_65%)] blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,11,20,0.35)_0%,rgba(4,11,20,0.85)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.035] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")" }} />
+      </div>
       {/* neon ambient bg */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
