@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { AdminPresenceIndicator, useAdminHeartbeat } from "@/components/AdminPresence";
 import {
-  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft,
+  ShieldCheck, Code, User, Menu, Crown, MessageSquare, Sparkles, X, Loader2, Heart, History, Code2, Palette, LogOut, Flame, PenLine, PanelLeft, Phone,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
