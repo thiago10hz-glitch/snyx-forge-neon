@@ -10,8 +10,9 @@ import {
   BarChart3, Trash2, RefreshCw, Loader2, CheckCircle2, Sparkles,
   AlertTriangle, Star, Radio, Volume2, Menu, X,
   DollarSign, KeyRound, FileText, Cpu, Flame, Search,
-  ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy,
+  ArrowUpRight, Gauge, ChevronLeft, ChevronRight, LifeBuoy, Settings2,
 } from "lucide-react";
+import { ChatSettings } from "@/components/ChatSettings";
 import { toast } from "sonner";
 
 /* ════════════════════════════════════════════════════════════════
@@ -104,6 +105,7 @@ export default function OwnerPanel() {
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
 
   useEffect(() => { if (user) checkAdmin(); }, [user]);
 
@@ -384,6 +386,14 @@ export default function OwnerPanel() {
               <span className="text-[10px] font-bold text-emerald-400">OK</span>
             </div>
             <button
+              onClick={() => setBotSettingsOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary-glow hover:bg-primary/20 hover:border-primary/40 transition-all"
+              title="Personalizar bot"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">BOT</span>
+            </button>
+            <button
               onClick={() => fetchAll()}
               disabled={refreshing}
               className="p-2 rounded-xl text-primary/70 hover:text-primary-glow hover:bg-primary/10 transition-all"
@@ -393,6 +403,8 @@ export default function OwnerPanel() {
             </button>
           </div>
         </header>
+
+        <ChatSettings open={botSettingsOpen} onClose={() => setBotSettingsOpen(false)} />
 
         <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-5">
           {loading ? (

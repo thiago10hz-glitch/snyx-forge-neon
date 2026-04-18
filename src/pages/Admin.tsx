@@ -9,8 +9,9 @@ import {
   RefreshCw, MessageCircle, Menu, X, TrendingUp, Copy, Check,
   ChevronDown, ChevronUp, Sparkles, LifeBuoy, ScrollText,
   KeySquare, Trash2, CheckCircle2, XCircle, AlertTriangle,
-  Send, Plus, ChevronLeft, ChevronRight,
+  Send, Plus, ChevronLeft, ChevronRight, Settings2,
 } from "lucide-react";
+import { ChatSettings } from "@/components/ChatSettings";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -495,6 +496,7 @@ export default function Admin() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tagModalUserId, setTagModalUserId] = useState<string | null>(null);
   const [counts, setCounts] = useState({ tickets: 0, apps: 0 });
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -694,8 +696,18 @@ export default function Admin() {
             <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[10px] text-emerald-400 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />ONLINE
             </span>
+            <button
+              onClick={() => setBotSettingsOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary hover:bg-primary/20 hover:border-primary/40 transition-all"
+              title="Personalizar bot"
+            >
+              <Settings2 className="w-3 h-3" />
+              <span className="hidden sm:inline">BOT</span>
+            </button>
           </div>
         </header>
+
+        <ChatSettings open={botSettingsOpen} onClose={() => setBotSettingsOpen(false)} />
 
         <div className="flex-1 overflow-y-auto">
           {adminTab === "dashboard" && <div className="max-w-7xl mx-auto px-4 py-6 w-full"><AdminDashboard /></div>}
