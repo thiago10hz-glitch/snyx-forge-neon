@@ -18,6 +18,7 @@ type TabKey = "perfil" | "vip" | "config";
 export function UserProfile({ open, onClose }: UserProfileProps) {
   const { user, profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<TabKey>("perfil");
+  const [botSettingsOpen, setBotSettingsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
