@@ -107,37 +107,87 @@ Deno.serve(async (req) => {
 
     if (aiRes.status === 402 || aiRes.status === 429 || aiRes.status >= 500) {
       const lovableDetails = await aiRes.text();
-      const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-      console.warn(`[programmer-builder] Lovable AI ${aiRes.status} → fallback Groq`);
+      console.warn(`[programmer-builder] Lovable AI ${aiRes.status} → tentando fallbacks gratuitos`);
 
+      // 1) Groq (se chave configurada — tier free generoso)
+      const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
       if (GROQ_API_KEY) {
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        try {
+          const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              messages,
+              stream: true,
+              max_tokens: 8192,
+              temperature: 0.7,
+            }),
+          });
+
+          if (groqRes.ok && groqRes.body) {
+            return new Response(groqRes.body, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "groq" },
+            });
+          }
+          console.error(`[programmer-builder] Groq falhou: ${groqRes.status}`, await groqRes.text());
+        } catch (e) {
+          console.error("[programmer-builder] Groq exception:", e);
+        }
+      }
+
+      // 2) OpenRouter free models (se chave configurada)
+      const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+      if (OPENROUTER_API_KEY) {
+        try {
+          const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://snyx.app",
+              "X-Title": "SnyX Programador",
+            },
+            body: JSON.stringify({
+              model: "deepseek/deepseek-chat-v3.1:free",
+              messages,
+              stream: true,
+              max_tokens: 8192,
+            }),
+          });
+          if (orRes.ok && orRes.body) {
+            return new Response(orRes.body, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "openrouter" },
+            });
+          }
+          console.error(`[programmer-builder] OpenRouter falhou: ${orRes.status}`, await orRes.text());
+        } catch (e) {
+          console.error("[programmer-builder] OpenRouter exception:", e);
+        }
+      }
+
+      // 3) Pollinations.ai — 100% grátis, sem API key (último recurso garantido)
+      try {
+        const pollRes = await fetch("https://text.pollinations.ai/openai", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
+            model: "openai",
             messages,
             stream: true,
-            max_tokens: 8192,
-            temperature: 0.7,
           }),
         });
-
-        if (groqRes.ok && groqRes.body) {
-          return new Response(groqRes.body, {
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "text/event-stream",
-              "X-AI-Provider": "groq",
-            },
+        if (pollRes.ok && pollRes.body) {
+          return new Response(pollRes.body, {
+            headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-AI-Provider": "pollinations" },
           });
         }
-
-        const groqDetails = await groqRes.text();
-        console.error(`[programmer-builder] Groq fallback falhou: ${groqRes.status}`, groqDetails);
+        console.error(`[programmer-builder] Pollinations falhou: ${pollRes.status}`, await pollRes.text());
+      } catch (e) {
+        console.error("[programmer-builder] Pollinations exception:", e);
       }
 
       if (aiRes.status === 402) {
