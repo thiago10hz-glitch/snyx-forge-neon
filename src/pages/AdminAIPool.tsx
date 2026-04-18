@@ -123,19 +123,36 @@ export default function AdminAIPool() {
   }
 
   async function addLovableAI() {
-    // Cadastra Lovable AI Gateway no pool. A chave real (LOVABLE_API_KEY) fica no edge function.
-    // Aqui só registramos um placeholder p/ o roteador saber que pode usar via gateway.
+    const existing = keys.find(k => k.provider === "lovable" && k.api_key === "__LOVABLE_GATEWAY__");
+    if (existing) { toast.info("Lovable AI já está no pool"); return; }
     const { error } = await supabase.from("ai_provider_keys").insert({
       provider: "lovable",
       label: "Lovable AI Gateway (auto)",
       api_key: "__LOVABLE_GATEWAY__",
       model_default: "google/gemini-3-flash-preview",
       daily_limit: 3000,
-      priority: 10, // alta prioridade — usa primeiro
+      priority: 10,
       created_by: user!.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Lovable AI adicionada ao pool!");
+    loadKeys();
+  }
+
+  async function cleanupDuplicates() {
+    if (!confirm("Remover chaves duplicadas (mesmo provider + mesma api_key)? Mantém só a mais antiga de cada.")) return;
+    const seen = new Map<string, string>();
+    const toDelete: string[] = [];
+    const sorted = [...keys].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    for (const k of sorted) {
+      const sig = `${k.provider}::${k.api_key}`;
+      if (seen.has(sig)) toDelete.push(k.id);
+      else seen.set(sig, k.id);
+    }
+    if (toDelete.length === 0) { toast.info("Nenhuma duplicata encontrada"); return; }
+    const { error } = await supabase.from("ai_provider_keys").delete().in("id", toDelete);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${toDelete.length} duplicatas removidas`);
     loadKeys();
   }
 
@@ -190,6 +207,9 @@ export default function AdminAIPool() {
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={resetUsage}><RefreshCw className="h-4 w-4 mr-2" />Reset diário</Button>
+          <Button variant="outline" onClick={cleanupDuplicates} className="border-amber-500/40 text-amber-300">
+            <Trash2 className="h-4 w-4 mr-2" />Limpar duplicatas
+          </Button>
           <Button variant="outline" onClick={addLovableAI} className="border-primary/40 text-primary-glow">
             <Sparkles className="h-4 w-4 mr-2" />Ativar Lovable AI
           </Button>
