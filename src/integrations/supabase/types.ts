@@ -828,6 +828,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_verified: boolean
+          age_verified_at: string | null
           avatar_url: string | null
           background_url: string | null
           banned_until: string | null
@@ -853,6 +855,8 @@ export type Database = {
           vip_expires_at: string | null
         }
         Insert: {
+          age_verified?: boolean
+          age_verified_at?: string | null
           avatar_url?: string | null
           background_url?: string | null
           banned_until?: string | null
@@ -878,6 +882,8 @@ export type Database = {
           vip_expires_at?: string | null
         }
         Update: {
+          age_verified?: boolean
+          age_verified_at?: string | null
           avatar_url?: string | null
           background_url?: string | null
           banned_until?: string | null
