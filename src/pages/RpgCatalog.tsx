@@ -90,7 +90,7 @@ export default function RpgCatalog() {
       );
     }
     return list;
-  }, [chars, activeCat, search]);
+  }, [chars, activeCat, search, user]);
 
   const handleClickChar = (c: Character) => {
     if (c.is_nsfw && !ageVerified) {
