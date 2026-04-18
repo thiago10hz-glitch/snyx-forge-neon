@@ -137,11 +137,15 @@ const Index = () => {
     { icon: PenLine, label: "Escola", onClick: switchToWriter, active: chatMode === "writer", iconColor: "text-sky-400" },
 
     // Ferramentas
-    { icon: Drama, label: "RPG", to: "/rpg", sectionLabel: "Ferramentas", iconColor: "text-fuchsia-400" },
-    { icon: Code, label: "Programador IA", to: "/programador", iconColor: "text-cyan-400" },
-    { icon: Phone, label: "Atendimento", to: "/atendimento", iconColor: "text-emerald-400" },
-    ...((profile?.is_vip || profile?.is_dev || isAdmin)
-      ? ([{ icon: Music, label: "Música IA", to: "/musica", iconColor: "text-amber-400" }] as RailItem[])
+    { icon: Phone, label: "Atendimento", to: "/atendimento", sectionLabel: "Ferramentas", iconColor: "text-emerald-400" },
+    ...((isVip || isAdmin)
+      ? ([
+          { icon: Drama, label: "RPG", to: "/rpg", iconColor: "text-fuchsia-400" },
+          { icon: Music, label: "Música IA", to: "/musica", iconColor: "text-amber-400" },
+        ] as RailItem[])
+      : []),
+    ...(isDev || isAdmin
+      ? ([{ icon: Code, label: "Programador IA", to: "/programador", iconColor: "text-cyan-400" }] as RailItem[])
       : []),
 
     // Admin (só pra admin)

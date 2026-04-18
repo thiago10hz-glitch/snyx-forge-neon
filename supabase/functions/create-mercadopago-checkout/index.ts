@@ -6,11 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid prices for each plan
+// Valid prices for each plan (sync with src/components/VipModal.tsx PLAN_PRICES)
 const VALID_PRICES: Record<string, number[]> = {
-  vip: [25, 50, 150],
+  vip: [25, 40, 120],
   rpg: [20, 50, 120],
-  dev: [100, 150, 250],
+  dev: [100, 120, 150],
   clone: [350],
 };
 
