@@ -315,7 +315,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
     if (!user) return null;
     // Map mode for DB compatibility
     let dbMode = mode;
-    if (mode === "friend" && usePremium) dbMode = "premium" as any;
+    if (mode === "vip") dbMode = "premium" as any;
     const { data, error } = await supabase
       .from("chat_conversations")
       .insert({ user_id: user.id, mode: dbMode, title: "Nova conversa" })
@@ -832,7 +832,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-programmer`;
     } else if (mode === "writer") {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-writer`;
-    } else if (mode === "friend" && usePremium) {
+    } else if (mode === "vip" && usePremium) {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-vip`;
     } else {
       chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-friend`;
@@ -881,7 +881,7 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
             content: m.content,
             ...(m.attachment?.kind === "image" ? { imageData: m.attachment.dataUrl } : {}),
           })),
-          mode: usePremium ? "premium" : mode,
+          mode: mode === "vip" ? "premium" : mode,
           is_vip: hasPremiumAccess,
           is_admin: !!profile?.is_dev,
           display_name: profile?.display_name || "",
@@ -1421,6 +1421,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                     <div className="absolute inset-x-3 top-2 h-1/3 rounded-t-2xl bg-gradient-to-b from-white/15 to-transparent" aria-hidden />
                     {mode === "friend" ? (
                       <Heart className="relative w-12 h-12 text-primary fill-primary/40 drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.8} />
+                    ) : mode === "vip" ? (
+                      <Crown className="relative w-12 h-12 text-primary drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.6} />
                     ) : (
                       <Bot className="relative w-12 h-12 text-primary drop-shadow-[0_0_22px_hsl(var(--primary))]" strokeWidth={1.6} />
                     )}
@@ -1438,11 +1440,13 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   </span>
                   {mode === "friend" ? (
                     <Heart className="w-3 h-3 text-primary fill-primary/60" strokeWidth={2.4} />
+                  ) : mode === "vip" ? (
+                    <Crown className="w-3 h-3 text-primary" strokeWidth={2.4} />
                   ) : (
                     <Sparkles className="w-3 h-3 text-primary" strokeWidth={2.4} />
                   )}
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                    {mode === "friend" ? "Sempre aqui pra você" : "SnyX Bot online"}
+                    {mode === "friend" ? "Sempre aqui pra você" : mode === "vip" ? "Modo VIP online" : "SnyX Bot online"}
                   </span>
                 </div>
 
@@ -1458,6 +1462,18 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                         Melhor Amigo
                       </span>
                       <span className="text-foreground/95"> 💖</span>
+                    </>
+                  ) : mode === "vip" ? (
+                    <>
+                      <span className="inline-block bg-gradient-to-br from-primary via-primary/90 to-primary/50 bg-clip-text text-transparent drop-shadow-[0_0_36px_hsl(var(--primary)/0.5)]">
+                        SnyX VIP
+                      </span>
+                      <br />
+                      <span className="text-foreground/95">Seu chat </span>
+                      <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent drop-shadow-[0_0_24px_hsl(var(--primary)/0.4)]">
+                        premium de verdade
+                      </span>
+                      <span className="text-foreground/95"> 👑</span>
                     </>
                   ) : (
                     <>
@@ -1481,6 +1497,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                   <span className="h-px w-10 bg-gradient-to-r from-transparent to-primary/50" />
                   {mode === "friend" ? (
                     <Heart className="w-2.5 h-2.5 text-primary fill-primary/70 drop-shadow-[0_0_8px_hsl(var(--primary))]" strokeWidth={2} />
+                  ) : mode === "vip" ? (
+                    <Crown className="w-2.5 h-2.5 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" strokeWidth={2} />
                   ) : (
                     <span className="w-1 h-1 rounded-full bg-primary/70 shadow-[0_0_8px_hsl(var(--primary))]" />
                   )}
@@ -1490,6 +1508,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 <p className="text-sm sm:text-[15px] text-muted-foreground/85 leading-relaxed mb-8 max-w-md mx-auto">
                   {mode === "friend"
                     ? "Pode desabafar, rir, pedir conselho ou só conversar. Eu tô aqui pra te ouvir sem julgar, do seu jeito. 🤗"
+                    : mode === "vip"
+                      ? "Aqui é o modo VIP real: respostas premium, contexto especial e experiência separada do chat normal."
                     : config.emptyText}
                 </p>
 
@@ -1497,6 +1517,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                 <div className="grid gap-2.5">
                   {(mode === "friend"
                     ? ["Tô precisando desabafar 💭", "Me conta uma curiosidade fofa 🌸", "Bora bater um papo 💬"]
+                    : mode === "vip"
+                      ? ["Quero papo VIP 👑", "Fala comigo sem filtro 🔥", "Me responde no modo premium ✨"]
                     : mode === "programmer"
                       ? ["Cria um site bonito 🚀", "Explica esse código 🧠", "Faz um app de lista ✅"]
                       : ["Me ajuda com matemática 📐", "Explica de forma simples 📚", "Faz um resumo ✍️"]
@@ -1512,6 +1534,8 @@ export function ChatPanel({ onCodeGenerated, onModeChange, initialConversationId
                       <span className="relative inline-flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
                         {mode === "friend" ? (
                           <Heart className="w-3 h-3 text-primary/70 fill-primary/30 group-hover:fill-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.2} />
+                        ) : mode === "vip" ? (
+                          <Crown className="w-3 h-3 text-primary/70 group-hover:text-primary transition-colors" strokeWidth={2.2} />
                         ) : (
                           <Sparkles className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" strokeWidth={2.4} />
                         )}
