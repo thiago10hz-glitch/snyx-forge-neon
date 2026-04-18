@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Volume2, VolumeX, RotateCcw } from "lucide-react";
+import { Play, Volume2, VolumeX, RotateCcw, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Scene {
   id: number;
@@ -37,19 +39,19 @@ const SCENES: Scene[] = [
   },
   {
     id: 3,
-    duration: 4000,
-    narration: "RPG imersivo com personagens vivos.",
-    title: "RPG Imersivo",
-    subtitle: "Mundos próprios. Histórias suas.",
-    accent: "RPG",
+    duration: 4500,
+    narration: "Música original gerada por inteligência artificial.",
+    title: "Música IA",
+    subtitle: "Trilhas suas. Em segundos.",
+    accent: "♪",
   },
   {
     id: 4,
     duration: 4000,
-    narration: "Música, IPTV e muito mais. Tudo nosso.",
-    title: "Música • IPTV",
-    subtitle: "Infraestrutura própria",
-    accent: "★",
+    narration: "IPTV próprio com canais ao vivo, em alta definição.",
+    title: "IPTV Próprio",
+    subtitle: "Ao vivo. Em HD.",
+    accent: "TV",
   },
   {
     id: 5,
@@ -67,39 +69,51 @@ export default function Promo() {
   const [muted, setMuted] = useState(false);
   const [currentScene, setCurrentScene] = useState(-1);
   const [progress, setProgress] = useState(0);
+  const [loadingAudio, setLoadingAudio] = useState(false);
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number>();
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const ptVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCacheRef = useRef<Map<number, string>>(new Map());
 
-  // Pick best PT-BR voice
-  useEffect(() => {
-    const pickVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const pt =
-        voices.find((v) => v.lang === "pt-BR" && /female|google|luciana|maria/i.test(v.name)) ||
-        voices.find((v) => v.lang === "pt-BR") ||
-        voices.find((v) => v.lang.startsWith("pt"));
-      if (pt) ptVoiceRef.current = pt;
-    };
-    pickVoice();
-    window.speechSynthesis.onvoiceschanged = pickVoice;
-    return () => {
-      window.speechSynthesis.cancel();
-    };
-  }, []);
+  // Pre-generate all narration audio with Gemini TTS
+  const preloadAudio = async () => {
+    if (audioCacheRef.current.size === SCENES.length) return;
+    setLoadingAudio(true);
+    try {
+      const results = await Promise.all(
+        SCENES.map(async (s) => {
+          if (audioCacheRef.current.has(s.id)) return null;
+          const { data, error } = await supabase.functions.invoke("tts-gemini", {
+            body: { text: s.narration, voice: "Aoede" },
+          });
+          if (error || !data?.audioContent) {
+            console.error("TTS failed for scene", s.id, error);
+            return null;
+          }
+          return { id: s.id, url: `data:audio/wav;base64,${data.audioContent}` };
+        })
+      );
+      results.forEach((r) => r && audioCacheRef.current.set(r.id, r.url));
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar a narração. Tente novamente.");
+    } finally {
+      setLoadingAudio(false);
+    }
+  };
 
-  const speak = (text: string) => {
+  const playSceneAudio = (sceneId: number) => {
     if (muted) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "pt-BR";
-    u.rate = 0.95;
-    u.pitch = 1.05;
-    u.volume = 1;
-    if (ptVoiceRef.current) u.voice = ptVoiceRef.current;
-    utteranceRef.current = u;
-    window.speechSynthesis.speak(u);
+    const url = audioCacheRef.current.get(sceneId);
+    if (!url) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    const audio = new Audio(url);
+    audio.volume = 1;
+    audioRef.current = audio;
+    audio.play().catch((e) => console.warn("Audio play blocked:", e));
   };
 
   const tick = () => {
@@ -120,7 +134,7 @@ export default function Promo() {
 
     setCurrentScene((prev) => {
       if (prev !== sceneIdx) {
-        speak(SCENES[sceneIdx].narration);
+        playSceneAudio(sceneIdx);
         return sceneIdx;
       }
       return prev;
@@ -133,8 +147,9 @@ export default function Promo() {
     }
   };
 
-  const start = () => {
-    window.speechSynthesis.cancel();
+  const start = async () => {
+    await preloadAudio();
+    if (audioRef.current) audioRef.current.pause();
     setPlaying(true);
     setCurrentScene(-1);
     setProgress(0);
@@ -144,7 +159,7 @@ export default function Promo() {
 
   const stop = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    window.speechSynthesis.cancel();
+    if (audioRef.current) audioRef.current.pause();
     setPlaying(false);
     setCurrentScene(-1);
     setProgress(0);
@@ -153,7 +168,7 @@ export default function Promo() {
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      window.speechSynthesis.cancel();
+      if (audioRef.current) audioRef.current.pause();
     };
   }, []);
 
@@ -228,10 +243,20 @@ export default function Promo() {
               <Button
                 size="lg"
                 onClick={start}
+                disabled={loadingAudio}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-14 text-base font-semibold gap-2"
               >
-                <Play className="w-5 h-5 fill-current" />
-                Reproduzir filme (30s)
+                {loadingAudio ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Preparando narração...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 fill-current" />
+                    Reproduzir filme (30s)
+                  </>
+                )}
               </Button>
               <Button
                 size="lg"
@@ -245,7 +270,7 @@ export default function Promo() {
             </div>
 
             <p className="text-xs text-muted-foreground/60">
-              Use fones para a melhor experiência cinemática
+              Voz feminina real gerada por IA • Use fones para a melhor experiência
             </p>
           </div>
         )}
@@ -315,7 +340,12 @@ export default function Promo() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setMuted((m) => !m)}
+                onClick={() => {
+                  setMuted((m) => {
+                    if (!m && audioRef.current) audioRef.current.pause();
+                    return !m;
+                  });
+                }}
                 className="text-foreground/70 hover:text-foreground"
               >
                 {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
