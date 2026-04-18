@@ -246,14 +246,15 @@ export default function OwnerPanel() {
   ];
 
   return (
-    <div className="min-h-screen text-foreground flex relative overflow-hidden bg-[#0a0612]">
-      {/* Royal aurora — violet + gold ambient backdrop (Owner) */}
+    <div className="min-h-screen text-foreground flex relative overflow-hidden bg-[#0d0306]">
+      {/* Ruby aurora — vermelho rubi profundo com brasa dourada (Owner) */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-32 w-[640px] h-[640px] rounded-full bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.28),transparent_60%)] blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.18),transparent_60%)] blur-3xl" />
-        <div className="absolute bottom-[-200px] left-1/4 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_65%)] blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,6,18,0.4)_0%,rgba(10,6,18,0.85)_100%)]" />
-        <div className="absolute inset-0 opacity-[0.035] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")" }} />
+        <div className="absolute -top-48 -left-32 w-[680px] h-[680px] rounded-full bg-[radial-gradient(circle_at_center,rgba(225,29,72,0.32),transparent_60%)] blur-3xl" />
+        <div className="absolute top-1/3 -right-40 w-[760px] h-[760px] rounded-full bg-[radial-gradient(circle_at_center,rgba(190,18,60,0.28),transparent_60%)] blur-3xl" />
+        <div className="absolute bottom-[-220px] left-1/4 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.14),transparent_65%)] blur-3xl" />
+        <div className="absolute top-2/3 right-1/4 w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.18),transparent_65%)] blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,3,6,0.35)_0%,rgba(8,2,4,0.9)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")" }} />
       </div>
       {/* Ambient red glow */}
       <div className="pointer-events-none fixed inset-0 -z-10">
